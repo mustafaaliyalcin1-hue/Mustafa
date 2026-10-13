@@ -1,7 +1,7 @@
 {
   "name": "Konuşan Baykuş - Türkçe Telaffuz",
   "short_name": "Konuşan Baykuş",
-  "description": "1. ve 2. sınıflar için yapay zekâ destekli Türkçe telaffuz pekiştirme uygulaması",
+  "description": "1. ve 2. sınıflar için yapay zekâ destekli Türkçe ve İngilizce telaffuz pekiştirme uygulaması",
   "lang": "tr",
   "id": "./",
   "start_url": "./index.html",

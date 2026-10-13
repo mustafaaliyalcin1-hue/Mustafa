@@ -4,12 +4,14 @@ import { $app, route, go, mascot, owl, toast, progressBar, showBadges, onLeave, 
 import { say, saySlow, listen, canListen, listenErrorMessage } from "../speech.js";
 import { evaluate } from "../coach.js";
 import { LETTERS, SOUND_PAIRS, PICTURE_WORDS, PARTNER } from "../content.js";
-import { SOUND_TIPS } from "../tips.js";
+import { SOUND_TIPS, EN_SOUND_TIPS } from "../tips.js";
+import { EN_LETTERS, EN_SOUND_PAIRS } from "../content-en.js";
 import { syllabify, shuffle, esc, lower } from "../text.js";
 import { sfx, confetti, starBurst } from "../fx.js";
 import * as store from "../store.js";
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const isEn = () => store.lang() === "en";
 
 // Oyun sonu ekranı (ortak)
 function endScreen({ correct, total, again }) {
@@ -40,72 +42,82 @@ function reward(n) {
 
 /* ---------- Harflerin Sesi ---------- */
 route("letters", () => {
+  const en = isEn();
+  const lang = en ? "en" : "tr";
+  const letters = en ? EN_LETTERS : LETTERS;
   $app.innerHTML = `
-    ${mascot("Bir harfe dokun: sesini, örnek kelimesini ve ağzını nasıl kullanacağını öğren!")}
+    ${mascot(en
+      ? "İngiliz alfabesi! Bir harfe dokun: harfin İngilizce adını ve örnek kelimeyi dinle. 🔤"
+      : "Bir harfe dokun: sesini, örnek kelimesini ve ağzını nasıl kullanacağını öğren!")}
     <div class="card center letter-detail" id="detail"><p class="muted">Bir harf seç 👇</p></div>
     <div class="letters">
-      ${LETTERS.map((x, i) => `<button class="letter" data-i="${i}">${x.l}<small>${lower(x.l)}</small></button>`).join("")}
+      ${letters.map((x, i) => `<button class="letter" data-i="${i}">${x.l}<small>${lower(x.l, lang)}</small></button>`).join("")}
     </div>`;
   on(".letter", (b) => {
     $app.querySelectorAll(".letter.on").forEach((x) => x.classList.remove("on"));
     b.classList.add("on");
-    const x = LETTERS[+b.dataset.i];
-    const small = lower(x.l);
+    const x = letters[+b.dataset.i];
+    const small = lower(x.l, lang);
     const detail = $app.querySelector("#detail");
     detail.innerHTML = `
       <div class="pic">${x.e}</div>
       <div class="target">${x.l} ${small} — ${esc(x.w)}</div>
-      ${SOUND_TIPS[small] ? `<p>${SOUND_TIPS[small]}</p>` : ""}
+      ${!en && SOUND_TIPS[small] ? `<p>${SOUND_TIPS[small]}</p>` : ""}
       <div class="row">
         <button class="btn" id="again">🔊 Dinle</button>
         ${canListen ? `<button class="btn primary" id="try">🎤 Ben söyleyeyim</button>` : ""}
       </div>
       <p class="interim" id="res"></p>`;
     detail.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    on("#again", () => sayLetter(x), detail);
+    on("#again", () => sayLetter(x, lang), detail);
     on("#try", async (btn) => {
       btn.classList.add("listening");
       const res = detail.querySelector("#res");
       res.textContent = "Dinliyorum… “" + x.w + "” de!";
       let alts = [];
-      try { alts = await listen(); } catch (e) { toast(listenErrorMessage(e)); }
+      try { alts = await listen({ lang }); } catch (e) { toast(listenErrorMessage(e)); }
       btn.classList.remove("listening");
       if (!alts.length) { res.textContent = ""; return; }
-      const fb = evaluate(x.w, alts);
+      const fb = evaluate(x.w, alts, { lang });
       if (fb.level === "ok" || fb.level === "almost") {
         res.innerHTML = `🎉 Doğru! “${esc(x.w)}”`;
         sfx.success();
         reward(1);
-        say("Aferin!");
+        say(en ? "Great job!" : "Aferin!", { lang });
       } else {
         res.innerHTML = `“${esc(fb.heardText)}” duydum. ${fb.tips[0]?.html || "Bir daha dene!"}`;
         sfx.retry();
         await say("Bir daha dinle.");
-        sayLetter(x);
+        sayLetter(x, lang);
       }
     }, detail);
-    sayLetter(x);
+    sayLetter(x, lang);
   });
 });
 
-async function sayLetter(x) {
-  await say(lower(x.l), { rate: 0.7 });
-  await say(x.w, { rate: 0.75 });
+async function sayLetter(x, lang = "tr") {
+  // İngilizcede harfin adı büyük harfle daha doğru okunur ("A" → "ey").
+  await say(lang === "en" ? x.l : lower(x.l), { rate: 0.7, lang });
+  await say(x.w, { rate: 0.75, lang });
 }
 
 /* ---------- Benzer Sesler ---------- */
 route("pairs", (idx) => {
+  const en = isEn();
+  const lang = en ? "en" : "tr";
+  const PAIRS = en ? EN_SOUND_PAIRS : SOUND_PAIRS;
+  const TIPS = en ? EN_SOUND_TIPS : SOUND_TIPS;
   if (idx === undefined) {
     $app.innerHTML = `
-      ${mascot("Bazı sesler birbirine çok benzer. Dikkatli dinle! Hangisini çalışalım?")}
+      ${mascot(en ? "İngilizcede bazı sesler bize çok benzer gelir. Dikkatli dinle! 🎧" : "Bazı sesler birbirine çok benzer. Dikkatli dinle! Hangisini çalışalım?")}
       <div class="grid">
-        ${SOUND_PAIRS.map((p, i) => `<a class="tile" href="#/pairs/${i}">
+        ${PAIRS.map((p, i) => `<a class="tile" href="#/pairs/${i}">
           <span class="t big-pair">${p.a} – ${p.b}</span>
           <span class="d">${p.words.map((w) => w.join(" / ")).join(", ")}</span></a>`).join("")}
       </div>`;
     return;
   }
-  const pair = SOUND_PAIRS[+idx];
+  const pair = PAIRS[+idx];
   if (!pair) return go("#/pairs");
   let alive = true;
   onLeave(() => { alive = false; });
@@ -129,12 +141,12 @@ route("pairs", (idx) => {
           <button class="btn choice-word" data-w="${esc(w2)}">${esc(w2)}</button>
         </div>
         <details class="tips"><summary>💡 Bu sesler nasıl söylenir?</summary>
-          <p>${SOUND_TIPS[pair.a] || ""}</p><p>${SOUND_TIPS[pair.b] || ""}</p>
+          <p>${TIPS[pair.a] || ""}</p><p>${TIPS[pair.b] || ""}</p>
         </details>
         <div id="turn"></div>
       </div>`;
-    on("#hear", () => say(answer, { rate: 0.7 }));
-    say(answer, { rate: 0.7 });
+    on("#hear", () => say(answer, { rate: 0.7, lang }));
+    say(answer, { rate: 0.7, lang });
     on(".choice-word", async (b) => {
       $app.querySelectorAll(".choice-word").forEach((x) => (x.disabled = true));
       if (b.dataset.w === answer) {
@@ -142,12 +154,13 @@ route("pairs", (idx) => {
         b.classList.add("right");
         sfx.success();
         reward(1);
-        await say("Doğru!");
+        await say(en ? "Correct!" : "Doğru!", { lang });
       } else {
         b.classList.add("wrong");
         $app.querySelector(`.choice-word[data-w="${CSS.escape(answer)}"]`).classList.add("right");
         sfx.retry();
-        await say(`Bu ${answer} idi.`, { rate: 0.75 });
+        if (en) { await say("Duyduğun kelime:"); await say(answer, { rate: 0.7, lang }); }
+        else await say(`Bu ${answer} idi.`, { rate: 0.75 });
       }
       if (alive) speakTurn(answer);
     });
@@ -168,11 +181,11 @@ route("pairs", (idx) => {
     mic.onclick = async () => {
       mic.classList.add("listening");
       let alts = [];
-      try { alts = await listen(); } catch (e) { toast(listenErrorMessage(e)); }
+      try { alts = await listen({ lang }); } catch (e) { toast(listenErrorMessage(e)); }
       if (!alive) return;
       mic.classList.remove("listening");
       if (!alts.length) return;
-      const fb = evaluate(word, alts);
+      const fb = evaluate(word, alts, { lang });
       const box = turn.querySelector(".feedback");
       const res = turn.querySelector("#res");
       if (fb.level === "ok") {
@@ -180,7 +193,7 @@ route("pairs", (idx) => {
         res.innerHTML = "🎉 Süper! Doğru söyledin!";
         sfx.success();
         reward(1);
-        await say("Süper!");
+        await say(en ? "Super!" : "Süper!", { lang });
         await wait(400);
         if (alive) { round++; q(); }
       } else {
@@ -189,7 +202,7 @@ route("pairs", (idx) => {
         sfx.retry();
         store.recordAttempt({ success: false, weakSounds: fb.weakSounds });
         await say(fb.tips[0]?.speech || "Bir daha dene.");
-        if (alive) say(word, { rate: 0.6 });
+        if (alive) say(word, { rate: 0.6, lang });
       }
     };
   }
@@ -203,23 +216,27 @@ route("listen", () => {
   const ROUNDS = 8;
   let round = 0;
   let correct = 0;
-  const order = shuffle(PICTURE_WORDS).slice(0, ROUNDS);
+  const en = isEn();
+  const lang = en ? "en" : "tr";
+  // İngilizcede kelime olarak p.en kullanılır
+  const words = PICTURE_WORDS.map((p) => ({ ...p, w: en ? p.en : p.w }));
+  const order = shuffle(words).slice(0, ROUNDS);
 
   function q() {
     if (!alive) return;
     if (round >= ROUNDS) return endScreen({ correct, total: ROUNDS, again: () => go("#/listen") });
     const target = order[round];
-    const options = shuffle([target, ...shuffle(PICTURE_WORDS.filter((x) => x !== target)).slice(0, 3)]);
+    const options = shuffle([target, ...shuffle(words.filter((x) => x.w !== target.w)).slice(0, 3)]);
     let firstTry = true;
     $app.innerHTML = `
-      <div class="practice-head"><h2>🖼️ Dinle Bul</h2><span class="muted">${round + 1} / ${ROUNDS}</span></div>
+      <div class="practice-head"><h2>🖼️ ${en ? "Listen & Find" : "Dinle Bul"}</h2><span class="muted">${round + 1} / ${ROUNDS}</span></div>
       ${progressBar(round, ROUNDS)}
       <div class="row" style="margin-bottom:14px"><button class="btn primary big" id="hear">🔊 Kelimeyi dinle</button></div>
       <div class="choices">
         ${options.map((o) => `<button class="choice" data-w="${esc(o.w)}" aria-label="${esc(o.e)}">${o.e}<span hidden>${esc(o.w)}</span></button>`).join("")}
       </div>`;
-    on("#hear", () => say(target.w, { rate: 0.75 }));
-    say(target.w, { rate: 0.75 });
+    on("#hear", () => say(target.w, { rate: 0.75, lang }));
+    say(target.w, { rate: 0.75, lang });
     let locked = false;
     on(".choice", async (b) => {
       if (locked || b.classList.contains("wrong")) return;
@@ -230,7 +247,8 @@ route("listen", () => {
         if (firstTry) correct++;
         sfx.success();
         reward(firstTry ? 2 : 1);
-        await say(`Doğru! ${target.w}`);
+        if (en) await say(`Correct! ${target.w}`, { lang });
+        else await say(`Doğru! ${target.w}`);
         await wait(300);
         round++;
         q();
@@ -238,7 +256,8 @@ route("listen", () => {
         firstTry = false;
         b.classList.add("wrong");
         sfx.retry();
-        await say(`Bu ${b.dataset.w}. Tekrar dinle: ${target.w}`, { rate: 0.8 });
+        if (en) { await say(`This is ${b.dataset.w}.`, { lang }); await say("Tekrar dinle."); await say(target.w, { rate: 0.75, lang }); }
+        else await say(`Bu ${b.dataset.w}. Tekrar dinle: ${target.w}`, { rate: 0.8 });
       }
     });
   }
@@ -371,3 +390,66 @@ route("missing", () => {
   }
   q();
 });
+
+/* ---------- Ne Demek? (İngilizce → Türkçe anlam) ---------- */
+// mode "meaning": İngilizce kelimeyi dinle/oku, Türkçesini seç.
+// mode "which":   resme bak, doğru İngilizce kelimeyi seç.
+function wordQuiz(mode) {
+  let alive = true;
+  onLeave(() => { alive = false; });
+  const ROUNDS = 8;
+  const order = shuffle(PICTURE_WORDS).slice(0, ROUNDS);
+  let round = 0;
+  let correct = 0;
+  const hash = "#/" + mode;
+
+  function q() {
+    if (!alive) return;
+    if (round >= ROUNDS) return endScreen({ correct, total: ROUNDS, again: () => go(hash) });
+    const target = order[round];
+    const options = shuffle([target, ...shuffle(PICTURE_WORDS.filter((x) => x !== target)).slice(0, 3)]);
+    const label = (o) => (mode === "meaning" ? o.w : o.en);
+    let firstTry = true;
+    $app.innerHTML = `
+      <div class="practice-head"><h2>${mode === "meaning" ? "🤔 Ne Demek?" : "🔤 Hangisi?"}</h2><span class="muted">${round + 1} / ${ROUNDS}</span></div>
+      ${progressBar(round, ROUNDS)}
+      <div class="card center">
+        ${mode === "meaning"
+          ? `<div class="target">${esc(target.en)}</div><p class="muted">Bu İngilizce kelimenin Türkçesi hangisi?</p>`
+          : `<div class="pic">${target.e}</div><p class="muted">Bunun İngilizcesi hangisi?</p>`}
+        <div class="row" style="margin:0 0 14px"><button class="btn" id="hear">🔊 Dinle</button></div>
+        <div class="word-opts">
+          ${options.map((o) => `<button class="btn word-opt" data-w="${esc(o.w)}">${esc(label(o))}</button>`).join("")}
+        </div>
+      </div>`;
+    on("#hear", () => say(target.en, { lang: "en", rate: 0.75 }));
+    if (mode === "meaning") say(target.en, { lang: "en", rate: 0.75 });
+    on(".word-opt", async (b) => {
+      if (b.classList.contains("wrong")) return;
+      const o = PICTURE_WORDS.find((x) => x.w === b.dataset.w);
+      if (o === target) {
+        $app.querySelectorAll(".word-opt").forEach((x) => (x.disabled = true));
+        b.classList.add("right");
+        if (firstTry) correct++;
+        sfx.success();
+        reward(firstTry ? 2 : 1);
+        await say("Correct!", { lang: "en" });
+        await say(target.en, { lang: "en" });
+        await say(`${target.w} demek.`);
+        await wait(300);
+        round++;
+        q();
+      } else {
+        firstTry = false;
+        b.classList.add("wrong");
+        sfx.retry();
+        if (mode === "which") await say(o.en, { lang: "en" });
+        await say("Bir daha dene.");
+      }
+    });
+  }
+  q();
+}
+
+route("meaning", () => wordQuiz("meaning"));
+route("which", () => wordQuiz("which"));

@@ -6,13 +6,14 @@ const KEY = "konusan-baykus:v2";
 
 const DEFAULTS = () => ({
   profile: null, // { name, grade: 1|2, avatar }
+  lang: "tr", // çalışılan dil: "tr" | "en"
   settings: { rate: 0.85, sfx: true },
   stars: 0,
   done: {}, // { [listId]: [metin, ...] }
   attempts: 0, // değerlendirilen konuşma sayısı
   firstTry: 0, // ilk denemede doğru
   correct: 0, // doğru söylenen toplam
-  weak: {}, // { "ş": 3, ... } zorlanılan sesler
+  weak: {}, // { "ş": 3, "en:th": 2, ... } zorlanılan sesler (İngilizce olanlar "en:" ile başlar)
   days: {}, // { "2026-10-13": yıldız }
   badges: [],
 });
@@ -45,6 +46,9 @@ export const today = () => {
 export const DAILY_GOAL = 15;
 
 export function setProfile(profile) { state.profile = { ...state.profile, ...profile }; changed(); }
+export const lang = () => state.lang || "tr";
+export function setLang(l) { state.lang = l; changed(); }
+
 export function setSetting(k, v) { state.settings = { ...state.settings, [k]: v }; changed(); }
 
 export function addStars(n) {
@@ -75,11 +79,17 @@ export function recordAttempt({ success, firstTry, weakSounds = [] }) {
 
 // Çalışılan ses doğru söylendikçe zayıflık puanı azalır.
 export function relieveWeak(sound) {
+  if (lang() === "en") sound = "en:" + sound;
   if (state.weak[sound]) { state.weak[sound] = Math.max(0, state.weak[sound] - 1); changed(); }
 }
 
-export function weakList(limit = 4) {
-  return Object.entries(state.weak).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]).slice(0, limit);
+// Zorlanılan sesler, seçilen dile göre: [["ş", 4], ...] veya İngilizcede [["th", 2], ...]
+export function weakList(limit = 4, l = lang()) {
+  return Object.entries(state.weak)
+    .filter(([k, n]) => n > 0 && (l === "en") === k.startsWith("en:"))
+    .map(([k, n]) => [k.replace(/^en:/, ""), n])
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit);
 }
 
 export function streak() {
@@ -111,7 +121,7 @@ export function checkBadges(extra = {}) {
 }
 
 export function reset() {
-  const keep = { profile: state.profile, settings: state.settings };
+  const keep = { profile: state.profile, settings: state.settings, lang: state.lang };
   state = { ...DEFAULTS(), ...keep };
   changed();
 }

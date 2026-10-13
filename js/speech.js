@@ -7,36 +7,43 @@ const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 export const canListen = !!Recognition;
 export const canSpeak = "speechSynthesis" in window;
 
-let trVoice = null;
+const LOCALES = { tr: "tr-TR", en: "en-US" };
+const voiceFor = { tr: null, en: null };
 let voicesLoaded = false;
 function pickVoice() {
   const voices = speechSynthesis.getVoices();
   if (voices.length) voicesLoaded = true;
-  const tr = voices.filter((v) => /^tr([-_]|$)/i.test(v.lang));
-  // Varsa Google / doğal sesleri tercih et.
-  trVoice = tr.find((v) => /google|natural|neural/i.test(v.name)) || tr[0] || null;
+  for (const l of ["tr", "en"]) {
+    const list = voices.filter((v) => new RegExp(`^${l}([-_]|$)`, "i").test(v.lang));
+    // Varsa Google / doğal sesleri, İngilizcede ABD/İngiltere aksanını tercih et.
+    voiceFor[l] =
+      list.find((v) => /google|natural|neural/i.test(v.name) && (l !== "en" || /US|GB/i.test(v.lang))) ||
+      list.find((v) => l !== "en" || /US|GB/i.test(v.lang)) ||
+      list[0] || null;
+  }
 }
 if (canSpeak) {
   pickVoice();
   speechSynthesis.addEventListener?.("voiceschanged", pickVoice);
 }
 // Ses listesi yüklendiyse ve Türkçe ses yoksa true.
-export const missingTurkishVoice = () => canSpeak && voicesLoaded && !trVoice;
+export const missingVoice = (l = "tr") => canSpeak && voicesLoaded && !voiceFor[l];
 
 export function stopSpeaking() { if (canSpeak) speechSynthesis.cancel(); }
 
 /**
- * Metni Türkçe okur. onWord(i) verilirse okunan kelimenin sırası bildirilir (karaoke).
+ * Metni okur (lang: "tr" | "en"). onWord(i) verilirse okunan kelimenin sırası bildirilir (karaoke).
  * Bazı cihazlar kelime olayını desteklemez; o durumda süreye göre tahmin edilir.
  */
-export function say(text, { rate, onWord } = {}) {
+export function say(text, { rate, onWord, lang = "tr" } = {}) {
   return new Promise((resolve) => {
     if (!canSpeak) return resolve();
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = "tr-TR";
-    try { if (trVoice) u.voice = trVoice; } catch { /* lang=tr-TR yeterli */ }
-    u.rate = rate ?? store.get().settings.rate;
+    u.lang = LOCALES[lang];
+    try { if (voiceFor[lang]) u.voice = voiceFor[lang]; } catch { /* lang yeterli */ }
+    // İngilizce çocuklar için biraz daha yavaş okunur.
+    u.rate = rate ?? store.get().settings.rate * (lang === "en" ? 0.9 : 1);
     u.pitch = 1.1;
 
     let timers = [];
@@ -83,12 +90,13 @@ export function say(text, { rate, onWord } = {}) {
 
 const pause = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// Hece hece, yavaş okuma. onWord ile hangi kelimede olduğunu bildirir.
-export async function saySlow(text, { onWord } = {}) {
-  const list = words(text);
+// Yavaş okuma: Türkçede hece hece, İngilizcede kelime kelime. onWord ile hangi kelimede olduğunu bildirir.
+export async function saySlow(text, { onWord, lang = "tr" } = {}) {
+  const list = lang === "en" ? text.split(/\s+/).filter(Boolean) : words(text);
   for (let i = 0; i < list.length; i++) {
     onWord?.(i);
-    for (const s of syllabify(list[i])) await say(s, { rate: 0.6 });
+    if (lang === "en") await say(list[i], { rate: 0.6, lang });
+    else for (const s of syllabify(list[i])) await say(s, { rate: 0.6 });
     await pause(250);
   }
   onWord?.(-1);
@@ -100,13 +108,13 @@ let activeRec = null;
  * Mikrofondan dinler. onInterim(metin) konuşurken anlık yazıyı verir.
  * Döner: olası metinler dizisi (en olası önce). Hiç ses yoksa [].
  */
-export function listen({ onInterim } = {}) {
+export function listen({ onInterim, lang = "tr" } = {}) {
   return new Promise((resolve, reject) => {
     if (!canListen) return reject(new Error("unsupported"));
     stopSpeaking();
     const rec = new Recognition();
     activeRec = rec;
-    rec.lang = "tr-TR";
+    rec.lang = LOCALES[lang];
     rec.interimResults = !!onInterim;
     rec.maxAlternatives = 5;
     rec.continuous = false;

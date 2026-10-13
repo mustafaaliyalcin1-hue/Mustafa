@@ -1,13 +1,22 @@
-// Türkçe metin yardımcıları: küçültme, temizleme, heceleme, benzerlik.
+// Metin yardımcıları (Türkçe + İngilizce): küçültme, temizleme, heceleme, benzerlik.
 
 export const VOWELS = "aeıioöuü";
 
-export const lower = (s) => String(s).toLocaleLowerCase("tr-TR");
+export const lower = (s, lang = "tr") => String(s).toLocaleLowerCase(lang === "en" ? "en-US" : "tr-TR");
+
+// Ses tanıma sayıları rakamla yazabilir ("3"); kelimeye çevir.
+const NUMBERS = {
+  tr: ["sıfır", "bir", "iki", "üç", "dört", "beş", "altı", "yedi", "sekiz", "dokuz", "on",
+    "on bir", "on iki", "on üç", "on dört", "on beş", "on altı", "on yedi", "on sekiz", "on dokuz", "yirmi"],
+  en: ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
+    "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty"],
+};
 
 // Noktalama ve kesme işaretlerini temizler; şapkalı harfleri sadeleştirir.
-// "Ali'nin" → "alinin" (ses tanıma da kesme işaretini yazmaz).
-export function normalize(s) {
-  return lower(s)
+// "Ali'nin" → "alinin", "I'm" → "im" (ses tanıma da kesme işaretini farklı yazabilir).
+export function normalize(s, lang = "tr") {
+  return lower(s, lang)
+    .replace(/\d+/g, (n) => ` ${NUMBERS[lang]?.[+n] ?? n} `)
     .replace(/['’`]/g, "")
     .replace(/[âîû]/g, (c) => ({ â: "a", î: "i", û: "u" })[c])
     .replace(/[^a-zçğıöşü\s]/g, " ")
@@ -15,7 +24,7 @@ export function normalize(s) {
     .trim();
 }
 
-export const words = (s) => normalize(s).split(" ").filter(Boolean);
+export const words = (s, lang = "tr") => normalize(s, lang).split(" ").filter(Boolean);
 
 // Türkçe hece kuralı: iki ünlü arasındaki son ünsüz bir sonraki heceye geçer.
 // araba → a-ra-ba, kaplumbağa → kap-lum-ba-ğa, Türkçe → Türk-çe
@@ -52,17 +61,17 @@ export const similarity = (a, b) =>
   a === b ? 1 : 1 - levenshtein(a, b) / Math.max(a.length, b.length, 1);
 
 // Harf düzeyinde hizalama: beklenen her ses için ne duyuldu?
-// Döner: [{ want: "ü", got: "u" }, { want: "r", got: "" }]  (got "" = ses atlandı)
+// Döner: [{ want: "ü", got: "u", at: 1 }, { want: "r", got: "", at: 1 }]  (got "" = ses atlandı, at = beklenen kelimedeki sıra)
 export function charConfusions(expected, heard) {
   const d = editTable(expected, heard);
   const out = [];
   let i = expected.length, j = heard.length;
   while (i > 0 || j > 0) {
     if (i > 0 && j > 0 && d[i][j] === d[i - 1][j - 1] + (expected[i - 1] === heard[j - 1] ? 0 : 1)) {
-      if (expected[i - 1] !== heard[j - 1]) out.push({ want: expected[i - 1], got: heard[j - 1] });
+      if (expected[i - 1] !== heard[j - 1]) out.push({ want: expected[i - 1], got: heard[j - 1], at: i - 1 });
       i--; j--;
     } else if (i > 0 && d[i][j] === d[i - 1][j] + 1) {
-      out.push({ want: expected[i - 1], got: "" });
+      out.push({ want: expected[i - 1], got: "", at: i - 1 });
       i--;
     } else {
       j--; // fazladan söylenen ses

@@ -241,10 +241,10 @@ details.tips summary { font-weight: 700; cursor: pointer; }
 .bar-v { height: 90px; width: 22px; background: var(--soft); border-radius: 8px; display: flex; align-items: flex-end; overflow: hidden; }
 .bar-v i { display: block; width: 100%; background: var(--primary); border-radius: 8px; }
 .day span { color: var(--muted); }
-.hbar, .hrow { display: grid; grid-template-columns: 40px 1fr 40px; gap: 10px; align-items: center; margin: 6px 0; }
+.hbar, .hrow { display: grid; grid-template-columns: 44px 1fr 40px; gap: 10px; align-items: center; margin: 6px 0; }
 .hrow { grid-template-columns: minmax(120px, 1.2fr) 2fr 44px; font-size: 16px; }
 .hrow .progress { margin: 0; }
-.hbar .k { font-size: 24px; font-weight: 800; text-align: center; }
+.hbar .k { font-size: 20px; line-height: 1.05; font-weight: 800; text-align: center; }
 .bar { height: 14px; background: var(--soft); border-radius: 99px; overflow: hidden; }
 .bar i { display: block; height: 100%; background: var(--warn); border-radius: 99px; }
 .badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 10px; }
@@ -290,3 +290,18 @@ details.tips summary { font-weight: 700; cursor: pointer; }
   .owl { width: 60px; height: 60px; }
   .hrow { grid-template-columns: 1fr 1fr 40px; }
 }
+
+/* ---------- İngilizce ---------- */
+.meaning { display: flex; flex-wrap: wrap; gap: 6px 14px; justify-content: center; text-align: center; font-size: 18px; }
+.meaning .tr { color: var(--ink); font-weight: 700; }
+.meaning .say { color: var(--muted); }
+.lang-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.lang-switch button {
+  border: 3px solid var(--soft); background: var(--card); border-radius: 18px; padding: 10px 6px;
+  font-weight: 800; font-size: 19px; box-shadow: var(--shadow);
+}
+.lang-switch button.on { border-color: var(--primary); background: var(--soft); }
+.lang-switch small { display: block; font-weight: 600; font-size: 13px; color: var(--muted); }
+.word-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.word-opts .btn { font-size: 22px; min-height: 70px; }
+.line-tr { display: block; font-size: 15px; font-weight: 600; color: var(--muted); }

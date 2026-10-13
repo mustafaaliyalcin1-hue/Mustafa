@@ -1,6 +1,7 @@
-# 🦉 Konuşan Baykuş — Türkçe Telaffuz Pekiştirme
+# 🦉 Konuşan Baykuş — Türkçe ve İngilizce Telaffuz Pekiştirme
 
-1. ve 2. sınıf öğrencileri için, yapay zekâ destekli Türkçe telaffuz ve sesli okuma uygulaması.
+1. ve 2. sınıf öğrencileri için, yapay zekâ destekli **Türkçe** telaffuz ve sesli okuma uygulaması;
+yanında **başlangıç düzeyi İngilizce**. Ana sayfadaki 🇹🇷 / 🇬🇧 düğmesiyle dil seçilir.
 Çocuk cümleyi dinler, mikrofona söyler; **Bilge Baykuş** dinler:
 
 - **Doğruysa:** tebrik eder, yıldız ve konfeti verir, **kendiliğinden sonraki cümleye geçer**.
@@ -23,6 +24,25 @@
 | 🖼️ | **Dinle Bul** | Kelimeyi dinle, doğru resmi bul |
 | 🧩 | **Hece Yapbozu** | Heceleri sırayla dizerek kelimeyi kur (sınıfa göre zorluk) |
 | 🔍 | **Eksik Ses** | Kelimede eksik olan, karıştırılan sesi bul |
+
+### 🇬🇧 İngilizce (başlangıç düzeyi)
+
+Ekranlar ve açıklamalar Türkçe kalır; baykuş İngilizce kelimeyi **İngilizce sesle** okur, hatayı **Türkçe** anlatır.
+Her kelime/cümlenin altında **Türkçe anlamı** ve **Türk harfleriyle okunuşu** yazar (ör. *Thank you → tenk yu*).
+
+| | Etkinlik | Ne yapar? |
+|---|---|---|
+| 🗣️ | **Listen & Say** | 6 konu: Selamlaşma, Renkler, Sayılar, Hayvanlar, Yiyecekler, Ailem ve Okulum (sınıfa göre) |
+| 📚 | **Story Time** | Kısa İngilizce hikâyeler, her cümlenin Türkçesiyle |
+| 🦸 | **Zor Seslerim** | Çocuğun zorlandığı İngilizce seslere (th, w, uzun ii…) göre kelime seçer |
+| 🔠 | **ABC** | İngiliz alfabesi, örnek kelimeler |
+| 🎧 | **Benzer Sesler** | v-w, th-t, i-ee (ship/sheep), s-sh, a-e (bad/bed) |
+| 🖼️ | **Listen & Find** | İngilizce kelimeyi dinle, resmi bul |
+| 🤔 | **Ne Demek?** | İngilizce kelimeyi dinle, Türkçesini seç |
+| 🔤 | **Hangisi?** | Resme bak, doğru İngilizce kelimeyi seç |
+
+Koç, Türk çocuklarının İngilizcede en çok zorlandığı sesleri tanır: *three → tree* derse
+“th sesinde dilinin ucunu dişlerinin arasına koy, hafifçe üfle” der; *water → vater* derse w/v farkını anlatır.
 
 **Motivasyon:** yıldızlar, günlük hedef (15 ⭐), gün serisi 🔥, 8 rozet, baykuş maskot, ses efektleri.
 
@@ -52,13 +72,14 @@ js/main.js                     Giriş noktası
 js/ui.js                       Yönlendirme, baykuş maskot, bildirimler
 js/speech.js                   Dinleme (speechSynthesis tr-TR) + konuşma (SpeechRecognition tr-TR)
 js/coach.js                    ★ Telaffuz koçu: kelime/harf hizalama, hata tespiti, ipucu
-js/tips.js                     Her sesin nasıl söylendiği + sık karışan sesler için ipuçları (r→l, ş→s, ç→c…)
+js/tips.js                     Türkçe ses ipuçları (r→l, ş→s, ç→c…) + İngilizce ses kalıpları (th, w, v, ee…)
 js/text.js                     Türkçe küçültme, heceleme, benzerlik
-js/content.js                  Tüm içerik (temalar, hikâyeler, kelimeler) — kolayca düzenlenebilir
+js/content.js                  Türkçe içerik (temalar, hikâyeler, kelimeler) — kolayca düzenlenebilir
+js/content-en.js               İngilizce içerik (anlam + okunuş ile)
 js/store.js                    Cihazda ilerleme, istatistik, rozetler
 js/fx.js                       Ses efektleri, konfeti
 js/activities/*.js             Ekranlar
-tests/coach.test.js            14 birim testi
+tests/coach.test.js            20 birim testi (Türkçe + İngilizce)
 privacy.html                   Gizlilik politikası (Play Store için gerekli)
 manifest.json, sw.js, icons/   Telefona yüklenebilir uygulama (PWA), çevrimdışı açılış
 ```

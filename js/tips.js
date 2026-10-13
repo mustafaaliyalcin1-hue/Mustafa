@@ -67,3 +67,47 @@ export const PAIR_TIPS = {
 export function tipFor(want, got) {
   return PAIR_TIPS[`${want}>${got}`] || SOUND_TIPS[want] || null;
 }
+
+/* ---------------- İngilizce ---------------- */
+// Türk çocuklarının İngilizcede en çok zorlandığı sesler. Açıklamalar Türkçe.
+// re: kelimede bu sesi bulan kalıp (hatanın yeri bu kalıbın içindeyse ipucu seçilir)
+export const EN_PATTERNS = [
+  { id: "th", re: /th/g, tip: "“th” sesinde dilinin ucunu üst ve alt dişlerinin arasına koy, hafifçe üfle. “t” ya da “s” deme! 👅" },
+  { id: "w", re: /wh|w/g, tip: "“w” sesinde dudaklarını “u” der gibi yuvarla, sonra aç: “uo”. Dişlerin dudağına değmesin, “v” deme!" },
+  { id: "v", re: /v/g, tip: "“v” sesinde üst dişlerin alt dudağına değer: “vvv”. “w” deme!" },
+  { id: "sh", re: /sh/g, tip: "“sh” bizdeki “ş” gibi okunur: “ş”." },
+  { id: "ch", re: /ch/g, tip: "“ch” bizdeki “ç” gibi okunur: “ç”." },
+  { id: "ee", re: /ee|ea/g, tip: "“ee” / “ea” uzun bir “i”dir: gülümse ve uzat: “iii”." },
+  { id: "oo", re: /oo/g, tip: "“oo” çoğu zaman uzun bir “u”dur: “uuu”." },
+  { id: "ing", re: /ing\b/g, tip: "Sondaki “-ing”de “n”yi burnundan söyle, “g”yi neredeyse hiç duyurma." },
+  { id: "e-sessiz", re: /[^aeiou ]e\b/g, tip: "Kelimenin sonundaki “e” okunmaz! Örnek: “five” → “fayv”." },
+  { id: "r", re: /r/g, tip: "İngilizce “r”de dilin hiçbir yere değmez ve titremez. Dilini geriye kıvır: “ır”." },
+  { id: "a", re: /a/g, tip: "İngilizcede “a” çoğu zaman “e” ile “a” arası bir sestir: ağzını geniş aç, “æ” de (cat → “ket”)." },
+  { id: "i", re: /i/g, tip: "Kısa “i” sesi bizim “i”mizden biraz daha gevşektir; çok uzatma." },
+  { id: "h", re: /\bh/g, tip: "“h” sesini camı buğulandırır gibi nefesle söyle; atlama!" },
+];
+
+// Benzer Sesler (İngilizce) için ses açıklamaları
+export const EN_SOUND_TIPS = {
+  v: "“v”: üst dişlerin alt dudağına değer: “vvv”.",
+  w: "“w”: dudaklarını yuvarla, sonra aç: “uo”.",
+  th: "“th”: dilin dişlerinin arasında, hafifçe üfle. 👅",
+  t: "“t”: dilinin ucu dişlerinin arkasına değer: “t”.",
+  i: "kısa “i”: kısacık ve gevşek: “ship”.",
+  ee: "uzun “ii”: gülümse ve uzat: “sheep”.",
+  s: "“s”: yılan gibi: “sss” 🐍",
+  sh: "“sh”: bizim “ş” sesimiz: “şşş” 🤫",
+  a: "“a” (æ): ağzını kocaman aç, “e” ile “a” arası: “bad”.",
+  e: "“e”: bizim “e” sesimize benzer: “bed”.",
+};
+
+// Hatalı yerin hangi İngilizce ses kalıbına düştüğünü bulur.
+export function enTipFor(word, positions) {
+  for (const p of EN_PATTERNS) {
+    for (const m of word.matchAll(p.re)) {
+      const start = m.index, end = m.index + m[0].length;
+      if (positions.some((x) => x >= start && x < end)) return p;
+    }
+  }
+  return null;
+}

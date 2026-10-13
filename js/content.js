@@ -108,17 +108,17 @@ export const SOUND_PAIRS = [
   { a: "k", b: "g", words: [["kel", "gel"], ["kar", "gar"], ["kol", "gol"]] },
 ];
 
-// Resimli kelimeler (Dinle Bul, Hece Yapbozu, Eksik Ses).
+// Resimli kelimeler (Dinle Bul, Hece Yapbozu, Eksik Ses, Ne Demek?). en: İngilizcesi
 export const PICTURE_WORDS = [
-  { w: "kedi", e: "🐱" }, { w: "köpek", e: "🐶" }, { w: "kuş", e: "🐦" }, { w: "balık", e: "🐟" },
-  { w: "tavşan", e: "🐰" }, { w: "kelebek", e: "🦋" }, { w: "zürafa", e: "🦒" }, { w: "kaplumbağa", e: "🐢" },
-  { w: "elma", e: "🍎" }, { w: "üzüm", e: "🍇" }, { w: "muz", e: "🍌" }, { w: "çilek", e: "🍓" },
-  { w: "portakal", e: "🍊" }, { w: "domates", e: "🍅" }, { w: "havuç", e: "🥕" }, { w: "peynir", e: "🧀" },
-  { w: "araba", e: "🚗" }, { w: "uçak", e: "✈️" }, { w: "gemi", e: "🚢" }, { w: "bisiklet", e: "🚲" },
-  { w: "güneş", e: "☀️" }, { w: "yıldız", e: "⭐" }, { w: "bulut", e: "☁️" }, { w: "ağaç", e: "🌳" },
-  { w: "çiçek", e: "🌸" }, { w: "ev", e: "🏠" }, { w: "top", e: "⚽" }, { w: "kitap", e: "📕" },
-  { w: "kalem", e: "✏️" }, { w: "saat", e: "⏰" }, { w: "şemsiye", e: "☂️" }, { w: "gözlük", e: "👓" },
-  { w: "öğretmen", e: "👩‍🏫" }, { w: "televizyon", e: "📺" }, { w: "şapka", e: "👒" }, { w: "ayakkabı", e: "👟" },
+  { w: "kedi", en: "cat", e: "🐱" }, { w: "köpek", en: "dog", e: "🐶" }, { w: "kuş", en: "bird", e: "🐦" }, { w: "balık", en: "fish", e: "🐟" },
+  { w: "tavşan", en: "rabbit", e: "🐰" }, { w: "kelebek", en: "butterfly", e: "🦋" }, { w: "zürafa", en: "giraffe", e: "🦒" }, { w: "kaplumbağa", en: "turtle", e: "🐢" },
+  { w: "elma", en: "apple", e: "🍎" }, { w: "üzüm", en: "grapes", e: "🍇" }, { w: "muz", en: "banana", e: "🍌" }, { w: "çilek", en: "strawberry", e: "🍓" },
+  { w: "portakal", en: "orange", e: "🍊" }, { w: "domates", en: "tomato", e: "🍅" }, { w: "havuç", en: "carrot", e: "🥕" }, { w: "peynir", en: "cheese", e: "🧀" },
+  { w: "araba", en: "car", e: "🚗" }, { w: "uçak", en: "plane", e: "✈️" }, { w: "gemi", en: "ship", e: "🚢" }, { w: "bisiklet", en: "bike", e: "🚲" },
+  { w: "güneş", en: "sun", e: "☀️" }, { w: "yıldız", en: "star", e: "⭐" }, { w: "bulut", en: "cloud", e: "☁️" }, { w: "ağaç", en: "tree", e: "🌳" },
+  { w: "çiçek", en: "flower", e: "🌸" }, { w: "ev", en: "house", e: "🏠" }, { w: "top", en: "ball", e: "⚽" }, { w: "kitap", en: "book", e: "📕" },
+  { w: "kalem", en: "pencil", e: "✏️" }, { w: "saat", en: "clock", e: "⏰" }, { w: "şemsiye", en: "umbrella", e: "☂️" }, { w: "gözlük", en: "glasses", e: "👓" },
+  { w: "öğretmen", en: "teacher", e: "👩‍🏫" }, { w: "televizyon", en: "television", e: "📺" }, { w: "şapka", en: "hat", e: "👒" }, { w: "ayakkabı", en: "shoe", e: "👟" },
 ];
 
 // "Zor seslerim" çalışması için ek kelimeler (hedef ses içerenler aranır).

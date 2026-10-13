@@ -20,8 +20,8 @@ test("normalize: büyük İ/I, kesme işareti, noktalama", () => {
 });
 
 test("harf karışıklığı tespiti", () => {
-  assert.deepEqual(charConfusions("süt", "sut"), [{ want: "ü", got: "u" }]);
-  assert.deepEqual(charConfusions("araba", "aaba"), [{ want: "r", got: "" }]);
+  assert.deepEqual(charConfusions("süt", "sut"), [{ want: "ü", got: "u", at: 1 }]);
+  assert.deepEqual(charConfusions("araba", "aaba"), [{ want: "r", got: "", at: 1 }]);
 });
 
 test("doğru söyleyiş → ok", () => {
@@ -85,4 +85,50 @@ test("içerik: her temada iki sınıf için de cümle var", () => {
 test("içerik: ekrandaki kelime sayısı, değerlendirilen kelime sayısıyla aynı", () => {
   const all = [...THEMES.flatMap((t) => t.items.map((x) => x.t)), ...STORIES.flatMap((s) => s.lines)];
   for (const t of all) assert.equal(t.split(/\s+/).length, normalize(t).split(" ").length, t);
+});
+
+/* ---------------- İngilizce ---------------- */
+import { EN_THEMES, EN_STORIES, EN_SOUND_PAIRS } from "../js/content-en.js";
+
+test("EN normalize: büyük I Türkçe ı olmaz, rakamlar kelimeye çevrilir", () => {
+  assert.equal(normalize("I like it!", "en"), "i like it");
+  assert.equal(normalize("I have 2 cats.", "en"), "i have two cats");
+  assert.equal(normalize("I'm fine", "en"), "im fine");
+  assert.equal(normalize("3 kedi", "tr"), "üç kedi");
+});
+
+test("EN doğru söyleyiş → ok (rakamla gelse de)", () => {
+  assert.equal(evaluate("Hello!", ["hello"], { lang: "en" }).level, "ok");
+  assert.equal(evaluate("I am seven years old.", ["I am 7 years old"], { lang: "en" }).level, "ok");
+  assert.equal(evaluate("Thank you.", ["thank you"], { lang: "en" }).level, "ok");
+});
+
+test("EN th → t: Türkçe th ipucu ve zayıf ses", () => {
+  const fb = evaluate("three", ["tree"], { lang: "en" });
+  assert.equal(fb.level, "close");
+  assert.match(fb.tips[0].html, /“th” sesinde/);
+  assert.deepEqual(fb.weakSounds, ["en:th"]);
+});
+
+test("EN w → v: w ipucu", () => {
+  const fb = evaluate("water", ["vater"], { lang: "en" });
+  assert.match(fb.tips[0].html, /“w” sesinde/);
+});
+
+test("EN sheep → ship: uzun ii ipucu", () => {
+  const fb = evaluate("sheep", ["ship"], { lang: "en" });
+  assert.match(fb.tips[0].html, /uzun bir “i”/);
+});
+
+test("EN içerik: anlam, okunuş ve kelime sayısı tutarlı", () => {
+  for (const t of EN_THEMES) {
+    assert.ok(t.items.filter((x) => x.g === 1).length >= 4, t.id);
+    assert.ok(t.items.filter((x) => x.g === 2).length >= 4, t.id);
+    for (const x of t.items) {
+      assert.ok(x.tr && x.p, x.t);
+      assert.equal(x.t.split(/\s+/).length, normalize(x.t, "en").split(" ").length, x.t);
+    }
+  }
+  for (const s of EN_STORIES) for (const l of s.lines) assert.ok(l.t && l.tr);
+  for (const p of EN_SOUND_PAIRS) assert.equal(p.words.length, 3);
 });

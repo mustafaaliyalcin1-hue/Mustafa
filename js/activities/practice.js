@@ -9,13 +9,15 @@ import { sfx, confetti, starBurst } from "../fx.js";
 import * as store from "../store.js";
 
 const PRAISE = ["Aferin!", "Harika!", "Süpersin!", "Mükemmel!", "Bravo!", "Çok güzel söyledin!"];
+const PRAISE_EN = ["Great job!", "Well done!", "Super!", "Excellent!", "Amazing!", "Perfect!"];
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 
 /**
  * @param {object} o
  * @param {string} o.title
  * @param {string} o.icon
- * @param {{t:string, e?:string}[]} o.items
+ * @param {{t:string, e?:string, tr?:string, p?:string}[]} o.items  tr: Türkçe anlamı, p: okunuşu (İngilizce)
+ * @param {"tr"|"en"} [o.lang]  Çalışılan dil
  * @param {string} o.listId     İlerlemenin kaydedileceği liste
  * @param {string} o.backHash   Bitince dönülecek ekran
  * @param {number} [o.start]    Kaldığı yerden devam için başlangıç sırası
@@ -31,10 +33,12 @@ export function startPractice(o) {
   onLeave(() => { alive = false; });
 
   const item = () => o.items[index];
+  const lang = o.lang || "tr";
+  const en = lang === "en";
 
   function show(fb) {
     const it = item();
-    const target = words(it.t);
+    const target = words(it.t, lang);
     // Orijinal yazımı (büyük harf, noktalama) koruyarak kelimelere böl
     const shown = it.t.split(/\s+/);
     const status = fb ? fb.aligned.map((a) => a.status) : [];
@@ -51,14 +55,16 @@ export function startPractice(o) {
       <div class="card practice">
         ${it.e ? `<div class="pic" aria-hidden="true">${it.e}</div>` : ""}
         <div class="target" id="target">${wordsHtml}</div>
-        <div class="syll" aria-label="Heceler">${target.map((w) => syllabify(w).join("·")).join("   ")}</div>
+        ${en
+          ? `<div class="meaning">${it.tr ? `<span class="tr">🇹🇷 ${esc(it.tr)}</span>` : ""}${it.p ? `<span class="say">🗣️ Okunuşu: <b>${esc(it.p)}</b></span>` : ""}</div>`
+          : `<div class="syll" aria-label="Heceler">${target.map((w) => syllabify(w).join("·")).join("   ")}</div>`}
         <div class="row">
           <button class="btn" id="play">🔊 Dinle</button>
-          <button class="btn" id="slow">🐢 Hece hece</button>
+          <button class="btn" id="slow">🐢 ${en ? "Yavaş" : "Hece hece"}</button>
         </div>
         ${canListen
           ? `<button class="mic" id="mic" aria-label="Konuşmak için bas">🎤</button>
-             <p class="center muted" id="hint">${fb ? "Bir daha denemek için mikrofona bas" : "Dinle, sonra mikrofona bas ve söyle"}</p>
+             <p class="center muted" id="hint">${hintText(fb)}</p>
              <p class="interim" id="interim" aria-live="polite"></p>`
           : `<p class="notice">Bu tarayıcıda ses tanıma yok. Cümleyi yüksek sesle oku; öğretmenin ya da velin dinlesin.</p>
              <div class="row"><button class="btn primary" id="selfOk">✅ Doğru okudu</button><button class="btn" id="selfAgain">🔁 Tekrar okusun</button></div>`}
@@ -66,11 +72,11 @@ export function startPractice(o) {
       </div>`;
 
     $app.querySelector("#play").onclick = () => karaoke();
-    $app.querySelector("#slow").onclick = () => saySlow(it.t, { onWord: highlight });
+    $app.querySelector("#slow").onclick = () => saySlow(it.t, { onWord: highlight, lang });
     $app.querySelectorAll(".w").forEach((b) => {
       b.onclick = () => {
-        const w = words(b.textContent)[0];
-        if (w) saySlow(w, { onWord: (i) => b.classList.toggle("reading", i >= 0) });
+        const w = en ? b.textContent : words(b.textContent)[0];
+        if (w) saySlow(w, { onWord: (i) => b.classList.toggle("reading", i >= 0), lang });
       };
     });
     const mic = $app.querySelector("#mic");
@@ -84,7 +90,7 @@ export function startPractice(o) {
       b.onclick = () => {
         const act = b.dataset.act;
         if (act === "next") next();
-        if (act === "model") saySlow(b.dataset.word, {});
+        if (act === "model") saySlow(b.dataset.word, { lang });
       };
     });
   }
@@ -92,7 +98,14 @@ export function startPractice(o) {
   function highlight(i) {
     $app.querySelectorAll("#target .w").forEach((el, k) => el.classList.toggle("reading", k === i));
   }
-  const karaoke = () => say(item().t, { onWord: highlight });
+  const karaoke = () => say(item().t, { onWord: highlight, lang });
+
+  function hintText(fb) {
+    if (!fb) return en ? "Dinle, sonra mikrofona bas ve İngilizce söyle" : "Dinle, sonra mikrofona bas ve söyle";
+    if (fb.level === "ok") return "Sıradakine geçiyoruz… ➡️";
+    if (fb.level === "almost") return "Devam etmek için “Devam”a bas";
+    return "Bir daha denemek için mikrofona bas";
+  }
 
   function feedbackHtml(fb) {
     if (fb.level === "ok") {
@@ -128,7 +141,7 @@ export function startPractice(o) {
     sfx.tap();
     let alts = [];
     try {
-      alts = await listen({ onInterim: (t) => { if (alive) interim.textContent = "“" + t + "”"; } });
+      alts = await listen({ lang, onInterim: (t) => { if (alive) interim.textContent = "“" + t + "”"; } });
     } catch (err) {
       busy = false;
       if (!alive) return;
@@ -147,7 +160,7 @@ export function startPractice(o) {
       return;
     }
     tries++;
-    const fb = evaluate(item().t, alts);
+    const fb = evaluate(item().t, alts, { lang });
     if (fb.level === "ok" || fb.level === "almost") return success(fb);
 
     store.recordAttempt({ success: false, firstTry: false, weakSounds: fb.weakSounds });
@@ -156,11 +169,11 @@ export function startPractice(o) {
     // Baykuş ne yapılacağını sesli anlatır, sonra doğrusunu örnekler.
     const opener = fb.level === "close" ? "Çok yaklaştın!" : "Hadi birlikte deneyelim.";
     await say(`${opener} ${fb.tips[0]?.speech || ""}`, { rate: 0.9 });
-    if (alive && fb.tips[0]) await saySlow(fb.tips[0].word);
+    if (alive && fb.tips[0]) await saySlow(fb.tips[0].word, { lang });
   }
 
   async function success(fb) {
-    fb.praise = pick(PRAISE);
+    fb.praise = pick(en ? PRAISE_EN : PRAISE);
     const earned = tries <= 1 ? 3 : tries === 2 ? 2 : 1;
     sum.stars += earned;
     if (tries <= 1) sum.firstTry++;
@@ -173,7 +186,12 @@ export function startPractice(o) {
     if (fb.level === "ok") confetti();
     starBurst(earned);
     showBadges(store.checkBadges());
-    await say(fb.level === "ok" ? `${fb.praise} Doğru söyledin.` : `${fb.praise} Doğru! ${fb.tips[0]?.speech || ""}`);
+    if (en) {
+      await say(fb.praise, { lang: "en" });
+      if (alive && fb.level === "almost" && fb.tips[0]) await say(`Doğru! Küçük bir ipucu: ${fb.tips[0].speech}`);
+    } else {
+      await say(fb.level === "ok" ? `${fb.praise} Doğru söyledin.` : `${fb.praise} Doğru! ${fb.tips[0]?.speech || ""}`);
+    }
     if (!alive) return;
     if (fb.level === "ok") setTimeout(() => alive && next(), 700);
   }
@@ -205,7 +223,8 @@ export function startPractice(o) {
       </div>`;
     confetti(40);
     sfx.success();
-    say(perfect ? "Muhteşem! Hepsini ilk seferde bildin!" : "Tebrikler! Bölümü bitirdin!");
+    if (en) say(perfect ? "Perfect! Hepsini ilk seferde bildin!" : "Great job! Bölümü bitirdin!");
+    else say(perfect ? "Muhteşem! Hepsini ilk seferde bildin!" : "Tebrikler! Bölümü bitirdin!");
     showBadges(store.checkBadges(extra));
     $app.querySelector("#again").onclick = () => startPractice({ ...o, start: 0 });
     $app.querySelector("#back").onclick = () => go(o.backHash);

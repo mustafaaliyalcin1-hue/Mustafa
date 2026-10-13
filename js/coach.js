@@ -2,7 +2,7 @@
 // hangi kelimede hangi sesin hatalı olduğunu bulur ve ipucu üretir.
 
 import { words, similarity, charConfusions, syllabify, esc } from "./text.js";
-import { tipFor } from "./tips.js";
+import { tipFor, enTipFor } from "./tips.js";
 
 // Sesli okunacak düz metin: emoji ve tırnakları temizler.
 export const plain = (s) => s.replace(/\p{Extended_Pictographic}|\uFE0F/gu, "").replace(/[“”"]/g, "").replace(/\s+/g, " ").trim();
@@ -31,8 +31,8 @@ export function alignWords(target, heard) {
   return res;
 }
 
-function scoreAlternative(target, alt) {
-  const heard = words(alt);
+function scoreAlternative(target, alt, lang) {
+  const heard = words(alt, lang);
   const aligned = alignWords(target, heard);
   const wordScore = aligned.reduce((s, a) => s + a.sim, 0) / target.length;
   // Ses tanıma bazen kelimeleri birleştirir ("kırkının da" → "kırkınında"): boşluksuz karşılaştır.
@@ -43,6 +43,7 @@ function scoreAlternative(target, alt) {
 /**
  * @param {string} targetText   Çocuğun söylemesi gereken metin
  * @param {string[]} alternatives  Ses tanımanın tahminleri (en olası önce)
+ * @param {{lang?: "tr"|"en"}} [opts]  Çalışılan dil (İngilizcede ipuçları yine Türkçe verilir)
  * @returns {{level:"ok"|"almost"|"close"|"bad", score:number, aligned:object[], heardText:string,
  *            tips:{word:string, html:string, speech:string}[], weakSounds:string[]} | null}
  *   ok     → tam doğru
@@ -50,13 +51,13 @@ function scoreAlternative(target, alt) {
  *   close  → yaklaştı, tekrar denemeli
  *   bad    → uzak, hece hece çalışmalı
  */
-export function evaluate(targetText, alternatives) {
-  const target = words(targetText);
+export function evaluate(targetText, alternatives, { lang = "tr" } = {}) {
+  const target = words(targetText, lang);
   if (!target.length || !alternatives || !alternatives.length) return null;
 
   let best = null;
   for (const alt of alternatives) {
-    const r = scoreAlternative(target, alt);
+    const r = scoreAlternative(target, alt, lang);
     if (!best || r.score > best.score) best = r;
   }
   if (best.flatScore === 1) best.aligned.forEach((a) => { a.sim = 1; a.heard = a.word; });
@@ -66,7 +67,19 @@ export function evaluate(targetText, alternatives) {
   const seen = new Set();
   for (const a of best.aligned) {
     a.status = a.sim === 1 ? "ok" : a.heard == null ? "missing" : a.sim >= 0.6 ? "close" : "bad";
-    if (a.status === "close") {
+    if (a.status === "close" && lang === "en") {
+      const conf = charConfusions(a.word, a.heard);
+      const p = enTipFor(a.word, conf.map((c) => c.at));
+      if (p) weakSounds.push("en:" + p.id);
+      if (p && seen.has(p.id)) continue;
+      if (p) seen.add(p.id);
+      const tip = p ? p.tip : "Bu kelimeyi bir daha dinle ve yavaşça tekrar et. 👂";
+      tips.push({
+        word: a.word,
+        html: `<b>${esc(a.word)}</b> → “${esc(a.heard)}” duydum. ${tip}`,
+        speech: plain(tip),
+      });
+    } else if (a.status === "close") {
       for (const c of charConfusions(a.word, a.heard)) {
         weakSounds.push(c.want);
         const key = c.want + ">" + c.got;
@@ -84,6 +97,12 @@ export function evaluate(targetText, alternatives) {
         word: a.word,
         html: `<b>${esc(a.word)}</b> kelimesini duyamadım. Biraz daha yüksek ve tane tane söyle. 📢`,
         speech: `${a.word} kelimesini duyamadım. Biraz daha yüksek sesle söyle.`,
+      });
+    } else if (a.status === "bad" && lang === "en") {
+      tips.push({
+        word: a.word,
+        html: `<b>${esc(a.word)}</b> kelimesini dinle, sonra yavaşça tekrar et. 👂`,
+        speech: "Bu kelimeyi dinle ve yavaşça tekrar et.",
       });
     } else if (a.status === "bad") {
       const sy = syllabify(a.word);

@@ -3,6 +3,7 @@
 import { $app, route, go, on, toast, progressBar } from "../ui.js";
 import { say } from "../speech.js";
 import { THEMES, STORIES, BADGES, AVATARS } from "../content.js";
+import { EN_THEMES, EN_STORIES } from "../content-en.js";
 import { esc } from "../text.js";
 import * as store from "../store.js";
 
@@ -37,8 +38,22 @@ function panel() {
   const g = p.grade;
   const acc = s.attempts ? Math.round((s.correct / s.attempts) * 100) : 0;
   const first = s.correct ? Math.round((s.firstTry / s.correct) * 100) : 0;
-  const weak = store.weakList(8);
+  // Türkçe ve İngilizce zorlanılan sesler birlikte
+  const weak = [
+    ...store.weakList(6, "tr").map(([c, n]) => [c, n, "🇹🇷"]),
+    ...store.weakList(6, "en").map(([c, n]) => [c, n, "🇬🇧"]),
+  ].sort((a, b) => b[1] - a[1]);
   const maxWeak = weak[0]?.[1] || 1;
+  const topicRows = (themes, stories) =>
+    themes.map((t) => {
+      const items = t.items.filter((x) => x.g === g);
+      const n = items.filter((x) => store.isDone(t.id, x.t)).length;
+      return `<div class="hrow"><span>${t.icon} ${esc(t.title)}</span>${progressBar(n, items.length)}<span>${n}/${items.length}</span></div>`;
+    }).join("") +
+    stories.map((st) => {
+      const n = store.doneCount("story:" + st.id);
+      return `<div class="hrow"><span>${st.icon} ${esc(st.title)}</span>${progressBar(n, st.lines.length)}<span>${n}/${st.lines.length}</span></div>`;
+    }).join("");
 
   // Son 7 gün
   const days = [...Array(7)].map((_, i) => {
@@ -71,21 +86,18 @@ function panel() {
       <h3>Zorlandığı sesler</h3>
       ${weak.length
         ? `<p class="muted">Ses tanıma bu seslerde farklılık yakaladı. “Zor Seslerim” etkinliği bu seslere göre kelime seçer.</p>
-           ${weak.map(([c, n]) => `<div class="hbar"><span class="k">${esc(c)}</span><div class="bar"><i style="width:${(n / maxWeak) * 100}%"></i></div><span>${n}</span></div>`).join("")}`
+           ${weak.map(([c, n, flag]) => `<div class="hbar"><span class="k">${flag}<br>${esc(c)}</span><div class="bar"><i style="width:${(n / maxWeak) * 100}%"></i></div><span>${n}</span></div>`).join("")}`
         : `<p class="muted">Henüz belirgin bir zorluk görünmüyor. 👍</p>`}
     </div>
 
     <div class="card">
-      <h3>Konular (${g}. sınıf)</h3>
-      ${THEMES.map((t) => {
-        const items = t.items.filter((x) => x.g === g);
-        const n = items.filter((x) => store.isDone(t.id, x.t)).length;
-        return `<div class="hrow"><span>${t.icon} ${esc(t.title)}</span>${progressBar(n, items.length)}<span>${n}/${items.length}</span></div>`;
-      }).join("")}
-      ${STORIES.map((st) => {
-        const n = store.doneCount("story:" + st.id);
-        return `<div class="hrow"><span>${st.icon} ${esc(st.title)}</span>${progressBar(n, st.lines.length)}<span>${n}/${st.lines.length}</span></div>`;
-      }).join("")}
+      <h3>🇹🇷 Türkçe konular (${g}. sınıf)</h3>
+      ${topicRows(THEMES, STORIES)}
+    </div>
+
+    <div class="card">
+      <h3>🇬🇧 İngilizce konular (${g}. sınıf)</h3>
+      ${topicRows(EN_THEMES, EN_STORIES)}
     </div>
 
     <div class="card">

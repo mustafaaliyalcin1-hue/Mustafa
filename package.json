@@ -1,8 +1,8 @@
 {
   "name": "konusan-baykus",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
-  "description": "1. ve 2. sınıflar için Türkçe telaffuz pekiştirme uygulaması",
+  "description": "1. ve 2. sınıflar için Türkçe ve İngilizce telaffuz pekiştirme uygulaması",
   "type": "module",
   "scripts": {
     "start": "python3 -m http.server 8000",
