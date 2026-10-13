@@ -36,14 +36,42 @@ export const missingVoice = (l = "tr") => canSpeak && voicesLoaded && !voiceFor[
 
 export function stopSpeaking() { if (canSpeak) speechSynthesis.cancel(); }
 
+// --- Sesin gerçekten çıkıp çıkmadığını izleme ---
+let heardOnce = false; // en az bir okuma başladı mı
+let problemReported = false;
+let touched = false; // kullanıcı ekrana dokundu mu (dokunmadan ses zaten engellenir)
+let onProblem = null;
+// Ses hiç başlamazsa (ses motoru yok, çerçeve engelliyor vb.) bir kez haber verir.
+export const onSpeechProblem = (fn) => { onProblem = fn; };
+function reportProblem() {
+  if (heardOnce || problemReported || !touched) return;
+  problemReported = true;
+  onProblem?.();
+}
+
+// Bazı telefonlar (özellikle iOS) sesi ancak bir dokunuşun içinde başlatırsa açar.
+// İlk dokunuşta sessiz, boş bir okuma yaparak ses motorunu uyandırır.
+export function unlockSpeech() {
+  touched = true;
+  if (!canSpeak) return;
+  try {
+    const u = new SpeechSynthesisUtterance(" ");
+    u.volume = 0;
+    speechSynthesis.speak(u);
+    speechSynthesis.resume?.();
+  } catch { /* yok say */ }
+}
+
 /**
  * Metni okur (lang: "tr" | "en"). onWord(i) verilirse okunan kelimenin sırası bildirilir (karaoke).
  * Bazı cihazlar kelime olayını desteklemez; o durumda süreye göre tahmin edilir.
  */
 export function say(text, { rate, onWord, lang = "tr" } = {}) {
   return new Promise((resolve) => {
-    if (!canSpeak) return resolve();
-    speechSynthesis.cancel();
+    if (!canSpeak) { reportProblem(); return resolve(); }
+    // Dokunuştan önce başlayan okumalar tarayıcı tarafından engellenebilir; onları sorun sayma.
+    const armed = touched;
+    const problem = () => armed && reportProblem();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = LOCALES[lang];
     try { if (voiceFor[lang]) u.voice = voiceFor[lang]; } catch { /* lang yeterli */ }
@@ -65,6 +93,7 @@ export function say(text, { rate, onWord, lang = "tr" } = {}) {
         if (i >= 0) onWord(i);
       };
       u.onstart = () => {
+        heardOnce = true;
         onWord(0);
         // Yedek: kelime olayları gelmezse uzunluğa göre zamanla.
         let t = 0;
@@ -85,11 +114,22 @@ export function say(text, { rate, onWord, lang = "tr" } = {}) {
       onWord?.(-1);
       resolve();
     };
+    if (!onWord) u.onstart = () => { heardOnce = true; };
     u.onend = finish;
-    u.onerror = finish;
-    speechSynthesis.speak(u);
+    u.onerror = (e) => {
+      // "interrupted/canceled" bizim durdurmamızdır; diğer hatalar ses sorunudur.
+      if (e?.error && e.error !== "interrupted" && e.error !== "canceled") problem();
+      finish();
+    };
+    // Chrome'da cancel() hemen ardından speak() bazen okumayı yutar: önce durdur, kısa bekle.
+    const busy = speechSynthesis.speaking || speechSynthesis.pending;
+    if (busy) speechSynthesis.cancel();
+    const start = () => { speechSynthesis.resume?.(); speechSynthesis.speak(u); };
+    if (busy) setTimeout(start, 70); else start();
     // Bazı tarayıcılarda onend hiç gelmeyebilir; takılmayı önle.
-    guard = setTimeout(finish, 2000 + (text.length * 160) / Math.min(u.rate, 1));
+    guard = setTimeout(() => { if (!heardOnce) problem(); finish(); }, 2000 + (text.length * 160) / Math.min(u.rate, 1));
+    // Ses 2,5 sn içinde hiç başlamadıysa sorun var demektir.
+    setTimeout(() => { if (!heardOnce && !ended) problem(); }, 2500);
   });
 }
 

@@ -109,3 +109,21 @@ export const progressBar = (value, total) =>
 
 // Tek yerden tıklama bağlamak için kısa yardımcı
 export const on = (sel, fn, root = $app) => root.querySelectorAll(sel).forEach((el) => el.addEventListener("click", (e) => fn(el, e)));
+
+// Ses çıkmadığında bir kez gösterilen yardım kutusu.
+export function showSoundHelp() {
+  if (document.getElementById("soundHelp")) return;
+  const el = document.createElement("div");
+  el.id = "soundHelp";
+  el.className = "sound-help";
+  el.setAttribute("role", "alert");
+  el.innerHTML = `<b>🔇 Baykuşun sesi gelmiyor mu?</b>
+    <ul>
+      <li>Telefonun <b>medya sesini</b> açın, sessiz modu kapatın.</li>
+      <li>Uygulamayı <b>Google Chrome</b> ile açın.</li>
+      <li>Android'de: Ayarlar → “Metin okuma” bölümünde <b>Google konuşma motorunun</b> ve Türkçe sesin yüklü olduğunu kontrol edin.</li>
+    </ul>
+    <button class="btn small" id="soundHelpClose">Tamam</button>`;
+  document.body.appendChild(el);
+  el.querySelector("#soundHelpClose").onclick = () => el.remove();
+}

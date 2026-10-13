@@ -7,6 +7,7 @@ function tone(freq, start, dur, type = "sine", gain = 0.12) {
   if (!store.get().settings.sfx) return;
   try {
     ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === "suspended") ctx.resume();
     const o = ctx.createOscillator();
     const g = ctx.createGain();
     o.type = type;
@@ -56,4 +57,12 @@ export function starBurst(n) {
   el.textContent = "⭐".repeat(n);
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 1300);
+}
+
+// İlk dokunuşta ses sistemini açar (tarayıcılar sesi ancak kullanıcı dokunduktan sonra çalar).
+export function unlockAudio() {
+  try {
+    ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === "suspended") ctx.resume();
+  } catch { /* ses desteklenmiyor */ }
 }
