@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Konuşan Baykuş</title>
+  <meta name="description" content="1. ve 2. sınıflar için yapay zekâ destekli Türkçe telaffuz pekiştirme uygulaması">
+  <meta name="theme-color" content="#5b4bdb">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <button id="backBtn" class="icon-btn" aria-label="Geri" hidden>←</button>
+    <div class="brand">🦉 <span>Konuşan Baykuş</span></div>
+    <div class="stars" aria-label="Yıldızlar">⭐ <span id="starCount">0</span></div>
+  </header>
+
+  <main id="app" aria-live="polite"></main>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

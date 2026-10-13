@@ -1,0 +1,15 @@
+{
+  "name": "Konuşan Baykuş - Türkçe Telaffuz",
+  "short_name": "Konuşan Baykuş",
+  "description": "1. ve 2. sınıflar için yapay zekâ destekli Türkçe telaffuz pekiştirme uygulaması",
+  "lang": "tr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f1ff",
+  "theme_color": "#5b4bdb",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
