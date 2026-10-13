@@ -1,61 +1,85 @@
-# 🦉 Konuşan Baykuş — Türkçe Telaffuz Pekiştirme (Taslak)
+# 🦉 Konuşan Baykuş — Türkçe Telaffuz Pekiştirme
 
-1. ve 2. sınıf öğrencileri için, yapay zekâ ile sesli okuma ve telaffuz çalışması yapılan uygulama taslağı.
-Çocuk cümleyi dinler, mikrofona söyler; **Bilge Baykuş** söyleneni dinler:
+1. ve 2. sınıf öğrencileri için, yapay zekâ destekli Türkçe telaffuz ve sesli okuma uygulaması.
+Çocuk cümleyi dinler, mikrofona söyler; **Bilge Baykuş** dinler:
 
-- **Doğruysa** tebrik eder, yıldız verir ve otomatik olarak sonraki cümleye geçer.
-- **Yanlışsa** hangi kelimenin/sesin hatalı olduğunu renkle gösterir ve nasıl düzelteceğini anlatır
-  (ör. *“süt: ü yerine u gibi duydum. ü sesinde dudakların u gibi yuvarlak, dilin i gibi önde olsun”*).
-  Cümleyi hece hece yavaş okuyabilir; 2 denemeden sonra “Sonrakine geç” seçeneği çıkar.
+- **Doğruysa:** tebrik eder, yıldız ve konfeti verir, **kendiliğinden sonraki cümleye geçer**.
+- **Çok yaklaştıysa (uzun cümlede küçük bir hata):** doğru sayar, kısa bir ipucu ekler.
+- **Yanlışsa:** hatalı kelimeyi renklendirir, hangi sesin karıştığını bulur ve
+  **nasıl doğru söyleneceğini hem yazılı hem sesli anlatır**. Örnek:
+  > *kuş → “kus” duydum. “ş” yerine “s” söyledin. “ş”de dudaklarını öne uzat, “sus” der gibi: “şşşş” 🤫*
+
+  Ardından kelimeyi hece hece örnekler. 2 denemeden sonra “Sonrakine geç” seçeneği çıkar.
 
 ## Etkinlikler
 
-| Etkinlik | Tür | Açıklama |
+| | Etkinlik | Ne yapar? |
 |---|---|---|
-| 🎤 Dinle ve Söyle | Konuşma | Kelimeler → kısa cümleler → uzun cümleler → tekerlemeler (4 seviye) |
-| 🔠 Harflerin Sesi | Dinleme | 29 harf, örnek kelime, resim ve ağız/dil ipucu |
-| 👂 Zor Sesler | Dinleme + Konuşma | ı-i, o-ö, u-ü, s-ş, c-ç, k-g çiftleri: önce hangisini duyduğunu bul, sonra kendin söyle |
-| 🖼️ Dinle Bul | Dinleme | Kelimeyi dinle, doğru resmi seç |
-| 🧩 Hece Yapbozu | Okuma | Heceleri doğru sırayla dizerek kelimeyi kur |
+| 🗣️ | **Dinle ve Söyle** | 6 tema (Ailem, Okulum, Hayvanlar, Doğa, Yiyecekler, Tekerlemeler); 1. ve 2. sınıfa ayrı içerik |
+| 📚 | **Hikâye Oku** | Baykuş hikâyeyi kelime kelime vurgulayarak okur (karaoke), sonra çocuk cümle cümle okur |
+| 🦸 | **Zor Seslerim** | **Kişisel**: çocuğun zorlandığı seslere göre kelime seçer |
+| 🔠 | **Harflerin Sesi** | 29 harf: ses, örnek kelime, resim, ağız/dil ipucu ve “Ben söyleyeyim” |
+| 🎧 | **Benzer Sesler** | ı-i, o-ö, u-ü, s-ş, c-ç, r-l, k-g: dinle, seç, sonra kendin söyle |
+| 🖼️ | **Dinle Bul** | Kelimeyi dinle, doğru resmi bul |
+| 🧩 | **Hece Yapbozu** | Heceleri sırayla dizerek kelimeyi kur (sınıfa göre zorluk) |
+| 🔍 | **Eksik Ses** | Kelimede eksik olan, karıştırılan sesi bul |
 
-İlerleme ve yıldızlar cihazda saklanır.
+**Motivasyon:** yıldızlar, günlük hedef (15 ⭐), gün serisi 🔥, 8 rozet, baykuş maskot, ses efektleri.
 
-## Nasıl çalıştırılır?
+**Veli / Öğretmen paneli** (çocuklar için uygulamalarda Google Play'in istediği çarpma sorulu kapının arkasında):
+doğruluk oranı, ilk denemede doğru oranı, son 7 gün grafiği, zorlanılan sesler, konu bazında ilerleme,
+rozetler; ad/sınıf/avatar, okuma hızı, ses efektleri ayarları ve sıfırlama.
 
-Kurulum gerekmez, dosyaları bir web sunucusundan açmak yeterli:
+## Çalıştırma
+
+Kurulum gerekmez:
 
 ```bash
-python3 -m http.server 8000
+npm start          # = python3 -m http.server 8000
 # Tarayıcıda: http://localhost:8000
+npm test           # değerlendirme motoru testleri
 ```
 
-> Mikrofon için sayfa **https** veya **localhost** üzerinden açılmalıdır.
+> Mikrofonun çalışması için sayfa **https** veya **localhost** üzerinden açılmalıdır.
 > Ses tanıma en iyi **Android ve bilgisayarda Google Chrome**'da çalışır (internet gerekir).
+> Tarayıcıda ses tanıma yoksa öğretmen/veli “Doğru okudu” düğmesiyle değerlendirebilir.
 
 ## Teknik yapı
 
-- `index.html`, `styles.css` — arayüz (telefona uygun, karanlık mod destekli)
-- `app.js` — etkinlikler, ses ve **telaffuz koçu**
-  - Dinleme: tarayıcının Türkçe sesi (`speechSynthesis`, tr-TR)
-  - Konuşma: yapay zekâ ses tanıma (`SpeechRecognition`, tr-TR, 5 alternatif)
-  - Değerlendirme: kelime ve harf düzeyinde hizalama → hatalı sesi bulur → `SOUND_TIPS` ipucunu gösterir
-  - Türkçe hece bölme kuralıyla yavaş, hece hece okuma
-- `data.js` — tüm kelime/cümle/ipucu içeriği (öğretmen kolayca yeni içerik ekleyebilir)
-- `manifest.json`, `sw.js` — telefona yüklenebilir uygulama (PWA), çevrimdışı açılış
+```
+index.html, styles.css         Arayüz (telefon öncelikli, karanlık mod, erişilebilir)
+js/main.js                     Giriş noktası
+js/ui.js                       Yönlendirme, baykuş maskot, bildirimler
+js/speech.js                   Dinleme (speechSynthesis tr-TR) + konuşma (SpeechRecognition tr-TR)
+js/coach.js                    ★ Telaffuz koçu: kelime/harf hizalama, hata tespiti, ipucu
+js/tips.js                     Her sesin nasıl söylendiği + sık karışan sesler için ipuçları (r→l, ş→s, ç→c…)
+js/text.js                     Türkçe küçültme, heceleme, benzerlik
+js/content.js                  Tüm içerik (temalar, hikâyeler, kelimeler) — kolayca düzenlenebilir
+js/store.js                    Cihazda ilerleme, istatistik, rozetler
+js/fx.js                       Ses efektleri, konfeti
+js/activities/*.js             Ekranlar
+tests/coach.test.js            14 birim testi
+privacy.html                   Gizlilik politikası (Play Store için gerekli)
+manifest.json, sw.js, icons/   Telefona yüklenebilir uygulama (PWA), çevrimdışı açılış
+```
 
-## Google Play'de yayınlama yol haritası
+**Değerlendirme nasıl çalışır?** Ses tanımanın en fazla 5 tahmini, hedef cümleyle kelime kelime hizalanır
+(eksik/fazla kelimeye ve kelimelerin birleşmesine dayanıklı). Uymayan her kelimede harf düzeyinde fark bulunur;
+örneğin “ü” yerine “u” söylendiyse `tips.js` içindeki ilgili ipucu gösterilir ve sesli okunur. Karışan her ses
+istatistiğe yazılır ve **Zor Seslerim** etkinliği bunlardan oluşturulur.
 
-1. Uygulamayı bir https adresinde yayınla (GitHub Pages / Firebase Hosting).
-2. PNG ikonları üret (192×192, 512×512) ve `manifest.json`'a ekle.
-3. Google'ın **Bubblewrap** aracıyla PWA'yı Android paketine (TWA, `.aab`) dönüştür.
-4. Google Play Console'da uygulama oluştur; **“Aileler / Çocuklar için”** politikalarını doldur
-   (gizlilik politikası, mikrofon izni açıklaması, yaş grubu 6–8).
-5. Dahili test → kapalı test → yayın.
+## Google Play'de yayınlama
 
-## Sonraki adımlar (öneriler)
+1. Uygulamayı bir https adresinde yayınla (GitHub Pages veya Firebase Hosting).
+2. Google'ın **Bubblewrap** aracıyla Android paketine (`.aab`) dönüştür (Trusted Web Activity):
+   `npx @bubblewrap/cli init --manifest https://<adres>/manifest.json`
+3. Play Console'da: **Aileler / Öğretmen Onaylı** bölümünde hedef kitle 6–8 yaş,
+   gizlilik politikası (`privacy.html`, iletişim e-postasını doldur) ve mikrofon izni açıklaması.
+4. Dahili test → kapalı test (öğretmen/veliler) → yayın.
 
-- Daha akıllı geri bildirim için sunucu tarafında bir yapay zekâ modeli (ör. Claude) ile kişiselleştirilmiş, çocuk diline uygun açıklamalar
-- Öğretmen paneli: sınıf ve öğrenci bazında ilerleme
-- MEB 1. ve 2. sınıf Türkçe ders kitabı temalarına göre içerik
-- Kaydedilen sesi çocuğa geri dinletme
-- Rozetler, günlük görevler
+## Sonraki adımlar
+
+- Sunucu tarafında bir yapay zekâ modeli (ör. Claude) ile daha kişisel geri bildirim
+- Öğretmen paneli: birden çok öğrenci için sınıf raporu
+- İçeriği MEB 1–2. sınıf Türkçe ders kitabı temalarına göre genişletme
+- Çocuğun kendi sesini kaydedip geri dinletme
