@@ -137,11 +137,16 @@ function panel() {
   });
   $app.querySelector("#sfx").addEventListener("change", (e) => store.setSetting("sfx", e.target.checked));
   on("#testVoice", () => say("Merhaba! Ben Bilge Baykuş. Seninle Türkçe çalışmayı çok seviyorum."));
-  on("#reset", () => {
-    if (confirm("Tüm yıldızlar, rozetler ve ilerleme silinsin mi?")) {
-      store.reset();
-      toast("İlerleme sıfırlandı");
-      go("#/home");
+  // Tarayıcı onay penceresi bazı ortamlarda çalışmaz; onayı sayfada iste.
+  on("#reset", (b) => {
+    if (b.dataset.sure !== "1") {
+      b.dataset.sure = "1";
+      b.textContent = "⚠️ Emin misiniz? Silmek için tekrar basın";
+      setTimeout(() => { b.dataset.sure = ""; b.textContent = "🗑️ İlerlemeyi sıfırla"; }, 4000);
+      return;
     }
+    store.reset();
+    toast("İlerleme sıfırlandı");
+    go("#/home");
   });
 }

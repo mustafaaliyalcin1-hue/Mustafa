@@ -5,6 +5,11 @@ import * as store from "./store.js";
 
 const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 export const canListen = !!Recognition;
+// Mikrofon izni reddedildiyse (ör. izin verilmeyen bir çerçevede) konuşma ekranları
+// öğretmen/veli onaylı moda geçer.
+let micBlocked = false;
+export const micAvailable = () => canListen && !micBlocked;
+const BLOCKING = ["not-allowed", "service-not-allowed", "audio-capture"];
 export const canSpeak = "speechSynthesis" in window;
 
 const LOCALES = { tr: "tr-TR", en: "en-US" };
@@ -129,9 +134,12 @@ export function listen({ onInterim, lang = "tr" } = {}) {
       for (let i = 0; i < r.length; i++) alts.push(r[i].transcript);
       end(() => resolve(alts));
     };
-    rec.onerror = (e) => end(() => (e.error === "no-speech" || e.error === "aborted" ? resolve([]) : reject(new Error(e.error || "error"))));
+    rec.onerror = (e) => end(() => {
+      if (BLOCKING.includes(e.error)) micBlocked = true;
+      e.error === "no-speech" || e.error === "aborted" ? resolve([]) : reject(new Error(e.error || "error"));
+    });
     rec.onend = () => end(() => resolve([]));
-    try { rec.start(); } catch (err) { end(() => reject(err)); }
+    try { rec.start(); } catch (err) { micBlocked = true; end(() => reject(new Error("not-allowed"))); }
   });
 }
 
@@ -143,7 +151,7 @@ export function listenErrorMessage(err) {
   switch (err?.message) {
     case "not-allowed":
     case "service-not-allowed":
-      return "Mikrofon izni gerekiyor. Tarayıcı ayarlarından mikrofona izin ver. 🎤";
+      return "Mikrofon kullanılamıyor. Öğretmen/veli onayı moduna geçildi. 🎤";
     case "network":
       return "Ses tanıma için internet bağlantısı gerekiyor. 📶";
     case "audio-capture":

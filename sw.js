@@ -1,6 +1,6 @@
 // Çevrimdışı önbellek: uygulama internet olmadan da açılır.
 // (Konuşma tanıma çoğu cihazda yine de internet ister.)
-const CACHE = "konusan-baykus-v3";
+const CACHE = "konusan-baykus-v4";
 const FILES = [
   "./", "./index.html", "./styles.css", "./manifest.json", "./privacy.html",
   "./icons/icon.svg", "./icons/icon-192.png", "./icons/icon-512.png",

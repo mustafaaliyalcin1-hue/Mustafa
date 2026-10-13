@@ -1,7 +1,7 @@
 // Dinleme ve oyun etkinlikleri: Harflerin Sesi, Benzer Sesler, Dinle Bul, Hece Yapbozu, Eksik Ses.
 
 import { $app, route, go, mascot, owl, toast, progressBar, showBadges, onLeave, on } from "../ui.js";
-import { say, saySlow, listen, canListen, listenErrorMessage } from "../speech.js";
+import { say, saySlow, listen, micAvailable, listenErrorMessage } from "../speech.js";
 import { evaluate } from "../coach.js";
 import { LETTERS, SOUND_PAIRS, PICTURE_WORDS, PARTNER } from "../content.js";
 import { SOUND_TIPS, EN_SOUND_TIPS } from "../tips.js";
@@ -65,7 +65,7 @@ route("letters", () => {
       ${!en && SOUND_TIPS[small] ? `<p>${SOUND_TIPS[small]}</p>` : ""}
       <div class="row">
         <button class="btn" id="again">🔊 Dinle</button>
-        ${canListen ? `<button class="btn primary" id="try">🎤 Ben söyleyeyim</button>` : ""}
+        ${micAvailable() ? `<button class="btn primary" id="try">🎤 Ben söyleyeyim</button>` : ""}
       </div>
       <p class="interim" id="res"></p>`;
     detail.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -172,7 +172,7 @@ route("pairs", (idx) => {
     turn.innerHTML = `
       <div class="feedback close">
         <p class="title">Şimdi sen söyle: “${esc(word)}”</p>
-        ${canListen ? `<button class="mic" id="mic" aria-label="Konuşmak için bas">🎤</button><p class="center" id="res"></p>` : ""}
+        ${micAvailable() ? `<button class="mic" id="mic" aria-label="Konuşmak için bas">🎤</button><p class="center" id="res"></p>` : ""}
         <div class="row"><button class="btn" id="skip">Devam ➡️</button></div>
       </div>`;
     on("#skip", () => { round++; q(); }, turn);

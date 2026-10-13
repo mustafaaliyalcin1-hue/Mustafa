@@ -2,7 +2,7 @@
 // Temalar, hikâyeler ve "Zor Seslerim" bu ortak ekranı kullanır.
 
 import { $app, mascot, owl, toast, progressBar, showBadges, go, onLeave } from "../ui.js";
-import { say, saySlow, listen, stopListening, canListen, listenErrorMessage } from "../speech.js";
+import { say, saySlow, listen, stopListening, micAvailable, listenErrorMessage } from "../speech.js";
 import { evaluate } from "../coach.js";
 import { words, syllabify, esc } from "../text.js";
 import { sfx, confetti, starBurst } from "../fx.js";
@@ -62,11 +62,11 @@ export function startPractice(o) {
           <button class="btn" id="play">🔊 Dinle</button>
           <button class="btn" id="slow">🐢 ${en ? "Yavaş" : "Hece hece"}</button>
         </div>
-        ${canListen
+        ${micAvailable()
           ? `<button class="mic" id="mic" aria-label="Konuşmak için bas">🎤</button>
              <p class="center muted" id="hint">${hintText(fb)}</p>
              <p class="interim" id="interim" aria-live="polite"></p>`
-          : `<p class="notice">Bu tarayıcıda ses tanıma yok. Cümleyi yüksek sesle oku; öğretmenin ya da velin dinlesin.</p>
+          : `<p class="notice">Mikrofon kullanılamıyor. Cümleyi yüksek sesle oku; öğretmenin ya da velin dinleyip onaylasın.</p>
              <div class="row"><button class="btn primary" id="selfOk">✅ Doğru okudu</button><button class="btn" id="selfAgain">🔁 Tekrar okusun</button></div>`}
         <div id="fb">${fb ? feedbackHtml(fb) : ""}</div>
       </div>`;
@@ -83,7 +83,8 @@ export function startPractice(o) {
     if (mic) mic.onclick = () => record(mic);
     const selfOk = $app.querySelector("#selfOk");
     if (selfOk) {
-      selfOk.onclick = () => success({ level: "ok", weakSounds: [] });
+      // Öğretmen/veli onayı: her kelime doğru sayılır.
+      selfOk.onclick = () => { tries = Math.max(tries, 1); success({ level: "ok", weakSounds: [], tips: [], aligned: target.map(() => ({ status: "ok" })) }); };
       $app.querySelector("#selfAgain").onclick = () => karaoke();
     }
     $app.querySelectorAll("[data-act]").forEach((b) => {
@@ -148,6 +149,7 @@ export function startPractice(o) {
       mic.classList.remove("listening");
       hint.textContent = "Mikrofona bas ve söyle";
       toast(listenErrorMessage(err), 3500);
+      if (!micAvailable()) show(); // onaylı moda geç
       return;
     }
     busy = false;
