@@ -42,8 +42,9 @@ route("welcome", () => {
   on("#start", () => {
     const name = $app.querySelector("#name").value.trim() || "Arkadaşım";
     store.setProfile({ name, grade: g, avatar });
-    say(`Merhaba ${name}! Hadi başlayalım.`);
     go("#/home");
+    // Sayfa geçişi (hashchange) bitince söyle; yoksa geçiş sesi keser.
+    setTimeout(() => say(`Merhaba ${name}! Hadi başlayalım.`), 60);
   });
 });
 
@@ -100,8 +101,10 @@ route("home", () => {
     if (b.dataset.lang === store.lang()) return;
     store.setLang(b.dataset.lang);
     go("#/home");
-    if (b.dataset.lang === "en") say("Hello! Let's learn English!", { lang: "en" });
-    else say("Haydi Türkçe çalışalım!");
+    setTimeout(() => {
+      if (b.dataset.lang === "en") say("Hello! Let's learn English!", { lang: "en" });
+      else say("Haydi Türkçe çalışalım!");
+    }, 60);
   });
 });
 

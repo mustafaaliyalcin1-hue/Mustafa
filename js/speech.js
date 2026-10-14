@@ -53,6 +53,8 @@ function reportProblem() {
 // İlk dokunuşta sessiz, boş bir okuma yaparak ses motorunu uyandırır.
 export function unlockSpeech() {
   touched = true;
+  // iPhone (Safari 17+): sesi "medya" olarak işaretle; böylece sessiz mod düğmesi açıkken de duyulur.
+  try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch { /* desteklenmiyor */ }
   if (!canSpeak) return;
   try {
     const u = new SpeechSynthesisUtterance(" ");
@@ -69,7 +71,9 @@ export function unlockSpeech() {
 export function say(text, { rate, onWord, lang = "tr" } = {}) {
   return new Promise((resolve) => {
     if (!canSpeak) { reportProblem(); return resolve(); }
-    // Dokunuştan önce başlayan okumalar tarayıcı tarafından engellenebilir; onları sorun sayma.
+    // Ekrana hiç dokunulmadan ses başlatılamaz (iPhone'da bu istek ses sırasını da tıkayabilir):
+    // dokunuştan önceki otomatik okumaları atla.
+    if (!touched) { onWord?.(-1); return resolve(); }
     const armed = touched;
     const problem = () => armed && reportProblem();
     const u = new SpeechSynthesisUtterance(text);
@@ -121,11 +125,20 @@ export function say(text, { rate, onWord, lang = "tr" } = {}) {
       if (e?.error && e.error !== "interrupted" && e.error !== "canceled") problem();
       finish();
     };
-    // Chrome'da cancel() hemen ardından speak() bazen okumayı yutar: önce durdur, kısa bekle.
-    const busy = speechSynthesis.speaking || speechSynthesis.pending;
-    if (busy) speechSynthesis.cancel();
-    const start = () => { speechSynthesis.resume?.(); speechSynthesis.speak(u); };
-    if (busy) setTimeout(start, 70); else start();
+    // speak() dokunuşun içinde, beklemeden çağrılmalı: iPhone (Safari) aksi halde sesi engeller.
+    let started = false;
+    const markStarted = u.onstart;
+    u.onstart = (e) => { started = true; markStarted?.(e); };
+    if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
+    speechSynthesis.resume?.();
+    speechSynthesis.speak(u);
+    // Bazı tarayıcılar (eski Chrome hatası) iptalin hemen ardından gelen okumayı yutar: bir kez yeniden dene.
+    setTimeout(() => {
+      // Hâlâ sırada bekliyorsa (yavaş başlıyorsa) dokunma; yalnızca tamamen düştüyse yeniden dene.
+      if (started || ended || speechSynthesis.speaking || speechSynthesis.pending) return;
+      speechSynthesis.resume?.();
+      speechSynthesis.speak(u);
+    }, 900);
     // Bazı tarayıcılarda onend hiç gelmeyebilir; takılmayı önle.
     guard = setTimeout(() => { if (!heardOnce) problem(); finish(); }, 2000 + (text.length * 160) / Math.min(u.rate, 1));
     // Ses 2,5 sn içinde hiç başlamadıysa sorun var demektir.

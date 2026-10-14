@@ -119,8 +119,9 @@ export function showSoundHelp() {
   el.setAttribute("role", "alert");
   el.innerHTML = `<b>🔇 Baykuşun sesi gelmiyor mu?</b>
     <ul>
-      <li>Telefonun <b>medya sesini</b> açın, sessiz modu kapatın.</li>
-      <li>Uygulamayı <b>Google Chrome</b> ile açın.</li>
+      <li>Telefonun <b>sesini</b> açın. iPhone'da yan taraftaki <b>sessiz mod düğmesini</b> kapatın (turuncu görünmesin).</li>
+      <li>iPhone'da uygulamayı <b>Safari</b> ile açın.</li>
+      <li>Android'de uygulamayı <b>Google Chrome</b> ile açın.</li>
       <li>Android'de: Ayarlar → “Metin okuma” bölümünde <b>Google konuşma motorunun</b> ve Türkçe sesin yüklü olduğunu kontrol edin.</li>
     </ul>
     <button class="btn small" id="soundHelpClose">Tamam</button>`;
