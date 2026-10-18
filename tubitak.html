@@ -78,18 +78,35 @@
 
   <div id="player"></div>
 
+  <script src="https://www.youtube.com/iframe_api"></script>
   <script>
     const VIDEO_ID = "9uDXFVav82w";
+    const NEXT_URL = "https://mustafaaliyalcin1-hue.github.io/Mustafa/";
+    const box = document.getElementById("player");
+
     document.getElementById("open").addEventListener("click", () => {
-      const player = document.getElementById("player");
-      const iframe = document.createElement("iframe");
+      if (!window.YT || !YT.Player) return; // video oynatıcısı henüz yüklenmedi
+      box.style.display = "block";
+      if (box.requestFullscreen) box.requestFullscreen().catch(() => {});
+      const target = document.createElement("div");
+      box.appendChild(target);
       // Butona tıklama sayesinde tarayıcı sesli otomatik oynatmaya izin verir.
-      iframe.src = `https://www.youtube.com/embed/${VIDEO_ID}?autoplay=1&mute=0&controls=0&rel=0&playsinline=1`;
-      iframe.allow = "autoplay; encrypted-media; fullscreen";
-      iframe.allowFullscreen = true;
-      player.appendChild(iframe);
-      player.style.display = "block";
-      if (player.requestFullscreen) player.requestFullscreen().catch(() => {});
+      new YT.Player(target, {
+        width: "100%",
+        height: "100%",
+        videoId: VIDEO_ID,
+        playerVars: { autoplay: 1, controls: 0, rel: 0, playsinline: 1 },
+        events: {
+          onReady: (e) => {
+            e.target.unMute();
+            e.target.setVolume(100);
+            e.target.playVideo();
+          },
+          onStateChange: (e) => {
+            if (e.data === YT.PlayerState.ENDED) window.location.href = NEXT_URL;
+          }
+        }
+      });
     });
   </script>
 </body>
