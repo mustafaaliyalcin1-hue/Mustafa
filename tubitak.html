@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TÜBİTAK Projemiz</title>
+<style>
+  :root {
+    --bg1: #0b1d3a;
+    --bg2: #1e3a8a;
+    --accent: #e11d48;
+    --accent2: #f59e0b;
+    --text: #f8fafc;
+    --muted: #cbd5e1;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    color: var(--text);
+    background: radial-gradient(circle at 20% 20%, #2563eb55, transparent 50%),
+                radial-gradient(circle at 80% 80%, #e11d4844, transparent 50%),
+                linear-gradient(135deg, var(--bg1), var(--bg2));
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden;
+  }
+  .card {
+    width: 100%; max-width: 560px; text-align: center;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 24px; padding: 48px 28px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+    animation: rise .8s ease-out;
+  }
+  .badge {
+    display: inline-block; font-size: 13px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--accent2);
+    border: 1px solid var(--accent2); border-radius: 999px;
+    padding: 6px 14px; margin-bottom: 24px;
+  }
+  .icon { font-size: 64px; margin-bottom: 16px; animation: float 3s ease-in-out infinite; }
+  h1 { font-size: clamp(26px, 6vw, 38px); line-height: 1.2; margin-bottom: 12px; }
+  p { color: var(--muted); font-size: 17px; margin-bottom: 36px; }
+  button {
+    font: inherit; font-size: 20px; font-weight: 700; color: #fff;
+    background: linear-gradient(135deg, var(--accent), #be123c);
+    border: none; border-radius: 16px; padding: 18px 36px;
+    cursor: pointer; width: 100%; max-width: 360px;
+    box-shadow: 0 10px 30px #e11d4866;
+    animation: pulse 2s infinite;
+    transition: transform .15s;
+  }
+  button:hover { transform: scale(1.04); }
+  button:active { transform: scale(0.97); }
+  .foot { margin-top: 28px; font-size: 13px; color: #94a3b8; }
+  #player {
+    position: fixed; inset: 0; background: #000; display: none; z-index: 10;
+  }
+  #player iframe { width: 100%; height: 100%; border: 0; }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 #e11d4899; }
+    50% { box-shadow: 0 0 0 16px #e11d4800; }
+  }
+  @keyframes float { 50% { transform: translateY(-10px); } }
+  @keyframes rise { from { opacity: 0; transform: translateY(30px); } }
+</style>
+</head>
+<body>
+  <main class="card">
+    <div class="badge">Proje Sunumu</div>
+    <div class="icon">🔬</div>
+    <h1>TÜBİTAK Projemiz</h1>
+    <p>TÜBİTAK projemize erişmek için butona basın.</p>
+    <button id="open">🚀 Projeye Eriş</button>
+    <div class="foot">Bilim · Teknoloji · İnovasyon</div>
+  </main>
+
+  <div id="player"></div>
+
+  <script>
+    const VIDEO_ID = "9uDXFVav82w";
+    document.getElementById("open").addEventListener("click", () => {
+      const player = document.getElementById("player");
+      const iframe = document.createElement("iframe");
+      // Butona tıklama sayesinde tarayıcı sesli otomatik oynatmaya izin verir.
+      iframe.src = `https://www.youtube.com/embed/${VIDEO_ID}?autoplay=1&mute=0&controls=0&rel=0&playsinline=1`;
+      iframe.allow = "autoplay; encrypted-media; fullscreen";
+      iframe.allowFullscreen = true;
+      player.appendChild(iframe);
+      player.style.display = "block";
+      if (player.requestFullscreen) player.requestFullscreen().catch(() => {});
+    });
+  </script>
+</body>
+</html>
