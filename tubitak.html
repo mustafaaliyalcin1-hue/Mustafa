@@ -55,9 +55,13 @@
   button:active { transform: scale(0.97); }
   .foot { margin-top: 28px; font-size: 13px; color: #94a3b8; }
   #player {
-    position: fixed; inset: 0; background: #000; display: none; z-index: 10;
+    position: fixed; inset: 0; background: #000; z-index: -1;
+    opacity: 0; pointer-events: none;
   }
+  #player.on { z-index: 10; opacity: 1; pointer-events: auto; }
   #player iframe { width: 100%; height: 100%; border: 0; }
+  /* Videonun üstünde görünmez katman: YouTube'un oynat/durdur düğmeleri tıklanamaz */
+  #shield { position: absolute; inset: 0; z-index: 2; }
   @keyframes pulse {
     0%, 100% { box-shadow: 0 0 0 0 #e11d4899; }
     50% { box-shadow: 0 0 0 16px #e11d4800; }
@@ -76,38 +80,62 @@
     <div class="foot">Bilim · Teknoloji · İnovasyon</div>
   </main>
 
-  <div id="player"></div>
+  <div id="player"><div id="yt"></div><div id="shield"></div></div>
 
-  <script src="https://www.youtube.com/iframe_api"></script>
   <script>
     const VIDEO_ID = "9uDXFVav82w";
     const NEXT_URL = "https://mustafaaliyalcin1-hue.github.io/Mustafa/";
     const box = document.getElementById("player");
+    let player = null;
+    let ready = false;
+    let started = false;
 
-    document.getElementById("open").addEventListener("click", () => {
-      if (!window.YT || !YT.Player) return; // video oynatıcısı henüz yüklenmedi
-      box.style.display = "block";
-      if (box.requestFullscreen) box.requestFullscreen().catch(() => {});
-      const target = document.createElement("div");
-      box.appendChild(target);
-      // Butona tıklama sayesinde tarayıcı sesli otomatik oynatmaya izin verir.
-      new YT.Player(target, {
+    // Oynatıcı sayfa açılınca arka planda hazırlanır; butona basınca anında çalar.
+    window.onYouTubeIframeAPIReady = () => {
+      player = new YT.Player("yt", {
         width: "100%",
         height: "100%",
         videoId: VIDEO_ID,
-        playerVars: { autoplay: 1, controls: 0, rel: 0, playsinline: 1 },
+        playerVars: {
+          autoplay: 0, controls: 0, rel: 0, playsinline: 1,
+          disablekb: 1, fs: 0, iv_load_policy: 3, modestbranding: 1
+        },
         events: {
-          onReady: (e) => {
-            e.target.unMute();
-            e.target.setVolume(100);
-            e.target.playVideo();
-          },
+          onReady: () => { ready = true; },
           onStateChange: (e) => {
             if (e.data === YT.PlayerState.ENDED) window.location.href = NEXT_URL;
+            // Video bir şekilde durursa (oynat düğmesi çıkmasın diye) yeniden başlat.
+            if (started && e.data === YT.PlayerState.PAUSED) player.playVideo();
           }
         }
       });
+    };
+
+    function loud() {
+      player.unMute();
+      player.setVolume(100);
+      player.playVideo();
+    }
+
+    document.getElementById("open").addEventListener("click", () => {
+      if (!ready) return; // oynatıcı henüz hazır değil, bir saniye sonra tekrar basın
+      started = true;
+      box.classList.add("on");
+      if (box.requestFullscreen) box.requestFullscreen().catch(() => {});
+      // Tıklamanın içinde hemen çağrılır, böylece tarayıcı sesli oynatmaya izin verir.
+      loud();
+      // Tarayıcı sesli başlatmayı engellerse önce sessiz başlat, ekrana ilk dokunuşta sesi aç.
+      setTimeout(() => {
+        if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
+          player.mute();
+          player.playVideo();
+        }
+      }, 1200);
     });
+
+    // Ekranın herhangi bir yerine dokunmak sesi sonuna kadar açar.
+    document.getElementById("shield").addEventListener("click", loud);
   </script>
+  <script src="https://www.youtube.com/iframe_api"></script>
 </body>
 </html>
