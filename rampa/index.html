@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="description" content="Fan car fizik oyunu: J rampaya tırman, tavanda tepetaklak tutun, takla at, 5 aracın üstünden uç, gece şehrinde trafikte serbest sür.">
 <meta name="theme-color" content="#050608">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2712%27 fill=%27%23050608%27/%3E%3Cpath d=%27M14 44 Q14 14 44 14 L50 14 L50 20 L44 20 Q20 20 20 44Z%27 fill=%27%23e3263b%27/%3E%3C/svg%3E">
@@ -142,6 +142,7 @@ body.hideui #touch{opacity:0}
   padding:0 max(14px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 14px) max(14px,env(safe-area-inset-left,0px))}
 #touch .grp{display:flex;gap:10px;align-items:flex-end;pointer-events:auto}
 #touch .col{display:flex;flex-direction:column;gap:10px;align-items:center}
+#c,#hud,#touch{touch-action:none}
 .tb{width:64px;height:64px;border-radius:50%;border:1.5px solid rgba(255,255,255,.26);background:rgba(16,18,24,.5);font-weight:700;font-size:10.5px;letter-spacing:.08em;touch-action:none;-webkit-touch-callout:none;line-height:1.2;padding:0}
 .tb.big{width:82px;height:82px;font-size:12px}
 .tb.on{background:rgba(227,38,59,.6);border-color:var(--red)}
@@ -1181,11 +1182,16 @@ document.querySelectorAll('.tb').forEach(b=>{const k=b.dataset.k;
   const on=e=>{e.preventDefault();audioInit();try{b.setPointerCapture(e.pointerId);}catch(_){}b.classList.add('on');if(k==='fan'){if(!S.auto)car.fanOn=!car.fanOn&&car.battery>0;return;}touchK[k]=1;if(k==='gas'&&S.auto)takeControl();};
   const off=()=>{b.classList.remove('on');if(k!=='fan')touchK[k]=0;};
   b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointercancel',off);b.addEventListener('lostpointercapture',off);b.addEventListener('contextmenu',e=>e.preventDefault());});
-{let drag=null;canvas.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY};try{canvas.setPointerCapture(e.pointerId);}catch(_){}});
+// phones: no browser pinch/double-tap zoom and no camera drag; buttons are the only touch input
+['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
+document.addEventListener('touchmove',e=>{if(e.touches.length>1||!e.target.closest('.overlay'))e.preventDefault();},{passive:false});
+{let lastTap=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lastTap<350&&!e.target.closest('.overlay,button'))e.preventDefault();lastTap=n;},{passive:false});}
+document.addEventListener('dblclick',e=>{if(isTouch)e.preventDefault();});
+{let drag=null;canvas.addEventListener('pointerdown',e=>{if(e.pointerType==='touch')return;drag={x:e.clientX,y:e.clientY};try{canvas.setPointerCapture(e.pointerId);}catch(_){}});
   canvas.addEventListener('pointermove',e=>{if(!drag)return;cam.orbY+=(e.clientX-drag.x)*.006;cam.orbP+=(e.clientY-drag.y)*.004;drag.x=e.clientX;drag.y=e.clientY;});
   canvas.addEventListener('pointerup',()=>drag=null);canvas.addEventListener('pointercancel',()=>drag=null);
   canvas.addEventListener('wheel',e=>{cam.zoom=clamp(cam.zoom*(e.deltaY>0?1.1:.9),.5,2.5);e.preventDefault();},{passive:false});
-  canvas.addEventListener('dblclick',()=>{cam.orbY=cam.orbP=0;cam.zoom=1;});}
+  canvas.addEventListener('dblclick',()=>{if(!isTouch){cam.orbY=cam.orbP=0;cam.zoom=1;}});}
 
 document.querySelectorAll('.mode').forEach(b=>b.addEventListener('click',()=>{audioInit();if(b.dataset.mode==='auto'){S.auto=true;S.autoSeq=0;startMode('rampa');}else{S.auto=false;startMode(b.dataset.mode);}}));
 $('bSide').addEventListener('click',()=>{S.side=!S.side;S.camMode=S.side?2:0;$('bSide').setAttribute('aria-pressed',String(S.side));snapCam=true;});
