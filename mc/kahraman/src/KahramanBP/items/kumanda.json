@@ -1,0 +1,23 @@
+{
+ "format_version": "1.21.50",
+ "minecraft:item": {
+  "description": {
+   "identifier": "kahraman:kumanda",
+   "menu_category": {
+    "category": "equipment"
+   }
+  },
+  "components": {
+   "minecraft:icon": {
+    "textures": {
+     "default": "kahraman_kumanda"
+    }
+   },
+   "minecraft:display_name": {
+    "value": "Kahraman Kumandası (kullan = güç, eğil + kullan = 2. güç)"
+   },
+   "minecraft:max_stack_size": 1,
+   "minecraft:hand_equipped": true
+  }
+ }
+}

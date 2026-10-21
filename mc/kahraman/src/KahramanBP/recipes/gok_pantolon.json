@@ -1,0 +1,33 @@
+{
+ "format_version": "1.20.10",
+ "minecraft:recipe_shaped": {
+  "description": {
+   "identifier": "kahraman:gok_pantolon"
+  },
+  "tags": [
+   "crafting_table"
+  ],
+  "pattern": [
+   "MMM",
+   "MCM",
+   "M M"
+  ],
+  "key": {
+   "M": {
+    "item": "minecraft:diamond"
+   },
+   "C": {
+    "item": "minecraft:lapis_block"
+   }
+  },
+  "unlock": [
+   {
+    "item": "minecraft:lapis_block"
+   }
+  ],
+  "result": {
+   "item": "kahraman:gok_pantolon",
+   "count": 1
+  }
+ }
+}

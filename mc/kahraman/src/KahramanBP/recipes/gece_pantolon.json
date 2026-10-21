@@ -1,0 +1,33 @@
+{
+ "format_version": "1.20.10",
+ "minecraft:recipe_shaped": {
+  "description": {
+   "identifier": "kahraman:gece_pantolon"
+  },
+  "tags": [
+   "crafting_table"
+  ],
+  "pattern": [
+   "MMM",
+   "MCM",
+   "M M"
+  ],
+  "key": {
+   "M": {
+    "item": "minecraft:leather"
+   },
+   "C": {
+    "item": "minecraft:coal_block"
+   }
+  },
+  "unlock": [
+   {
+    "item": "minecraft:coal_block"
+   }
+  ],
+  "result": {
+   "item": "kahraman:gece_pantolon",
+   "count": 1
+  }
+ }
+}

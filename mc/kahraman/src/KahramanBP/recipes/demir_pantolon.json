@@ -1,0 +1,33 @@
+{
+ "format_version": "1.20.10",
+ "minecraft:recipe_shaped": {
+  "description": {
+   "identifier": "kahraman:demir_pantolon"
+  },
+  "tags": [
+   "crafting_table"
+  ],
+  "pattern": [
+   "MMM",
+   "MCM",
+   "M M"
+  ],
+  "key": {
+   "M": {
+    "item": "minecraft:iron_ingot"
+   },
+   "C": {
+    "item": "minecraft:redstone_block"
+   }
+  },
+  "unlock": [
+   {
+    "item": "minecraft:redstone_block"
+   }
+  ],
+  "result": {
+   "item": "kahraman:demir_pantolon",
+   "count": 1
+  }
+ }
+}

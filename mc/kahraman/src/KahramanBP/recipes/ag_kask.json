@@ -1,0 +1,32 @@
+{
+ "format_version": "1.20.10",
+ "minecraft:recipe_shaped": {
+  "description": {
+   "identifier": "kahraman:ag_kask"
+  },
+  "tags": [
+   "crafting_table"
+  ],
+  "pattern": [
+   "MMM",
+   "MCM"
+  ],
+  "key": {
+   "M": {
+    "item": "minecraft:string"
+   },
+   "C": {
+    "item": "minecraft:spider_eye"
+   }
+  },
+  "unlock": [
+   {
+    "item": "minecraft:spider_eye"
+   }
+  ],
+  "result": {
+   "item": "kahraman:ag_kask",
+   "count": 1
+  }
+ }
+}

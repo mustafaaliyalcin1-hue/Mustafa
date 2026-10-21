@@ -1,0 +1,54 @@
+{
+ "format_version": 2,
+ "header": {
+  "name": "Tepetaklak Kahramanlar",
+  "description": "6 süper kahraman kostümü ve güçleri. Hayran yapımı, özgün tasarım.",
+  "uuid": "8eee90dd-50f4-40b0-b4c3-07f3ff854227",
+  "version": [
+   1,
+   0,
+   0
+  ],
+  "min_engine_version": [
+   1,
+   21,
+   50
+  ]
+ },
+ "modules": [
+  {
+   "type": "data",
+   "uuid": "458b1414-d39c-4520-8472-269b6bfb4dcd",
+   "version": [
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "type": "script",
+   "language": "javascript",
+   "uuid": "35b9a742-f2b6-4bd9-b276-68f1dcf09167",
+   "entry": "scripts/main.js",
+   "version": [
+    1,
+    0,
+    0
+   ]
+  }
+ ],
+ "dependencies": [
+  {
+   "uuid": "d95e5f64-be9b-4b8a-8fe7-4b239bf14339",
+   "version": [
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "module_name": "@minecraft/server",
+   "version": "1.16.0"
+  }
+ ]
+}

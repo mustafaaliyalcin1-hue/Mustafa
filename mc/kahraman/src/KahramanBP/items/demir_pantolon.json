@@ -1,0 +1,44 @@
+{
+ "format_version": "1.21.50",
+ "minecraft:item": {
+  "description": {
+   "identifier": "kahraman:demir_pantolon",
+   "menu_category": {
+    "category": "equipment",
+    "group": "itemGroup.name.leggings"
+   }
+  },
+  "components": {
+   "minecraft:icon": {
+    "textures": {
+     "default": "kahraman_demir_pantolon"
+    }
+   },
+   "minecraft:display_name": {
+    "value": "Demir Zırh Pantolon"
+   },
+   "minecraft:max_stack_size": 1,
+   "minecraft:wearable": {
+    "slot": "slot.armor.legs",
+    "protection": 7
+   },
+   "minecraft:durability": {
+    "max_durability": 700
+   },
+   "minecraft:enchantable": {
+    "slot": "armor_legs",
+    "value": 12
+   },
+   "minecraft:repairable": {
+    "repair_items": [
+     {
+      "items": [
+       "minecraft:iron_ingot"
+      ],
+      "repair_amount": "context.other->query.remaining_durability + 0.12 * context.other->query.max_durability"
+     }
+    ]
+   }
+  }
+ }
+}

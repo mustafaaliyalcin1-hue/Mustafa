@@ -1,0 +1,33 @@
+{
+ "format_version": "1.20.10",
+ "minecraft:recipe_shaped": {
+  "description": {
+   "identifier": "kahraman:demir_gogus"
+  },
+  "tags": [
+   "crafting_table"
+  ],
+  "pattern": [
+   "MCM",
+   "MMM",
+   "MMM"
+  ],
+  "key": {
+   "M": {
+    "item": "minecraft:iron_ingot"
+   },
+   "C": {
+    "item": "minecraft:redstone_block"
+   }
+  },
+  "unlock": [
+   {
+    "item": "minecraft:redstone_block"
+   }
+  ],
+  "result": {
+   "item": "kahraman:demir_gogus",
+   "count": 1
+  }
+ }
+}

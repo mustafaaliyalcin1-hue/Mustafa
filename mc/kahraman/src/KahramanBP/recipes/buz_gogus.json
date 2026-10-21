@@ -1,0 +1,33 @@
+{
+ "format_version": "1.20.10",
+ "minecraft:recipe_shaped": {
+  "description": {
+   "identifier": "kahraman:buz_gogus"
+  },
+  "tags": [
+   "crafting_table"
+  ],
+  "pattern": [
+   "MCM",
+   "MMM",
+   "MMM"
+  ],
+  "key": {
+   "M": {
+    "item": "minecraft:packed_ice"
+   },
+   "C": {
+    "item": "minecraft:diamond"
+   }
+  },
+  "unlock": [
+   {
+    "item": "minecraft:diamond"
+   }
+  ],
+  "result": {
+   "item": "kahraman:buz_gogus",
+   "count": 1
+  }
+ }
+}

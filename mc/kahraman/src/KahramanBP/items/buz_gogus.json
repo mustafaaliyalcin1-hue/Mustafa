@@ -1,0 +1,44 @@
+{
+ "format_version": "1.21.50",
+ "minecraft:item": {
+  "description": {
+   "identifier": "kahraman:buz_gogus",
+   "menu_category": {
+    "category": "equipment",
+    "group": "itemGroup.name.chestplate"
+   }
+  },
+  "components": {
+   "minecraft:icon": {
+    "textures": {
+     "default": "kahraman_buz_gogus"
+    }
+   },
+   "minecraft:display_name": {
+    "value": "Buz Ustası Göğüslük"
+   },
+   "minecraft:max_stack_size": 1,
+   "minecraft:wearable": {
+    "slot": "slot.armor.chest",
+    "protection": 8
+   },
+   "minecraft:durability": {
+    "max_durability": 700
+   },
+   "minecraft:enchantable": {
+    "slot": "armor_torso",
+    "value": 12
+   },
+   "minecraft:repairable": {
+    "repair_items": [
+     {
+      "items": [
+       "minecraft:packed_ice"
+      ],
+      "repair_amount": "context.other->query.remaining_durability + 0.12 * context.other->query.max_durability"
+     }
+    ]
+   }
+  }
+ }
+}

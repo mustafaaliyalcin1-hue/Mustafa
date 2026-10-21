@@ -1,0 +1,36 @@
+{
+ "format_version": "1.20.10",
+ "minecraft:recipe_shaped": {
+  "description": {
+   "identifier": "kahraman:kumanda"
+  },
+  "tags": [
+   "crafting_table"
+  ],
+  "pattern": [
+   " G ",
+   "RIR",
+   " I "
+  ],
+  "key": {
+   "G": {
+    "item": "minecraft:glowstone_dust"
+   },
+   "R": {
+    "item": "minecraft:redstone"
+   },
+   "I": {
+    "item": "minecraft:iron_ingot"
+   }
+  },
+  "unlock": [
+   {
+    "item": "minecraft:redstone"
+   }
+  ],
+  "result": {
+   "item": "kahraman:kumanda",
+   "count": 1
+  }
+ }
+}

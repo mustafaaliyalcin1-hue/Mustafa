@@ -1,0 +1,33 @@
+{
+ "format_version": "1.20.10",
+ "minecraft:recipe_shaped": {
+  "description": {
+   "identifier": "kahraman:gece_gogus"
+  },
+  "tags": [
+   "crafting_table"
+  ],
+  "pattern": [
+   "MCM",
+   "MMM",
+   "MMM"
+  ],
+  "key": {
+   "M": {
+    "item": "minecraft:leather"
+   },
+   "C": {
+    "item": "minecraft:coal_block"
+   }
+  },
+  "unlock": [
+   {
+    "item": "minecraft:coal_block"
+   }
+  ],
+  "result": {
+   "item": "kahraman:gece_gogus",
+   "count": 1
+  }
+ }
+}

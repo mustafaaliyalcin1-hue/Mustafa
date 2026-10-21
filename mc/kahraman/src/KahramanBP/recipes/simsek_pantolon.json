@@ -1,0 +1,33 @@
+{
+ "format_version": "1.20.10",
+ "minecraft:recipe_shaped": {
+  "description": {
+   "identifier": "kahraman:simsek_pantolon"
+  },
+  "tags": [
+   "crafting_table"
+  ],
+  "pattern": [
+   "MMM",
+   "MCM",
+   "M M"
+  ],
+  "key": {
+   "M": {
+    "item": "minecraft:gold_ingot"
+   },
+   "C": {
+    "item": "minecraft:glowstone"
+   }
+  },
+  "unlock": [
+   {
+    "item": "minecraft:glowstone"
+   }
+  ],
+  "result": {
+   "item": "kahraman:simsek_pantolon",
+   "count": 1
+  }
+ }
+}

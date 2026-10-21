@@ -1,0 +1,17 @@
+{
+ "format_version": "1.8.0",
+ "animations": {
+  "animation.kahraman.cape": {
+   "loop": true,
+   "bones": {
+    "cape": {
+     "rotation": [
+      "math.clamp(6 + query.modified_move_speed * 70 + math.sin(query.life_time * 120) * 3 + (query.is_on_ground ? 0 : 35), 0, 80)",
+      0,
+      0
+     ]
+    }
+   }
+  }
+ }
+}

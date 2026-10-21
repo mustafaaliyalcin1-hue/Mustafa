@@ -1,0 +1,39 @@
+{
+ "format_version": 2,
+ "header": {
+  "name": "Tepetaklak Kahramanlar",
+  "description": "Kostüm dokuları, pelerinler ve simgeler.",
+  "uuid": "d95e5f64-be9b-4b8a-8fe7-4b239bf14339",
+  "version": [
+   1,
+   0,
+   0
+  ],
+  "min_engine_version": [
+   1,
+   21,
+   50
+  ]
+ },
+ "modules": [
+  {
+   "type": "resources",
+   "uuid": "5ce27bc2-f6e7-429d-9271-36f59150c55a",
+   "version": [
+    1,
+    0,
+    0
+   ]
+  }
+ ],
+ "dependencies": [
+  {
+   "uuid": "8eee90dd-50f4-40b0-b4c3-07f3ff854227",
+   "version": [
+    1,
+    0,
+    0
+   ]
+  }
+ ]
+}

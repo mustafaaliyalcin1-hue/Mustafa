@@ -1,0 +1,44 @@
+{
+ "format_version": "1.21.50",
+ "minecraft:item": {
+  "description": {
+   "identifier": "kahraman:simsek_bot",
+   "menu_category": {
+    "category": "equipment",
+    "group": "itemGroup.name.boots"
+   }
+  },
+  "components": {
+   "minecraft:icon": {
+    "textures": {
+     "default": "kahraman_simsek_bot"
+    }
+   },
+   "minecraft:display_name": {
+    "value": "Şimşek Bot"
+   },
+   "minecraft:max_stack_size": 1,
+   "minecraft:wearable": {
+    "slot": "slot.armor.feet",
+    "protection": 3
+   },
+   "minecraft:durability": {
+    "max_durability": 700
+   },
+   "minecraft:enchantable": {
+    "slot": "armor_feet",
+    "value": 12
+   },
+   "minecraft:repairable": {
+    "repair_items": [
+     {
+      "items": [
+       "minecraft:gold_ingot"
+      ],
+      "repair_amount": "context.other->query.remaining_durability + 0.12 * context.other->query.max_durability"
+     }
+    ]
+   }
+  }
+ }
+}

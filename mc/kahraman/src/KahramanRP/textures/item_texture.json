@@ -1,0 +1,81 @@
+{
+ "resource_pack_name": "kahraman",
+ "texture_name": "atlas.items",
+ "texture_data": {
+  "kahraman_demir_kask": {
+   "textures": "textures/items/kahraman_demir_kask"
+  },
+  "kahraman_demir_gogus": {
+   "textures": "textures/items/kahraman_demir_gogus"
+  },
+  "kahraman_demir_pantolon": {
+   "textures": "textures/items/kahraman_demir_pantolon"
+  },
+  "kahraman_demir_bot": {
+   "textures": "textures/items/kahraman_demir_bot"
+  },
+  "kahraman_simsek_kask": {
+   "textures": "textures/items/kahraman_simsek_kask"
+  },
+  "kahraman_simsek_gogus": {
+   "textures": "textures/items/kahraman_simsek_gogus"
+  },
+  "kahraman_simsek_pantolon": {
+   "textures": "textures/items/kahraman_simsek_pantolon"
+  },
+  "kahraman_simsek_bot": {
+   "textures": "textures/items/kahraman_simsek_bot"
+  },
+  "kahraman_ag_kask": {
+   "textures": "textures/items/kahraman_ag_kask"
+  },
+  "kahraman_ag_gogus": {
+   "textures": "textures/items/kahraman_ag_gogus"
+  },
+  "kahraman_ag_pantolon": {
+   "textures": "textures/items/kahraman_ag_pantolon"
+  },
+  "kahraman_ag_bot": {
+   "textures": "textures/items/kahraman_ag_bot"
+  },
+  "kahraman_gok_kask": {
+   "textures": "textures/items/kahraman_gok_kask"
+  },
+  "kahraman_gok_gogus": {
+   "textures": "textures/items/kahraman_gok_gogus"
+  },
+  "kahraman_gok_pantolon": {
+   "textures": "textures/items/kahraman_gok_pantolon"
+  },
+  "kahraman_gok_bot": {
+   "textures": "textures/items/kahraman_gok_bot"
+  },
+  "kahraman_gece_kask": {
+   "textures": "textures/items/kahraman_gece_kask"
+  },
+  "kahraman_gece_gogus": {
+   "textures": "textures/items/kahraman_gece_gogus"
+  },
+  "kahraman_gece_pantolon": {
+   "textures": "textures/items/kahraman_gece_pantolon"
+  },
+  "kahraman_gece_bot": {
+   "textures": "textures/items/kahraman_gece_bot"
+  },
+  "kahraman_buz_kask": {
+   "textures": "textures/items/kahraman_buz_kask"
+  },
+  "kahraman_buz_gogus": {
+   "textures": "textures/items/kahraman_buz_gogus"
+  },
+  "kahraman_buz_pantolon": {
+   "textures": "textures/items/kahraman_buz_pantolon"
+  },
+  "kahraman_buz_bot": {
+   "textures": "textures/items/kahraman_buz_bot"
+  },
+  "kahraman_kumanda": {
+   "textures": "textures/items/kahraman_kumanda"
+  }
+ }
+}
