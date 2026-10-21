@@ -158,6 +158,11 @@ body.touch #guide{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 112px);fon
 body.touch .keys{display:none}
 body.touch #rec,body.touch #autoTag{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 104px)}
 @media (max-height:520px){.tv b{font-size:20px}.tv{min-width:44px}#tele{gap:2px 14px;bottom:calc(env(safe-area-inset-bottom,0px) + 10px)}#guide{bottom:calc(env(safe-area-inset-bottom,0px) + 56px)}.tv .bar{width:46px}}
+#wanted{position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:2px;background:rgba(13,15,20,.72);border:1px solid rgba(255,32,53,.5);border-radius:4px;padding:6px 14px;white-space:nowrap;animation:wflash .5s steps(2) infinite}
+#wStars{font-size:20px;letter-spacing:.2em;color:var(--amber)}
+#wTxt{font-size:12px;font-weight:600;letter-spacing:.06em}
+@keyframes wflash{50%{border-color:rgba(47,123,255,.7)}}
+body.touch #wanted{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 104px)}
 #mini{position:fixed;top:calc(env(safe-area-inset-top,0px) + 92px);left:max(16px,env(safe-area-inset-left,0px));width:150px;height:150px;border:1px solid var(--line);border-radius:4px}
 body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) + 84px)}
 #rotate{position:fixed;left:50%;top:45%;transform:translateX(-50%);font-size:12px;background:rgba(13,15,20,.8);border:1px solid var(--line);border-radius:3px;padding:7px 12px;white-space:nowrap;pointer-events:none;z-index:12}
@@ -191,6 +196,7 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
   <canvas id="mini" width="300" height="300" hidden aria-label="Şehir haritası"></canvas>
   <div id="big"><div id="bigT"></div><div id="bigS"></div></div>
   <div id="pops"></div>
+  <div id="wanted" hidden><span id="wStars">★☆☆</span><b id="wTxt">Polis peşinde</b></div>
   <div id="autoTag" hidden>Kendi kendine oynuyor · kontrolü almak için <kbd>W</kbd> ya da GAZ</div>
   <div id="rec" hidden><span class="dot"></span><span id="recT">TEKRAR</span><button id="bRecSpd" type="button">1×</button><button id="bRecEnd" type="button">Bitir</button></div>
 </div>
@@ -212,12 +218,13 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
     <h1>TEPE<span class="flip">TAKLAK</span></h1>
     <p class="lede">Tabandaki fanlar arabayı yüzeye bastırır. 19 metrelik J rampaya tırman, tavanda baş aşağı tutun, bırak, havada takla at ve iticilerle yumuşak in. Fizik gerçek: hızlı girersen g kuvveti arabayı dağıtır, fan kapalıysa tavan seni bırakır.</p>
     <div class="optrow"><span>Zorluk</span><span class="seg" id="diff"><button type="button" data-v="easy" aria-pressed="true">Kolay</button><button type="button" data-v="real" aria-pressed="false">Gerçekçi</button></span>
-      <span>Renk</span><span class="swatches" id="colors"></span></div>
+      <span>Renk</span><span class="swatches" id="colors"></span>
+      <span>Polis</span><span class="seg pol" id="pol1"><button type="button" data-p="0">Kapalı</button><button type="button" data-p="1">Kolay</button><button type="button" data-p="2">Orta</button><button type="button" data-p="3">Zor</button></span></div>
     <div class="modes">
       <button class="mode" data-mode="rampa" type="button"><span class="k">RAMPA</span><span class="rec">EN İYİ<b id="rRampa">—</b></span><span class="d">Tırman, tavanda tutun, bırak, takla at, hedefin ortasına in.</span></button>
       <button class="mode" data-mode="atlama" type="button"><span class="k">ATLAMA</span><span class="rec">EN İYİ<b id="rAtlama">—</b></span><span class="d">Kaldırma iticileriyle yan yana park etmiş 5 aracın üstünden uç.</span></button>
       <button class="mode" data-mode="gosteri" type="button"><span class="k">TAM GÖSTERİ</span><span class="rec">EN İYİ<b id="rGosteri">—</b></span><span class="d">Lansmandaki sıra: rampa, takla, 5 araç ve finiş. Süre bonusu var.</span></button>
-      <button class="mode" data-mode="serbest" type="button"><span class="k">SERBEST SÜRÜŞ</span><span class="rec">EN İYİ<b id="rSerbest">—</b></span><span class="d">Açık dünya gece şehri: 40 araçlık trafik, trafik ışıkları, drift. Kıl payı geç, araçların üstünden zıpla, çatılara çık.</span></button>
+      <button class="mode" data-mode="serbest" type="button"><span class="k">SERBEST SÜRÜŞ</span><span class="rec">EN İYİ<b id="rSerbest">—</b></span><span class="d">Sonsuz gündüz şehri: trafik, polis kovalamacası, J rampalar ve 160 m’lik ters otoyol. Kıl payı geç, zıpla, takla at.</span></button>
       <button class="mode auto" data-mode="auto" type="button"><span class="play">▶</span><span class="k">KENDİ KENDİNE OYNASIN</span><span class="d">Otopilot üç modu sırayla oynar. İstediğin an GAZ’a basıp kontrolü alırsın.</span></button>
     </div>
     <div class="links"><button type="button" id="bHow">Nasıl oynanır?</button><button type="button" id="bFull">Tam ekran</button><button type="button" id="bSet2">Ayarlar</button></div>
@@ -246,6 +253,7 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
 <div id="settings" class="overlay center" hidden>
   <div class="card">
     <div class="eyebrow">Ayarlar</div>
+    <div class="optrow" style="margin:10px 0 6px"><span>Polis (serbest sürüş)</span><span class="seg pol" id="pol2"><button type="button" data-p="0">Kapalı</button><button type="button" data-p="1">Kolay</button><button type="button" data-p="2">Orta</button><button type="button" data-p="3">Zor</button></span></div>
     <div class="toggles">
       <label class="tg"><span>Kolay mod<small>Hız sabitleme, otomatik fan, tavanda fren</small></span><input type="checkbox" id="sEasy"></label>
       <label class="tg"><span>Havada denge yardımı<small>Girdi yokken araba kendini dik getirir</small></span><input type="checkbox" id="sAssist"></label>
@@ -332,6 +340,22 @@ function buildRamp(){
 const RAMP=buildRamp();
 LAY.target=(RAMP.ceilX0+RAMP.ceilX1)/2;
 function rampAt(s,o){const r=RAMP,f=clamp(s,0,r.L)/r.ds,i=Math.min(r.n-2,Math.floor(f)),t=f-i;
+  const th=r.TH[i]+(r.TH[i+1]-r.TH[i])*t;o.s=s;o.x=r.X[i]+(r.X[i+1]-r.X[i])*t;o.y=r.Y[i]+(r.Y[i+1]-r.Y[i])*t;o.th=th;o.k=r.K[i]+(r.K[i+1]-r.K[i])*t;
+  o.tx=Math.cos(th);o.ty=Math.sin(th);o.ux=-Math.sin(th);o.uy=Math.cos(th);return o;}
+function buildCurve(segs){
+  const parts=[];let acc=0;
+  for(const g of segs){if(g.line!==undefined){parts.push({s0:acc,L:g.line,k:()=>0});acc+=g.line;continue;}
+    const k0=1/g.R,La=g.La,Lk=g.arc/k0-La,L=2*La+Lk,s0=acc;parts.push({s0,L,k:u=>u<La?k0*u/La:u<La+Lk?k0:k0*(L-u)/La});acc+=L;}
+  const ds=.05,L=acc,n=Math.ceil(L/ds)+1,kap=s=>{for(const p of parts)if(s<p.s0+p.L)return p.k(Math.max(0,s-p.s0));return 0;};
+  const X=new Float64Array(n),Y=new Float64Array(n),TH=new Float64Array(n),K=new Float64Array(n);let x=0,y=0,th=0;
+  for(let i=0;i<n;i++){const s=i*ds;X[i]=x;Y[i]=y;TH[i]=th;K[i]=kap(s);const km=kap(s+ds/2),thm=th+km*ds/2;x+=Math.cos(thm)*ds;y+=Math.sin(thm)*ds;th+=km*ds;}
+  let xMax=-1e9,xMin=1e9,yMax=0;for(let i=0;i<n;i++){xMax=Math.max(xMax,X[i]);xMin=Math.min(xMin,X[i]);yMax=Math.max(yMax,Y[i]);}
+  return {L,ds,n,X,Y,TH,K,xMax,xMin,yMax};
+}
+const hwySegs=Lc=>[{arc:Math.PI/2,R:7,La:4},{line:4.5},{arc:Math.PI/2,R:4.5,La:2.5},{line:Lc},{arc:Math.PI/2,R:4.5,La:2.5},{line:4.5},{arc:Math.PI/2,R:7,La:4}];
+const HWY=buildCurve(hwySegs(buildCurve(hwySegs(0)).xMin+165));
+RAMP.xMin=Math.min(...RAMP.X);
+function rampAtC(r,s,o){const f=clamp(s,0,r.L)/r.ds,i=Math.min(r.n-2,Math.floor(f)),t=f-i;
   const th=r.TH[i]+(r.TH[i+1]-r.TH[i])*t;o.s=s;o.x=r.X[i]+(r.X[i+1]-r.X[i])*t;o.y=r.Y[i]+(r.Y[i+1]-r.Y[i])*t;o.th=th;o.k=r.K[i]+(r.K[i+1]-r.K[i])*t;
   o.tx=Math.cos(th);o.ty=Math.sin(th);o.ux=-Math.sin(th);o.uy=Math.cos(th);return o;}
 function rampNearest(x,y){const r=RAMP;let best=1e9,bi=0;
@@ -597,7 +621,8 @@ const CITY=(()=>{
   const B=70,RW=14,HW=7,OX=0,OZ=500,R=isTouch?3:4,SPAN=2*R+1;
   const nx=i=>OX+i*B,nz=j=>OZ+j*B,ci=x=>Math.floor((x-OX)/B),cj=z=>Math.floor((z-OZ)/B);
   const hash=(i,j,k=0)=>{let h=(Math.imul(i,374761393)+Math.imul(j,668265263)+Math.imul(k,1442695041))|0;h=Math.imul(h^h>>>13,1274126177);h^=h>>>16;return (h>>>0)/4294967296;};
-  const isRamp=(i,j)=>(i===0&&j===3)||hash(i,j,13)<.07,isPark=(i,j)=>!isRamp(i,j)&&hash(i,j,9)<.12;
+  const hwyK=i=>Math.floor(i/3)*3,isHwy=(i,j)=>{const k=hwyK(i);return (k===0&&j===2)||hash(k,j,21)<.05;};
+  const isRamp=(i,j)=>!isHwy(i,j)&&((i===0&&j===3)||hash(i,j,13)<.07),isPark=(i,j)=>!isHwy(i,j)&&!isRamp(i,j)&&hash(i,j,9)<.12;
   const rampDir=(i,j)=>(i===0&&j===3)?0:hash(i,j,14)*4|0;
   const group=new THREE.Group();group.visible=false;scene.add(group);
   // one 70 m tile (road halves on its edges, a block in the middle) repeated under the player
@@ -648,15 +673,35 @@ const CITY=(()=>{
     const legG=new THREE.BoxGeometry(.3,top,.3);for(const x of [xs[0],xs[xs.length-1]])for(const z of zs){const leg=new THREE.Mesh(legG,M.dark);leg.position.set(x,top/2,z);leg.castShadow=true;jg.add(leg);}
     const sign=new THREE.Mesh(new THREE.PlaneGeometry(9,2.25),new THREE.MeshBasicMaterial({map:labelTex('TEPETAKLAK','#e07a24',1024,256,200),transparent:true,side:THREE.DoubleSide}));sign.position.set((xs[0]+xs[xs.length-1])/2,top+1.6,zs[1]);jg.add(sign);
     return jg;})();
+  const curveGroup=(r,deckCol,shellCol)=>{const hw=5,th=.35,step=4,dp=[],sp=[],ep=[],jg=new THREE.Group();
+    const cor=i=>{const x=r.X[i],y=r.Y[i],ux=-Math.sin(r.TH[i]),uy=Math.cos(r.TH[i]),e=z=>[x+ux*.02,y+uy*.02,z];
+      return {t:[[x,y,hw],[x,y,-hw]],b:[[x-ux*th,y-uy*th,hw],[x-ux*th,y-uy*th,-hw]],e:[e(hw-.15),e(hw-.3),e(-hw+.3),e(-hw+.15)]};};
+    const q=(a,p0,p1,p2,p3)=>a.push(...p0,...p1,...p2,...p0,...p2,...p3);let c0=cor(0);
+    for(let i=step;i<r.n+step;i+=step){const c1=cor(Math.min(i,r.n-1));q(dp,c0.t[0],c0.t[1],c1.t[1],c1.t[0]);q(sp,c0.b[0],c0.b[1],c1.b[1],c1.b[0]);q(sp,c0.t[0],c0.b[0],c1.b[0],c1.t[0]);q(sp,c0.t[1],c0.b[1],c1.b[1],c1.t[1]);q(ep,c0.e[0],c0.e[1],c1.e[1],c1.e[0]);q(ep,c0.e[2],c0.e[3],c1.e[3],c1.e[2]);c0=c1;if(i>=r.n-1)break;}
+    const mk=(arr,mat,sh)=>{const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(arr,3));g.computeVertexNormals();const m=new THREE.Mesh(g,mat);m.castShadow=sh;m.receiveShadow=true;jg.add(m);};
+    mk(dp,new THREE.MeshStandardMaterial({color:deckCol,roughness:.6,side:THREE.DoubleSide}),true);mk(sp,new THREE.MeshStandardMaterial({color:shellCol,roughness:.5,metalness:.3,side:THREE.DoubleSide}),true);mk(ep,M.white,false);return jg;};
+  const hwyRoadX=lx=>{const rel=(((179+lx)%70)+70)%70;return rel<10||rel>60;};
+  const HT=(()=>{const g=curveGroup(HWY,0xd6d9dd,0xc0392b),top=HWY.yMax+1.2,zs=[-5.7,5.7],pm=new THREE.MeshStandardMaterial({color:0x8a9099,roughness:.4,metalness:.7}),pg=new THREE.BoxGeometry(.6,top,.6),bg=new THREE.BoxGeometry(.5,.5,11.4);
+    for(let lx=HWY.xMin+14;lx<-6;lx+=16){if(hwyRoadX(lx))continue;for(const z of zs){const m=new THREE.Mesh(pg,pm);m.position.set(lx,top/2,z);m.castShadow=true;g.add(m);}const b=new THREE.Mesh(bg,pm);b.position.set(lx,top+.25,0);g.add(b);}
+    for(const x of [HWY.xMin-.8,HWY.xMax+.8])for(const z of zs){const m=new THREE.Mesh(pg,pm);m.position.set(x,top/2,z);g.add(m);}
+    const sign=new THREE.Mesh(new THREE.PlaneGeometry(12,3),new THREE.MeshBasicMaterial({map:labelTex('TERS OTOYOL','#c0392b',1024,256,170),transparent:true,side:THREE.DoubleSide}));sign.position.set(-60,top+2,5.8);g.add(sign);
+    return g;})();
+  const hwyPool=[];
   const rampPool=[];
   const plazaIM=new THREE.InstancedMesh(new THREE.PlaneGeometry(B-RW-6,B-RW-6),new THREE.MeshStandardMaterial({color:0xb7ad9c,roughness:.9}),SPAN*SPAN);plazaIM.receiveShadow=true;plazaIM.frustumCulled=false;group.add(plazaIM);
-  const C={group,B,HW,RW,R,nx,nz,ci,cj,hash,isPark,isRamp,ramps:[],boxes:[],heads:[],lh,ground,cI:null,cJ:null,start:{x:nx(0)+16,z:nz(3)+1.9,yaw:0}};
+  const C={group,B,HW,RW,R,nx,nz,ci,cj,hash,isPark,isRamp,isHwy,ramps:[],boxes:[],heads:[],lh,ground,cI:null,cJ:null,start:{x:nx(0)+16,z:nz(3)+1.9,yaw:0}};
   C.build=(I,J)=>{
-    C.cI=I;C.cJ=J;const boxes=[],lots=[[],[],[]],roofs=[],parks=[],trees=[],lamps=[],heads=[],ramps=[],plazas=[];
+    C.cI=I;C.cJ=J;const boxes=[],lots=[[],[],[]],roofs=[],parks=[],trees=[],lamps=[],heads=[],ramps=[],plazas=[],hwys=new Map();
     for(let i=I-R;i<=I+R;i++)for(let j=J-R;j<=J+R;j++){
       const cx=nx(i)+B/2,cz=nz(j)+B/2;
       lamps.push([nx(i)-8.6,nz(j)+22],[nx(i)+8.6,nz(j)+52],[nx(i)+22,nz(j)+8.6],[nx(i)+52,nz(j)-8.6]);
-      if(isRamp(i,j)){const d=rampDir(i,j),[dx,dz]=DIRS[d],rx=-dz,rz=dx,r={ox:cx,oz:cz,dx,dz,rx,rz,a:Math.atan2(dz,dx)};ramps.push(r);plazas.push([cx,cz]);
+      if(isHwy(i,j)){plazas.push([cx,cz]);const k=hwyK(i),key=k+','+j;
+        if(!hwys.has(key)){const ox=nx(k+2)+B/2+4,oz=nz(j)+B/2,r={kind:'hwy',curve:HWY,ox,oz,dx:1,dz:0,rx:0,rz:1,a:0};hwys.set(key,r);ramps.push(r);
+          const bx=(l0,l1,w)=>boxes.push({x0:ox+l0,x1:ox+l1,z0:oz-w,z1:oz+w,h:HWY.yMax+1.2});
+          bx(8.4,11,5.9);bx(HWY.xMin-1.4,HWY.xMin+.6,5.9);
+          for(let lx=HWY.xMin+14;lx<-6;lx+=16){if(hwyRoadX(lx))continue;for(const z of [-5.7,5.7])boxes.push({x0:ox+lx-.35,x1:ox+lx+.35,z0:oz+z-.35,z1:oz+z+.35,h:HWY.yMax+1.2});}}
+        continue;}
+      if(isRamp(i,j)){const d=rampDir(i,j),[dx,dz]=DIRS[d],rx=-dz,rz=dx,r={kind:'j',curve:RAMP,ox:cx,oz:cz,dx,dz,rx,rz,a:Math.atan2(dz,dx)};ramps.push(r);plazas.push([cx,cz]);
         // solid back of the wall so you cannot drive through it from behind
         const pts=[[8.4,-5.9],[8.4,5.9],[11,-5.9],[11,5.9]].map(([lx,lz])=>[cx+dx*lx+rx*lz,cz+dz*lx+rz*lz]);
         boxes.push({x0:Math.min(...pts.map(q=>q[0])),x1:Math.max(...pts.map(q=>q[0])),z0:Math.min(...pts.map(q=>q[1])),z1:Math.max(...pts.map(q=>q[1])),h:RAMP.yMax+1.2});continue;}
@@ -681,8 +726,11 @@ const CITY=(()=>{
     o.rotation.set(-Math.PI/2,0,0);parks.forEach((p,n)=>{o.position.set(p[0],.02,p[1]);o.updateMatrix();parkIM.setMatrixAt(n,o.matrix);});parkIM.count=parks.length;parkIM.instanceMatrix.needsUpdate=true;o.rotation.set(0,0,0);
     ground.position.set(nx(I-R-1)+GW/2,.004,nz(J-R-1)+GW/2);
     o.rotation.set(-Math.PI/2,0,0);o.scale.set(1,1,1);plazas.forEach((p,n)=>{o.position.set(p[0],.021,p[1]);o.updateMatrix();plazaIM.setMatrixAt(n,o.matrix);});plazaIM.count=plazas.length;plazaIM.instanceMatrix.needsUpdate=true;o.rotation.set(0,0,0);
-    while(rampPool.length<ramps.length){const g2=JT.clone();group.add(g2);rampPool.push(g2);}
-    rampPool.forEach((g2,n)=>{const r=ramps[n];g2.visible=!!r;if(r){g2.position.set(r.ox,0,r.oz);g2.rotation.set(0,-r.a,0);}});
+    const js=ramps.filter(r=>r.kind==='j'),hs=ramps.filter(r=>r.kind==='hwy');
+    while(rampPool.length<js.length){const g2=JT.clone();group.add(g2);rampPool.push(g2);}
+    while(hwyPool.length<hs.length){const g2=HT.clone();group.add(g2);hwyPool.push(g2);}
+    rampPool.forEach((g2,n)=>{const r=js[n];g2.visible=!!r;if(r){g2.position.set(r.ox,0,r.oz);g2.rotation.set(0,-r.a,0);}});
+    hwyPool.forEach((g2,n)=>{const r=hs[n];g2.visible=!!r;if(r)g2.position.set(r.ox,0,r.oz);});
     C.boxes=boxes;C.heads=heads;C.ramps=ramps;
   };
   C.update=(x,z)=>{const I=ci(x),J=cj(z);if(I!==C.cI||J!==C.cJ)C.build(I,J);};
@@ -766,6 +814,69 @@ function trafficTick(dt){
   }
 }
 
+
+/* police: speeding or crashing raises a wanted level; cars hunt you through the street grid */
+const POLDIF=[null,{maxV:34,acc:9,n:[1,1,2],lim:42,bust:3.2,name:'Kolay'},{maxV:42,acc:12,n:[1,2,3],lim:33,bust:2.5,name:'Orta'},{maxV:50,acc:15,n:[2,3,4],lim:28,bust:2,name:'Zor'}];
+const POL={cars:[],wanted:0,speedT:0,escT:0,bustT:0,hitT:0,near:1e9,pts:0};
+const POLM=(()=>{const out=[],bodyM=new THREE.MeshPhysicalMaterial({color:0x111827,metalness:.5,roughness:.3,clearcoat:.8}),doorM=new THREE.MeshStandardMaterial({color:0xf2f4f7,roughness:.4}),
+    redM=new THREE.MeshBasicMaterial({color:0xff2035}),blueM=new THREE.MeshBasicMaterial({color:0x2f7bff}),offM=new THREE.MeshBasicMaterial({color:0x30343b}),
+    cabM=new THREE.MeshPhysicalMaterial({color:0x07080a,metalness:.85,roughness:.08});
+  for(let k=0;k<4;k++){const g=new THREE.Group();
+    const b=new THREE.Mesh(new RoundedBoxGeometry(4.5,.8,1.9,2,.22),bodyM);b.position.y=.68;b.castShadow=true;g.add(b);
+    const d=new THREE.Mesh(new THREE.BoxGeometry(1.9,.42,1.94),doorM);d.position.set(-.1,.72,0);g.add(d);
+    const cab=new THREE.Mesh(new RoundedBoxGeometry(2.3,.6,1.64,2,.18),cabM);cab.position.set(-.3,1.36,0);g.add(cab);
+    const r=new THREE.Mesh(new THREE.BoxGeometry(.32,.16,.62),redM);r.position.set(-.3,1.74,.36);const bl=new THREE.Mesh(new THREE.BoxGeometry(.32,.16,.62),blueM);bl.position.set(-.3,1.74,-.36);g.add(r,bl);
+    for(const [x,z] of [[1.42,.86],[1.42,-.86],[-1.42,.86],[-1.42,-.86]]){const w=new THREE.Mesh(new THREE.CylinderGeometry(.34,.34,.24,14).rotateX(Math.PI/2),M.dark);w.position.set(x,.34,z);g.add(w);}
+    const lab=new THREE.Mesh(new THREE.PlaneGeometry(1.6,.4),new THREE.MeshBasicMaterial({map:labelTex('POLİS','#111827',512,128,110),transparent:true}));lab.position.set(-.1,.74,.98);g.add(lab);const lab2=lab.clone();lab2.position.z=-.98;lab2.rotation.y=Math.PI;g.add(lab2);
+    g.visible=false;CITY.group.add(g);out.push({g,r,bl,redM,blueM,offM});}
+  return out;})();
+function polClear(){POL.cars.length=0;POL.wanted=0;POL.speedT=POL.escT=POL.bustT=0;$('wanted').hidden=true;}
+function polLos(ax,az,bx,bz){for(let t=.1;t<=1;t+=.1){const x=ax+(bx-ax)*t,z=az+(bz-az)*t;for(const b of CITY.boxes)if(b.h>1&&x>b.x0-.6&&x<b.x1+.6&&z>b.z0-.6&&z<b.z1+.6)return false;}return true;}
+function polSpawnOne(minD,maxD){const c=car;
+  for(let tries=0;tries<40;tries++){const a=Math.random()*TAU,d=minD+Math.random()*(maxD-minD),i=Math.round((c.pos.x+Math.cos(a)*d-CITY.nx(0))/CITY.B),j=Math.round((c.pos.z+Math.sin(a)*d-CITY.nz(0))/CITY.B),x=CITY.nx(i),z=CITY.nz(j);
+    if(Math.hypot(x-c.pos.x,z-c.pos.z)<minD*.7)continue;return {x,z,yaw:Math.atan2(c.pos.z-z,c.pos.x-x),v:8,tx:c.pos.x,tz:c.pos.z,reT:0,stuckT:0};}
+  return {x:c.pos.x+120,z:c.pos.z,yaw:Math.PI,v:8,tx:c.pos.x,tz:c.pos.z,reT:0,stuckT:0};}
+function polWant(lv,reason){if(!SET.police||S.menuDemo)return;const nw=Math.min(3,lv);if(nw>POL.wanted){POL.wanted=nw;bigMsg('POLİS!',reason+' · '+'★'.repeat(nw),1500);sfx('beep');
+    const need=POLDIF[SET.police].n[nw-1];while(POL.cars.length<need)POL.cars.push(polSpawnOne(110,170));}POL.escT=0;}
+function polTick(dt){
+  const c=car,D=POLDIF[SET.police];if(!D){if(POL.wanted)polClear();return;}
+  const sp=c.state==='freeAir'?Math.hypot(c.vel.x,c.vel.z):Math.abs(c.v);
+  if(c.state==='free'&&sp>D.lim){POL.speedT+=dt;if(POL.speedT>1.5&&POL.wanted<1)polWant(1,'Hız sınırını aştın');if(POL.speedT>14&&POL.wanted<2)polWant(2,'Hâlâ çok hızlısın');}else POL.speedT=Math.max(0,POL.speedT-dt*.5);
+  POL.hitT-=dt;
+  if(!POL.wanted)return;
+  let near=1e9;
+  for(const p of POL.cars){
+    let dx=c.pos.x-p.x,dz=c.pos.z-p.z,dist=Math.hypot(dx,dz);
+    if(dist>420){Object.assign(p,polSpawnOne(130,180));continue;}
+    p.reT-=dt;
+    if(p.reT<=0){p.reT=.35;
+      if(dist<70||polLos(p.x,p.z,c.pos.x,c.pos.z)){p.tx=c.pos.x+c.vel.x*.4;p.tz=c.pos.z+c.vel.z*.4;p.node=false;}
+      else{let best=1e9;const i0=Math.round((p.x-CITY.nx(0))/CITY.B),j0=Math.round((p.z-CITY.nz(0))/CITY.B);
+        for(let i=i0-1;i<=i0+1;i++)for(let j=j0-1;j<=j0+1;j++){const nx=CITY.nx(i),nz=CITY.nz(j),dn=Math.hypot(nx-p.x,nz-p.z);if(dn<6)continue;if(!polLos(p.x,p.z,nx,nz))continue;const sc=dn+Math.hypot(c.pos.x-nx,c.pos.z-nz)*1.1;if(sc<best){best=sc;p.tx=nx;p.tz=nz;}}
+        p.node=true;}}
+    let dy=Math.atan2(p.tz-p.z,p.tx-p.x)-p.yaw;while(dy>Math.PI)dy-=TAU;while(dy<-Math.PI)dy+=TAU;
+    p.yaw+=clamp(dy,-2.6*dt,2.6*dt)*Math.min(1,Math.abs(p.v)/5+.3);
+    let vT=D.maxV;const dT=Math.hypot(p.tx-p.x,p.tz-p.z);if(p.node&&dT<28)vT=Math.min(vT,16);if(Math.abs(dy)>.8)vT=Math.min(vT,12);if(dist<18)vT=Math.min(vT,Math.max(0,(dist-5.5)*1.6)+sp);
+    p.v+=clamp(vT-p.v,-18*dt,D.acc*dt);
+    p.x+=Math.cos(p.yaw)*p.v*dt;p.z+=Math.sin(p.yaw)*p.v*dt;
+    for(const b of CITY.boxes){if(b.h<1)continue;const m=1.1;if(p.x>b.x0-m&&p.x<b.x1+m&&p.z>b.z0-m&&p.z<b.z1+m){const q=[p.x-(b.x0-m),(b.x1+m)-p.x,p.z-(b.z0-m),(b.z1+m)-p.z],k=q.indexOf(Math.min(...q));if(k===0)p.x-=q[0];else if(k===1)p.x+=q[1];else if(k===2)p.z-=q[2];else p.z+=q[3];p.v*=.85;}}
+    if(p.v<2&&dist>30){p.stuckT+=dt;if(p.stuckT>3){Object.assign(p,polSpawnOne(90,140));continue;}}else p.stuckT=0;
+    dx=c.pos.x-p.x;dz=c.pos.z-p.z;dist=Math.hypot(dx,dz);near=Math.min(near,dist);
+    if(c.pos.y<1.7&&c.state!=='framp'&&dist<4.4){const nx=dx/(dist||1),nz=dz/(dist||1),pen=4.4-dist;c.pos.x+=nx*pen*.6;c.pos.z+=nz*pen*.6;p.x-=nx*pen*.4;p.z-=nz*pen*.4;
+      const rv=(c.vel.x-Math.cos(p.yaw)*p.v)*nx+(c.vel.z-Math.sin(p.yaw)*p.v)*nz;if(rv<0){c.vel.x-=nx*rv*1.2;c.vel.z-=nz*rv*1.2;p.v*=.5;
+        if(-rv>6&&POL.hitT<=0){POL.hitT=3;S.shake=.6;sparks(c.pos,24,8);sfx('thud');if(sp>p.v)polWant(POL.wanted+1,'Polise çarptın');}}}
+  }
+  POL.near=near;
+  if(near<9&&sp<5&&c.state==='free'){POL.bustT+=dt;if(POL.bustT>D.bust){const fine=Math.round(S.score*.4);S.score-=fine;bigMsg('YAKALANDIN',fine?`Ceza: −${nf(fine)} puan`:'Bu sefer ceza yok',2200);sfx('crash');c.vel.set(0,0,0);c.v=0;S.free.combo=1;polClear();return;}}
+  else POL.bustT=Math.max(0,POL.bustT-dt*.6);
+  if(near>170){POL.escT+=dt;if(POL.escT>10){freeScore(400*POL.wanted,'Polisten kaçtın');bigMsg('KAÇTIN','Polis izini kaybetti',1600);polClear();return;}}else POL.escT=Math.max(0,POL.escT-dt*2);
+  POL.pts+=15*POL.wanted*dt;if(POL.pts>=50){S.score+=Math.floor(POL.pts);POL.pts%=1;}
+  const w=$('wanted');w.hidden=false;$('wStars').textContent='★'.repeat(POL.wanted)+'☆'.repeat(3-POL.wanted);
+  $('wTxt').textContent=POL.bustT>.3?`Durma! Yakalanıyorsun ${Math.round(POL.bustT/D.bust*100)}%`:POL.escT>.5?`Kaçıyorsun… ${Math.ceil(10-POL.escT)} sn`:`Polis peşinde · ${Math.round(near)} m`;
+}
+function polRender(t){const on=Math.floor(t*7)%2===0;
+  POLM.forEach((m,k)=>{const p=POL.cars[k];m.g.visible=!!p;if(!p)return;m.g.position.set(p.x,0,p.z);m.g.rotation.set(0,-p.yaw,0);m.r.material=on?m.redM:m.offM;m.bl.material=on?m.offM:m.blueM;});}
+
 /* free-drive player physics: bicycle model with a friction circle, drift, hop, roofs */
 function setFree(c){c.state='free';c.pos.set(CITY.start.x,0,CITY.start.z);c.yaw=CITY.start.yaw;c.v=0;c.vel.set(0,0,0);c.steer=0;c.dir=1;basisQuat(c.q,_va.set(1,0,0),AY);}
 function stepFree(c,inp,h,ev){
@@ -821,17 +932,18 @@ function stepFree(c,inp,h,ev){
       if(imp>3)ev.push({t:'wall',v:imp});}}
 }
 function stepFreeRamp(c,inp,h,ev){
-  const r=c.rr,f=rampAt(c.s,c.fr);
+  const r=c.rr,CV=r.curve,f=rampAtC(CV,c.s,c.fr);
   c.N=c.v*c.v*f.k+G*f.uy+c.suck;c.gLoad=c.N/G;c.maxG=Math.max(c.maxG,c.gLoad);
   if(c.gLoad>P.gWarn){c.overT+=1;if(c.overT===1)ev.push({t:'overG'});}else c.overT=0;
   const leave=(tx,ty)=>{c.vel.set(r.dx*tx,ty,r.dz*tx);c.state='freeAir';c.airT=0;c.w.set(0,0,0);c.rot.set(0,0,0);c.airFrom='framp';c.liftLatch=true;c.releaseY=f.y;};
   if(c.N<=0){c.detachT+=h;if(c.detachT>.05){c.detachT=0;leave(f.tx*c.v,f.ty*c.v);ev.push({t:'detach'});return;}}else c.detachT=0;
   const a=driveAccel(c,inp,c.v,P.mu*Math.max(0,c.N))-G*f.ty;c.aLong=a;c.v+=a*h;c.s+=c.v*h;
-  if(f.th>2.9)c.hang+=h;
+  if(r.kind==='hwy'?Math.abs(f.th-Math.PI)<.3:f.th>2.9)c.hang+=h;
   if(inp.liftPress&&c.s>2){c.fanOn=false;c.fanS=0;leave(f.tx*c.v+f.ux*2.2,f.ty*c.v+f.uy*2.2);ev.push({t:'release',y:f.y,th:f.th});return;}
   if(c.s<0){c.state='free';c.yaw=r.a;c.pos.set(r.ox+r.dx*c.s+r.rx*c.lz,0,r.oz+r.dz*c.s+r.rz*c.lz);c.vel.set(r.dx*c.v,0,r.dz*c.v);return;}
-  if(c.s>=RAMP.L){leave(f.tx*c.v,f.ty*c.v);ev.push({t:'release',y:f.y,th:f.th,end:true});return;}
-  const g=rampAt(c.s,c.fr);
+  if(c.s>=CV.L&&r.kind==='hwy'){const g=rampAtC(CV,CV.L,c.fr);c.state='free';c.yaw=r.a;c.pos.set(r.ox+r.dx*g.x+r.rx*c.lz,0,r.oz+r.dz*g.x+r.rz*c.lz);c.vel.set(r.dx*c.v,0,r.dz*c.v);ev.push({t:'hwyDone'});return;}
+  if(c.s>=CV.L){leave(f.tx*c.v,f.ty*c.v);ev.push({t:'release',y:f.y,th:f.th,end:true});return;}
+  const g=rampAtC(CV,c.s,c.fr);
   c.pos.set(r.ox+r.dx*g.x+r.rx*c.lz,g.y,r.oz+r.dz*g.x+r.rz*c.lz);
   basisQuat(c.q,_va.set(r.dx*g.tx,g.ty,r.dz*g.tx),_vb.set(r.dx*g.ux,g.uy,r.dz*g.ux));
   c.vel.set(r.dx*g.tx*c.v,g.ty*c.v,r.dz*g.tx*c.v);
@@ -847,7 +959,7 @@ function freeTick(dt){
     for(const s1 of [-1.25,1.25])for(const s2 of [-1.25,1.25]){const px=c.pos.x+f.x*s1-(a.x+ax*s2),pz=c.pos.z+f.z*s1-(a.z+az*s2),d=Math.hypot(px,pz);if(d<best){best=d;nx=px/(d||1);nz=pz/(d||1);}}
     if(best<2.1){const rvx=c.vel.x-ax*a.v,rvz=c.vel.z-az*a.v,vn=rvx*nx+rvz*nz;c.pos.x+=nx*(2.1-best);c.pos.z+=nz*(2.1-best);
       if(vn<0){c.vel.x-=nx*vn*1.4;c.vel.z-=nz*vn*1.4;a.v*=.3;a.hitT=2.5;
-        if(-vn>4){F.hits++;F.combo=1;S.shake=Math.min(.8,-vn/25);sparks(c.pos,Math.min(40,-vn*2|0),8);sfx('thud');pop('ÇARPIŞMA','red');}}}
+        if(-vn>4){F.hits++;F.combo=1;if(-vn>6)polWant(POL.wanted+1,'Kaza yaptın');S.shake=Math.min(.8,-vn/25);sparks(c.pos,Math.min(40,-vn*2|0),8);sfx('thud');pop('ÇARPIŞMA','red');}}}
     else if(best<3.3&&a.nearT<=0&&a.hitT<=0){const rel=Math.hypot(c.vel.x-ax*a.v,c.vel.z-az*a.v);if(rel>12){a.nearT=4;F.near++;freeScore(100,'Kıl payı');}}}
   if(c.drift&&Math.abs(c.v)>12&&c.state==='free'){F.driftT+=dt;}else if(F.driftT>0){if(F.driftT>.8)freeScore(Math.round(F.driftT*120),`Drift ${f1(F.driftT)} sn`);F.driftT=0;}
   if(S.score>(REC.serbest||0)){REC.serbest=S.score;F.recDirty=true;}
@@ -855,8 +967,9 @@ function freeTick(dt){
 function freeScore(p,label){const F=S.free,g=Math.round(p*F.combo);S.score+=g;pop('+'+nf(g)+' '+label+(F.combo>1?' ×'+F.combo:''),'gold');F.combo=Math.min(5,F.combo+1);F.comboT=5;sfx('chime');}
 function drawMinimap(){const x=$('mini').getContext('2d'),m=.7,cx=car.pos.x,cz=car.pos.z,P=(px,pz)=>[150+(px-cx)*m,150+(pz-cz)*m],I=CITY.ci(cx),J=CITY.cj(cz),w=(CITY.B-CITY.RW)*m;
   x.fillStyle='#3a3d43';x.fillRect(0,0,300,300);
-  for(let i=I-4;i<=I+4;i++)for(let j=J-4;j<=J+4;j++){const [u,v]=P(CITY.nx(i)+CITY.HW,CITY.nz(j)+CITY.HW);x.fillStyle=CITY.isRamp(i,j)?'#e07a24':CITY.isPark(i,j)?'#4f7d3a':'#8f9297';x.fillRect(u,v,w,w);}
+  for(let i=I-4;i<=I+4;i++)for(let j=J-4;j<=J+4;j++){const [u,v]=P(CITY.nx(i)+CITY.HW,CITY.nz(j)+CITY.HW);x.fillStyle=CITY.isHwy(i,j)?'#c0392b':CITY.isRamp(i,j)?'#e07a24':CITY.isPark(i,j)?'#4f7d3a':'#8f9297';x.fillRect(u,v,w,w);}
   x.fillStyle='#14161a';for(const a of TRAF.cars){const [u,v]=P(a.x,a.z);x.fillRect(u-2.5,v-2.5,5,5);}
+  const blink=Math.floor(performance.now()/140)%2;for(const pc of POL.cars){const [u,v]=P(pc.x,pc.z);x.fillStyle=blink?'#ff2035':'#2f7bff';x.beginPath();x.arc(u,v,5,0,TAU);x.fill();}
   x.save();x.translate(150,150);x.rotate(car.yaw);x.fillStyle='#e3263b';x.strokeStyle='#fff';x.lineWidth=2;x.beginPath();x.moveTo(11,0);x.lineTo(-7,7);x.lineTo(-3,0);x.lineTo(-7,-7);x.closePath();x.fill();x.stroke();x.restore();}
 /* ===== hero car ===== */
 const COLORS=[['Beyaz','#eef0f2',0xeceef0],['Kırmızı','#b3121f',0x9c0f1b],['Gece','#1c1f26',0x15181e],['Gümüş','#a8afb8',0x9aa2ab],['Mavi','#2a5bd7',0x2350c4]];
@@ -922,12 +1035,14 @@ function audioInit(){if(AU.ctx){if(AU.ctx.state==='suspended')AU.ctx.resume();re
     const o1=ctx.createOscillator(),o2=ctx.createOscillator();o1.type='sawtooth';o2.type='sine';const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=600;const eg=ctx.createGain();eg.gain.value=0;o1.connect(lp);o2.connect(lp);lp.connect(eg);eg.connect(m);o1.start();o2.start();Object.assign(AU,{o1,o2,lp,eg});
     const buf=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate),d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;AU.buf=buf;
     const mk=(type,f,q)=>{const s=ctx.createBufferSource();s.buffer=buf;s.loop=true;const b=ctx.createBiquadFilter();b.type=type;b.frequency.value=f;b.Q.value=q;const gn=ctx.createGain();gn.gain.value=0;s.connect(b);b.connect(gn);gn.connect(m);s.start();return {gn,b};};
+    {const so=ctx.createOscillator(),sg=ctx.createGain();so.type='square';so.frequency.value=700;sg.gain.value=0;const sf=ctx.createBiquadFilter();sf.type='lowpass';sf.frequency.value=1800;so.connect(sf);sf.connect(sg);sg.connect(m);so.start();AU.sir=so;AU.sirG=sg;}
     AU.fan=mk('bandpass',900,1.4);AU.gas=mk('highpass',2500,.5);AU.wind=mk('lowpass',380,.4);}catch(e){AU.ctx=null;}}
 function audioTick(on){if(!AU.ctx)return;const t=AU.ctx.currentTime,c=car,sp=c.state==='air'||c.state==='crash'?c.vel.length():Math.abs(c.v),live=on&&!SET.mute&&!S.menuDemo;
   AU.o1.frequency.setTargetAtTime(35+sp*5,t,.06);AU.o2.frequency.setTargetAtTime(70+sp*10,t,.06);AU.lp.frequency.setTargetAtTime(400+sp*30,t,.1);
   AU.eg.gain.setTargetAtTime(live&&c.state!=='crash'?.018+(lastInp.gas?.045:0)+Math.min(.03,sp*.0008):0,t,.08);
   AU.fan.gn.gain.setTargetAtTime(live?c.fanS*.16:0,t,.1);AU.fan.b.frequency.setTargetAtTime(700+c.fanS*900,t,.2);
   AU.gas.gn.gain.setTargetAtTime(live&&(c.lifting||c.boosting||c.retro)?.28:0,t,.03);
+  {const chase=live&&S.mode==='serbest'&&POL.wanted&&POL.near<220;AU.sir.frequency.setTargetAtTime(760+260*Math.sin(t*7),t,.02);AU.sirG.gain.setTargetAtTime(chase?.05*(1-POL.near/220):0,t,.1);}
   AU.wind.gn.gain.setTargetAtTime(live?Math.min(.3,sp*sp*.0004):0,t,.2);}
 function sfx(k){if(!AU.ctx||SET.mute||S.menuDemo)return;const ctx=AU.ctx,t=ctx.currentTime;
   if(k==='chime'||k==='beep'||k==='go'){const o=ctx.createOscillator(),g=ctx.createGain();o.type='triangle';o.frequency.setValueAtTime(k==='beep'?620:k==='go'?930:880,t);if(k==='chime')o.frequency.exponentialRampToValueAtTime(1320,t+.12);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.22,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+(k==='go'?.6:.35));o.connect(g);g.connect(AU.m);o.start(t);o.stop(t+.7);return;}
@@ -937,7 +1052,7 @@ function sfx(k){if(!AU.ctx||SET.mute||S.menuDemo)return;const ctx=AU.ctx,t=ctx.c
   s.connect(b);b.connect(g);g.connect(AU.m);s.start(t);s.stop(t+1.1);}
 
 /* ================= GAME STATE ================= */
-const SET=Object.assign({easy:true,assist:true,ghost:true,forces:false,far:false,low:false,mute:false,hide:false,color:0},store.get('set',{}));
+const SET=Object.assign({police:2,easy:true,assist:true,ghost:true,forces:false,far:false,low:false,mute:false,hide:false,color:0},store.get('set',{}));
 const REC=store.get('rec',{});
 const GHOSTS={};for(const m of ['rampa','atlama','gosteri']){const g=store.get('ghost_'+m,null);if(g)GHOSTS[m]=g;}
 const S={phase:'loading',ui:'menu',mode:'gosteri',auto:false,autoSeq:0,attempt:0,t:0,score:0,items:[],st:null,count:0,lastCount:0,doneT:0,camMode:0,side:false,slow:false,shake:0,
@@ -953,7 +1068,7 @@ function startMode(mode,opts={}){
   S.bot.hangT=1.1+Math.random()*1.6;S.bot.hopX=LAY.line0+12.5+Math.random()*1.5;
   car=newCar();for(const o of OBST)o.seen=false;
   setEnv(mode==='serbest'&&!S.menuDemo);
-  if(mode==='serbest'){S.auto=false;setFree(car);CITY.update(car.pos.x,car.pos.z);trafficReset();cam.head=car.yaw;S.free={dist:0,top:0,near:0,hits:0,combo:1,comboT:0,driftT:0};}
+  if(mode==='serbest'){S.auto=false;setFree(car);CITY.update(car.pos.x,car.pos.z);trafficReset();polClear();cam.head=car.yaw;S.free={dist:0,top:0,near:0,hits:0,combo:1,comboT:0,driftT:0};}
   else if(mode==='atlama')setGround(car,LAY.start.atlama,-1,0);else setGround(car,LAY.start[mode],1,0);
   CITY.group.visible=mode==='serbest';mirror.visible=!LOW&&mode!=='serbest';$('mini').hidden=mode!=='serbest';
   parts.length=0;
@@ -1001,7 +1116,8 @@ function gatherInput(){
     o.gas=k('gas')?1:0;o.brake=k('brake')?1:0;o.lift=k('lift')?1:0;o.boost=k('boost')?1:0;o.retro=k('retro')?1:0;
     if(car.state==='air'){o.rollL=k('left')?1:0;o.rollR=k('right')?1:0;if(!SET.easy){o.pitchDown=o.gas;o.pitchUp=o.brake;}o.yawL=k('yawL')?1:0;o.yawR=k('yawR')?1:0;}
     o.liftPress=o.lift&&!liftPrev?1:0;liftPrev=!!o.lift;
-    if(S.mode==='serbest'){if(car.state==='framp'&&SET.easy){const f=car.fr;if(f.th>2.6){if(!o.brake)cruise(o,car.v,1.4);}else cruise(o,car.v,f.th>1.2?7:11);}
+    if(S.mode==='serbest'){if(car.state==='framp'&&SET.easy&&car.rr.kind==='hwy'){const f=car.fr;if(f.th<2.6)cruise(o,car.v,f.th>1.2?8:12);else if(f.th<3.6&&!o.brake)cruise(o,car.v,14);}
+      else if(car.state==='framp'&&SET.easy){const f=car.fr;if(f.th>2.6){if(!o.brake)cruise(o,car.v,1.4);}else cruise(o,car.v,f.th>1.2?7:11);}
       if(car.state==='freeAir'&&SET.easy&&car.airFrom==='framp'){const up=_va.copy(AY).applyQuaternion(car.q).y;if(up>.85&&car.vel.y<-8.5&&car.pos.y-cityGroundAt(car.pos.x,car.pos.z)<9)o.lift=1;}
       if(car.state==='framp'){}else if(car.state==='freeAir'){o.rollL=k('left')?1:0;o.rollR=k('right')?1:0;if(!(SET.easy&&car.airFrom==='framp')){o.pitchDown=k('gas')?1:0;o.pitchUp=k('brake')?1:0;}o.yawL=k('yawL')?1:0;o.yawR=k('yawR')?1:0;}else{o.steer=(k('right')?1:0)-(k('left')?1:0);o.rollL=o.rollR=o.pitchUp=o.pitchDown=0;}}
     else if(SET.easy)easyAssist(o);
@@ -1032,6 +1148,7 @@ function handleEvents(ev){
       else if(L.from==='hop'&&live&&st.cars&&e.q==='clean')addScore(200,'Yumuşak iniş','good');}
     if(e.t==='crash'){st.crashed=true;sfx('crash');sparks(car.pos,40,12);S.shake=.9;if(live)bigMsg('KAZA',car.reason==='overG'?'Araç dağıldı':'',1500);}
     if(e.t==='bump')sparks(car.pos,10,6);
+    if(e.t==='hwyDone'&&live){freeScore(800,'Ters otoyol tamam');bigMsg('TERS OTOYOL','160 m baş aşağı gittin',1400);}
     if(e.t==='wall'){S.shake=Math.min(.7,e.v/30);sparks(car.pos,Math.min(30,e.v*1.5|0),7);sfx('thud');if(e.v>10&&live){S.free.hits++;S.free.combo=1;pop('DUVAR','red');}}
     if(e.t==='fland'){sfx('thud');dust(car.pos,Math.round(8+e.vy*2),5);S.shake=Math.min(.6,e.vy/25);if(e.vy>P.landHard&&live)pop('SERT İNİŞ','red');
       if(live&&e.rot&&e.airT>.4){if(e.tumble){pop('YUVARLANDIN','red');S.free.combo=1;}else{const th=TAU*.85,fl=Math.floor(Math.abs(e.rot.z)/th),rl=Math.floor(Math.abs(e.rot.x)/th),sp=Math.floor(Math.abs(e.rot.y)/th);
@@ -1058,7 +1175,7 @@ function modeTick(dt){
 }
 function guideText(){
   const c=car,st=S.st,easy=SET.easy;if(S.auto||S.menuDemo||!st||c.state==='crash')return '';
-  if(S.mode==='serbest'){if(S.t<10)return '<kbd>W</kbd> gaz · <kbd>A</kbd><kbd>D</kbd> direksiyon · virajda <kbd>S</kbd> drift · <kbd>Boşluk</kbd> zıpla (hava sınırsız) · <kbd>Shift</kbd> itici · <kbd>X</kbd> ön itici (hızlı fren) · şehirdeki turuncu meydanlarda J rampa var';if(c.state==='framp')return c.fr.th>2.6?'Tepetaklaksın! Bırakmak için <kbd>Boşluk</kbd>.':'Fan seni rampaya bastırıyor, gaza devam.';if(c.state==='freeAir')return 'Havada <kbd>A</kbd><kbd>D</kbd> takla · <kbd>W</kbd><kbd>S</kbd> salto · <kbd>Q</kbd><kbd>E</kbd> düz dön. Tuşu bırakınca araba kendini düzeltir.';if(S.free.combo>1)return `Kombo ×${S.free.combo}: 5 saniye içinde bir kıl payı daha`;return '';}
+  if(S.mode==='serbest'){if(S.t<10)return '<kbd>W</kbd> gaz · <kbd>A</kbd><kbd>D</kbd> direksiyon · virajda <kbd>S</kbd> drift · <kbd>Boşluk</kbd> zıpla (hava sınırsız) · <kbd>Shift</kbd> itici · <kbd>X</kbd> ön itici (hızlı fren) · şehirdeki turuncu meydanlarda J rampa var';if(c.state==='framp'&&c.rr&&c.rr.kind==='hwy')return c.fr.th>2.6&&c.fr.th<3.6?'Ters otoyoldasın! Gaza bas, öbür uçtaki rampadan ineceksin. <kbd>Boşluk</kbd> ile bırakabilirsin.':'Fan seni rampaya bastırıyor.';if(c.state==='framp')return c.fr.th>2.6?'Tepetaklaksın! Bırakmak için <kbd>Boşluk</kbd>.':'Fan seni rampaya bastırıyor, gaza devam.';if(c.state==='freeAir')return 'Havada <kbd>A</kbd><kbd>D</kbd> takla · <kbd>W</kbd><kbd>S</kbd> salto · <kbd>Q</kbd><kbd>E</kbd> düz dön. Tuşu bırakınca araba kendini düzeltir.';if(S.free.combo>1)return `Kombo ×${S.free.combo}: 5 saniye içinde bir kıl payı daha`;return '';}
   if(c.state==='ground'){
     if(S.mode!=='atlama'&&!st.land&&c.dir>0){if(c.pos.x<-30)return easy?'<kbd>W</kbd> ya da GAZ’ı basılı tut. Hız 56 km/s’de sabitlenir.':'Rampaya 40–65 km/s ile gir. Rampadan önce fanı aç: <kbd>F</kbd>';return c.fanOn?'Fan açık. Rampaya gir.':'<b>Fanı aç</b> <kbd>F</kbd>, yoksa duvarda tutunamazsın.';}
     if(S.mode==='rampa')return '';
@@ -1133,6 +1250,8 @@ function camTarget(dPos,dLook,dUp){
     let tgt=cam.head??c.yaw;if(c.state==='free')tgt=c.v<-1?cam.head??c.yaw:c.yaw;else{const hv=Math.hypot(c.vel.x,c.vel.z);if(hv>4)tgt=Math.atan2(c.vel.z,c.vel.x);}
     if(c.state==='free'&&c.v<-1)tgt=c.yaw;
     let dh=tgt-(cam.head??tgt);while(dh>Math.PI)dh-=TAU;while(dh<-Math.PI)dh+=TAU;cam.head=(cam.head??tgt)+dh*Math.min(1,(c.state==='free'?5:2.2)*camDt);
+    if(S.camMode===0&&(c.state==='framp'||(c.state==='freeAir'&&c.airFrom==='framp'))&&c.rr&&c.rr.kind==='hwy'){const r=c.rr,lx=(p.x-r.ox)*r.dx+(p.z-r.oz)*r.dz;
+      dPos.set(r.ox+r.dx*(lx-8)+r.rx*30*z,Math.max(5,p.y*.6+4),r.oz+r.dz*(lx-8)+r.rz*30*z);dLook.set(r.ox+r.dx*lx,p.y*.75+1,r.oz+r.dz*lx);return 3;}
     if(S.camMode===0&&(c.state==='framp'||(c.state==='freeAir'&&c.airFrom==='framp'))&&c.rr){const r=c.rr,lx=(p.x-r.ox)*r.dx+(p.z-r.oz)*r.dz,mx=lx*.45-1.5,my=Math.max(4,p.y*.5+5.5);
       dPos.set(r.ox+r.dx*(mx-2)+r.rx*34*z,my+1.5,r.oz+r.dz*(mx-2)+r.rz*34*z);dLook.set(r.ox+r.dx*mx,my,r.oz+r.dz*mx);return 2.6;}
     const fx=Math.cos(cam.head),fz=Math.sin(cam.head);
@@ -1216,7 +1335,7 @@ function showUI(w){
   $('touch').hidden=!(isTouch&&w==='play');$('rec').hidden=w!=='replay';$('rotate').hidden=!(isTouch&&w==='play');
   if(w!=='play')$('autoTag').hidden=true;else $('autoTag').hidden=!S.auto;
 }
-function toMenu(){if(S.mode==='serbest'){store.set('rec',REC);updateRecords();}S.auto=false;startMode('gosteri',{demo:true});showUI('menu');}
+function toMenu(){polClear();if(S.mode==='serbest'){store.set('rec',REC);updateRecords();}S.auto=false;startMode('gosteri',{demo:true});showUI('menu');}
 function nextAuto(){S.autoSeq=(S.autoSeq+1)%3;startMode(['rampa','atlama','gosteri'][S.autoSeq]);}
 function takeControl(){if(S.auto){S.auto=false;$('autoTag').hidden=true;$('bAuto').setAttribute('aria-pressed','false');pop('Kontrol sende');}}
 
@@ -1238,13 +1357,13 @@ function frame(now){
       const ev=[];physicsStep(car,inp,H,ev);
       if(S.phase==='play'){S.t+=H;handleEvents(ev);}else handleEvents(ev.filter(e=>e.t==='land'||e.t==='bump'));}
     simDt=steps*H;
-    if(S.mode==='serbest'&&!S.menuDemo){trafficTick(simDt);}
+    if(S.mode==='serbest'&&!S.menuDemo){trafficTick(simDt);if(S.phase==='play')polTick(simDt);}
     if(S.phase==='play'){modeTick(simDt);if(steps)record();}
     else if(S.menuDemo||S.auto){S.endT+=dt;if(S.endT>2.2){if(S.menuDemo)startMode('gosteri',{demo:true});else nextAuto();}}
     ghostTick();
   }
   if(bigT>0){bigT-=dt;if(bigT<=0){$('bigT').textContent='';$('bigS').textContent='';}}
-  if(S.mode==='serbest'&&!S.menuDemo){CITY.update(car.pos.x,car.pos.z);trafficRender();drawMinimap();if(S.free.recDirty&&Math.random()<.02){store.set('rec',REC);updateRecords();S.free.recDirty=false;}}
+  if(S.mode==='serbest'&&!S.menuDemo){CITY.update(car.pos.x,car.pos.z);trafficRender();polRender(now/1000);drawMinimap();if(S.free.recDirty&&Math.random()<.02){store.set('rec',REC);updateRecords();S.free.recDirty=false;}}
   poseCar(simDt);updateCamera(dt);tickParticles(paused?0:dt*(S.slow?.3:1));
   hud();audioTick(!paused&&(S.phase==='play'||S.phase==='ended'||S.phase==='count'));
   if(LOW)renderer.render(scene,camera);else composer.render();
@@ -1300,6 +1419,7 @@ function closeOverlay(){showUI(overlayReturn);}
 $('bHow').addEventListener('click',()=>openOverlay('how'));$('bHowOk').addEventListener('click',closeOverlay);
 $('bSet').addEventListener('click',()=>openOverlay('settings'));$('bSet2').addEventListener('click',()=>openOverlay('settings'));$('bSetOk').addEventListener('click',closeOverlay);
 $('bFull').addEventListener('click',()=>{const d=document.documentElement;try{const p=d.requestFullscreen&&d.requestFullscreen();if(p&&p.catch)p.catch(()=>{});}catch(e){}});
+document.querySelectorAll('.seg.pol button').forEach(b=>b.addEventListener('click',()=>{SET.police=+b.dataset.p;saveSet();applySet();if(!SET.police)polClear();}));
 document.querySelectorAll('#diff button').forEach(b=>b.addEventListener('click',()=>{SET.easy=b.dataset.v==='easy';if(SET.easy)SET.assist=true;saveSet();applySet();}));
 {const box=$('colors');COLORS.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.className='sw';b.style.setProperty('--c',c[1]);b.title=c[0];b.setAttribute('aria-label',c[0]);b.addEventListener('click',()=>{SET.color=i;saveSet();applySet();});box.appendChild(b);});}
 const SMAP={sEasy:'easy',sAssist:'assist',sGhost:'ghost',sForces:'forces',sFar:'far',sLow:'low',sMute:'mute',sHide:'hide'};
@@ -1309,12 +1429,13 @@ function applySet(){
   for(const id in SMAP)$(id).checked=!!SET[SMAP[id]];
   document.querySelectorAll('#diff button').forEach(b=>b.setAttribute('aria-pressed',String((b.dataset.v==='easy')===SET.easy)));
   document.querySelectorAll('.sw').forEach((b,i)=>b.setAttribute('aria-pressed',String(i===SET.color)));
+  document.querySelectorAll('.seg.pol button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.p===SET.police)));
   CAR.paint.color.setHex(COLORS[SET.color][2]);
   document.body.classList.toggle('hideui',SET.hide);
   if(LOW!==SET.low){LOW=SET.low;mirror.visible=!LOW&&S.mode!=='serbest';floorMat.opacity=LOW?1:.8;renderer.shadowMap.enabled=!LOW;scene.traverse(o=>{if(o.material)o.material.needsUpdate=true;});resize();}
 }
 
-window.__tt={setEnv,cam,TRAF,CITY,freeTick,trafficTick,S,get car(){return car},P,LAY,RAMP,OBST,startMode,physicsStep,gatherInput,handleEvents,modeTick,keys,touchK,SET,startReplay,toMenu,showUI};
+window.__tt={POL,polTick,polWant,HWY,setEnv,cam,TRAF,CITY,freeTick,trafficTick,S,get car(){return car},P,LAY,RAMP,OBST,startMode,physicsStep,gatherInput,handleEvents,modeTick,keys,touchK,SET,startReplay,toMenu,showUI};
 
 applySet();resize();updateRecords();
 toMenu();
