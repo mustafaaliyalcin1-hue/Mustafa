@@ -1,0 +1,50 @@
+{
+ "format_version": "1.8.0",
+ "animations": {
+  "animation.tepetaklak.fan_car.flip": {
+   "loop": true,
+   "bones": {
+    "root": {
+     "rotation": [
+      "-q.property('tepetaklak:pitch')",
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "animation.tepetaklak.fan_car.wheels": {
+   "loop": true,
+   "bones": {
+    "wheel_fl": {
+     "rotation": [
+      "-q.modified_distance_moved*155",
+      0,
+      0
+     ]
+    },
+    "wheel_fr": {
+     "rotation": [
+      "-q.modified_distance_moved*155",
+      0,
+      0
+     ]
+    },
+    "wheel_rl": {
+     "rotation": [
+      "-q.modified_distance_moved*155",
+      0,
+      0
+     ]
+    },
+    "wheel_rr": {
+     "rotation": [
+      "-q.modified_distance_moved*155",
+      0,
+      0
+     ]
+    }
+   }
+  }
+ }
+}

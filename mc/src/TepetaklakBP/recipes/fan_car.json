@@ -1,0 +1,15 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": { "identifier": "tepetaklak:fan_car" },
+    "tags": ["crafting_table"],
+    "pattern": [" R ", "IMI", "I I"],
+    "key": {
+      "R": { "item": "minecraft:redstone" },
+      "I": { "item": "minecraft:iron_ingot" },
+      "M": { "item": "minecraft:minecart" }
+    },
+    "unlock": [{ "item": "minecraft:minecart" }],
+    "result": { "item": "tepetaklak:fan_car", "count": 1 }
+  }
+}

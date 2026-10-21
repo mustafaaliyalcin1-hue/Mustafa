@@ -1,0 +1,11 @@
+{
+  "format_version": "1.21.50",
+  "minecraft:item": {
+    "description": { "identifier": "tepetaklak:j_ramp", "menu_category": { "category": "items" } },
+    "components": {
+      "minecraft:icon": { "textures": { "default": "tepetaklak_j_ramp" } },
+      "minecraft:display_name": { "value": "J Rampa Kiti (önüne kurar)" },
+      "minecraft:max_stack_size": 16
+    }
+  }
+}

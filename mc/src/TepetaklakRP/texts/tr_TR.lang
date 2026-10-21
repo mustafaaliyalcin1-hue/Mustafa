@@ -1,0 +1,4 @@
+pack.name=Tepetaklak Fan Car
+pack.description=Fan car modeli
+entity.tepetaklak:fan_car.name=Fan Car
+item.spawn_egg.entity.tepetaklak:fan_car.name=Fan Car Yumurtası

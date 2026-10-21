@@ -1,0 +1,18 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Tepetaklak Fan Car",
+    "description": "Fan car: J rampada duvara tırman, tavanda tepetaklak git, takla at. Hayran yapımı.",
+    "uuid": "cbf4f67b-d2be-41f4-991d-2bb19febb8ad",
+    "version": [1, 0, 0],
+    "min_engine_version": [1, 21, 50]
+  },
+  "modules": [
+    { "type": "data", "uuid": "d6c1f0cd-ba9f-4ff8-9af6-10a01cea159c", "version": [1, 0, 0] },
+    { "type": "script", "language": "javascript", "uuid": "ce091db8-0524-4a15-826d-6b4e9b370ffd", "entry": "scripts/main.js", "version": [1, 0, 0] }
+  ],
+  "dependencies": [
+    { "uuid": "96a6814e-c8ca-49de-bbf5-a69bb39f282f", "version": [1, 0, 0] },
+    { "module_name": "@minecraft/server", "version": "1.16.0" }
+  ]
+}

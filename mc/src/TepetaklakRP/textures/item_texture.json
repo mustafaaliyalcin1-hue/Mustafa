@@ -1,0 +1,12 @@
+{
+ "resource_pack_name": "tepetaklak",
+ "texture_name": "atlas.items",
+ "texture_data": {
+  "tepetaklak_fan_car": {
+   "textures": "textures/items/fan_car"
+  },
+  "tepetaklak_j_ramp": {
+   "textures": "textures/items/j_ramp"
+  }
+ }
+}

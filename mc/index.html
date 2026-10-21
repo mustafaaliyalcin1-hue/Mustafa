@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Tepetaklak Minecraft Eklentisi</title>
+<meta name="description" content="Minecraft Bedrock için Fan Car ve J rampa eklentisi: duvara tırman, tavanda tepetaklak git, salto at.">
+<meta name="theme-color" content="#050608">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Chakra+Petch:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one narrow column, download first, steps after. Same black-studio look as the web game. */
+:root{--bg:#050608;--panel:#0d0f14;--ink:#eef0f3;--dim:#8d96a3;--line:rgba(226,232,240,.14);--red:#e3263b;--orange:#e07a24;--green:#5fd38a;
+  --font-d:"Big Shoulders Display",Impact,"Arial Narrow",sans-serif;--font-u:"Chakra Petch","Segoe UI",system-ui,sans-serif;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-u)}
+main{max-width:640px;margin:0 auto;padding-block:calc(env(safe-area-inset-top,0px) + 28px) calc(env(safe-area-inset-bottom,0px) + 40px);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
+.eyebrow{font-size:11.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--dim)}
+h1{font-family:var(--font-d);font-weight:900;font-size:clamp(56px,16vw,96px);line-height:.85;margin:0}
+h1 span{display:inline-block;transform:scaleY(-1);color:var(--red)}
+h2{font-family:var(--font-d);font-weight:800;font-size:28px;margin:0;letter-spacing:.02em}
+p{margin:0;line-height:1.6;color:#cfd4dc;font-size:15px}
+.dl{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--red);color:#fff;text-decoration:none;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;font-size:15px;padding:18px 20px;border-radius:4px}
+.dl:focus-visible{outline:2px solid var(--orange);outline-offset:3px}
+.meta{font-size:12.5px;color:var(--dim);text-align:center}
+ol{margin:0;padding-left:22px;display:grid;gap:10px;line-height:1.55;font-size:15px;color:#cfd4dc}
+ol b,ul b{color:var(--ink)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:18px;display:grid;gap:12px}
+ul{margin:0;padding-left:20px;display:grid;gap:8px;line-height:1.55;font-size:15px;color:#cfd4dc}
+.recipe{display:grid;grid-template-columns:repeat(3,34px);gap:3px}
+.recipe i{width:34px;height:34px;border-radius:3px;background:#1a1d24;display:grid;place-items:center;font-style:normal;font-size:10px;font-weight:700;color:#cfd4dc}
+.recipes{display:flex;gap:28px;flex-wrap:wrap}
+.recipes figure{margin:0;display:grid;gap:8px;font-size:13px;color:var(--dim)}
+.note{border-left:2px solid var(--orange);padding:10px 14px;background:rgba(224,122,36,.08);font-size:14px;line-height:1.55;color:#e6d9c4}
+a{color:var(--ink)}
+</style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">Minecraft Bedrock eklentisi · telefon, tablet, Windows</div>
+  <h1>TEPE<span>TAKLAK</span></h1>
+  <p>Fan Car’a bin, J rampaya düz gir. Fanlar arabayı duvara yapıştırır, tavanda baş aşağı asılı kalırsın. Zıpla tuşuyla bırak; araba salto atıp iticileriyle yumuşak iner. Kamera yandan çeker, tıpkı videodaki gibi.</p>
+
+  <a class="dl" href="tepetaklak.mcaddon" download>Eklentiyi indir (.mcaddon)</a>
+  <div class="meta">14 KB · Minecraft Bedrock 1.21.50 veya üstü</div>
+
+  <section class="card">
+    <h2>Kurulum</h2>
+    <ol>
+      <li>Yukarıdaki düğmeye dokun, dosya insin.</li>
+      <li>İnen <b>tepetaklak.mcaddon</b> dosyasına dokun ve <b>Minecraft ile aç</b>. Minecraft açılır ve “İçe aktarma başarılı” der.</li>
+      <li>Yeni dünya oluştururken (ya da var olan dünyanın <b>Düzenle</b> ekranında) <b>Davranış Paketleri</b>’nden <b>Tepetaklak Fan Car</b>’ı etkinleştir. Kaynak paketi kendiliğinden gelir.</li>
+      <li>Dünyaya gir. Yaratıcı modda envanterin <b>Eşyalar</b> sekmesinde <b>Fan Car</b> ve <b>J Rampa Kiti</b> var.</li>
+    </ol>
+    <p class="note">Dosya Minecraft ile açılmazsa: iPhone’da “Dosyalar” uygulamasında dosyaya basılı tut, <b>Paylaş → Minecraft</b>. Android’de dosya yöneticisinde dosyaya dokunup uygulama olarak Minecraft’ı seç.</p>
+  </section>
+
+  <section class="card">
+    <h2>Nasıl oynanır?</h2>
+    <ul>
+      <li><b>J Rampa Kiti</b>’ni eline al ve kullan: 12 blok önüne, baktığın yöne 19 blok yüksekliğinde J rampa kurulur.</li>
+      <li><b>Fan Car</b>’ı yere koy, arabaya dokunarak bin. Joystick ile sür, <b>zıpla</b> tuşu itici gibi zıplatır.</li>
+      <li>Rampaya düz gir: araba duvara tırmanır ve tavanda tepetaklak kalır.</li>
+      <li>Tavanda <b>zıpla</b> tuşuna bas ya da 4 saniye bekle: araba bırakır, salto atar, iticilerle yumuşak iner.</li>
+      <li>İnmek için eğil (sneak) tuşu.</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Hayatta kalma tarifleri</h2>
+    <div class="recipes">
+      <figure><div class="recipe"><i></i><i>Kızıl</i><i></i><i>Demir</i><i>Vagon</i><i>Demir</i><i>Demir</i><i></i><i>Demir</i></div><figcaption>Fan Car</figcaption></figure>
+      <figure><div class="recipe"><i>Kuvars</i><i>Kuvars</i><i>Kuvars</i><i>Kuvars</i><i>Turuncu</i><i>Kuvars</i><i>Kuvars</i><i>Kuvars</i><i>Kuvars</i></div><figcaption>J Rampa Kiti (turuncu beton)</figcaption></figure>
+    </div>
+  </section>
+
+  <p class="meta">Hayran yapımı; Mojang, Microsoft ya da herhangi bir otomobil şirketiyle bağlantısı yoktur. Web oyunu: <a href="../rampa/">Tepetaklak Rampa</a></p>
+</main>
+</body>
+</html>

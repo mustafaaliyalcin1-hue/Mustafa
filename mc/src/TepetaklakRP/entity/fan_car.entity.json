@@ -1,0 +1,18 @@
+{
+  "format_version": "1.10.0",
+  "minecraft:client_entity": {
+    "description": {
+      "identifier": "tepetaklak:fan_car",
+      "materials": { "default": "entity_alphatest" },
+      "textures": { "default": "textures/entity/fan_car" },
+      "geometry": { "default": "geometry.tepetaklak.fan_car" },
+      "animations": {
+        "flip": "animation.tepetaklak.fan_car.flip",
+        "wheels": "animation.tepetaklak.fan_car.wheels"
+      },
+      "scripts": { "animate": ["flip", "wheels"] },
+      "render_controllers": ["controller.render.default"],
+      "spawn_egg": { "base_color": "#b3121f", "overlay_color": "#eef0f2" }
+    }
+  }
+}

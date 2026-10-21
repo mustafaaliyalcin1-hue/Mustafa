@@ -1,0 +1,14 @@
+{
+  "format_version": "1.20.10",
+  "minecraft:recipe_shaped": {
+    "description": { "identifier": "tepetaklak:j_ramp" },
+    "tags": ["crafting_table"],
+    "pattern": ["QQQ", "QOQ", "QQQ"],
+    "key": {
+      "Q": { "item": "minecraft:quartz_block" },
+      "O": { "item": "minecraft:orange_concrete" }
+    },
+    "unlock": [{ "item": "minecraft:quartz_block" }],
+    "result": { "item": "tepetaklak:j_ramp", "count": 1 }
+  }
+}

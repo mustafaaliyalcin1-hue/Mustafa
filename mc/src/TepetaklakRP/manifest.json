@@ -1,0 +1,16 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Tepetaklak Fan Car",
+    "description": "Fan car modeli, dokuları ve animasyonları.",
+    "uuid": "96a6814e-c8ca-49de-bbf5-a69bb39f282f",
+    "version": [1, 0, 0],
+    "min_engine_version": [1, 21, 50]
+  },
+  "modules": [
+    { "type": "resources", "uuid": "1ac1699d-3120-4467-be7f-bc64a1f8a939", "version": [1, 0, 0] }
+  ],
+  "dependencies": [
+    { "uuid": "cbf4f67b-d2be-41f4-991d-2bb19febb8ad", "version": [1, 0, 0] }
+  ]
+}

@@ -1,0 +1,286 @@
+{
+ "format_version": "1.12.0",
+ "minecraft:geometry": [
+  {
+   "description": {
+    "identifier": "geometry.tepetaklak.fan_car",
+    "texture_width": 256,
+    "texture_height": 256,
+    "visible_bounds_width": 6,
+    "visible_bounds_height": 4,
+    "visible_bounds_offset": [
+     0,
+     0.5,
+     0
+    ]
+   },
+   "bones": [
+    {
+     "name": "root",
+     "pivot": [
+      0,
+      8,
+      0
+     ]
+    },
+    {
+     "name": "body",
+     "parent": "root",
+     "pivot": [
+      0,
+      0,
+      0
+     ],
+     "cubes": [
+      {
+       "origin": [
+        -15,
+        2,
+        -32
+       ],
+       "size": [
+        30,
+        6,
+        20
+       ],
+       "uv": [
+        0,
+        0
+       ]
+      },
+      {
+       "origin": [
+        -15,
+        2,
+        -12
+       ],
+       "size": [
+        30,
+        9,
+        44
+       ],
+       "uv": [
+        0,
+        30
+       ]
+      },
+      {
+       "origin": [
+        -13,
+        8,
+        -13
+       ],
+       "size": [
+        26,
+        7,
+        2
+       ],
+       "uv": [
+        0,
+        90
+       ],
+       "rotation": [
+        -35,
+        0,
+        0
+       ],
+       "pivot": [
+        0,
+        8,
+        -12
+       ]
+      },
+      {
+       "origin": [
+        -13,
+        11,
+        8
+       ],
+       "size": [
+        26,
+        3,
+        22
+       ],
+       "uv": [
+        0,
+        100
+       ]
+      },
+      {
+       "origin": [
+        -12,
+        11,
+        4
+       ],
+       "size": [
+        24,
+        5,
+        2
+       ],
+       "uv": [
+        0,
+        130
+       ]
+      },
+      {
+       "origin": [
+        -12,
+        6,
+        -33
+       ],
+       "size": [
+        24,
+        1,
+        1
+       ],
+       "uv": [
+        0,
+        140
+       ]
+      },
+      {
+       "origin": [
+        -14,
+        8,
+        32
+       ],
+       "size": [
+        28,
+        1,
+        1
+       ],
+       "uv": [
+        0,
+        145
+       ]
+      },
+      {
+       "origin": [
+        -14,
+        1,
+        -30
+       ],
+       "size": [
+        28,
+        1,
+        60
+       ],
+       "uv": [
+        100,
+        150
+       ]
+      }
+     ]
+    },
+    {
+     "name": "wheel_fl",
+     "parent": "root",
+     "pivot": [
+      15.5,
+      6,
+      -20
+     ],
+     "cubes": [
+      {
+       "origin": [
+        14.0,
+        0,
+        -26
+       ],
+       "size": [
+        3,
+        12,
+        12
+       ],
+       "uv": [
+        200,
+        0
+       ]
+      }
+     ]
+    },
+    {
+     "name": "wheel_fr",
+     "parent": "root",
+     "pivot": [
+      -15.5,
+      6,
+      -20
+     ],
+     "cubes": [
+      {
+       "origin": [
+        -17.0,
+        0,
+        -26
+       ],
+       "size": [
+        3,
+        12,
+        12
+       ],
+       "uv": [
+        200,
+        0
+       ]
+      }
+     ]
+    },
+    {
+     "name": "wheel_rl",
+     "parent": "root",
+     "pivot": [
+      15.5,
+      6,
+      20
+     ],
+     "cubes": [
+      {
+       "origin": [
+        14.0,
+        0,
+        14
+       ],
+       "size": [
+        3,
+        12,
+        12
+       ],
+       "uv": [
+        200,
+        0
+       ]
+      }
+     ]
+    },
+    {
+     "name": "wheel_rr",
+     "parent": "root",
+     "pivot": [
+      -15.5,
+      6,
+      20
+     ],
+     "cubes": [
+      {
+       "origin": [
+        -17.0,
+        0,
+        14
+       ],
+       "size": [
+        3,
+        12,
+        12
+       ],
+       "uv": [
+        200,
+        0
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
