@@ -1,0 +1,45 @@
+{
+ "format_version": "1.10.0",
+ "minecraft:client_entity": {
+  "description": {
+   "identifier": "ejderha:dragon",
+   "materials": {
+    "default": "entity_alphatest"
+   },
+   "textures": {
+    "kizil": "textures/entity/dragon_kizil",
+    "yesil": "textures/entity/dragon_yesil",
+    "kara": "textures/entity/dragon_kara",
+    "buz": "textures/entity/dragon_buz"
+   },
+   "geometry": {
+    "default": "geometry.ejderha.dragon"
+   },
+   "animations": {
+    "flap": "animation.ejderha.flap",
+    "fold": "animation.ejderha.fold",
+    "walk": "animation.ejderha.walk",
+    "idle": "animation.ejderha.idle",
+    "look": "animation.ejderha.look",
+    "breath": "animation.ejderha.breath",
+    "move": "controller.animation.ejderha.move"
+   },
+   "scripts": {
+    "scale": "q.property('ejderha:stage') == 0 ? 0.35 : (q.property('ejderha:stage') == 1 ? 0.65 : 1.0)",
+    "animate": [
+     "move",
+     "idle",
+     "look",
+     "breath"
+    ]
+   },
+   "render_controllers": [
+    "controller.render.ejderha.dragon"
+   ],
+   "spawn_egg": {
+    "base_color": "#a3201f",
+    "overlay_color": "#e0a040"
+   }
+  }
+ }
+}

@@ -1,0 +1,33 @@
+{
+ "format_version": "1.20.10",
+ "minecraft:recipe_shaped": {
+  "description": {
+   "identifier": "ejderha:yumurta_kizil"
+  },
+  "tags": [
+   "crafting_table"
+  ],
+  "pattern": [
+   "GGG",
+   "GCG",
+   "GGG"
+  ],
+  "key": {
+   "G": {
+    "item": "minecraft:gold_ingot"
+   },
+   "C": {
+    "item": "minecraft:blaze_powder"
+   }
+  },
+  "unlock": [
+   {
+    "item": "minecraft:blaze_powder"
+   }
+  ],
+  "result": {
+   "item": "ejderha:yumurta_kizil",
+   "count": 1
+  }
+ }
+}

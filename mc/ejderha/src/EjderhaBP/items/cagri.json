@@ -1,0 +1,22 @@
+{
+ "format_version": "1.21.50",
+ "minecraft:item": {
+  "description": {
+   "identifier": "ejderha:cagri",
+   "menu_category": {
+    "category": "items"
+   }
+  },
+  "components": {
+   "minecraft:icon": {
+    "textures": {
+     "default": "ejderha_cagri"
+    }
+   },
+   "minecraft:display_name": {
+    "value": "Kadim Çağrı Taşı (kullan: Kadim Ejderha gelir)"
+   },
+   "minecraft:max_stack_size": 16
+  }
+ }
+}

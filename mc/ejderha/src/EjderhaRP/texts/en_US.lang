@@ -1,0 +1,7 @@
+pack.name=Ejderha Binicileri
+pack.description=Ejderha yumurtala, büyüt, bin ve uç
+entity.ejderha:dragon.name=Ejderha
+entity.ejderha:kadim.name=Kadim Ejderha
+entity.ejderha:egg.name=Ejderha Yumurtası
+item.spawn_egg.entity.ejderha:dragon.name=Ejderha Çağır
+item.spawn_egg.entity.ejderha:kadim.name=Kadim Ejderha Çağır

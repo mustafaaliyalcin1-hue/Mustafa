@@ -1,0 +1,47 @@
+{
+ "format_version": "1.8.0",
+ "render_controllers": {
+  "controller.render.ejderha.dragon": {
+   "arrays": {
+    "textures": {
+     "Array.skins": [
+      "Texture.kizil",
+      "Texture.yesil",
+      "Texture.kara",
+      "Texture.buz"
+     ]
+    }
+   },
+   "geometry": "Geometry.default",
+   "materials": [
+    {
+     "*": "Material.default"
+    }
+   ],
+   "textures": [
+    "Array.skins[query.variant]"
+   ]
+  },
+  "controller.render.ejderha.egg": {
+   "arrays": {
+    "textures": {
+     "Array.skins": [
+      "Texture.kizil",
+      "Texture.yesil",
+      "Texture.kara",
+      "Texture.buz"
+     ]
+    }
+   },
+   "geometry": "Geometry.default",
+   "materials": [
+    {
+     "*": "Material.default"
+    }
+   ],
+   "textures": [
+    "Array.skins[query.variant]"
+   ]
+  }
+ }
+}

@@ -1,0 +1,33 @@
+{
+ "format_version": "1.10.0",
+ "animation_controllers": {
+  "controller.animation.ejderha.move": {
+   "initial_state": "ground",
+   "states": {
+    "ground": {
+     "animations": [
+      "fold",
+      "walk"
+     ],
+     "transitions": [
+      {
+       "flying": "q.property('ejderha:flying')"
+      }
+     ],
+     "blend_transition": 0.3
+    },
+    "flying": {
+     "animations": [
+      "flap"
+     ],
+     "transitions": [
+      {
+       "ground": "!q.property('ejderha:flying')"
+      }
+     ],
+     "blend_transition": 0.3
+    }
+   }
+  }
+ }
+}

@@ -1,0 +1,33 @@
+{
+ "format_version": "1.20.10",
+ "minecraft:recipe_shaped": {
+  "description": {
+   "identifier": "ejderha:yumurta_buz"
+  },
+  "tags": [
+   "crafting_table"
+  ],
+  "pattern": [
+   "GGG",
+   "GCG",
+   "GGG"
+  ],
+  "key": {
+   "G": {
+    "item": "minecraft:gold_ingot"
+   },
+   "C": {
+    "item": "minecraft:packed_ice"
+   }
+  },
+  "unlock": [
+   {
+    "item": "minecraft:packed_ice"
+   }
+  ],
+  "result": {
+   "item": "ejderha:yumurta_buz",
+   "count": 1
+  }
+ }
+}

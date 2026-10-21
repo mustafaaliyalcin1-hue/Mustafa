@@ -1,0 +1,34 @@
+{
+ "entity_sounds": {
+  "entities": {
+   "ejderha:dragon": {
+    "volume": 0.7,
+    "pitch": [
+     1.1,
+     1.5
+    ],
+    "events": {
+     "ambient": "mob.enderdragon.growl",
+     "hurt": "mob.enderdragon.hit",
+     "death": "mob.enderdragon.death",
+     "step": {
+      "sound": "step.stone",
+      "volume": 0.3
+     }
+    }
+   },
+   "ejderha:kadim": {
+    "volume": 1.4,
+    "pitch": [
+     0.7,
+     0.9
+    ],
+    "events": {
+     "ambient": "mob.enderdragon.growl",
+     "hurt": "mob.enderdragon.hit",
+     "death": "mob.enderdragon.death"
+    }
+   }
+  }
+ }
+}

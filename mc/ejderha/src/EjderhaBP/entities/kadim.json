@@ -1,0 +1,90 @@
+{
+ "format_version": "1.21.50",
+ "minecraft:entity": {
+  "description": {
+   "identifier": "ejderha:kadim",
+   "is_spawnable": true,
+   "is_summonable": true,
+   "is_experimental": false,
+   "properties": {
+    "ejderha:stage": {
+     "type": "int",
+     "range": [
+      0,
+      2
+     ],
+     "default": 2,
+     "client_sync": true
+    },
+    "ejderha:flying": {
+     "type": "bool",
+     "default": true,
+     "client_sync": true
+    },
+    "ejderha:breath": {
+     "type": "bool",
+     "default": false,
+     "client_sync": true
+    }
+   }
+  },
+  "components": {
+   "minecraft:type_family": {
+    "family": [
+     "ejderha",
+     "monster",
+     "mob",
+     "boss"
+    ]
+   },
+   "minecraft:physics": {
+    "has_gravity": false,
+    "has_collision": true
+   },
+   "minecraft:collision_box": {
+    "width": 5.0,
+    "height": 4.0
+   },
+   "minecraft:health": {
+    "value": 400,
+    "max": 400
+   },
+   "minecraft:boss": {
+    "name": "Kadim Ejderha",
+    "hud_range": 80,
+    "should_darken_sky": true
+   },
+   "minecraft:movement": {
+    "value": 0.0
+   },
+   "minecraft:fire_immune": {},
+   "minecraft:knockback_resistance": {
+    "value": 1.0
+   },
+   "minecraft:persistent": {},
+   "minecraft:damage_sensor": {
+    "triggers": [
+     {
+      "cause": "fall",
+      "deals_damage": false
+     },
+     {
+      "cause": "suffocation",
+      "deals_damage": false
+     },
+     {
+      "cause": "fly_into_wall",
+      "deals_damage": false
+     }
+    ]
+   },
+   "minecraft:nameable": {},
+   "minecraft:experience_reward": {
+    "on_death": "500"
+   },
+   "minecraft:loot": {
+    "table": "loot_tables/entities/ejderha_kadim.json"
+   }
+  }
+ }
+}

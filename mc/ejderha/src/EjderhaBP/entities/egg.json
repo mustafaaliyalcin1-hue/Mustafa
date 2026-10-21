@@ -1,0 +1,97 @@
+{
+ "format_version": "1.21.50",
+ "minecraft:entity": {
+  "description": {
+   "identifier": "ejderha:egg",
+   "is_spawnable": false,
+   "is_summonable": true,
+   "is_experimental": false
+  },
+  "component_groups": {
+   "ejderha:v_kizil": {
+    "minecraft:variant": {
+     "value": 0
+    }
+   },
+   "ejderha:v_yesil": {
+    "minecraft:variant": {
+     "value": 1
+    }
+   },
+   "ejderha:v_kara": {
+    "minecraft:variant": {
+     "value": 2
+    }
+   },
+   "ejderha:v_buz": {
+    "minecraft:variant": {
+     "value": 3
+    }
+   }
+  },
+  "events": {
+   "ejderha:set_kizil": {
+    "add": {
+     "component_groups": [
+      "ejderha:v_kizil"
+     ]
+    }
+   },
+   "ejderha:set_yesil": {
+    "add": {
+     "component_groups": [
+      "ejderha:v_yesil"
+     ]
+    }
+   },
+   "ejderha:set_kara": {
+    "add": {
+     "component_groups": [
+      "ejderha:v_kara"
+     ]
+    }
+   },
+   "ejderha:set_buz": {
+    "add": {
+     "component_groups": [
+      "ejderha:v_buz"
+     ]
+    }
+   }
+  },
+  "components": {
+   "minecraft:type_family": {
+    "family": [
+     "ejderha_egg",
+     "inanimate"
+    ]
+   },
+   "minecraft:collision_box": {
+    "width": 0.5,
+    "height": 0.7
+   },
+   "minecraft:health": {
+    "value": 6,
+    "max": 6
+   },
+   "minecraft:physics": {},
+   "minecraft:pushable": {
+    "is_pushable": false,
+    "is_pushable_by_piston": true
+   },
+   "minecraft:persistent": {},
+   "minecraft:knockback_resistance": {
+    "value": 1.0
+   },
+   "minecraft:fire_immune": {},
+   "minecraft:damage_sensor": {
+    "triggers": [
+     {
+      "cause": "all",
+      "deals_damage": false
+     }
+    ]
+   }
+  }
+ }
+}

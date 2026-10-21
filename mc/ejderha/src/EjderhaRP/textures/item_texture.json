@@ -1,0 +1,24 @@
+{
+ "resource_pack_name": "ejderha",
+ "texture_name": "atlas.items",
+ "texture_data": {
+  "ejderha_egg_kizil": {
+   "textures": "textures/items/ejderha_egg_kizil"
+  },
+  "ejderha_egg_yesil": {
+   "textures": "textures/items/ejderha_egg_yesil"
+  },
+  "ejderha_egg_kara": {
+   "textures": "textures/items/ejderha_egg_kara"
+  },
+  "ejderha_egg_buz": {
+   "textures": "textures/items/ejderha_egg_buz"
+  },
+  "ejderha_asa": {
+   "textures": "textures/items/ejderha_asa"
+  },
+  "ejderha_cagri": {
+   "textures": "textures/items/ejderha_cagri"
+  }
+ }
+}

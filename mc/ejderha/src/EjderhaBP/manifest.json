@@ -1,0 +1,54 @@
+{
+ "format_version": 2,
+ "header": {
+  "name": "Ejderha Binicileri",
+  "description": "Yumurtadan çıkar, büyüt, bin ve uç. 4 ejderha türü ve Kadim Ejderha boss. Hayran yapımı.",
+  "uuid": "ed9ac4f6-0d90-43a1-8661-2f00e9fb5f87",
+  "version": [
+   1,
+   0,
+   0
+  ],
+  "min_engine_version": [
+   1,
+   21,
+   50
+  ]
+ },
+ "modules": [
+  {
+   "type": "data",
+   "uuid": "959303b3-4303-4b28-ba68-3e1add93638d",
+   "version": [
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "type": "script",
+   "language": "javascript",
+   "uuid": "575cb4e2-b908-46a2-af3f-d6bf5d4c086e",
+   "entry": "scripts/main.js",
+   "version": [
+    1,
+    0,
+    0
+   ]
+  }
+ ],
+ "dependencies": [
+  {
+   "uuid": "9cc7b2d7-8420-48e2-9d7e-74f56b403b33",
+   "version": [
+    1,
+    0,
+    0
+   ]
+  },
+  {
+   "module_name": "@minecraft/server",
+   "version": "1.16.0"
+  }
+ ]
+}

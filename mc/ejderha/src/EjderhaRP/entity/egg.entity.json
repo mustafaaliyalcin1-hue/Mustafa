@@ -1,0 +1,31 @@
+{
+ "format_version": "1.10.0",
+ "minecraft:client_entity": {
+  "description": {
+   "identifier": "ejderha:egg",
+   "materials": {
+    "default": "entity_alphatest"
+   },
+   "textures": {
+    "kizil": "textures/entity/egg_kizil",
+    "yesil": "textures/entity/egg_yesil",
+    "kara": "textures/entity/egg_kara",
+    "buz": "textures/entity/egg_buz"
+   },
+   "geometry": {
+    "default": "geometry.ejderha.egg"
+   },
+   "animations": {
+    "wobble": "animation.ejderha.egg_wobble"
+   },
+   "scripts": {
+    "animate": [
+     "wobble"
+    ]
+   },
+   "render_controllers": [
+    "controller.render.ejderha.egg"
+   ]
+  }
+ }
+}

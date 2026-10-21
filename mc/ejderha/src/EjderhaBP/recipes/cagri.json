@@ -1,0 +1,36 @@
+{
+ "format_version": "1.20.10",
+ "minecraft:recipe_shaped": {
+  "description": {
+   "identifier": "ejderha:cagri"
+  },
+  "tags": [
+   "crafting_table"
+  ],
+  "pattern": [
+   "GOG",
+   "ODO",
+   "GOG"
+  ],
+  "key": {
+   "G": {
+    "item": "minecraft:gold_block"
+   },
+   "O": {
+    "item": "minecraft:obsidian"
+   },
+   "D": {
+    "item": "minecraft:diamond"
+   }
+  },
+  "unlock": [
+   {
+    "item": "minecraft:obsidian"
+   }
+  ],
+  "result": {
+   "item": "ejderha:cagri",
+   "count": 1
+  }
+ }
+}

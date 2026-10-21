@@ -1,0 +1,41 @@
+{
+ "format_version": "1.10.0",
+ "minecraft:client_entity": {
+  "description": {
+   "identifier": "ejderha:kadim",
+   "materials": {
+    "default": "entity_alphatest"
+   },
+   "textures": {
+    "default": "textures/entity/dragon_kadim"
+   },
+   "geometry": {
+    "default": "geometry.ejderha.dragon"
+   },
+   "animations": {
+    "flap": "animation.ejderha.flap",
+    "fold": "animation.ejderha.fold",
+    "walk": "animation.ejderha.walk",
+    "idle": "animation.ejderha.idle",
+    "look": "animation.ejderha.look",
+    "breath": "animation.ejderha.breath",
+    "move": "controller.animation.ejderha.move"
+   },
+   "scripts": {
+    "scale": "2.6",
+    "animate": [
+     "move",
+     "idle",
+     "breath"
+    ]
+   },
+   "render_controllers": [
+    "controller.render.default"
+   ],
+   "spawn_egg": {
+    "base_color": "#16121c",
+    "overlay_color": "#ff3df0"
+   }
+  }
+ }
+}

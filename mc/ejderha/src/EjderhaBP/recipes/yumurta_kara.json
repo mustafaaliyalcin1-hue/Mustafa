@@ -1,0 +1,33 @@
+{
+ "format_version": "1.20.10",
+ "minecraft:recipe_shaped": {
+  "description": {
+   "identifier": "ejderha:yumurta_kara"
+  },
+  "tags": [
+   "crafting_table"
+  ],
+  "pattern": [
+   "GGG",
+   "GCG",
+   "GGG"
+  ],
+  "key": {
+   "G": {
+    "item": "minecraft:gold_ingot"
+   },
+   "C": {
+    "item": "minecraft:crying_obsidian"
+   }
+  },
+  "unlock": [
+   {
+    "item": "minecraft:crying_obsidian"
+   }
+  ],
+  "result": {
+   "item": "ejderha:yumurta_kara",
+   "count": 1
+  }
+ }
+}
