@@ -177,6 +177,7 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
 <div id="hud" hidden>
   <div class="tl"><div id="hMode">RAMPA</div><div id="hMain">0</div><div id="hSub"></div></div>
   <div class="tr">
+    <button id="bSlow" type="button" aria-pressed="false">Ağır çekim</button>
     <button id="bSide" type="button" aria-pressed="false">Yan görünüş</button>
     <button id="bRestart" type="button">Yeniden</button>
     <button id="bAuto" type="button" aria-pressed="false">Otopilot</button>
@@ -1384,7 +1385,7 @@ addEventListener('keydown',e=>{
   if(e.code==='KeyC'){S.camMode=(S.camMode+1)%4;S.side=S.camMode===2;$('bSide').setAttribute('aria-pressed',String(S.side));pop(['Kamera: otomatik','Kamera: takip','Kamera: yan','Kamera: sürücü'][S.camMode]);snapCam=true;}
   if(e.code==='KeyR'&&S.ui==='play')startMode(S.mode);
   if(e.code==='KeyV'){SET.forces=!SET.forces;saveSet();applySet();pop(SET.forces?'Kuvvet okları açık':'Kuvvet okları kapalı');}
-  if(e.code==='KeyT'){S.slow=!S.slow;pop(S.slow?'Ağır çekim':'Normal hız');}
+  if(e.code==='KeyT')toggleSlow();
   if(e.code==='KeyH'){SET.hide=!SET.hide;saveSet();applySet();}
   if(e.code==='Escape'){if(S.phase==='replay')endReplay();else toMenu();}
 });
@@ -1408,6 +1409,8 @@ document.addEventListener('dblclick',e=>{if(isTouch)e.preventDefault();});
   canvas.addEventListener('dblclick',()=>{if(!isTouch){cam.orbY=cam.orbP=0;cam.zoom=1;}});}
 
 document.querySelectorAll('.mode').forEach(b=>b.addEventListener('click',()=>{audioInit();if(b.dataset.mode==='auto'){S.auto=true;S.autoSeq=0;startMode('rampa');}else{S.auto=false;startMode(b.dataset.mode);}}));
+function toggleSlow(){S.slow=!S.slow;$('bSlow').setAttribute('aria-pressed',String(S.slow));pop(S.slow?'Ağır çekim':'Normal hız');}
+$('bSlow').addEventListener('click',toggleSlow);
 $('bSide').addEventListener('click',()=>{S.side=!S.side;S.camMode=S.side?2:0;$('bSide').setAttribute('aria-pressed',String(S.side));snapCam=true;});
 $('bRestart').addEventListener('click',()=>startMode(S.mode));
 $('bAuto').addEventListener('click',()=>{if(S.auto)takeControl();else{S.auto=true;startMode(S.mode);}});
