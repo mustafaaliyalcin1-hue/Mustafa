@@ -150,11 +150,14 @@ body.hideui #touch{opacity:0}
 .tb.on{background:rgba(227,38,59,.6);border-color:var(--red)}
 .tb.blue.on{background:rgba(191,227,255,.35);border-color:var(--mist)}
 .tb.lit{border-color:var(--mist);box-shadow:0 0 14px rgba(191,227,255,.45) inset}
-body.touch #tele{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 50px);right:max(16px,env(safe-area-inset-right,0px));left:auto;transform:none;justify-content:flex-end;gap:4px 12px;max-width:50vw}
+body.touch .tr{gap:8px;max-width:70vw}
+body.touch .tr button{min-height:44px;min-width:64px;padding:10px 14px;font-size:12px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+body.touch .tr button:active{background:rgba(255,255,255,.22)}
+body.touch #tele{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 66px);right:max(16px,env(safe-area-inset-right,0px));left:auto;transform:none;justify-content:flex-end;gap:4px 12px;max-width:50vw}
 body.touch .tv{min-width:44px}
 body.touch .tv b{font-size:19px}
 body.touch .tv .bar{width:44px}
-body.touch #guide{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 112px);font-size:12.5px;width:min(60vw,420px)}
+body.touch #guide{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 128px);font-size:12.5px;width:min(60vw,420px)}
 body.touch .keys,body.touch #bSlow{display:none}
 body.touch #rec,body.touch #autoTag{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 104px)}
 @media (max-height:520px){.tv b{font-size:20px}.tv{min-width:44px}#tele{gap:2px 14px;bottom:calc(env(safe-area-inset-bottom,0px) + 10px)}#guide{bottom:calc(env(safe-area-inset-bottom,0px) + 56px)}.tv .bar{width:46px}}
@@ -1402,6 +1405,9 @@ document.querySelectorAll('.tb').forEach(b=>{const k=b.dataset.k;
 document.addEventListener('touchmove',e=>{if(e.touches.length>1||!e.target.closest('.overlay'))e.preventDefault();},{passive:false});
 {let lastTap=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lastTap<350&&!e.target.closest('.overlay,button'))e.preventDefault();lastTap=n;},{passive:false});}
 document.addEventListener('dblclick',e=>{if(isTouch)e.preventDefault();});
+document.querySelectorAll('.tr button').forEach(b=>{let tapT=0;
+  b.addEventListener('pointerdown',e=>{if(e.pointerType!=='touch')return;e.preventDefault();tapT=performance.now();b.click();});
+  b.addEventListener('click',e=>{if(e.isTrusted&&performance.now()-tapT<800){e.stopImmediatePropagation();e.preventDefault();}},true);});
 {let drag=null;canvas.addEventListener('pointerdown',e=>{if(e.pointerType==='touch')return;drag={x:e.clientX,y:e.clientY};try{canvas.setPointerCapture(e.pointerId);}catch(_){}});
   canvas.addEventListener('pointermove',e=>{if(!drag)return;cam.orbY+=(e.clientX-drag.x)*.006;cam.orbP+=(e.clientY-drag.y)*.004;drag.x=e.clientX;drag.y=e.clientY;});
   canvas.addEventListener('pointerup',()=>drag=null);canvas.addEventListener('pointercancel',()=>drag=null);
