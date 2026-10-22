@@ -155,7 +155,7 @@ body.touch .tv{min-width:44px}
 body.touch .tv b{font-size:19px}
 body.touch .tv .bar{width:44px}
 body.touch #guide{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 112px);font-size:12.5px;width:min(60vw,420px)}
-body.touch .keys{display:none}
+body.touch .keys,body.touch #bSlow{display:none}
 body.touch #rec,body.touch #autoTag{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 104px)}
 @media (max-height:520px){.tv b{font-size:20px}.tv{min-width:44px}#tele{gap:2px 14px;bottom:calc(env(safe-area-inset-bottom,0px) + 10px)}#guide{bottom:calc(env(safe-area-inset-bottom,0px) + 56px)}.tv .bar{width:46px}}
 #wanted{position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:2px;background:rgba(13,15,20,.72);border:1px solid rgba(255,32,53,.5);border-radius:4px;padding:6px 14px;white-space:nowrap;animation:wflash .5s steps(2) infinite}
@@ -204,7 +204,7 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
 <div id="rotate" hidden>Telefonu yan çevir: yatay ekranda çok daha iyi</div>
 
 <div id="touch" hidden>
-  <div class="grp"><div class="col"><div class="row2"><button class="tb sm" data-k="yawL" type="button" aria-label="Havada sola dön (Q)">⟲<br>Q</button><button class="tb sm" data-k="yawR" type="button" aria-label="Havada sağa dön (E)">⟳<br>E</button></div><div class="row2"><button class="tb" data-k="left" type="button" aria-label="Sola">◀</button><button class="tb" data-k="right" type="button" aria-label="Sağa">▶</button></div></div></div>
+  <div class="grp"><div class="col"><button class="tb sm" data-k="slow" type="button" id="tbSlow" aria-pressed="false" aria-label="Ağır çekim (T)">AĞIR<br>ÇEKİM</button><div class="row2"><button class="tb sm" data-k="yawL" type="button" aria-label="Havada sola dön (Q)">⟲<br>Q</button><button class="tb sm" data-k="yawR" type="button" aria-label="Havada sağa dön (E)">⟳<br>E</button></div><div class="row2"><button class="tb" data-k="left" type="button" aria-label="Sola">◀</button><button class="tb" data-k="right" type="button" aria-label="Sağa">▶</button></div></div></div>
   <div class="grp">
     <div class="col"><button class="tb blue" data-k="retro" type="button" aria-label="Ön itici, hızlı fren">ÖN<br>İTİCİ</button></div>
     <div class="col"><button class="tb blue" data-k="fan" type="button" id="tbFan">FAN</button><button class="tb blue" data-k="boost" type="button">İTİCİ</button></div>
@@ -1390,12 +1390,12 @@ addEventListener('keydown',e=>{
   if(e.code==='Escape'){if(S.phase==='replay')endReplay();else toMenu();}
 });
 addEventListener('keyup',e=>{const k=KEYMAP[e.code];if(k){keys[k]=0;e.preventDefault();}});
-const releaseAll=()=>{for(const k in keys)keys[k]=0;for(const k in touchK)touchK[k]=0;document.querySelectorAll('.tb.on').forEach(b=>b.classList.remove('on'));};
+const releaseAll=()=>{for(const k in keys)keys[k]=0;for(const k in touchK)touchK[k]=0;document.querySelectorAll('.tb.on:not(#tbSlow)').forEach(b=>b.classList.remove('on'));};
 addEventListener('blur',releaseAll);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseAll();});
 document.querySelectorAll('.tb').forEach(b=>{const k=b.dataset.k;
-  const on=e=>{e.preventDefault();audioInit();try{b.setPointerCapture(e.pointerId);}catch(_){}b.classList.add('on');if(k==='fan'){if(!S.auto)car.fanOn=!car.fanOn&&car.battery>0;return;}touchK[k]=1;if(k==='gas'&&S.auto)takeControl();};
-  const off=()=>{b.classList.remove('on');if(k!=='fan')touchK[k]=0;};
+  const on=e=>{e.preventDefault();audioInit();try{b.setPointerCapture(e.pointerId);}catch(_){}if(k==='slow'){toggleSlow();return;}b.classList.add('on');if(k==='fan'){if(!S.auto)car.fanOn=!car.fanOn&&car.battery>0;return;}touchK[k]=1;if(k==='gas'&&S.auto)takeControl();};
+  const off=()=>{if(k==='slow')return;b.classList.remove('on');if(k!=='fan')touchK[k]=0;};
   b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointercancel',off);b.addEventListener('lostpointercapture',off);b.addEventListener('contextmenu',e=>e.preventDefault());});
 // phones: no browser pinch/double-tap zoom and no camera drag; buttons are the only touch input
 ['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
@@ -1409,7 +1409,7 @@ document.addEventListener('dblclick',e=>{if(isTouch)e.preventDefault();});
   canvas.addEventListener('dblclick',()=>{if(!isTouch){cam.orbY=cam.orbP=0;cam.zoom=1;}});}
 
 document.querySelectorAll('.mode').forEach(b=>b.addEventListener('click',()=>{audioInit();if(b.dataset.mode==='auto'){S.auto=true;S.autoSeq=0;startMode('rampa');}else{S.auto=false;startMode(b.dataset.mode);}}));
-function toggleSlow(){S.slow=!S.slow;$('bSlow').setAttribute('aria-pressed',String(S.slow));pop(S.slow?'Ağır çekim':'Normal hız');}
+function toggleSlow(){S.slow=!S.slow;$('bSlow').setAttribute('aria-pressed',String(S.slow));$('tbSlow').setAttribute('aria-pressed',String(S.slow));$('tbSlow').classList.toggle('on',S.slow);pop(S.slow?'Ağır çekim':'Normal hız');}
 $('bSlow').addEventListener('click',toggleSlow);
 $('bSide').addEventListener('click',()=>{S.side=!S.side;S.camMode=S.side?2:0;$('bSide').setAttribute('aria-pressed',String(S.side));snapCam=true;});
 $('bRestart').addEventListener('click',()=>startMode(S.mode));
