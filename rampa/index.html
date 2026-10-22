@@ -151,6 +151,14 @@ body.hideui #touch{opacity:0}
 .tb.blue.on{background:rgba(191,227,255,.35);border-color:var(--mist)}
 .tb.lit{border-color:var(--mist);box-shadow:0 0 14px rgba(191,227,255,.45) inset}
 body.touch .tr{gap:8px;max-width:70vw}
+body.tplay .tr{display:none}
+body.tplay #tele{top:calc(env(safe-area-inset-top,0px) + 14px)}
+body.tplay #guide{top:calc(env(safe-area-inset-top,0px) + 80px)}
+#tmenu{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:14;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px;background:rgba(13,15,20,.92);border:1px solid var(--line);border-radius:6px;width:min(420px,calc(100vw - 32px))}
+#tmenu[hidden]{display:none}
+#tmenu button{min-height:52px;border:1px solid var(--line);border-radius:4px;background:rgba(255,255,255,.06);font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;touch-action:manipulation}
+#tmenu button[aria-pressed="true"]{background:var(--red);border-color:var(--red)}
+#tmenu .x{grid-column:1/-1;min-height:44px;background:transparent}
 body.touch .tr button{min-height:44px;min-width:64px;padding:10px 14px;font-size:12px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 body.touch .tr button:active{background:rgba(255,255,255,.22)}
 body.touch #tele{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 66px);right:max(16px,env(safe-area-inset-right,0px));left:auto;transform:none;justify-content:flex-end;gap:4px 12px;max-width:50vw}
@@ -206,8 +214,16 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
 </div>
 <div id="rotate" hidden>Telefonu yan çevir: yatay ekranda çok daha iyi</div>
 
+<div id="tmenu" hidden>
+  <button type="button" data-for="bSide">Yan görünüş</button>
+  <button type="button" data-for="bRestart">Yeniden</button>
+  <button type="button" data-for="bAuto">Otopilot</button>
+  <button type="button" data-for="bSet">Ayarlar</button>
+  <button type="button" data-for="bMenu">Ana menü</button>
+  <button type="button" class="x">Kapat</button>
+</div>
 <div id="touch" hidden>
-  <div class="grp"><div class="col"><button class="tb sm" data-k="slow" type="button" id="tbSlow" aria-pressed="false" aria-label="Ağır çekim (T)">AĞIR<br>ÇEKİM</button><div class="row2"><button class="tb sm" data-k="yawL" type="button" aria-label="Havada sola dön (Q)">⟲<br>Q</button><button class="tb sm" data-k="yawR" type="button" aria-label="Havada sağa dön (E)">⟳<br>E</button></div><div class="row2"><button class="tb" data-k="left" type="button" aria-label="Sola">◀</button><button class="tb" data-k="right" type="button" aria-label="Sağa">▶</button></div></div></div>
+  <div class="grp"><div class="col"><div class="row2"><button class="tb sm" data-k="slow" type="button" id="tbSlow" aria-pressed="false" aria-label="Ağır çekim (T)">AĞIR<br>ÇEKİM</button><button class="tb sm" data-k="more" type="button" id="tbMore" aria-label="Menü tuşları">☰<br>MENÜ</button></div><div class="row2"><button class="tb sm" data-k="yawL" type="button" aria-label="Havada sola dön (Q)">⟲<br>Q</button><button class="tb sm" data-k="yawR" type="button" aria-label="Havada sağa dön (E)">⟳<br>E</button></div><div class="row2"><button class="tb" data-k="left" type="button" aria-label="Sola">◀</button><button class="tb" data-k="right" type="button" aria-label="Sağa">▶</button></div></div></div>
   <div class="grp">
     <div class="col"><button class="tb blue" data-k="retro" type="button" aria-label="Ön itici, hızlı fren">ÖN<br>İTİCİ</button></div>
     <div class="col"><button class="tb blue" data-k="fan" type="button" id="tbFan">FAN</button><button class="tb blue" data-k="boost" type="button">İTİCİ</button></div>
@@ -1341,7 +1357,7 @@ function showUI(w){
   S.ui=w;
   $('menu').hidden=w!=='menu';$('result').hidden=w!=='result';$('how').hidden=w!=='how';$('settings').hidden=w!=='settings';
   $('hud').hidden=w==='menu'||((w==='how'||w==='settings')&&S.menuDemo);
-  $('touch').hidden=!(isTouch&&w==='play');$('rec').hidden=w!=='replay';$('rotate').hidden=!(isTouch&&w==='play');
+  $('touch').hidden=!(isTouch&&w==='play');document.body.classList.toggle('tplay',isTouch&&w==='play');$('tmenu').hidden=true;$('rec').hidden=w!=='replay';$('rotate').hidden=!(isTouch&&w==='play');
   if(w!=='play')$('autoTag').hidden=true;else $('autoTag').hidden=!S.auto;
 }
 function toMenu(){polClear();if(S.mode==='serbest'){store.set('rec',REC);updateRecords();}S.auto=false;startMode('gosteri',{demo:true});showUI('menu');}
@@ -1397,17 +1413,14 @@ const releaseAll=()=>{for(const k in keys)keys[k]=0;for(const k in touchK)touchK
 addEventListener('blur',releaseAll);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseAll();});
 document.querySelectorAll('.tb').forEach(b=>{const k=b.dataset.k;
-  const on=e=>{e.preventDefault();audioInit();try{b.setPointerCapture(e.pointerId);}catch(_){}if(k==='slow'){toggleSlow();return;}b.classList.add('on');if(k==='fan'){if(!S.auto)car.fanOn=!car.fanOn&&car.battery>0;return;}touchK[k]=1;if(k==='gas'&&S.auto)takeControl();};
-  const off=()=>{if(k==='slow')return;b.classList.remove('on');if(k!=='fan')touchK[k]=0;};
+  const on=e=>{e.preventDefault();audioInit();try{b.setPointerCapture(e.pointerId);}catch(_){}if(k==='slow'){toggleSlow();return;}if(k==='more'){openTMenu();return;}b.classList.add('on');if(k==='fan'){if(!S.auto)car.fanOn=!car.fanOn&&car.battery>0;return;}touchK[k]=1;if(k==='gas'&&S.auto)takeControl();};
+  const off=()=>{if(k==='slow'||k==='more')return;b.classList.remove('on');if(k!=='fan')touchK[k]=0;};
   b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointercancel',off);b.addEventListener('lostpointercapture',off);b.addEventListener('contextmenu',e=>e.preventDefault());});
 // phones: no browser pinch/double-tap zoom and no camera drag; buttons are the only touch input
 ['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
 document.addEventListener('touchmove',e=>{if(e.touches.length>1||!e.target.closest('.overlay'))e.preventDefault();},{passive:false});
 {let lastTap=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lastTap<350&&!e.target.closest('.overlay,button'))e.preventDefault();lastTap=n;},{passive:false});}
 document.addEventListener('dblclick',e=>{if(isTouch)e.preventDefault();});
-document.querySelectorAll('.tr button').forEach(b=>{let tapT=0;
-  b.addEventListener('pointerdown',e=>{if(e.pointerType!=='touch')return;e.preventDefault();tapT=performance.now();b.click();});
-  b.addEventListener('click',e=>{if(e.isTrusted&&performance.now()-tapT<800){e.stopImmediatePropagation();e.preventDefault();}},true);});
 {let drag=null;canvas.addEventListener('pointerdown',e=>{if(e.pointerType==='touch')return;drag={x:e.clientX,y:e.clientY};try{canvas.setPointerCapture(e.pointerId);}catch(_){}});
   canvas.addEventListener('pointermove',e=>{if(!drag)return;cam.orbY+=(e.clientX-drag.x)*.006;cam.orbP+=(e.clientY-drag.y)*.004;drag.x=e.clientX;drag.y=e.clientY;});
   canvas.addEventListener('pointerup',()=>drag=null);canvas.addEventListener('pointercancel',()=>drag=null);
@@ -1415,6 +1428,8 @@ document.querySelectorAll('.tr button').forEach(b=>{let tapT=0;
   canvas.addEventListener('dblclick',()=>{if(!isTouch){cam.orbY=cam.orbP=0;cam.zoom=1;}});}
 
 document.querySelectorAll('.mode').forEach(b=>b.addEventListener('click',()=>{audioInit();if(b.dataset.mode==='auto'){S.auto=true;S.autoSeq=0;startMode('rampa');}else{S.auto=false;startMode(b.dataset.mode);}}));
+function openTMenu(){const m=$('tmenu');m.hidden=!m.hidden;if(m.hidden)return;releaseAll();m.querySelectorAll('[data-for]').forEach(b=>{const o=$(b.dataset.for);b.hidden=o.hidden;if(o.hasAttribute('aria-pressed'))b.setAttribute('aria-pressed',o.getAttribute('aria-pressed'));});}
+$('tmenu').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$('tmenu').hidden=true;if(b.dataset.for)$(b.dataset.for).click();});
 function toggleSlow(){S.slow=!S.slow;$('bSlow').setAttribute('aria-pressed',String(S.slow));$('tbSlow').setAttribute('aria-pressed',String(S.slow));$('tbSlow').classList.toggle('on',S.slow);pop(S.slow?'Ağır çekim':'Normal hız');}
 $('bSlow').addEventListener('click',toggleSlow);
 $('bSide').addEventListener('click',()=>{S.side=!S.side;S.camMode=S.side?2:0;$('bSide').setAttribute('aria-pressed',String(S.side));snapCam=true;});
