@@ -1,6 +1,6 @@
 /* Tepetaklak offline: the page fills the cache when the player taps "İnternetsiz modu indir".
    Pages are network-first (so updates arrive when online), everything else cache-first. */
-const CACHE='tepetaklak-off-v1';
+const CACHE='tepetaklak-off-v2';
 self.addEventListener('install',()=>self.skipWaiting());
 self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
 self.addEventListener('fetch',e=>{
