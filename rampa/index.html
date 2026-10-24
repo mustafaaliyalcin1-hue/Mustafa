@@ -1637,7 +1637,7 @@ $('onShare').addEventListener('click',async()=>{const url=location.origin+locati
   try{if(navigator.share){await navigator.share({title:'Tepetaklak',text:txt,url});return;}await navigator.clipboard.writeText(txt+' '+url);onMsg('Bağlantı kopyalandı, arkadaşına yapıştır.');}catch(_){onMsg('Kod: '+NET.code+' · '+url);}});
 
 /* ================= OFFLINE: service worker + cache filled on request ================= */
-const OFF={ok:'serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')&&window.top===window&&'caches' in window,CACHE:'tepetaklak-off-v2',busy:false,prompt:null};
+const OFF={ok:'serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')&&window.top===window&&'caches' in window,CACHE:'tepetaklak-off-v1',busy:false,prompt:null};
 addEventListener('beforeinstallprompt',e=>{e.preventDefault();OFF.prompt=e;offUI();});
 async function offReady(){try{return !!(await navigator.serviceWorker.getRegistration('./'))&&await caches.has(OFF.CACHE);}catch(_){return false;}}
 async function offUI(){const row=$('offRow'),b=$('bOffline'),m=$('offMsg');if(!OFF.ok){row.hidden=true;return;}row.hidden=false;if(OFF.busy)return;
