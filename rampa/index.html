@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="description" content="Fan car fizik oyunu: J rampaya tırman, tavanda tepetaklak tutun, takla at, 5 aracın üstünden uç, gece şehrinde trafikte serbest sür.">
 <meta name="theme-color" content="#050608">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2712%27 fill=%27%23050608%27/%3E%3Cpath d=%27M14 44 Q14 14 44 14 L50 14 L50 20 L44 20 Q20 20 20 44Z%27 fill=%27%23e3263b%27/%3E%3C/svg%3E">
 <style>html,body{margin:0}</style>
 <title>Tepetaklak Rampa</title>
@@ -156,6 +159,10 @@ body.tplay #tele{top:calc(env(safe-area-inset-top,0px) + 14px)}
 body.tplay #guide{top:calc(env(safe-area-inset-top,0px) + 80px)}
 #tmenu{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:14;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px;background:rgba(13,15,20,.92);border:1px solid var(--line);border-radius:6px;width:min(420px,calc(100vw - 32px))}
 #tmenu[hidden]{display:none}
+.offrow{display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--dim)}
+.offrow .btn.ok{border-color:#4caf6a;color:#9be3ae}
+#offMsg.net{color:#ffd34d}
+.mode.online[aria-disabled="true"]{opacity:.45}
 .mode.online{border-color:rgba(255,211,77,.45)}.mode.online .k{color:#ffd34d}
 .card.online{display:flex;flex-direction:column;gap:14px}
 .fld{display:flex;flex-direction:column;gap:6px;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
@@ -262,6 +269,7 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
       <button class="mode online" data-mode="online" type="button"><span class="k">ONLİNE</span><span class="rec">EN ÇOK<b>8 kişi</b></span><span class="d">Oda kur ya da arkadaşının koduyla katıl, aynı şehirde beraber serbest sürüş yapın.</span></button>
       <button class="mode auto" data-mode="auto" type="button"><span class="play">▶</span><span class="k">KENDİ KENDİNE OYNASIN</span><span class="d">Otopilot üç modu sırayla oynar. İstediğin an GAZ’a basıp kontrolü alırsın.</span></button>
     </div>
+    <div class="offrow" id="offRow" hidden><button type="button" class="btn" id="bOffline">İnternetsiz modu indir</button><span id="offMsg"></span></div>
     <div class="links"><button type="button" id="bHow">Nasıl oynanır?</button><button type="button" id="bFull">Tam ekran</button><button type="button" id="bSet2">Ayarlar</button></div>
     <p class="fine">Hayran yapımı bir fizik oyunudur; herhangi bir otomobil ya da uzay şirketiyle bağlantısı, iş birliği yoktur. Araçlar özgün, logosuz tasarımdır.</p>
   </div>
@@ -1460,7 +1468,7 @@ function updNetTag(){const t=$('netTag');t.hidden=!NET.on;$('tbHonk').hidden=!NE
   if(!NET.on)return;$('netCode').textContent=NET.code;$('netN').textContent=(NET.players.size+1)+' oyuncu';
   $('netList').textContent=[netName()+' (sen)',...[...NET.players.values()].map(p=>p.name)].join(' · ');}
 /* host */
-async function hostRoom(){if(NET.pending)return;NET.pending=true;store.set('name',netName());onMsg('Oda kuruluyor…');
+async function hostRoom(){if(NET.pending)return;if(!navigator.onLine){onMsg('İnternet yok. Online için internete bağlan.',true);return;}NET.pending=true;store.set('name',netName());onMsg('Oda kuruluyor…');
   let P;try{P=await loadPeer();}catch(_){NET.pending=false;onMsg('Online bağlantı kurulamadı. İnternetini kontrol et.',true);return;}
   const tryCode=n=>{const code=Array.from({length:4},()=>CODE_CH[Math.random()*CODE_CH.length|0]).join('');const peer=new P(NET_PFX+code,{debug:0});NET.peer=peer;
     peer.on('open',()=>{NET.host=true;NET.code=code;NET.id='h';NET.idx=0;NET.next=1;try{history.replaceState(null,'','?oda='+code);}catch(_){}showHosted();});
@@ -1481,7 +1489,7 @@ async function hostRoom(){if(NET.pending)return;NET.pending=true;store.set('name
   tryCode(0);}
 function showHosted(){updNetTag();$('onStart').hidden=true;$('onHosted').hidden=false;$('onCodeBig').textContent=NET.code;onMsg('Oda hazır. Arkadaşların “Odaya katıl”a bu kodu yazsın.');}
 /* guest */
-async function joinRoom(){if(NET.pending)return;const code=$('onCode').value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4);
+async function joinRoom(){if(NET.pending)return;if(!navigator.onLine){onMsg('İnternet yok. Online için internete bağlan.',true);return;}const code=$('onCode').value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4);
   if(code.length!==4){onMsg('Oda kodu 4 harf/rakam olmalı.',true);return;}
   NET.pending=true;store.set('name',netName());onMsg('Odaya bağlanılıyor…');
   let P;try{P=await loadPeer();}catch(_){NET.pending=false;onMsg('Online bağlantı kurulamadı. İnternetini kontrol et.',true);return;}
@@ -1527,7 +1535,7 @@ function netTick(dt,simDt){if(!NET.on)return;
     if(NET.bumpT<=0&&Math.abs(c.v)>4){NET.bumpT=.6;c.v*=.6;S.shake=.4;sparks(_vc.set((c.pos.x+p.pos.x)/2,.6,(c.pos.z+p.pos.z)/2),16,6);sfx('thud');}}}
 function netMinimap(x,P){for(const p of NET.players.values()){if(!p.shown)continue;const [u,v]=P(p.pos.x,p.pos.z);_va.copy(AX).applyQuaternion(p.q);const yaw=Math.atan2(_va.z,_va.x);
   x.save();x.translate(Math.max(8,Math.min(292,u)),Math.max(8,Math.min(292,v)));x.rotate(yaw);x.fillStyle='#'+COLORS[p.col][2].toString(16).padStart(6,'0');x.strokeStyle='#ffd34d';x.lineWidth=2;x.beginPath();x.moveTo(10,0);x.lineTo(-6,6);x.lineTo(-3,0);x.lineTo(-6,-6);x.closePath();x.fill();x.stroke();x.restore();}}
-function openOnline(){if(NET.on)return;$('onName').value=store.get('name','')||('Oyuncu'+(100+Math.random()*900|0));$('onStart').hidden=false;$('onHosted').hidden=true;onMsg('');showUI('online');}
+function openOnline(){if(NET.on)return;$('onName').value=store.get('name','')||('Oyuncu'+(100+Math.random()*900|0));$('onStart').hidden=false;$('onHosted').hidden=true;onMsg('');showUI('online');if(!navigator.onLine)onMsg('İnternet yok. Online oynamak için internete bağlan; diğer modlar internetsiz de çalışır.',true);}
 function closeOnline(){$('online').hidden=true;}
 $('onHost').addEventListener('click',hostRoom);$('onJoin').addEventListener('click',joinRoom);
 $('onCode').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4);});
@@ -1536,6 +1544,36 @@ $('onBack').addEventListener('click',()=>{if(NET.host&&!NET.on)netLeave();NET.pe
 $('onGo').addEventListener('click',netStart);
 $('onShare').addEventListener('click',async()=>{const url=location.origin+location.pathname+'?oda='+NET.code,txt='Tepetaklak’ta odama gel! Kod: '+NET.code;
   try{if(navigator.share){await navigator.share({title:'Tepetaklak',text:txt,url});return;}await navigator.clipboard.writeText(txt+' '+url);onMsg('Bağlantı kopyalandı, arkadaşına yapıştır.');}catch(_){onMsg('Kod: '+NET.code+' · '+url);}});
+
+/* ================= OFFLINE: service worker + cache filled on request ================= */
+const OFF={ok:'serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')&&window.top===window&&'caches' in window,CACHE:'tepetaklak-off-v1',busy:false,prompt:null};
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();OFF.prompt=e;offUI();});
+async function offReady(){try{return !!(await navigator.serviceWorker.getRegistration('./'))&&await caches.has(OFF.CACHE);}catch(_){return false;}}
+async function offUI(){const row=$('offRow'),b=$('bOffline'),m=$('offMsg');if(!OFF.ok){row.hidden=true;return;}row.hidden=false;if(OFF.busy)return;
+  const ready=await offReady(),on=navigator.onLine;m.classList.toggle('net',!on);
+  document.querySelector('.mode.online').setAttribute('aria-disabled',String(!on));
+  if(ready){b.classList.add('ok');b.textContent=OFF.prompt?'Ana ekrana ekle':'İnternetsiz mod hazır ✓';m.textContent=on?'İnternet yokken de açılır (online hariç).':'İnternet yok · İnternetsiz moddasın';}
+  else{b.classList.remove('ok');b.textContent='İnternetsiz modu indir';m.textContent=on?'Bir kere indir, sonra internetsiz de oyna.':'İnternet yok. İndirmek için internete bağlan.';}}
+async function offDownload(){if(OFF.busy)return;
+  if(await offReady()){if(OFF.prompt){OFF.prompt.prompt();OFF.prompt=null;}offUI();return;}
+  if(!navigator.onLine){$('offMsg').textContent='İndirmek için internet lazım.';return;}
+  OFF.busy=true;const b=$('bOffline'),m=$('offMsg');b.textContent='İndiriliyor…';
+  try{await navigator.serviceWorker.register('sw.js',{scope:'./'});await navigator.serviceWorker.ready;
+    const base=new URL('./',location.href).href,set=new Set([base,new URL('manifest.webmanifest',base).href,new URL('icon-192.png',base).href,new URL('icon-512.png',base).href]);
+    for(const e of performance.getEntriesByType('resource')){const u=e.name;if(/^https:/.test(u)&&!/peerjs\.com|peerjs@/.test(u))set.add(u.split('#')[0]);}
+    const c=await caches.open(OFF.CACHE),list=[...set];let n=0,bad=0;
+    for(const u of list){let res=null;const same=new URL(u).origin===location.origin;
+      try{res=await fetch(u,{mode:same?'same-origin':'cors',cache:'no-cache'});}catch(_){}
+      if(!res||!res.ok){try{res=await fetch(u,{mode:'no-cors'});}catch(_){res=null;}}
+      if(res&&(res.ok||res.type==='opaque'))await c.put(u===base?base:u,res);else bad++;
+      n++;m.textContent=`${n}/${list.length} dosya`;}
+    if(bad&&bad>list.length/4){await caches.delete(OFF.CACHE);throw new Error('eksik');}
+    OFF.busy=false;
+  }catch(_){OFF.busy=false;$('offMsg').textContent='İndirme bitmedi. İnternetini kontrol edip tekrar dene.';b.textContent='Tekrar dene';return;}
+  offUI();}
+$('bOffline').addEventListener('click',offDownload);
+addEventListener('online',offUI);addEventListener('offline',offUI);
+offUI();
 
 /* ================= INPUT ================= */
 const KEYMAP={KeyW:'gas',ArrowUp:'gas',KeyS:'brake',ArrowDown:'brake',Space:'lift',ShiftLeft:'boost',ShiftRight:'boost',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyQ:'yawL',KeyE:'yawR',KeyX:'retro'};
