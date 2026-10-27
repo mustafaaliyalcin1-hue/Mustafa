@@ -184,6 +184,8 @@ body.tplay #guide{top:calc(env(safe-area-inset-top,0px) + 80px)}
 .gstats{display:grid;gap:6px}.gst{display:grid;grid-template-columns:110px 1fr;gap:10px;align-items:center;font-size:12.5px}
 .gst i{height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden}.gst b{display:block;height:100%;background:linear-gradient(90deg,#5fc4ff,#6dffa6)}
 #garMsg{min-height:1.2em;color:#ffd34d}
+.gbtn.veh.voltra{border-color:rgba(255,211,77,.55)}.gbtn.veh.voltra b{color:#ffd34d}.gbtn.veh.voltra[aria-pressed="true"] b{color:#7a5a00}.gbtn.veh.locked{opacity:.75}
+.grow.code input{font:inherit;font-size:16px;padding:10px 12px;min-height:44px;border:1px solid var(--line);border-radius:3px;background:rgba(255,255,255,.06);color:var(--ink);flex:1;min-width:140px}
 .mode.online{border-color:rgba(255,211,77,.45)}.mode.online .k{color:#ffd34d}
 .card.online{display:flex;flex-direction:column;gap:14px}
 .fld{display:flex;flex-direction:column;gap:6px;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
@@ -282,7 +284,7 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
     <h1>TEPE<span class="flip">TAKLAK</span></h1>
     <p class="lede">Tabandaki fanlar arabayı yüzeye bastırır. 19 metrelik J rampaya tırman, tavanda baş aşağı tutun, bırak, havada takla at ve iticilerle yumuşak in. Fizik gerçek: hızlı girersen g kuvveti arabayı dağıtır, fan kapalıysa tavan seni bırakır.</p>
     <div class="optrow"><span>Zorluk</span><span class="seg" id="diff"><button type="button" data-v="easy" aria-pressed="true">Kolay</button><button type="button" data-v="real" aria-pressed="false">Gerçekçi</button></span>
-      <span>Araç</span><span class="seg" id="vehSeg"><button type="button" data-v="car">Araba</button><button type="button" data-v="moto">Motor</button></span>
+      <span>Araç</span><span class="seg" id="vehSeg"><button type="button" data-v="car">Araba</button><button type="button" data-v="moto">Motor</button><button type="button" data-v="voltra">Voltra R</button></span>
       <span>Renk</span><span class="swatches" id="colors"></span>
       <span>Polis</span><span class="seg pol" id="pol1"><button type="button" data-p="0">Kapalı</button><button type="button" data-p="1">Kolay</button><button type="button" data-p="2">Orta</button><button type="button" data-p="3">Zor</button></span></div>
     <div class="modes">
@@ -917,7 +919,7 @@ function placeCar(a,px,pz,minD,maxD){
   for(let tries=0;tries<60;tries++){const ang=Math.random()*TAU,dist=minD+Math.random()*(maxD-minD),i=CITY.ci(px+Math.cos(ang)*dist),j=CITY.cj(pz+Math.sin(ang)*dist),d=Math.random()*4|0;
     if(CITY.edgeClosed(i,j,d))continue;a.lane=Math.random()<.5?0:1;segStraight(a,i,j,d);a.s=Math.random()*a.seg.len;trafPose(a);
     if(Math.hypot(a.x-px,a.z-pz)<minD*.8)continue;if(TRAF.cars.some(b=>b!==a&&Math.hypot(b.x-a.x,b.z-a.z)<12))continue;
-    a.v=a.cruise;a.hitT=0;return true;}
+    a.v=a.cruise;a.hitT=0;a.hop=null;a.y=0;return true;}
   return false;}
 {const n=isTouch?26:40;for(let k=0;k<n;k++){const a={lane:0,s:0,v:0,cruise:10+Math.random()*6,hitT:0,nearT:0,overT:0,x:0,z:0,yaw:0,col:TCOL[k%TCOL.length]};placeCar(a,CITY.start.x,CITY.start.z,25,CITY.R*70);TRAF.cars.push(a);}}
 function trafficReset(){for(const a of TRAF.cars)placeCar(a,car.pos.x,car.pos.z,25,CITY.R*70);}
@@ -934,8 +936,11 @@ const TR=(()=>{const n=TRAF.cars.length,g=CITY.group;
   return {body,cab,head,tail,wh,L:{body:loc(0,.67,0),cab:loc(-.3,1.35,0),head:loc(2.21,.72,0),tail:loc(-2.21,.78,0),w:[loc(1.4,.34,.84),loc(1.4,.34,-.84),loc(-1.4,.34,.84),loc(-1.4,.34,-.84)]}};})();
 const _tm=new THREE.Matrix4(),_tm2=new THREE.Matrix4(),_tq=new THREE.Quaternion(),_tp=new V3(),_ts=new V3(1,1,1);
 const LC={g:new THREE.Color(0x3dff7a),y:new THREE.Color(0xffb347),r:new THREE.Color(0xff2a40)};
+const _tm0=new THREE.Matrix4().makeScale(0,0,0);
 function trafficRender(){
-  TRAF.cars.forEach((a,k)=>{_tq.setFromAxisAngle(AY,-a.yaw);_tp.set(a.x,0,a.z);_tm.compose(_tp,_tq,_ts);
+  TRAF.cars.forEach((a,k)=>{if(a.voltra){const V=a.voltra;V.g.position.set(a.x,a.y||0,a.z);V.g.rotation.set(0,-a.yaw,a.hop?.12*Math.cos(Math.PI*a.hop.t/a.hop.dur):0);for(const w of V.wheels)w.rotation.x=a.wr||0;V.fanGlow.material.opacity=a.hop?.75:.15;
+      for(const m of [TR.body,TR.cab,TR.head,TR.tail])m.setMatrixAt(k,_tm0);for(let w=0;w<4;w++)TR.wh.setMatrixAt(k*4+w,_tm0);return;}
+    _tq.setFromAxisAngle(AY,-a.yaw);_tp.set(a.x,0,a.z);_tm.compose(_tp,_tq,_ts);
     TR.body.setMatrixAt(k,_tm2.multiplyMatrices(_tm,TR.L.body));TR.cab.setMatrixAt(k,_tm2.multiplyMatrices(_tm,TR.L.cab));TR.head.setMatrixAt(k,_tm2.multiplyMatrices(_tm,TR.L.head));TR.tail.setMatrixAt(k,_tm2.multiplyMatrices(_tm,TR.L.tail));
     for(let w=0;w<4;w++)TR.wh.setMatrixAt(k*4+w,_tm2.multiplyMatrices(_tm,TR.L.w[w]));});
   for(const m of [TR.body,TR.cab,TR.head,TR.tail,TR.wh])m.instanceMatrix.needsUpdate=true;
@@ -948,10 +953,16 @@ function trafficTick(dt){
     const fx=Math.cos(a.yaw),fz=Math.sin(a.yaw);let vT=a.cruise;
     if(a.seg.t==='s'){const rem=a.seg.len-a.s,st=lightAt(a.ti,a.tj,a.d%2);if(st!=='g'&&!(st==='y'&&rem<7)&&rem<34){vT=Math.min(vT,Math.max(0,(rem-1)*.55));if(rem<1.2)vT=0;}}
     else vT=Math.min(vT,9);
-    for(const b of cars){if(b===a)continue;const rx=b.x-a.x,rz=b.z-a.z,al=rx*fx+rz*fz;if(al>0&&al<18&&Math.abs(-rx*fz+rz*fx)<2.4)vT=Math.min(vT,Math.max(0,(al-5.5)*1.1));}
-    if(c.pos.y<2){const rx=c.pos.x-a.x,rz=c.pos.z-a.z,al=rx*fx+rz*fz;if(al>0&&al<20&&Math.abs(-rx*fz+rz*fx)<2.6)vT=Math.min(vT,Math.max(0,(al-6)*1.1));}
+    let blockAl=1e9,blockV=0;
+    for(const b of cars){if(b===a||(b.y||0)>1.5)continue;const rx=b.x-a.x,rz=b.z-a.z,al=rx*fx+rz*fz;if(al>0&&al<18&&Math.abs(-rx*fz+rz*fx)<2.4){vT=Math.min(vT,Math.max(0,(al-5.5)*1.1));if(al<blockAl){blockAl=al;blockV=b.v;}}}
+    if(c.pos.y<2){const rx=c.pos.x-a.x,rz=c.pos.z-a.z,al=rx*fx+rz*fz;if(al>0&&al<20&&Math.abs(-rx*fz+rz*fx)<2.6){vT=Math.min(vT,Math.max(0,(al-6)*1.1));if(al<blockAl){blockAl=al;blockV=Math.abs(c.v);}}}
+    if(a.voltra){a.hopCD=(a.hopCD||0)-dt;
+      if(a.hop){a.hop.t+=dt;const k=a.hop.t/a.hop.dur;a.y=Math.sin(Math.PI*Math.min(1,k))*3.8;vT=a.cruise+5;
+        if(k<.55)for(const sx of [1.4,-1.4])emit(a.x+fx*sx,a.y+.15,a.z+fz*sx,(Math.random()-.5)*2,-9-Math.random()*3,(Math.random()-.5)*2,.5,.42,.46,.5,.5,0,2.4);
+        if(k>=1){a.hop=null;a.y=0;a.hopCD=2.5;}}
+      else if(blockAl<15&&a.hopCD<=0&&a.seg.t==='s'&&a.seg.len-a.s>22&&a.v>3&&blockV<a.cruise-2&&a.hitT<=0){a.hop={t:0,dur:1.5};if(Math.hypot(a.x-c.pos.x,a.z-c.pos.z)<70)sfx('whoosh');}}
     if(a.hitT>0){a.hitT-=dt;vT=0;}a.nearT-=dt;a.overT-=dt;
-    a.v+=clamp(vT-a.v,-9*dt,3.2*dt);a.s+=a.v*dt;
+    a.v+=clamp(vT-a.v,-9*dt,(a.hop?8:3.2)*dt);a.s+=a.v*dt;if(a.voltra)a.wr=(a.wr||0)+a.v*dt/.345;
     let guard=0;while(a.s>=a.seg.len&&guard++<3){const over=a.s-a.seg.len;if(a.seg.t==='s')segTurn(a);else segStraight(a,a.ti,a.tj,a.seg.d2);a.s=over;}
     trafPose(a);
   }
@@ -1097,7 +1108,7 @@ function freeTick(dt){
   const c=car,F=S.free,f=_vc.set(Math.cos(c.yaw),0,Math.sin(c.yaw));
   F.dist+=Math.hypot(c.vel.x,c.vel.z)*dt;F.top=Math.max(F.top,Math.abs(c.v));
   if(F.comboT>0){F.comboT-=dt;if(F.comboT<=0)F.combo=1;}
-  for(const a of TRAF.cars){const dx=c.pos.x-a.x,dz=c.pos.z-a.z,d0=Math.hypot(dx,dz);if(d0>8)continue;
+  for(const a of TRAF.cars){const dx=c.pos.x-a.x,dz=c.pos.z-a.z,d0=Math.hypot(dx,dz);if(d0>8||(a.y||0)>1.2)continue;
     if(c.pos.y>1.7){if(d0<2.6&&a.overT<=0){a.overT=4;freeScore(300,'Üstünden atladın');}continue;}
     const ax=Math.cos(a.yaw),az=Math.sin(a.yaw);let best=1e9,nx=0,nz=0;
     for(const s1 of [-1.25,1.25])for(const s2 of [-1.25,1.25]){const px=c.pos.x+f.x*s1-(a.x+ax*s2),pz=c.pos.z+f.z*s1-(a.z+az*s2),d=Math.hypot(px,pz);if(d<best){best=d;nx=px/(d||1);nz=pz/(d||1);}}
@@ -1692,7 +1703,7 @@ function buildVoltra(lite=false){
   scene.add(g);
   return {g,paint:V.materials.paint,api:V,spinX:true,voltra:true,wheels:piv.map(p=>p.userData.spin),front:[V.wheels.fl,V.wheels.fr],fanGlow,
     nozLift:[new V3(1.4,.2,.65),new V3(1.4,.2,-.65),new V3(-1.4,.2,.65),new V3(-1.4,.2,-.65)],nozBoost:[new V3(-2.18,.27,.52),new V3(-2.18,.27,-.52)],nozRetro:[new V3(2.12,.32,.5),new V3(2.12,.32,-.5)]};}
-let CAR=buildVoltra();const GHOST=buildCar(true);GHOST.g.visible=false;
+let CAR=buildCar();const GHOST=buildCar(true);GHOST.g.visible=false;
 
 const arrows={g:new THREE.ArrowHelper(new V3(0,-1,0),new V3(),1,0xffb347,.5,.3),fan:new THREE.ArrowHelper(new V3(0,-1,0),new V3(),1,0x7fc8ff,.5,.3),n:new THREE.ArrowHelper(new V3(0,1,0),new V3(),1,0xffffff,.5,.3),v:new THREE.ArrowHelper(new V3(1,0,0),new V3(),1,0xff3448,.5,.3)};
 for(const k in arrows){const a=arrows[k];a.visible=false;a.line.material.depthTest=false;a.cone.material.depthTest=false;a.line.renderOrder=a.cone.renderOrder=5;scene.add(a);}
@@ -1765,7 +1776,7 @@ function startMode(mode,opts={}){
   snapCam=true;GHOST.g.visible=false;
   $('autoTag').hidden=!S.auto||S.menuDemo;$('bAuto').setAttribute('aria-pressed',String(S.auto));
 }
-function setModeLabel(){$('hMode').textContent=(S.cargo?'Kargo · '+(CAREER.lo.veh==='moto'?'Fan motor':'Fan araba'):MODE_NAME[S.mode])+(S.modeTail||'');}
+function setModeLabel(){$('hMode').textContent=(S.cargo?'Kargo · '+vehName(CAREER.lo.veh):MODE_NAME[S.mode])+(S.modeTail||'');}
 function addScore(p,label,cls){S.score+=p;S.items.push([label,p]);pop('+'+nf(p)+' '+label,cls||'gold');}
 
 /* autopilot and easy-mode controllers share these helpers */
@@ -2077,7 +2088,7 @@ function nameSprite(name,hex){const c=document.createElement('canvas');c.width=2
   g.fillStyle='rgba(13,15,20,.78)';g.beginPath();g.roundRect((256-w)/2,8,w,48,10);g.fill();g.fillStyle='#'+hex.toString(16).padStart(6,'0');g.fillRect((256-w)/2+10,26,8,12);
   g.fillStyle='#fff';g.textAlign='center';g.textBaseline='middle';g.fillText(name,128+6,33);
   const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,depthTest:false,transparent:true}));s.scale.set(5,1.25,1);s.renderOrder=10;scene.add(s);return s;}
-const netCol=c=>(Number(c)>>>0)&0xffffff,netVeh=v=>v==='moto'?'moto':'car',netMesh=(veh,col)=>{const m=veh==='moto'?buildMoto(true):buildVoltra(true);m.paint.color.setHex(col);m.g.visible=false;return m;};
+const netCol=c=>(Number(c)>>>0)&0xffffff,netVeh=v=>VEHS.includes(v)?v:'car',netMesh=(veh,col)=>{const m=veh==='moto'?buildMoto(true):veh==='voltra'?buildVoltra(true):buildCar(false,true);m.paint.color.setHex(col);m.g.visible=false;return m;};
 function addPlayer(id,name,col,veh){if(id===NET.id||NET.players.has(id))return;col=netCol(col);veh=netVeh(veh);name=cleanName(name);
   const m=netMesh(veh,col);
   NET.players.set(id,{id,name,col,veh,m,label:nameSprite(name,col),buf:[],last:0,wr:0,pos:new V3(),q:new THREE.Quaternion(),flags:0,v:0,shown:false});}
@@ -2213,21 +2224,24 @@ const HULL_C=HULL.map(p=>p.slice()),HULL_M=[[1.2,0,.12],[1.2,0,-.12],[-1.2,0,.12
 const MODS={motor:{name:'Elektrik motoru',max:3,price:[400,900,1600],lv:['Fabrika','Seviye 1','Seviye 2','Seviye 3'],desc:'Daha çok güç ve son hız, daha iyi lastik tutuşu'},
   air:{name:'Hava iticileri',max:3,price:[350,800,1500],lv:['Fabrika','Seviye 1','Seviye 2','Seviye 3'],desc:'Daha güçlü itici, zıplama ve fren; daha az hava harcar'},
   bumper:{name:'Tampon',max:2,price:[300,700],lv:['Yok','Çelik tampon','Ağır koruma'],desc:'Çarpınca daha az hasar, sert inişe dayanıklı'}};
-const MOTO_PRICE=2000;
+const MOTO_PRICE=2000,VOLTRA_PRICE=12000,VEHS=['car','moto','voltra'],VOLTRA_CODE='m@ybetaaraba';
+const vehName=v=>v==='moto'?'Fan motor':v==='voltra'?'Voltra R':'Fan araba';
 const PAINTS=[0xeceef0,0x9c0f1b,0x15181e,0x9aa2ab,0x2350c4,0xe3a412,0x1f8a4c,0xff5a1f,0x7b2fd0,0xff4fa3,0x16b6c9,0x5a3a22];
 const hex6=n=>'#'+(n>>>0&0xffffff).toString(16).padStart(6,'0');
 const LO0={veh:'car',paint:COLORS[SET.color]?COLORS[SET.color][2]:0xeceef0,motor:0,air:0,bumper:0};
-const fixLo=(lo,max)=>{lo=Object.assign({},LO0,lo||{});lo.veh=lo.veh==='moto'?'moto':'car';lo.paint=(Number(lo.paint)>>>0)&0xffffff;for(const k in MODS)lo[k]=clamp(lo[k]|0,0,max?MODS[k].max:MODS[k].max);return lo;};
+const fixLo=(lo,max)=>{lo=Object.assign({},LO0,lo||{});lo.veh=VEHS.includes(lo.veh)?lo.veh:'car';lo.paint=(Number(lo.paint)>>>0)&0xffffff;for(const k in MODS)lo[k]=clamp(lo[k]|0,0,max?MODS[k].max:MODS[k].max);return lo;};
 SET.lo=fixLo(SET.lo);
 const CAREER=Object.assign({money:0,moto:false,jobs:0,earned:0},store.get('career',{}));CAREER.lo=fixLo(CAREER.lo||{veh:'car',paint:0xeceef0});CAREER.money=Math.max(0,CAREER.money|0);
-if(!CAREER.moto)CAREER.lo.veh='car';
+if(!CAREER.moto&&CAREER.lo.veh==='moto')CAREER.lo.veh='car';if(!CAREER.voltra&&CAREER.lo.veh==='voltra')CAREER.lo.veh='car';if(!SET.voltraOpen&&SET.lo.veh==='voltra')SET.lo.veh='car';
 const saveCareer=()=>store.set('career',CAREER);
 const curLo=()=>S.cargo?CAREER.lo:SET.lo;
-const CARS={car:CAR,moto:buildMoto()};CARS.moto.g.visible=false;addBumpers(CARS.car);addBumpers(CARS.moto);
-function applyLoadout(){const lo=curLo(),m=lo.motor,a=lo.air,mo=lo.veh==='moto';
-  P.aMotor=P0.aMotor*(1+.15*m)*(mo?1.12:1);P.power=P0.power*(1+.25*m)*(mo?1.15:1);P.vmax=P0.vmax*(1+.08*m)*(mo?1.06:1);P.mu=P0.mu*(1+.06*m)*(mo?.97:1);
-  for(const k of ['boost','lift','retro'])P[k]=P0[k]*(1+.15*a);P.gasBoost=P0.gasBoost*(1-.12*a);P.gasLift=P0.gasLift*(1-.12*a);
-  P.landHard=P0.landHard+lo.bumper*1.5;P.gCrash=P0.gCrash+lo.bumper*.8;P.wb=mo?1.75:2.6;
+const CARS={car:CAR,moto:buildMoto(),voltra:buildVoltra()};CARS.moto.g.visible=CARS.voltra.g.visible=false;for(const k in CARS)addBumpers(CARS[k]);
+// a few Voltra R in traffic; they fan-hop over slow cars in front of them
+const TRV=(()=>{const cols=[0xa50f1d,0x15181e,0xf2f4f7,0x2350c4],out=[];for(let k=0;k<(isTouch?2:3);k++){const V=buildVoltra(true);V.paint.color.setHex(cols[k%cols.length]);CITY.group.add(V.g);const a=TRAF.cars[k];a.voltra=V;a.cruise=14+Math.random()*4;out.push(V);}return out;})();
+function applyLoadout(){const lo=curLo(),m=lo.motor,a=lo.air,mo=lo.veh==='moto',vo=lo.veh==='voltra';
+  P.aMotor=P0.aMotor*(1+.15*m)*(mo?1.12:vo?1.25:1);P.power=P0.power*(1+.25*m)*(mo?1.15:vo?1.45:1);P.vmax=P0.vmax*(1+.08*m)*(mo?1.06:vo?1.15:1);P.mu=P0.mu*(1+.06*m)*(mo?.97:vo?1.1:1);
+  for(const k of ['boost','lift','retro'])P[k]=P0[k]*(1+.15*a)*(vo?1.2:1);P.gasBoost=P0.gasBoost*(1-.12*a);P.gasLift=P0.gasLift*(1-.12*a);
+  P.landHard=P0.landHard+lo.bumper*1.5+(vo?1.5:0);P.gCrash=P0.gCrash+lo.bumper*.8+(vo?.8:0);P.wb=mo?1.75:2.6;
   HULL.length=0;for(const p of (mo?HULL_M:HULL_C))HULL.push(p);
   const want=CARS[lo.veh];if(CAR!==want){CAR.g.visible=false;CAR=want;}CAR.g.visible=true;
   CAR.paint.color.setHex(lo.paint);CAR.bump[0].visible=lo.bumper===1;CAR.bump[1].visible=lo.bumper===2;CAR.pkg.visible=!!(S.cargo&&JOB.st==='drop');}
@@ -2237,7 +2251,7 @@ function openGarage(from,ctx){GAR.from=from;GAR.ctx=ctx||(S.cargo?'cargo':'free'
 function closeGarage(){applyLoadout();netLook();setModeLabel();closeOverlay();}
 function garLo(){return GAR.ctx==='cargo'?CAREER.lo:SET.lo;}
 function garSave(){if(GAR.ctx==='cargo')saveCareer();else saveSet();applyLoadout();renderGarage();}
-function statBars(lo){const m=lo.motor,a=lo.air,mo=lo.veh==='moto';return [['Hız',.45+m*.15+(mo?.07:0)],['Hızlanma',.4+m*.15+(mo?.12:0)],['İtici',.4+a*.2],['Dayanıklılık',.3+lo.bumper*.32-(mo?.08:0)]];}
+function statBars(lo){const m=lo.motor,a=lo.air,mo=lo.veh==='moto',vo=lo.veh==='voltra';return [['Hız',.45+m*.15+(mo?.07:vo?.22:0)],['Hızlanma',.4+m*.15+(mo?.12:vo?.25:0)],['İtici',.4+a*.2+(vo?.12:0)],['Dayanıklılık',.3+lo.bumper*.32-(mo?.08:0)+(vo?.15:0)]];}
 function renderGarage(){const lo=garLo(),cg=GAR.ctx==='cargo',box=$('garBody');box.textContent='';
   $('garTitle').textContent=cg?'Kargo garajı':'Garaj';$('garMoney').textContent=cg?nf(CAREER.money)+' ₺':'Her şey bedava';$('garMoney').classList.toggle('free',!cg);
   document.querySelectorAll('#garTabs button').forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.c===GAR.ctx));});
@@ -2252,6 +2266,14 @@ function renderGarage(){const lo=garLo(),cg=GAR.ctx==='cargo',box=$('garBody');b
   btn(vr,'<b>Fan motor</b><small>'+(motoOwned?'Çevik, hızlı, yatarak döner':nf(MOTO_PRICE)+' ₺ · Satın al')+'</small>',lo.veh==='moto',()=>{
     if(!motoOwned){if(CAREER.money<MOTO_PRICE){garMsg('Yeterli paran yok. '+nf(MOTO_PRICE-CAREER.money)+' ₺ daha kazan.');return;}CAREER.money-=MOTO_PRICE;CAREER.moto=true;garMsg('Fan motor senin!');sfx('chime');}
     lo.veh='moto';garSave();},'veh'+(motoOwned?'':' buy'));
+  const vOwned=cg?!!CAREER.voltra:!!SET.voltraOpen;
+  btn(vr,'<b>Voltra R</b><small>'+(vOwned?'En hızlı, en şık roadster':cg?nf(VOLTRA_PRICE)+' ₺ · Satın al':'🔒 Kilitli · kodla açılır')+'</small>',lo.veh==='voltra',()=>{
+    if(!vOwned){if(!cg){garMsg('Voltra R’yi açmak için aşağıya kodu yaz.');const i=$('garCode');if(i)i.focus();return;}
+      if(CAREER.money<VOLTRA_PRICE){garMsg('Yeterli paran yok. '+nf(VOLTRA_PRICE-CAREER.money)+' ₺ daha kazan.');return;}CAREER.money-=VOLTRA_PRICE;CAREER.voltra=true;garMsg('Voltra R senin! Teslimatlarda %20 bahşiş kazanırsın.');sfx('chime');}
+    lo.veh='voltra';garSave();},'veh voltra'+(vOwned?'':cg?' buy':' locked'));
+  if(!cg&&!vOwned){const cr=document.createElement('div');cr.className='grow code';const ci=document.createElement('input');ci.id='garCode';ci.placeholder='Kod';ci.autocomplete='off';ci.spellcheck=false;ci.setAttribute('autocapitalize','off');ci.setAttribute('aria-label','Voltra R kodu');
+    const ok=()=>{if(ci.value.trim().toLowerCase()===VOLTRA_CODE){SET.voltraOpen=true;lo.veh='voltra';sfx('chime');garSave();garMsg('Kod doğru! Voltra R açıldı.');}else{garMsg('Kod yanlış.');ci.select();}};
+    ci.addEventListener('keydown',e=>{if(e.key==='Enter')ok();});cr.appendChild(ci);btn(cr,'Kodu gir',false,ok,'buy');v.appendChild(cr);}
   // paint
   const p=sec('Renk'),pr=document.createElement('div');pr.className='gpaint';p.appendChild(pr);
   for(const c of PAINTS){const b=document.createElement('button');b.type='button';b.className='sw';b.style.setProperty('--c',hex6(c));b.setAttribute('aria-label','Renk '+hex6(c));b.setAttribute('aria-pressed',String(c===lo.paint));b.addEventListener('click',()=>{lo.paint=c;garSave();});pr.appendChild(b);}
@@ -2331,10 +2353,10 @@ function cargoTick(dt,rdt){const on=S.cargo&&S.mode==='serbest'&&!S.menuDemo;
       JOB.pay=Math.round((70+JOB.dist*.42)*JOB.good[1]/5)*5;placeAtCurb(PEOPLE.cust,q,7.6);
       const kp=PEOPLE.keeper.position;flyPkg(_vb.set(kp.x,1.2,kp.z),_vc.set(c.pos.x,c.pos.y+1.6,c.pos.z),()=>{if(JOB.st==='drop')CAR.pkg.visible=true;});
       bigMsg('PAKET ALINDI',JOB.good[0]+' → '+JOB.cust+', '+JOB.addr,1900);sfx('chime');}
-    else{const fast=JOB.t<JOB.par,bonus=fast?Math.round(JOB.pay*.3/5)*5:0,pay=Math.round(JOB.pay*JOB.cond/100/5)*5+bonus;
+    else{const fast=JOB.t<JOB.par,bonus=fast?Math.round(JOB.pay*.3/5)*5:0,tip=CAREER.lo.veh==='voltra'?Math.round(JOB.pay*.2/5)*5:0,pay=Math.round(JOB.pay*JOB.cond/100/5)*5+bonus+tip;
       CAREER.money+=pay;CAREER.earned+=pay;CAREER.jobs++;saveCareer();CAR.pkg.visible=false;
       const cp=PEOPLE.cust.position;flyPkg(_vb.set(c.pos.x,c.pos.y+1.6,c.pos.z),_vc.set(cp.x,1.1,cp.z),()=>{JOB.held=true;});
-      bigMsg('TESLİM EDİLDİ','+'+nf(pay)+' ₺'+(fast?' · hızlı bonus':'')+(JOB.cond<100?' · paket %'+JOB.cond:'')+' · '+JOB.cust+': “'+pick(THANKS)+'”',2600);sfx('chime');S.score+=pay;cargoReset();JOB.wait=1.6;}}}
+      bigMsg('TESLİM EDİLDİ','+'+nf(pay)+' ₺'+(fast?' · hızlı bonus':'')+(tip?' · Voltra bahşişi':'')+(JOB.cond<100?' · paket %'+JOB.cond:'')+' · '+JOB.cust+': “'+pick(THANKS)+'”',2600);sfx('chime');S.score+=pay;cargoReset();JOB.wait=1.6;}}}
 function cargoHud(){const F=S.free;$('hMain').textContent=nf(CAREER.money)+' ₺';
   if(JOB.st==='pick')$('hSub').textContent=`Paketi al: ${JOB.from} · ${JOB.good[0]} · ${Math.round(JOB.d||0)} m`;
   else if(JOB.st==='drop'){const left=Math.max(0,Math.ceil(JOB.par-JOB.t));$('hSub').textContent=`Teslim et: ${JOB.cust} · ${JOB.addr} · ${Math.round(JOB.d||0)} m · paket %${JOB.cond} · ${left?'bonus '+left+' sn':'bonus bitti'} · ${nf(JOB.pay)} ₺`;}
@@ -2506,7 +2528,7 @@ function applySet(){
 
 window.__tt={POL,polTick,polWant,HWY,setEnv,cam,TRAF,CITY,freeTick,trafficTick,S,get car(){return car},P,LAY,RAMP,OBST,startMode,physicsStep,gatherInput,handleEvents,modeTick,keys,touchK,SET,startReplay,toMenu,showUI};
 
-document.querySelectorAll('#vehSeg button').forEach(b=>b.addEventListener('click',()=>{SET.lo.veh=b.dataset.v;saveSet();applySet();}));
+document.querySelectorAll('#vehSeg button').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.v==='voltra'&&!SET.voltraOpen){openGarage('menu','free');garMsg('Voltra R kilitli. Kodu yazıp aç.');return;}SET.lo.veh=b.dataset.v;saveSet();applySet();}));
 $('bGar').addEventListener('click',()=>openGarage(S.ui==='play'&&!S.menuDemo?'game':'menu',S.ui==='play'&&!S.menuDemo?undefined:'free'));
 applySet();resize();updateRecords();
 toMenu();
