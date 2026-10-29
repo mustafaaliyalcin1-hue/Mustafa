@@ -238,6 +238,7 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
     <button id="bSide" type="button" aria-pressed="false">Yan görünüş</button>
     <button id="bRestart" type="button">Yeniden</button>
     <button id="bAuto" type="button" aria-pressed="false">Otopilot</button>
+    <button id="bFpv" type="button" aria-pressed="false">FPV</button>
     <button id="bGar" type="button">Garaj</button>
     <button id="bSet" type="button">Ayarlar</button>
     <button id="bMenu" type="button">Menü</button>
@@ -267,6 +268,7 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
   <button type="button" data-for="bSide">Yan görünüş</button>
   <button type="button" data-for="bRestart">Yeniden</button>
   <button type="button" data-for="bAuto">Otopilot</button>
+  <button type="button" data-for="bFpv">FPV drone</button>
   <button type="button" data-for="bGar">Garaj</button>
   <button type="button" data-for="bSet">Ayarlar</button>
   <button type="button" data-for="bMenu">Ana menü</button>
@@ -340,6 +342,7 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
       <label class="tg"><span>Hayalet<small>En iyi turunu yarı saydam araba olarak göster</small></span><input type="checkbox" id="sGhost"></label>
       <label class="tg"><span>Kuvvet okları<small>Yerçekimi, fan emişi, normal kuvvet ve hız</small></span><input type="checkbox" id="sForces"></label>
       <label class="tg"><span>Geniş kamera</span><input type="checkbox" id="sFar"></label>
+      <label class="tg"><span>Ultra grafik<small>Arabada gerçek zamanlı şehir yansıması, keskin kenarlar</small></span><input type="checkbox" id="sUltra"></label>
       <label class="tg"><span>Düşük grafik<small>Yansıma, parlama ve gölgeler kapalı</small></span><input type="checkbox" id="sLow"></label>
       <label class="tg"><span>Sessiz</span><input type="checkbox" id="sMute"></label>
       <label class="tg"><span>Arayüzü gizle<small>Video çekimi için. Geri açmak: H</small></span><input type="checkbox" id="sHide"></label>
@@ -406,6 +409,8 @@ import {Reflector} from 'three/addons/objects/Reflector.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
+import {Sky} from 'three/addons/objects/Sky.js';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 
 const $=id=>document.getElementById(id);
 const V3=THREE.Vector3,TAU=Math.PI*2,G=9.81;
@@ -625,8 +630,8 @@ renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.9
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x030405);scene.fog=new THREE.Fog(0x030405,80,340);
 const camera=new THREE.PerspectiveCamera(50,1,.1,1200);
-const pmrem=new THREE.PMREMGenerator(renderer);scene.environment=pmrem.fromScene(new RoomEnvironment(),.04).texture;scene.environmentIntensity=.55;
-const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));
+const pmrem=new THREE.PMREMGenerator(renderer);const studioEnv=pmrem.fromScene(new RoomEnvironment(),.04).texture;scene.environment=studioEnv;scene.environmentIntensity=.55;
+const composer=new EffectComposer(renderer,new THREE.WebGLRenderTarget(1,1,{samples:isTouch?0:4,type:THREE.HalfFloatType}));composer.addPass(new RenderPass(scene,camera));
 const bloom=new UnrealBloomPass(new THREE.Vector2(256,256),.32,.4,.96);composer.addPass(bloom);composer.addPass(new OutputPass());
 let LOW=false;
 
@@ -756,7 +761,7 @@ const CITY=(()=>{
   }
   const gt=new THREE.CanvasTexture(gc);gt.colorSpace=THREE.SRGBColorSpace;gt.anisotropy=8;gt.wrapS=gt.wrapT=THREE.RepeatWrapping;
   const GW=(SPAN+2)*B;gt.repeat.set(SPAN+2,SPAN+2);
-  const ground=new THREE.Mesh(new THREE.PlaneGeometry(GW,GW),new THREE.MeshStandardMaterial({map:gt,roughness:.85,metalness:.02}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;group.add(ground);
+  const ground=new THREE.Mesh(new THREE.PlaneGeometry(GW,GW),new THREE.MeshStandardMaterial({map:gt,roughness:.72,metalness:.04,envMapIntensity:.45}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;group.add(ground);
   // facades: daylight glass and concrete, windows still glow a little
   const facade=(seed,base,glass,lit)=>{const mk=em=>{const c=document.createElement('canvas');c.width=128;c.height=256;const x=c.getContext('2d');x.fillStyle=em?'#000':base;x.fillRect(0,0,128,256);
       const rr=mulberry(seed);for(let row=0;row<18;row++)for(let col=0;col<6;col++){const on=rr()<lit;x.fillStyle=em?(on?'#ffd9a0':'#000'):(on?'#e8eef5':glass);x.fillRect(col*21+4,row*14+3,13,8);}
@@ -903,10 +908,11 @@ function setEnv(day){
   if(ENV.day===day)return;ENV.day=day;
   for(const o of STUDIO)o.visible=!day&&(o!==mirror||!LOW);
   scene.background=day?SKY:new THREE.Color(0x030405);
-  scene.fog=day?new THREE.Fog(0xc4ddf3,(CITY.R*70+10)*.35,CITY.R*70+10):new THREE.Fog(0x030405,80,340);
-  ENV.hemi.color.setHex(day?0xcfe3ff:0xb8c6dc);ENV.hemi.groundColor.setHex(day?0x5a5248:0x0b0c10);ENV.hemi.intensity=day?1.3:.7;
-  key.intensity=day?3.2:2.2;key.color.setHex(day?0xfff3e0:0xffffff);
-  renderer.toneMappingExposure=day?1.0:.95;bloom.strength=day?.15:.32;
+  scene.fog=day?new THREE.Fog(0xa9c6e6,(CITY.R*70+10)*.42,CITY.R*70+10):new THREE.Fog(0x030405,80,340);
+  ENV.hemi.color.setHex(day?0xcfe3ff:0xb8c6dc);ENV.hemi.groundColor.setHex(day?0x5a5248:0x0b0c10);ENV.hemi.intensity=day?.45:.7;
+  key.intensity=day?3.6:2.2;key.color.setHex(day?0xfff3e0:0xffffff);
+  renderer.toneMappingExposure=day?.95:.95;bloom.strength=day?.15:.32;
+  scene.environment=day?SKYO.getEnv():studioEnv;scene.environmentIntensity=day?.85:.55;
 }
 
 /* traffic AI on the endless grid: lanes, lights, turns, gaps; far cars respawn near the player */
@@ -951,9 +957,11 @@ function trafficRender(){
   TRAF.cars.forEach((a,k)=>{if(a.voltra){const V=a.voltra;V.g.position.set(a.x,a.y||0,a.z);V.g.rotation.set(0,-a.yaw,a.hop?.12*Math.cos(Math.PI*a.hop.t/a.hop.dur):0);for(const w of V.wheels)w.rotation.x=a.wr||0;V.fanGlow.material.opacity=a.hop?.75:.15;
       for(const m of [TR.body,TR.cab,TR.head,TR.tail])m.setMatrixAt(k,_tm0);for(let w=0;w<4;w++)TR.wh.setMatrixAt(k*4+w,_tm0);return;}
     _tq.setFromAxisAngle(AY,-a.yaw);_tp.set(a.x,0,a.z);_tm.compose(_tp,_tq,_ts);
+    if(TCARS.ready&&a.tt!==undefined){const T=TCARS.types[a.tt];T.ib.setMatrixAt(a.ti2,_tm);T.ir.setMatrixAt(a.ti2,_tm);return;}
     TR.body.setMatrixAt(k,_tm2.multiplyMatrices(_tm,TR.L.body));TR.cab.setMatrixAt(k,_tm2.multiplyMatrices(_tm,TR.L.cab));TR.head.setMatrixAt(k,_tm2.multiplyMatrices(_tm,TR.L.head));TR.tail.setMatrixAt(k,_tm2.multiplyMatrices(_tm,TR.L.tail));
     for(let w=0;w<4;w++)TR.wh.setMatrixAt(k*4+w,_tm2.multiplyMatrices(_tm,TR.L.w[w]));});
   for(const m of [TR.body,TR.cab,TR.head,TR.tail,TR.wh])m.instanceMatrix.needsUpdate=true;
+  for(const T of TCARS.types){T.ib.instanceMatrix.needsUpdate=T.ir.instanceMatrix.needsUpdate=true;}
   CITY.heads.forEach((h,n)=>CITY.lh.setColorAt(n,LC[lightAt(h.i,h.j,h.axis)]));CITY.lh.instanceColor.needsUpdate=true;
 }
 function trafficTick(dt){
@@ -1760,7 +1768,7 @@ function sfx(k){if(!AU.ctx||SET.mute||S.menuDemo)return;const ctx=AU.ctx,t=ctx.c
   s.connect(b);b.connect(g);g.connect(AU.m);s.start(t);s.stop(t+1.1);}
 
 /* ================= GAME STATE ================= */
-const SET=Object.assign({police:2,easy:true,assist:true,ghost:true,forces:false,far:false,low:false,mute:false,hide:false,color:0},store.get('set',{}));
+const SET=Object.assign({ultra:!isTouch,police:2,easy:true,assist:true,ghost:true,forces:false,far:false,low:false,mute:false,hide:false,color:0},store.get('set',{}));
 const REC=store.get('rec',{});
 const GHOSTS={};for(const m of ['rampa','atlama','gosteri']){const g=store.get('ghost_'+m,null);if(g)GHOSTS[m]=g;}
 const S={cargo:false,phase:'loading',ui:'menu',mode:'gosteri',auto:false,autoSeq:0,attempt:0,t:0,score:0,items:[],st:null,count:0,lastCount:0,doneT:0,camMode:0,side:false,slow:false,shake:0,
@@ -1806,7 +1814,8 @@ function pollPad(dt){
       if(hit(PB.DOWN))honk();
       if(hit(PB.LEFT))$('bSide').click();
       if(hit(PB.RIGHT))startMode(S.mode);
-      if(hit(PB.VIEW)){S.camMode=(S.camMode+1)%4;S.side=S.camMode===2;$('bSide').setAttribute('aria-pressed',String(S.side));pop(['Kamera: otomatik','Kamera: takip','Kamera: yan','Kamera: sürücü'][S.camMode]);snapCam=true;}
+      if(hit(PB.VIEW))setCamMode((S.camMode+1)%(S.mode==='serbest'?6:4));
+      if(hit(PB.L3)&&S.mode==='serbest')setCamMode(S.camMode===4?5:S.camMode===5?0:4);
       if(hit(PB.START))dispatchEvent(new KeyboardEvent('keydown',{code:'Escape',key:'Escape'}));}}
   if(S.shake>PAD.shake+.25)padRumble(Math.min(1,S.shake),180);PAD.shake=S.shake;
   PAD.prev=g.buttons.map(q=>typeof q==='object'?q.value:q);}
@@ -1867,6 +1876,7 @@ function gatherInput(){
   const o={gas:0,brake:0,lift:0,liftPress:0,boost:0,retro:0,rollL:0,rollR:0,pitchUp:0,pitchDown:0,yawL:0,yawR:0,assist:SET.assist||SET.easy};
   const k=n=>keys[n]||touchK[n]||padK[n];
   if(S.auto||S.menuDemo)botInput(o);
+  else if(fpvFree()){o.brake=1;o.steer=0;}
   else{
     o.gas=k('gas')?1:0;o.brake=k('brake')?1:0;if(PAD.on){if(!keys.gas&&!touchK.gas&&PAD.gas>.2)o.gas=Math.min(1,PAD.gas*1.15);if(!keys.brake&&!touchK.brake&&PAD.brake>.2)o.brake=Math.min(1,PAD.brake*1.15);}o.lift=k('lift')?1:0;o.boost=k('boost')?1:0;o.retro=k('retro')?1:0;
     if(car.state==='air'){o.rollL=k('left')?1:0;o.rollR=k('right')?1:0;if(!SET.easy){o.pitchDown=o.gas;o.pitchUp=o.brake;}o.yawL=k('yawL')?1:0;o.yawR=k('yawR')?1:0;if(PAD.on){if(PAD.ly<-.4)o.pitchDown=1;if(PAD.ly>.4)o.pitchUp=1;}}
@@ -2001,6 +2011,7 @@ function camTarget(dPos,dLook,dUp){
     else if(sh===2){dPos.set(LAY.target-26,10,-18);dLook.copy(p);}
     else{dPos.set(p.x+.01,p.y+30,.1);dLook.copy(p);}
     return 3;}
+  if(S.camMode>=4&&S.mode==='serbest'&&!S.menuDemo)return fpvTarget(dPos,dLook,dUp);
   if(S.mode==='serbest'&&!S.menuDemo){
     let tgt=cam.head??c.yaw;if(c.state==='free')tgt=c.v<-1?cam.head??c.yaw:c.yaw;else{const hv=Math.hypot(c.vel.x,c.vel.z);if(hv>4)tgt=Math.atan2(c.vel.z,c.vel.x);}
     if(c.state==='free'&&c.v<-1)tgt=c.yaw;
@@ -2032,9 +2043,9 @@ function updateCamera(dt){camDt=dt;
   cam.pos.lerp(_cp,a);cam.look.lerp(_cl,Math.min(1,a*1.5));cam.up.lerp(_cu,a).normalize();if(cam.pos.y<.4)cam.pos.y=.4;
   camera.position.copy(cam.pos);
   if(S.shake>0){S.shake=Math.max(0,S.shake-dt*1.6);const s=S.shake*.35;camera.position.x+=(Math.random()-.5)*s;camera.position.y+=(Math.random()-.5)*s;}
-  if(S.mode==='serbest'){for(let t=.2;t<=1.001;t+=.2){_off.copy(cam.pos).sub(cam.look).multiplyScalar(t).add(cam.look);if(inBuilding(_off)){camera.position.copy(cam.pos).sub(cam.look).multiplyScalar(Math.max(.15,t-.2)).add(cam.look);break;}}}
+  if(S.mode==='serbest'&&S.camMode<4){for(let t=.2;t<=1.001;t+=.2){_off.copy(cam.pos).sub(cam.look).multiplyScalar(t).add(cam.look);if(inBuilding(_off)){camera.position.copy(cam.pos).sub(cam.look).multiplyScalar(Math.max(.15,t-.2)).add(cam.look);break;}}}
   camera.up.copy(cam.up);camera.lookAt(cam.look);
-  const sp=car.state==='air'||car.state==='crash'?car.vel.length():Math.abs(car.v);const fov=46+Math.min(10,sp*.25);camera.fov+=(fov-camera.fov)*(1-Math.exp(-2*dt));camera.updateProjectionMatrix();
+  const sp=car.state==='air'||car.state==='crash'?car.vel.length():Math.abs(car.v);const fov=S.camMode>=4&&S.mode==='serbest'?96:46+Math.min(10,sp*.25);camera.fov+=(fov-camera.fov)*(1-Math.exp(-2*dt));camera.updateProjectionMatrix();
 }
 
 /* ================= VISUAL SYNC ================= */
@@ -2127,6 +2138,7 @@ function frame(now){
   if(S.mode==='serbest'&&!S.menuDemo){CITY.update(car.pos.x,car.pos.z);trafficRender();polRender(now/1000);drawMinimap();if(S.free.recDirty&&Math.random()<.02){store.set('rec',REC);updateRecords();S.free.recDirty=false;}}
   poseCar(simDt);updateCamera(dt);tickParticles(paused?0:dt*(S.slow?.3:1));
   hud();audioTick(!paused&&(S.phase==='play'||S.phase==='ended'||S.phase==='count'));
+  realismTick();
   if(LOW)renderer.render(scene,camera);else composer.render();
 }
 
@@ -2293,6 +2305,78 @@ const curLo=()=>S.cargo?CAREER.lo:SET.lo;
 const CARS={car:CAR,moto:buildMoto(),voltra:buildVoltra()};CARS.moto.g.visible=CARS.voltra.g.visible=false;for(const k in CARS)addBumpers(CARS[k]);
 // a few Voltra R in traffic; they fan-hop over slow cars in front of them
 const TRV=(()=>{const cols=[0xa50f1d,0x15181e,0xf2f4f7,0x2350c4],out=[];for(let k=0;k<(isTouch?2:3);k++){const V=buildVoltra(true);V.paint.color.setHex(cols[k%cols.length]);CITY.group.add(V.g);const a=TRAF.cars[k];a.voltra=V;a.cruise=14+Math.random()*4;out.push(V);}return out;})();
+/* ================= REALISM: physical sky, sky reflections, live car reflections ================= */
+const SUNDIR=new V3(-18,40,22).normalize();
+const SKYO=(()=>{const mk=()=>{const s=new Sky();s.scale.setScalar(1000);const u=s.material.uniforms;u.turbidity.value=2.2;u.rayleigh.value=2.1;u.mieCoefficient.value=.003;u.mieDirectionalG.value=.88;u.sunPosition.value.copy(SUNDIR);return s;};
+  const sky=mk();sky.visible=false;scene.add(sky);let env=null;
+  const getEnv=()=>{if(env)return env;const sc=new THREE.Scene(),s=mk();s.scale.setScalar(900);sc.add(s);
+    const gnd=new THREE.Mesh(new THREE.CircleGeometry(400,32),new THREE.MeshBasicMaterial({color:0x6e7276}));gnd.rotation.x=-Math.PI/2;gnd.position.y=-2;sc.add(gnd);
+    env=pmrem.fromScene(sc,0,.1,1000).texture;return env;};
+  return {sky,getEnv};})();
+// live reflections for the player's vehicle (Ultra): a cube camera renders the city around the car every few frames
+const CUBE=(()=>{const rt=new THREE.WebGLCubeRenderTarget(isTouch?128:256,{type:THREE.HalfFloatType,generateMipmaps:true,minFilter:THREE.LinearMipmapLinearFilter});
+  const cc=new THREE.CubeCamera(.6,700,rt);scene.add(cc);const mats=new Set();
+  for(const k in CARS)CARS[k].g.traverse(o=>{if(o.isMesh&&o.material&&(o.material.metalness>.2||o.material.clearcoat>0||o.material.transparent))mats.add(o.material);});
+  return {rt,cc,mats,n:0,on:false};})();
+function realismTick(){
+  const day=ENV.day,ultra=SET.ultra&&!LOW&&day;
+  if(CUBE.on!==ultra){CUBE.on=ultra;for(const m of CUBE.mats){m.envMap=ultra?CUBE.rt.texture:null;m.needsUpdate=true;}}
+  if(ultra&&(CUBE.n++%3===0)){const was=CAR.g.visible;CAR.g.visible=false;CUBE.cc.position.set(car.pos.x,car.pos.y+1.1,car.pos.z);CUBE.cc.update(renderer,scene);CAR.g.visible=was;}}
+/* ================= TRAFFIC MODELS (Quaternius Realistic Car Pack, CC0) ================= */
+const TCARS={ready:false,types:[]};
+(async()=>{let L;try{L=new GLTFLoader();}catch(_){return;}
+  const names=['NormalCar1','NormalCar2','SUV','SportsCar','SportsCar2','Taxi'];
+  const got=await Promise.all(names.map(n=>L.loadAsync('models/cars/'+n+'.glb').then(g=>[n,g]).catch(()=>null)));
+  const list=got.filter(Boolean);if(!list.length)return;
+  const bodyM=new THREE.MeshPhysicalMaterial({color:0xffffff,metalness:.55,roughness:.3,clearcoat:1,clearcoatRoughness:.06});
+  const restM=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.45,metalness:.25});
+  const cars=TRAF.cars.filter(a=>!a.voltra);
+  list.forEach(([name,gl],t)=>{let src=null;gl.scene.updateMatrixWorld(true);gl.scene.traverse(o=>{if(o.isMesh&&!src)src=o;});if(!src)return;
+    let g=src.geometry.clone().applyMatrix4(src.matrixWorld);if(g.index)g=g.toNonIndexed();g.rotateY(Math.PI/2);
+    g.computeBoundingBox();const bb=g.boundingBox,len=bb.max.x-bb.min.x,sc=4.3/len;g.scale(sc,sc,sc);g.computeBoundingBox();g.translate(-(g.boundingBox.max.x+g.boundingBox.min.x)/2,-g.boundingBox.min.y,-(g.boundingBox.max.z+g.boundingBox.min.z)/2);
+    const pos=g.attributes.position,col=g.attributes.color,nor=g.attributes.normal,n=pos.count/3|0;if(!col)return;
+    // body = the most common bright, coloured paint on the model; everything else keeps its own colours
+    const hist=new Map(),key=i=>[col.getX(i),col.getY(i),col.getZ(i)].map(v=>Math.round(v*20)).join(',');
+    for(let k=0;k<n;k++){const i=k*3,c=[col.getX(i),col.getY(i),col.getZ(i)],mx=Math.max(...c),mn=Math.min(...c);if(mx<.12||(mx-mn<.08&&mx<.5))continue;
+      _va.fromBufferAttribute(pos,i);_vb.fromBufferAttribute(pos,i+1);_vc.fromBufferAttribute(pos,i+2);const ar=_vb.sub(_va).cross(_vc.sub(_va)).length();const kk=key(i);hist.set(kk,(hist.get(kk)||0)+ar);}
+    let best=null,bv=0;for(const [k,v] of hist)if(v>bv){bv=v;best=k;}
+    const bc=best?best.split(',').map(v=>v/20):[1,1,1],near=i=>Math.abs(col.getX(i)-bc[0])+Math.abs(col.getY(i)-bc[1])+Math.abs(col.getZ(i)-bc[2])<.09;
+    const B=[],BN=[],R=[],RN=[],RC=[];
+    for(let k=0;k<n;k++){const i=k*3,isB=near(i);for(let v=0;v<3;v++){const j=i+v;(isB?B:R).push(pos.getX(j),pos.getY(j),pos.getZ(j));(isB?BN:RN).push(nor.getX(j),nor.getY(j),nor.getZ(j));if(!isB)RC.push(col.getX(j),col.getY(j),col.getZ(j));}}
+    const mine=cars.filter((a,k)=>k%list.length===t);if(!mine.length)return;
+    const gb=new THREE.BufferGeometry();gb.setAttribute('position',new THREE.Float32BufferAttribute(B,3));gb.setAttribute('normal',new THREE.Float32BufferAttribute(BN,3));
+    const gr=new THREE.BufferGeometry();gr.setAttribute('position',new THREE.Float32BufferAttribute(R,3));gr.setAttribute('normal',new THREE.Float32BufferAttribute(RN,3));gr.setAttribute('color',new THREE.Float32BufferAttribute(RC,3));
+    const ib=new THREE.InstancedMesh(gb,bodyM,mine.length),ir=new THREE.InstancedMesh(gr,restM,mine.length);
+    for(const m of [ib,ir]){m.castShadow=true;m.receiveShadow=true;m.frustumCulled=false;CITY.group.add(m);}
+    const taxi=name==='Taxi',tc=new THREE.Color().setRGB(bc[0],bc[1],bc[2],THREE.SRGBColorSpace);
+    mine.forEach((a,k)=>{a.tt=TCARS.types.length;a.ti2=k;ib.setColorAt(k,taxi?new THREE.Color(bc[0],bc[1],bc[2]):new THREE.Color(a.col));});ib.instanceColor.needsUpdate=true;
+    TCARS.types.push({name,ib,ir});});
+  if(TCARS.types.length){TCARS.ready=true;for(const m of [TR.body,TR.cab,TR.head,TR.tail,TR.wh])m.visible=false;}})();
+/* ================= FPV DRONE CAMERA ================= */
+const FPV={pos:new V3(),vel:new V3(),yaw:0,pitch:-.12,roll:0,spd:0,init:false,last:new V3()};
+const CAM_NAMES=['Kamera: otomatik','Kamera: takip','Kamera: yan','Kamera: sürücü','Kamera: FPV drone (takip)','Kamera: FPV drone (serbest uçuş)'];
+function setCamMode(m){S.camMode=m;S.side=m===2;$('bSide').setAttribute('aria-pressed',String(S.side));$('bFpv').setAttribute('aria-pressed',String(m>=4));FPV.init=false;pop(CAM_NAMES[m]);snapCam=true;}
+const fpvFree=()=>S.camMode===5&&S.mode==='serbest'&&!S.menuDemo&&S.phase!=='replay';
+function fpvTarget(dPos,dLook,dUp){const c=car,p=c.pos,dt=Math.min(camDt||.016,.05),t=performance.now()/1000;
+  if(!FPV.init){FPV.init=true;FPV.pos.copy(camera.position);FPV.vel.set(0,0,0);FPV.yaw=Math.atan2(p.z-FPV.pos.z,p.x-FPV.pos.x);FPV.roll=0;}
+  if(S.camMode===4){// chase drone: springs to a point behind the car, banks into its own turns, swoops lower when fast
+    const sp=Math.hypot(c.vel.x,c.vel.z),hd=sp>3?Math.atan2(c.vel.z,c.vel.x):(c.state==='free'?c.yaw:FPV.yaw),back=6+sp*.09,h=1.6+Math.sin(t*.6)*.6+(c.state==='freeAir'||c.state==='air'?1.5:0);
+    const tx=p.x-Math.cos(hd)*back+Math.sin(t*.37)*1.8*-Math.sin(hd),tz=p.z-Math.sin(hd)*back+Math.sin(t*.37)*1.8*Math.cos(hd),ty=Math.max(.7,p.y+h);
+    const ax=(tx-FPV.pos.x)*14-FPV.vel.x*6,ay=(ty-FPV.pos.y)*14-FPV.vel.y*6,az=(tz-FPV.pos.z)*14-FPV.vel.z*6;
+    FPV.vel.x+=ax*dt;FPV.vel.y+=ay*dt;FPV.vel.z+=az*dt;FPV.pos.addScaledVector(FPV.vel,dt);
+    const fx=Math.cos(FPV.yaw),fz=Math.sin(FPV.yaw),lat=-ax*fz+az*fx;FPV.roll+=(clamp(-lat*.006,-.55,.55)-FPV.roll)*Math.min(1,dt*4);
+    FPV.yaw=Math.atan2(p.z+c.vel.z*.3-FPV.pos.z,p.x+c.vel.x*.3-FPV.pos.x);
+    dPos.copy(FPV.pos);dLook.set(p.x+c.vel.x*.25,p.y+.7,p.z+c.vel.z*.25);}
+  else{// free flight: W/S or RT/LT throttle, A/D or stick turn, Space up, Shift down
+    const k=n=>keys[n]||touchK[n]||padK[n],th=(k('gas')?1:0)-(k('brake')?1:0)+(PAD.on?-PAD.ly:0),tr=(k('right')?1:0)-(k('left')?1:0)+(PAD.on?PAD.lx:0),up=(k('lift')?1:0)-(k('boost')?1:0)+(PAD.on?-PAD.rx*0:0);
+    FPV.yaw+=clamp(tr,-1,1)*1.6*dt;FPV.spd+=(clamp(th,-1,1)*32-FPV.spd)*Math.min(1,dt*1.6);
+    const fx=Math.cos(FPV.yaw),fz=Math.sin(FPV.yaw);FPV.vel.set(fx*FPV.spd,clamp(up,-1,1)*9,fz*FPV.spd);FPV.last.copy(FPV.pos);FPV.pos.addScaledVector(FPV.vel,dt);
+    if(FPV.pos.y<.6)FPV.pos.y=.6;if(FPV.pos.y>160)FPV.pos.y=160;if(inBuilding(FPV.pos))FPV.pos.copy(FPV.last);
+    FPV.roll+=(clamp(-tr*FPV.spd*.02,-.6,.6)-FPV.roll)*Math.min(1,dt*3);FPV.pitch+=((-.1-FPV.spd*.004)-FPV.pitch)*Math.min(1,dt*3);
+    dPos.copy(FPV.pos);dLook.set(FPV.pos.x+fx*10,FPV.pos.y+Math.tan(FPV.pitch)*10,FPV.pos.z+fz*10);}
+  // prop buzz + bank
+  dPos.x+=Math.sin(t*41)*.012;dPos.y+=Math.sin(t*37)*.012;
+  const fwd=_vb.copy(dLook).sub(dPos).normalize();dUp.set(0,1,0).applyAxisAngle(fwd,FPV.roll);return 60;}
 function applyLoadout(){const lo=curLo(),m=lo.motor,a=lo.air,mo=lo.veh==='moto',vo=lo.veh==='voltra';
   P.aMotor=P0.aMotor*(1+.15*m)*(mo?1.12:vo?1.25:1);P.power=P0.power*(1+.25*m)*(mo?1.15:vo?1.45:1);P.vmax=P0.vmax*(1+.08*m)*(mo?1.06:vo?1.15:1);P.mu=P0.mu*(1+.06*m)*(mo?.97:vo?1.1:1);
   for(const k of ['boost','lift','retro'])P[k]=P0[k]*(1+.15*a)*(vo?1.2:1);P.gasBoost=P0.gasBoost*(1-.12*a);P.gasLift=P0.gasLift*(1-.12*a);
@@ -2516,7 +2600,8 @@ addEventListener('keydown',e=>{
   const k=KEYMAP[e.code];if(k){keys[k]=1;e.preventDefault();if(k==='gas'&&S.auto)takeControl();}
   if(e.repeat)return;
   if(e.code==='KeyF'&&!S.auto)car.fanOn=!car.fanOn&&car.battery>0;
-  if(e.code==='KeyC'){S.camMode=(S.camMode+1)%4;S.side=S.camMode===2;$('bSide').setAttribute('aria-pressed',String(S.side));pop(['Kamera: otomatik','Kamera: takip','Kamera: yan','Kamera: sürücü'][S.camMode]);snapCam=true;}
+  if(e.code==='KeyC'){setCamMode((S.camMode+1)%(S.mode==='serbest'?6:4));}
+  if(e.code==='KeyG'&&S.mode==='serbest')setCamMode(S.camMode===4?5:S.camMode===5?0:4);
   if(e.code==='KeyR'&&S.ui==='play')startMode(S.mode);
   if(e.code==='KeyV'){SET.forces=!SET.forces;saveSet();applySet();pop(SET.forces?'Kuvvet okları açık':'Kuvvet okları kapalı');}
   if(e.code==='KeyT')toggleSlow();
@@ -2567,7 +2652,7 @@ $('bFull').addEventListener('click',()=>{const d=document.documentElement;try{co
 document.querySelectorAll('.seg.pol button').forEach(b=>b.addEventListener('click',()=>{SET.police=+b.dataset.p;saveSet();applySet();if(!SET.police)polClear();}));
 document.querySelectorAll('#diff button').forEach(b=>b.addEventListener('click',()=>{SET.easy=b.dataset.v==='easy';if(SET.easy)SET.assist=true;saveSet();applySet();}));
 {const box=$('colors');COLORS.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.className='sw';b.style.setProperty('--c',c[1]);b.title=c[0];b.setAttribute('aria-label',c[0]);b.addEventListener('click',()=>{SET.color=i;SET.lo.paint=c[2];saveSet();applySet();});box.appendChild(b);});}
-const SMAP={sEasy:'easy',sAssist:'assist',sGhost:'ghost',sForces:'forces',sFar:'far',sLow:'low',sMute:'mute',sHide:'hide'};
+const SMAP={sUltra:'ultra',sEasy:'easy',sAssist:'assist',sGhost:'ghost',sForces:'forces',sFar:'far',sLow:'low',sMute:'mute',sHide:'hide'};
 for(const id in SMAP)$(id).addEventListener('change',e=>{SET[SMAP[id]]=e.target.checked;saveSet();applySet();});
 function saveSet(){store.set('set',SET);}
 function applySet(){
@@ -2584,6 +2669,7 @@ function applySet(){
 window.__tt={POL,polTick,polWant,HWY,setEnv,cam,TRAF,CITY,freeTick,trafficTick,S,get car(){return car},P,LAY,RAMP,OBST,startMode,physicsStep,gatherInput,handleEvents,modeTick,keys,touchK,SET,startReplay,toMenu,showUI};
 
 document.querySelectorAll('#vehSeg button').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.v==='voltra'&&!SET.voltraOpen){openGarage('menu','free');garMsg('Voltra R kilitli. Kodu yazıp aç.');return;}SET.lo.veh=b.dataset.v;saveSet();applySet();}));
+$('bFpv').addEventListener('click',()=>{if(S.mode!=='serbest'){pop('FPV drone serbest sürüş ve kargoda');return;}setCamMode(S.camMode===4?5:S.camMode===5?0:4);});
 $('bGar').addEventListener('click',()=>openGarage(S.ui==='play'&&!S.menuDemo?'game':'menu',S.ui==='play'&&!S.menuDemo?undefined:'free'));
 applySet();resize();updateRecords();
 toMenu();
