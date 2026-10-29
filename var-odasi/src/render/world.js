@@ -5,22 +5,41 @@ import { buildStadium } from './stadium.js';
 import { Humanoid } from './humanoid.js';
 import { computeSkeleton, makeSkel } from '../sim/skeleton.js';
 import { N_ENT, REF, AR1, AR2, BALL_R, POSE, PITCH, BOX_LINE_X } from '../sim/constants.js';
+import { kitStyle } from './textures.js';
 
-function ballTexture() {
-  const cv = document.createElement('canvas');
-  cv.width = 256; cv.height = 128;
-  const g = cv.getContext('2d');
-  g.fillStyle = '#f5f5f5'; g.fillRect(0, 0, 256, 128);
-  g.fillStyle = '#1a1a1a';
-  const spots = [[30, 30], [95, 64], [160, 30], [225, 64], [60, 100], [128, 110], [190, 100], [128, 14]];
-  for (const [x, y] of spots) {
-    g.beginPath();
-    for (let k = 0; k < 5; k++) { const a = (k / 5) * Math.PI * 2; g.lineTo(x + Math.cos(a) * 14, y + Math.sin(a) * 14); }
-    g.fill();
+/** Klasik top: 12 siyah beşgen, beyaz altıgenler ve dikiş çizgileri (yüz başına renk). */
+function ballMesh(q) {
+  const geo = new THREE.IcosahedronGeometry(BALL_R, q === 'dusuk' ? 3 : 5);
+  const phi = (1 + Math.sqrt(5)) / 2;
+  const ico = [[0, 1, phi], [0, -1, phi], [0, 1, -phi], [0, -1, -phi], [1, phi, 0], [-1, phi, 0], [1, -phi, 0], [-1, -phi, 0], [phi, 0, 1], [-phi, 0, 1], [phi, 0, -1], [-phi, 0, -1]].map((v) => new THREE.Vector3(...v).normalize());
+  // altıgen merkezleri: ikosahedronun yüz merkezleri
+  const ig = new THREE.IcosahedronGeometry(1, 0);
+  const ip = ig.attributes.position, hex = [];
+  for (let i = 0; i < ip.count; i += 3) hex.push(new THREE.Vector3().fromBufferAttribute(ip, i).add(new THREE.Vector3().fromBufferAttribute(ip, i + 1)).add(new THREE.Vector3().fromBufferAttribute(ip, i + 2)).normalize());
+  const p = geo.attributes.position;
+  const col = new Float32Array(p.count * 3), nrm = new Float32Array(p.count * 3);
+  const c = new THREE.Vector3(), v = new THREE.Vector3();
+  for (let i = 0; i < p.count; i += 3) {
+    c.set(0, 0, 0);
+    for (let k = 0; k < 3; k++) c.add(v.fromBufferAttribute(p, i + k));
+    c.normalize();
+    let best = 9;
+    for (const d of ico) best = Math.min(best, c.angleTo(d));
+    let k1 = 9, k2 = 9;
+    for (const d of hex) { const a = c.angleTo(d); if (a < k1) { k2 = k1; k1 = a; } else if (a < k2) k2 = a; }
+    let r = 0.94, gg = 0.94, b = 0.92;
+    if (best < 0.36) { r = 0.04; gg = 0.05; b = 0.08; }
+    else if (k2 - k1 < 0.035 || Math.abs(best - 0.36) < 0.03) { r = gg = b = 0.55; }
+    for (let k = 0; k < 3; k++) {
+      col[(i + k) * 3] = r; col[(i + k) * 3 + 1] = gg; col[(i + k) * 3 + 2] = b;
+      v.fromBufferAttribute(p, i + k).normalize();
+      nrm[(i + k) * 3] = v.x; nrm[(i + k) * 3 + 1] = v.y; nrm[(i + k) * 3 + 2] = v.z;
+    }
   }
-  const t = new THREE.CanvasTexture(cv);
-  t.colorSpace = THREE.SRGBColorSpace;
-  return t;
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  geo.setAttribute('normal', new THREE.BufferAttribute(nrm, 3));
+  const mat = new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: 0.38, clearcoat: q === 'yuksek' ? 0.7 : 0, clearcoatRoughness: 0.3 });
+  return new THREE.Mesh(geo, mat);
 }
 
 export class World {
@@ -38,11 +57,9 @@ export class World {
     const q = this.quality;
     this.pitch = buildPitch(q);
     this.root.add(this.pitch);
-    // top
-    this.ball = new THREE.Mesh(new THREE.SphereGeometry(BALL_R, 16, 12), new THREE.MeshLambertMaterial({ map: ballTexture() }));
-    this.ball.castShadow = q === 'yuksek';
+    this.ball = ballMesh(q);
+    this.ball.castShadow = q !== 'dusuk';
     this.root.add(this.ball);
-    // basit gölgeler (düşük kalitede gerçek gölge yerine)
     const blobTex = (() => {
       const cv = document.createElement('canvas'); cv.width = cv.height = 64;
       const g = cv.getContext('2d');
@@ -54,35 +71,45 @@ export class World {
     this.blobMat = new THREE.MeshBasicMaterial({ map: blobTex, transparent: true, depthWrite: false });
     this.ballBlob = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.4), this.blobMat);
     this.ballBlob.rotation.x = -Math.PI / 2;
+    this.ballBlob.visible = q === 'dusuk';
     this.root.add(this.ballBlob);
     this.overlays = new Overlays(this.root);
+    this.sbKey = '';
     if (setup) this.setTeams(setup);
   }
 
   setTeams(setup) {
-    // setup: { kits: [k0, k1], squads: [s0, s1], homeColor, awayColor }
-    for (const h of this.humans) this.root.remove(h.group);
+    // setup: { kits: [k0, k1], squads: [s0, s1], teams: [t0, t1] }
+    for (const h of this.humans) { this.root.remove(h.group); h.dispose(); }
     if (this.stadium) this.root.remove(this.stadium.group);
     for (const b of this.blobs || []) this.root.remove(b);
     this.humans = []; this.pickables = []; this.blobs = [];
     this.setup = setup;
     const q = this.quality;
-    this.stadium = buildStadium(q, setup.kits[0].shirt, setup.kits[1].shirt);
+    const teams = setup.teams || [{ id: 'ev', short: 'EV', kit: setup.kits[0] }, { id: 'dep', short: 'DEP', kit: setup.kits[1] }];
+    this.stadium = buildStadium(q, { id: teams[0].id, kit: setup.kits[0] }, { id: teams[1].id, kit: setup.kits[1] });
     this.root.add(this.stadium.group);
+    this.sbKey = '';
+    this.teamNames = teams.map((t) => t.short || t.name || '');
     for (let i = 0; i < N_ENT; i++) {
       let opts;
       if (i < 22) {
         const t = i < 11 ? 0 : 1, idx = i % 11, k = setup.kits[t], p = setup.squads[t][idx];
         const gk = idx === 0;
-        opts = { shirt: gk ? k.gk : k.shirt, shorts: gk ? '#222222' : k.shorts, socks: gk ? k.gk : k.socks, skin: p.skin, hair: p.hair, num: p.num, quality: q };
+        const st = kitStyle(teams[t].id, k);
+        opts = {
+          shirt: gk ? k.gk : k.shirt, second: gk ? '#111111' : st.second, shorts: gk ? '#1d1d1d' : k.shorts, socks: gk ? k.gk : k.socks,
+          skin: p.skin, hair: p.hair, num: p.num, name: p.name, quality: q, kind: gk ? 'gk' : 'player', teamId: teams[t].id,
+          crest: { c1: k.shirt, c2: st.second, txt: (teams[t].short || 'FK').slice(0, 2) }, seed: teams[t].id + i,
+        };
       } else {
-        opts = { shirt: '#c6ff00', shorts: '#111111', socks: '#111111', skin: '#e0ac69', hair: '#222', quality: q, kind: i === REF ? 'ref' : 'ar' };
+        opts = { shirt: '#c6ff00', second: '#111111', shorts: '#111111', socks: '#111111', skin: ['#e0ac69', '#c68642', '#f1c27d'][i - 22], hair: '#222', quality: q, kind: i === REF ? 'ref' : 'ar', seed: 'hakem' + i };
       }
       const h = new Humanoid(i, opts);
       this.root.add(h.group);
       this.humans.push(h);
       this.pickables.push(...h.meshes);
-      if (q !== 'yuksek') {
+      if (q === 'dusuk') {
         const b = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 1.1), this.blobMat);
         b.rotation.x = -Math.PI / 2; b.position.y = 0.012;
         this.root.add(b);
@@ -91,7 +118,7 @@ export class World {
     }
   }
 
-  /** Bir karedeki durumla tüm sahneyi güncelle. sample(i, out) ve ball(out) verir. */
+  /** Bir karedeki durumla tüm sahneyi güncelle. */
   apply(sampleEnt, sampleBall, showPlayers = true) {
     for (let i = 0; i < this.humans.length; i++) {
       const h = this.humans[i];
@@ -110,16 +137,47 @@ export class World {
       this.ball.position.set(b[0], b[1], b[2]);
       this.ball.rotation.set(b[3] * 0.7, b[3] * 0.3, 0);
       this.ballBlob.position.set(b[0], 0.011, b[2]);
-      const k = Math.max(0.3, 1 - b[1] * 0.12);
-      this.ballBlob.scale.setScalar(k);
+      this.ballBlob.scale.setScalar(Math.max(0.3, 1 - b[1] * 0.12));
     }
   }
 
   setCrowd(t, jump) {
-    if (this.stadium && this.stadium.crowd) {
-      const u = this.stadium.crowd.userData.uniforms;
-      u.uTime.value = t; u.uJump.value = jump;
+    if (!this.stadium) return;
+    const u = this.stadium.crowdMat.userData.uniforms;
+    u.uTime.value = t; u.uJump.value += (jump - u.uJump.value) * 0.08;
+    this.stadium.update(t);
+  }
+
+  /** Stadyumdaki dev ekran. */
+  setScoreboard(score, minuteText, status) {
+    if (!this.stadium) return;
+    const key = `${score}|${minuteText}|${status}`;
+    if (key === this.sbKey) return;
+    this.sbKey = key;
+    const { c, g, t } = this.stadium.scoreboard;
+    const W = c.width, H = c.height;
+    const gr = g.createLinearGradient(0, 0, 0, H);
+    gr.addColorStop(0, '#08121e'); gr.addColorStop(1, '#02060b');
+    g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    g.strokeStyle = '#22d36b'; g.lineWidth = 8; g.strokeRect(8, 8, W - 16, H - 16);
+    const [a, b] = this.teamNames || ['EV', 'DEP'];
+    g.fillStyle = '#ffffff'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.font = 'bold 86px Arial, sans-serif';
+    g.fillText(a, W * 0.2, H * 0.36); g.fillText(b, W * 0.8, H * 0.36);
+    g.font = '900 150px Arial, sans-serif';
+    g.fillText(score, W * 0.5, H * 0.38);
+    g.font = 'bold 64px monospace'; g.fillStyle = '#22d36b';
+    g.fillText(minuteText, W * 0.5, H * 0.68);
+    if (status) {
+      g.fillStyle = status.includes('VAR') ? '#00e5ff' : '#ffd400';
+      g.fillRect(W * 0.18, H * 0.78, W * 0.64, H * 0.15);
+      g.fillStyle = '#001018'; g.font = 'bold 60px Arial, sans-serif';
+      g.fillText(status, W * 0.5, H * 0.856);
+    } else {
+      g.fillStyle = '#8b98a5'; g.font = 'bold 40px Arial, sans-serif';
+      g.fillText('VAR ODASI · REKLAMSIZ FUTBOL', W * 0.5, H * 0.86);
     }
+    t.needsUpdate = true;
   }
 }
 
@@ -129,9 +187,8 @@ export class World {
 export class Overlays {
   constructor(parent) {
     this.g = new THREE.Group();
-    this.g.renderOrder = 10;
     parent.add(this.g);
-    const mk = (color, op) => new THREE.MeshBasicMaterial({ color, transparent: true, opacity: op, depthWrite: false, side: THREE.DoubleSide });
+    const mk = (color, op) => new THREE.MeshBasicMaterial({ color, transparent: true, opacity: op, depthWrite: false, side: THREE.DoubleSide, toneMapped: false, fog: false });
     const lineGeo = new THREE.BoxGeometry(0.035, 0.012, PITCH.W + 2);
     const wallGeo = new THREE.PlaneGeometry(PITCH.W + 2, 2.2);
     const makeLine = (color) => {
@@ -142,6 +199,7 @@ export class Overlays {
       w.rotation.y = Math.PI / 2; w.position.y = 1.1;
       grp.add(l, w);
       grp.visible = false;
+      grp.renderOrder = 10;
       this.g.add(grp);
       return grp;
     };
@@ -149,7 +207,6 @@ export class Overlays {
     this.defLine = makeLine(0x2f8bff);
     this.truthAtt = makeLine(0xffffff);
     this.truthDef = makeLine(0x22d36b);
-    // ceza sahası çizgisi göstergesi
     const stripGeo = new THREE.BoxGeometry(PITCH.LINE, 0.015, PITCH.BOX_HW * 2);
     this.box = [];
     for (const s of [1, -1]) {
@@ -164,7 +221,6 @@ export class Overlays {
       this.g.add(grp);
       this.box.push(grp);
     }
-    // kale çizgisi göstergesi
     const glGeo = new THREE.BoxGeometry(PITCH.LINE, 0.015, PITCH.W);
     this.goal = [];
     for (const s of [1, -1]) {
@@ -179,9 +235,8 @@ export class Overlays {
       this.g.add(grp);
       this.goal.push(grp);
     }
-    // işaret küreleri
     this.markers = [0xff3344, 0x2f8bff, 0xffa000].map((c) => {
-      const m = new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 8), new THREE.MeshBasicMaterial({ color: c, depthTest: false }));
+      const m = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 8), new THREE.MeshBasicMaterial({ color: c, depthTest: false, toneMapped: false }));
       m.renderOrder = 20; m.visible = false; this.g.add(m); return m;
     });
   }

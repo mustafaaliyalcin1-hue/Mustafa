@@ -13,6 +13,8 @@ export const DEFAULT_SETTINGS = {
   matchMinutes: 7,
   showFps: false,
   reduceMotion: false,
+  gpSpeed: 1,
+  gpRumble: true,
 };
 
 function defaults() {

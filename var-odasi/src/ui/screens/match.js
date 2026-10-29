@@ -141,6 +141,7 @@ export class MatchScreen {
       case 'save': a.groan(); this.addRadio('sys', 'SAHA', 'Kaleci kurtardı!'); break;
       case 'goal':
         a.roar(1);
+        if (this.app.gamepad) this.app.gamepad.rumble(400, 0.8);
         this.showBanner('goal', 'GOL!', `${s.teams[ev.team].name}${ev.scorer !== undefined ? ' · ' + s.players(ev.scorer).name : ''}${ev.pending ? ' · VAR kontrolü bekleniyor' : ''}`, 2.5);
         this.renderEvents();
         break;
@@ -232,6 +233,8 @@ export class MatchScreen {
     const sim = s.sim;
     this.scoreEl.textContent = `${sim.score[0]} - ${sim.score[1]}`;
     this.minEl.textContent = fmtMinute(sim.minute, sim.half);
+    const st = this.varView || s.state === 'review' ? 'VAR KONTROLÜ' : s.state === 'aftermath' ? 'İNCELENİYOR' : s.state === 'halftime' ? 'DEVRE ARASI' : s.state === 'ended' ? 'MAÇ SONU' : '';
+    this.app.world.setScoreboard(`${sim.score[0]} - ${sim.score[1]}`, fmtMinute(sim.minute, sim.half), st);
     if (this.bannerT > 0) { this.bannerT -= dt; if (this.bannerT <= 0) clear(this.bannerBox); }
     this.tickerT += dt;
     if (this.tickerT > 14 && s.state === 'live') { this.tickerT = 0; this.tickerText.textContent = uiRng.pick(LIVE_COMMENTS); }

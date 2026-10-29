@@ -323,3 +323,10 @@ body.touch .tl { height: 46px; }
   .ticker { height: 28px; }
   .menu-card { display: none; }
 }
+
+/* ---------- kontrolcü ---------- */
+.gp-cursor { position: fixed; left: -14px; top: -14px; width: 28px; height: 28px; z-index: 95; pointer-events: none; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 0 2px rgba(0,0,0,.6), 0 0 12px rgba(34,211,107,.8); }
+.gp-cursor::before, .gp-cursor::after { content: ''; position: absolute; background: #22d36b; }
+.gp-cursor::before { left: 12px; top: -6px; width: 2px; height: 36px; }
+.gp-cursor::after { top: 12px; left: -6px; height: 2px; width: 36px; }
+.gp-focus { outline: 3px solid var(--green) !important; outline-offset: 2px; box-shadow: 0 0 16px rgba(34,211,107,.55) !important; }

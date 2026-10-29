@@ -38,7 +38,7 @@ export class TrainingScreen {
 export function startTraining(app, type, diff, extra = {}) {
   const cfg = trainingConfig(type, diff, extra.seed);
   const session = new MatchSession(cfg);
-  app.world.setTeams({ kits: session.kits, squads: session.squads });
+  app.world.setTeams({ kits: session.kits, squads: session.squads, teams: session.teams });
   const inc = session.prepareSingle(type);
   const back = extra.onExit || (() => app.show(new TrainingScreen(app)));
   const scr = {

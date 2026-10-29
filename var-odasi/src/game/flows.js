@@ -9,7 +9,7 @@ import { TYPE_KEYS } from '../sim/scenarios/index.js';
 export async function startMatch(app, cfg, ctx) {
   const { MatchScreen } = await import('../ui/screens/match.js');
   const session = new MatchSession(cfg);
-  app.world.setTeams({ kits: session.kits, squads: session.squads });
+  app.world.setTeams({ kits: session.kits, squads: session.squads, teams: session.teams });
   app.show(new MatchScreen(app, session, ctx));
 }
 

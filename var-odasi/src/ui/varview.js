@@ -210,7 +210,7 @@ export class VarView {
     const ptrs = new Map();
     let start = null, moved = false, pinch0 = null;
     el.addEventListener('pointerdown', (e) => {
-      el.setPointerCapture(e.pointerId);
+      try { el.setPointerCapture(e.pointerId); } catch (err) { /* sanal imleç */ }
       ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (ptrs.size === 1) { start = { x: e.clientX, y: e.clientY, panX: this.views[i].panX, panY: this.views[i].panY, btn: e.button }; moved = false; }
       if (ptrs.size === 2) {
@@ -258,6 +258,14 @@ export class VarView {
       this.zoomAt(i, v.zoom * Math.pow(1.0018, -e.deltaY), (e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height);
     }, { passive: false });
     el.addEventListener('dblclick', () => { const v = this.views[i]; v.zoom = 1; v.panX = v.panY = 0; this.updateLabels(); });
+  }
+
+  /** Kontrolcü sağ çubuğu ile kaydırma (yakınlaştırılmışsa). */
+  gamepadPan(dx, dy) {
+    const v = this.views[this.active];
+    if (v.zoom <= 1.01) return;
+    v.panX = Math.max(-0.5, Math.min(0.5, v.panX + dx / v.zoom * 1.5));
+    v.panY = Math.max(-0.5, Math.min(0.5, v.panY + dy / v.zoom * 1.5));
   }
 
   zoomAt(i, nz, cx, cy) {
@@ -326,7 +334,7 @@ export class VarView {
       this.ph = Math.round(this.f0 + t * (this.f1 - this.f0));
       this.updateButtons();
     };
-    this.tl.addEventListener('pointerdown', (e) => { down = true; this.tl.setPointerCapture(e.pointerId); seekEv(e); });
+    this.tl.addEventListener('pointerdown', (e) => { down = true; try { this.tl.setPointerCapture(e.pointerId); } catch (err) { /* sanal imleç */ } seekEv(e); });
     this.tl.addEventListener('pointermove', (e) => { if (down) seekEv(e); });
     this.tl.addEventListener('pointerup', () => { down = false; });
     this.tl.addEventListener('pointercancel', () => { down = false; });
@@ -345,6 +353,13 @@ export class VarView {
     else if (k === 'p' || k === 'P') { if (this.tool === 'offside') this.setPassFrame(); }
     else if (k === 'k' || k === 'K') this.markContact();
     else if (k === 'a' || k === 'A') this.seek(this.inc.appFrame);
+    else if (k === '[' || k === ']') {
+      const v = this.views[this.active];
+      this.setCam((v.cam + (k === ']' ? 1 : CAMS.length - 1)) % CAMS.length);
+    } else if (k === 'm' || k === 'M') { if (this.tool === 'offside' && this.off.passFrame === null) this.setPassFrame(); else if (this.tool !== 'offside') this.markContact(); else this.setPassFrame(); }
+    else if (k === 'l' || k === 'L') this.setLayout(this.layout === 1 ? 2 : this.layout === 2 ? 4 : 1);
+    else if (k === '0') { const v = this.views[this.active]; v.zoom = 1; v.panX = v.panY = 0; this.updateLabels(); }
+    else if (k === 'Escape') { if (this.sel && !this.decided) { this.sel = null; this.renderDecision(); } }
   }
 
   // ---------------------------------------------------------------- eylemler
@@ -441,6 +456,7 @@ export class VarView {
       },
     };
     this.app.audio.ui('stamp');
+    if (this.app.gamepad) this.app.gamepad.rumble(180, 0.6);
     this.renderDecision();
     if (this.opts.training) {
       const res = this.s.submitDecision(dec);

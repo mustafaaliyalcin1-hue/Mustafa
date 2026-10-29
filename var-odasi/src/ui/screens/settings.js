@@ -24,6 +24,16 @@ export class SettingsScreen {
         optGroup([{ value: 'auto', label: 'Otomatik' }, { value: 'yuksek', label: 'Yüksek' }, { value: 'orta', label: 'Orta' }, { value: 'dusuk', label: 'Düşük (telefon)' }], s.quality, (v) => { s.quality = v; save(); app.rebuildGraphics(); toast('Grafik: ' + app.gfx.quality); }),
         h('p.muted', { style: { fontSize: '13px' } }, 'Düşük mod: gölge yok, daha az seyirci, düşük çözünürlük — telefonda 60 FPS için.'),
         h('label.set', null, h('span', null, 'FPS göstergesi'), optGroup([{ value: false, label: 'Kapalı' }, { value: true, label: 'Açık' }], s.showFps, (v) => { s.showFps = v; save(); app.updateFpsEl(); })),
+        h('h3', null, '🎮 Kontrolcü'),
+        h('p.muted', { style: { fontSize: '13px' } }, (navigator.getGamepads && [...navigator.getGamepads()].find((p) => p)) ? 'Bağlı: ' + [...navigator.getGamepads()].find((p) => p).id.slice(0, 48) : 'Bağlı kontrolcü yok. Xbox / PlayStation / genel USB-Bluetooth kontrolcüyü bağlayıp bir tuşa bas.'),
+        (() => {
+          const val = h('span.mono', { style: { width: '44px', textAlign: 'right' } }, Math.round(s.gpSpeed * 100) + '%');
+          const inp = h('input', { type: 'range', min: 40, max: 200, value: Math.round(s.gpSpeed * 100) });
+          inp.addEventListener('input', () => { s.gpSpeed = inp.value / 100; val.textContent = inp.value + '%'; });
+          inp.addEventListener('change', save);
+          return h('label.set', null, h('span', null, 'İmleç hızı'), inp, val);
+        })(),
+        h('label.set', null, h('span', null, 'Titreşim'), optGroup([{ value: true, label: 'Açık' }, { value: false, label: 'Kapalı' }], s.gpRumble !== false, (v) => { s.gpRumble = v; save(); if (v) app.gamepad.rumble(150, 0.5); })),
         h('h3', null, '⏱️ Maç süresi'),
         optGroup([5, 6, 7, 8].map((m) => ({ value: m, label: `${m} dk` })), s.matchMinutes, (v) => { s.matchMinutes = v; save(); }),
         h('p.muted', { style: { fontSize: '13px' } }, '90 dakikalık maçın gerçek zamanda kaç dakika süreceği (VAR incelemeleri hariç).'),

@@ -25,7 +25,7 @@ export class MenuScreen {
         item('⚙️', 'Ayarlar', 'Kontrol, grafik, ses', SettingsScreen),
         item('📘', 'Nasıl Oynanır', firstTime ? 'Buradan başla!' : 'Protokol ve eğitim maçı', HowToScreen, firstTime ? '.primary' : ''),
         h('div.badges', null,
-          h('span.chip.green', null, '✓ Reklamsız'), h('span.chip.green', null, '✓ Satın alma yok'), h('span.chip.green', null, '✓ İnternetsiz çalışır')),
+          h('span.chip.green', null, '✓ Reklamsız'), h('span.chip.green', null, '✓ Satın alma yok'), h('span.chip.green', null, '✓ İnternetsiz çalışır'), h('span.chip.green', null, '🎮 Kontrolcü desteği')),
       ),
       h('div.menu-right', null,
         h('div.panel.menu-card', null,
