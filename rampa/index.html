@@ -184,6 +184,9 @@ body.tplay #guide{top:calc(env(safe-area-inset-top,0px) + 80px)}
 .gstats{display:grid;gap:6px}.gst{display:grid;grid-template-columns:110px 1fr;gap:10px;align-items:center;font-size:12.5px}
 .gst i{height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden}.gst b{display:block;height:100%;background:linear-gradient(90deg,#5fc4ff,#6dffa6)}
 #garMsg{min-height:1.2em;color:#ffd34d}
+#padTag{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);transform:translateX(-50%);z-index:60;background:rgba(13,15,20,.85);border:1px solid var(--line);border-radius:3px;padding:8px 14px;font-size:13px;font-weight:600;pointer-events:none}
+#padTag[hidden]{display:none}
+button:focus-visible,input:focus-visible{outline:3px solid #ffd34d;outline-offset:2px}
 .gbtn.veh.voltra{border-color:rgba(255,211,77,.55)}.gbtn.veh.voltra b{color:#ffd34d}.gbtn.veh.voltra[aria-pressed="true"] b{color:#7a5a00}.gbtn.veh.locked{opacity:.75}
 .grow.code input{font:inherit;font-size:16px;padding:10px 12px;min-height:44px;border:1px solid var(--line);border-radius:3px;background:rgba(255,255,255,.06);color:var(--ink);flex:1;min-width:140px}
 .mode.online{border-color:rgba(255,211,77,.45)}.mode.online .k{color:#ffd34d}
@@ -209,7 +212,7 @@ body.touch .tv{min-width:44px}
 body.touch .tv b{font-size:19px}
 body.touch .tv .bar{width:44px}
 body.touch #guide{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 128px);font-size:12.5px;width:min(60vw,420px)}
-body.touch .keys,body.touch #bSlow{display:none}
+body.touch .keys:not(.pad),body.touch #bSlow{display:none}
 body.touch #rec,body.touch #autoTag{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 104px)}
 @media (max-height:520px){.tv b{font-size:20px}.tv{min-width:44px}#tele{gap:2px 14px;bottom:calc(env(safe-area-inset-bottom,0px) + 10px)}#guide{bottom:calc(env(safe-area-inset-bottom,0px) + 56px)}.tv .bar{width:46px}}
 #wanted{position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:2px;background:rgba(13,15,20,.72);border:1px solid rgba(255,32,53,.5);border-radius:4px;padding:6px 14px;white-space:nowrap;animation:wflash .5s steps(2) infinite}
@@ -252,6 +255,7 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
   <canvas id="mini" width="300" height="300" hidden aria-label="Şehir haritası"></canvas>
   <div id="big"><div id="bigT"></div><div id="bigS"></div></div>
   <div id="pops"></div>
+  <div id="padTag" hidden></div>
   <div id="netTag" hidden><b>ODA <span id="netCode"></span></b> · <span id="netN"></span><div id="netList"></div></div>
   <div id="wanted" hidden><span id="wStars">★☆☆</span><b id="wTxt">Polis peşinde</b></div>
   <div id="autoTag" hidden>Kendi kendine oynuyor · kontrolü almak için <kbd>W</kbd> ya da GAZ</div>
@@ -314,7 +318,13 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
       <span><kbd>Boşluk</kbd>Zıpla · tavandan bırak · yavaşla</span><span><kbd>Shift</kbd>Hız iticisi</span>
       <span><kbd>F</kbd>Fan aç / kapa</span><span><kbd>X</kbd>Ön itici: hızlı fren</span><span><kbd>A</kbd><kbd>D</kbd>Havada takla</span>
       <span><kbd>Q</kbd><kbd>E</kbd>Havada dönüş</span><span><kbd>V</kbd>Kuvvet okları <kbd>T</kbd>Ağır çekim</span>
-      <span><kbd>C</kbd>Kamera <kbd>R</kbd>Yeniden <kbd>Esc</kbd>Menü</span><span>Sürükle: kamerayı çevir · tekerlek: yakınlaş · çift tık: sıfırla</span>
+      <span><kbd>C</kbd>Kamera <kbd>R</kbd>Yeniden <kbd>Esc</kbd>Menü</span><span><kbd>K</kbd>Korna</span><span>Sürükle: kamerayı çevir · tekerlek: yakınlaş · çift tık: sıfırla</span>
+    </div>
+    <p><b>Kontrolcü (Xbox / PlayStation).</b> Bağlayıp bir tuşa bas, kendiliğinden tanınır.</p>
+    <div class="keys pad">
+      <span><kbd>RT</kbd>Gaz</span><span><kbd>LT</kbd>Fren / geri</span><span><kbd>Sol çubuk</kbd>Direksiyon · havada takla</span><span><kbd>A</kbd>Zıpla</span>
+      <span><kbd>B</kbd>Ön itici</span><span><kbd>X</kbd>İtici</span><span><kbd>Y</kbd>Fan</span><span><kbd>LB</kbd><kbd>RB</kbd>Havada dönüş</span>
+      <span><kbd>↑</kbd>Ağır çekim <kbd>↓</kbd>Korna</span><span><kbd>←</kbd>Yan görünüş <kbd>→</kbd>Yeniden</span><span><kbd>View</kbd>Kamera <kbd>Start</kbd>Menü</span><span>Menülerde: çubuk/ok ile seç, <kbd>A</kbd> tamam, <kbd>B</kbd> geri</span>
     </div>
     <div class="row"><button class="btn primary" type="button" id="bHowOk">Anladım</button></div>
   </div>
@@ -1756,6 +1766,51 @@ const GHOSTS={};for(const m of ['rampa','atlama','gosteri']){const g=store.get('
 const S={cargo:false,phase:'loading',ui:'menu',mode:'gosteri',auto:false,autoSeq:0,attempt:0,t:0,score:0,items:[],st:null,count:0,lastCount:0,doneT:0,camMode:0,side:false,slow:false,shake:0,
   frames:[],events:[],replay:null,bot:{hangT:1.5,hopX:-87},ghostI:0,menuDemo:false,endT:0};
 const keys={},touchK={};
+/* ================= GAMEPAD (Xbox / PlayStation / standard mapping) ================= */
+// RT gas · LT brake/reverse · A jump · B front thruster · X boost · Y fan · LB/RB spin in the air
+// left stick steer / roll / pitch · right stick spin · D-pad ↑ slow motion ↓ horn ← side view → restart · View camera · Start menu
+const padK={},PAD={on:false,id:'',lx:0,ly:0,rx:0,gas:0,brake:0,prev:[],navT:0,shake:0};
+const PB={A:0,B:1,X:2,Y:3,LB:4,RB:5,LT:6,RT:7,VIEW:8,START:9,L3:10,R3:11,UP:12,DOWN:13,LEFT:14,RIGHT:15};
+const dz=(v,d=.15)=>Math.abs(v)<d?0:(v-Math.sign(v)*d)/(1-d);
+function padToast(t){const e=$('padTag');e.textContent=t;e.hidden=false;clearTimeout(padToast.t);padToast.t=setTimeout(()=>e.hidden=true,2600);}
+addEventListener('gamepadconnected',e=>{padToast('🎮 Kontrolcü bağlandı');audioInit();});
+addEventListener('gamepaddisconnected',()=>{padToast('Kontrolcü ayrıldı');for(const k in padK)padK[k]=0;PAD.on=false;});
+function padRumble(strong,ms){try{const g=navigator.getGamepads&&[...navigator.getGamepads()].find(x=>x&&x.connected);const va=g&&g.vibrationActuator;if(va&&va.playEffect)va.playEffect('dual-rumble',{duration:ms,strongMagnitude:strong,weakMagnitude:Math.min(1,strong*1.3)});}catch(_){}}
+function padNav(dir,pressA,pressB){
+  const vis=e=>e.getClientRects().length>0,ov=[...document.querySelectorAll('.overlay,#tmenu')].find(o=>!o.hidden&&vis(o));if(!ov)return false;
+  const list=[...ov.querySelectorAll('button,input,select')].filter(b=>!b.disabled&&!b.hidden&&vis(b));if(!list.length)return true;
+  let i=list.indexOf(document.activeElement);
+  if(dir){i=i<0?0:(i+dir+list.length)%list.length;list[i].focus({preventScroll:false});list[i].scrollIntoView({block:'nearest'});}
+  if(pressA){const el=i>=0?list[i]:list[0];if(el.tagName==='INPUT'&&el.type==='checkbox'){el.click();}else if(el.tagName!=='INPUT')el.click();else el.focus();}
+  if(pressB)dispatchEvent(new KeyboardEvent('keydown',{code:'Escape',key:'Escape'}));
+  return true;}
+function pollPad(dt){
+  const gs=navigator.getGamepads?navigator.getGamepads():[];let g=null;for(const x of gs)if(x&&x.connected){g=x;break;}
+  if(!g){if(PAD.on){PAD.on=false;for(const k in padK)padK[k]=0;}return;}
+  PAD.on=true;const b=n=>{const q=g.buttons[n];return q?(typeof q==='object'?q.value:q):0;},hit=n=>b(n)>.5&&!(PAD.prev[n]>.5);
+  const ax=g.axes||[];PAD.lx=dz(ax[0]||0);PAD.ly=dz(ax[1]||0);PAD.rx=dz(ax[2]||0);PAD.gas=b(PB.RT);PAD.brake=b(PB.LT);
+  const inGame=S.ui==='play'&&!S.menuDemo;
+  if(!inGame){for(const k in padK)padK[k]=0;
+    PAD.navT-=dt;let dir=0;if(hit(PB.DOWN)||hit(PB.RIGHT))dir=1;else if(hit(PB.UP)||hit(PB.LEFT))dir=-1;
+    else if(Math.abs(PAD.ly)>.6&&PAD.navT<=0){dir=PAD.ly>0?1:-1;PAD.navT=.28;}else if(Math.abs(PAD.ly)<.3)PAD.navT=0;
+    padNav(dir,hit(PB.A),hit(PB.B));
+    if(S.ui==='replay'&&hit(PB.B))dispatchEvent(new KeyboardEvent('keydown',{code:'Escape',key:'Escape'}));}
+  else{
+    if(!$('tmenu').hidden){padNav(hit(PB.DOWN)?1:hit(PB.UP)?-1:0,hit(PB.A),false);if(hit(PB.B)||hit(PB.START))$('tmenu').hidden=true;}
+    else{
+      padK.gas=PAD.gas>.2||PAD.ly<-.9&&false?1:0;padK.brake=PAD.brake>.2?1:0;padK.lift=b(PB.A)>.5?1:0;padK.retro=b(PB.B)>.5?1:0;padK.boost=b(PB.X)>.5?1:0;
+      padK.left=PAD.lx<-.35?1:0;padK.right=PAD.lx>.35?1:0;padK.yawL=b(PB.LB)>.5||PAD.rx<-.4?1:0;padK.yawR=b(PB.RB)>.5||PAD.rx>.4?1:0;
+      if(padK.gas&&S.auto)takeControl();
+      if(hit(PB.Y)&&!S.auto)car.fanOn=!car.fanOn&&car.battery>0;
+      if(hit(PB.UP))toggleSlow();
+      if(hit(PB.DOWN))honk();
+      if(hit(PB.LEFT))$('bSide').click();
+      if(hit(PB.RIGHT))startMode(S.mode);
+      if(hit(PB.VIEW)){S.camMode=(S.camMode+1)%4;S.side=S.camMode===2;$('bSide').setAttribute('aria-pressed',String(S.side));pop(['Kamera: otomatik','Kamera: takip','Kamera: yan','Kamera: sürücü'][S.camMode]);snapCam=true;}
+      if(hit(PB.START))dispatchEvent(new KeyboardEvent('keydown',{code:'Escape',key:'Escape'}));}}
+  if(S.shake>PAD.shake+.25)padRumble(Math.min(1,S.shake),180);PAD.shake=S.shake;
+  PAD.prev=g.buttons.map(q=>typeof q==='object'?q.value:q);}
+
 let lastInp={gas:0};
 const MODE_NAME={rampa:'Rampa',atlama:'Atlama',gosteri:'Tam gösteri',serbest:'Serbest sürüş'};
 
@@ -1810,16 +1865,16 @@ function easyAssist(o){
 let liftPrev=false;
 function gatherInput(){
   const o={gas:0,brake:0,lift:0,liftPress:0,boost:0,retro:0,rollL:0,rollR:0,pitchUp:0,pitchDown:0,yawL:0,yawR:0,assist:SET.assist||SET.easy};
-  const k=n=>keys[n]||touchK[n];
+  const k=n=>keys[n]||touchK[n]||padK[n];
   if(S.auto||S.menuDemo)botInput(o);
   else{
-    o.gas=k('gas')?1:0;o.brake=k('brake')?1:0;o.lift=k('lift')?1:0;o.boost=k('boost')?1:0;o.retro=k('retro')?1:0;
-    if(car.state==='air'){o.rollL=k('left')?1:0;o.rollR=k('right')?1:0;if(!SET.easy){o.pitchDown=o.gas;o.pitchUp=o.brake;}o.yawL=k('yawL')?1:0;o.yawR=k('yawR')?1:0;}
+    o.gas=k('gas')?1:0;o.brake=k('brake')?1:0;if(PAD.on){if(!keys.gas&&!touchK.gas&&PAD.gas>.2)o.gas=Math.min(1,PAD.gas*1.15);if(!keys.brake&&!touchK.brake&&PAD.brake>.2)o.brake=Math.min(1,PAD.brake*1.15);}o.lift=k('lift')?1:0;o.boost=k('boost')?1:0;o.retro=k('retro')?1:0;
+    if(car.state==='air'){o.rollL=k('left')?1:0;o.rollR=k('right')?1:0;if(!SET.easy){o.pitchDown=o.gas;o.pitchUp=o.brake;}o.yawL=k('yawL')?1:0;o.yawR=k('yawR')?1:0;if(PAD.on){if(PAD.ly<-.4)o.pitchDown=1;if(PAD.ly>.4)o.pitchUp=1;}}
     o.liftPress=o.lift&&!liftPrev?1:0;liftPrev=!!o.lift;
     if(S.mode==='serbest'){if(car.state==='framp'&&SET.easy&&car.rr.kind==='hwy'){const f=car.fr;if(f.th<2.6)cruise(o,car.v,f.th>1.2?8:12);else if(f.th<3.6&&!o.brake)cruise(o,car.v,car.rr.long?19:14);}
       else if(car.state==='framp'&&SET.easy){const f=car.fr;if(f.th>2.6){if(!o.brake)cruise(o,car.v,1.4);}else cruise(o,car.v,f.th>1.2?7:11);}
       if(car.state==='freeAir'&&SET.easy&&car.airFrom==='framp'){const up=_va.copy(AY).applyQuaternion(car.q).y;if(up>.85&&car.vel.y<-8.5&&car.pos.y-cityGroundAt(car.pos.x,car.pos.z)<9)o.lift=1;}
-      if(car.state==='framp'){}else if(car.state==='freeAir'){o.rollL=k('left')?1:0;o.rollR=k('right')?1:0;if(!(SET.easy&&car.airFrom==='framp')){o.pitchDown=k('gas')?1:0;o.pitchUp=k('brake')?1:0;}o.yawL=k('yawL')?1:0;o.yawR=k('yawR')?1:0;}else{o.steer=(k('right')?1:0)-(k('left')?1:0);o.rollL=o.rollR=o.pitchUp=o.pitchDown=0;}}
+      if(car.state==='framp'){}else if(car.state==='freeAir'){o.rollL=k('left')?1:0;o.rollR=k('right')?1:0;if(!(SET.easy&&car.airFrom==='framp')){o.pitchDown=k('gas')?1:0;o.pitchUp=k('brake')?1:0;}o.yawL=k('yawL')?1:0;o.yawR=k('yawR')?1:0;if(PAD.on){if(PAD.ly<-.4)o.pitchDown=1;if(PAD.ly>.4)o.pitchUp=1;}}else{o.steer=(k('right')?1:0)-(k('left')?1:0);if(PAD.on&&PAD.lx&&!keys.left&&!keys.right&&!touchK.left&&!touchK.right)o.steer=clamp(PAD.lx*1.1,-1,1);o.rollL=o.rollR=o.pitchUp=o.pitchDown=0;}}
     else if(SET.easy)easyAssist(o);
   }
   lastInp=o;return o;
@@ -2048,7 +2103,7 @@ function takeControl(){if(S.auto){S.auto=false;$('autoTag').hidden=true;$('bAuto
 let last=performance.now(),acc=0;const H=1/240;
 function frame(now){
   requestAnimationFrame(frame);
-  const dt=Math.min(.05,(now-last)/1000);last=now;
+  const dt=Math.min(.05,(now-last)/1000);last=now;pollPad(dt);
   const paused=(S.ui==='settings'||S.ui==='how'||S.ui==='garage')&&!S.menuDemo;
   let simDt=0;
   if(paused){}
