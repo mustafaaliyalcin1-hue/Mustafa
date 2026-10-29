@@ -2067,7 +2067,7 @@ function gatherInput(){
   const o={gas:0,brake:0,lift:0,liftPress:0,boost:0,retro:0,rollL:0,rollR:0,pitchUp:0,pitchDown:0,yawL:0,yawR:0,assist:SET.assist||SET.easy};
   const k=n=>keys[n]||touchK[n]||padK[n];
   if(S.auto||S.menuDemo)botInput(o);
-  else if(fpvFree()||FOOT.on){o.brake=1;o.steer=0;}
+  else if(fpvFree()||FOOT.on){o.gas=0;o.brake=0;o.boost=0;o.steer=0;if(car.state==="free"){car.v=0;car.vel.set(0,0,0);}}
   else{
     o.gas=k('gas')?1:0;o.brake=k('brake')?1:0;if(PAD.on){if(!keys.gas&&!touchK.gas&&PAD.gas>.2)o.gas=Math.min(1,PAD.gas*1.15);if(!keys.brake&&!touchK.brake&&PAD.brake>.2)o.brake=Math.min(1,PAD.brake*1.15);}o.lift=k('lift')?1:0;o.boost=k('boost')?1:0;o.retro=k('retro')?1:0;
     if(car.state==='air'){o.rollL=k('left')?1:0;o.rollR=k('right')?1:0;if(!SET.easy){o.pitchDown=o.gas;o.pitchUp=o.brake;}o.yawL=k('yawL')?1:0;o.yawR=k('yawR')?1:0;if(PAD.on){if(PAD.ly<-.4)o.pitchDown=1;if(PAD.ly>.4)o.pitchUp=1;}}
