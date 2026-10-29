@@ -1,6 +1,7 @@
 import { Composition } from "remotion";
 import { EfektDemo } from "./EfektDemo";
 import { Fragman } from "./fragman/Fragman";
+import { Tanitim } from "./fragman/Tanitim";
 
 export const Root: React.FC = () => {
   return (
@@ -14,6 +15,7 @@ export const Root: React.FC = () => {
       height={1920}
     />
     <Composition id="Fragman" component={Fragman} durationInFrames={1200} fps={30} width={1280} height={720} />
+    <Composition id="Tanitim" component={Tanitim} durationInFrames={1260} fps={30} width={1280} height={720} />
     </>
   );
 };

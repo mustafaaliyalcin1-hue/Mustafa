@@ -8,7 +8,7 @@ import {
 
 const FONTS = ["Monoton", "BlackOpsOne", "Bungee", "Righteous", "RussoOne", "Kanit", "Audiowide", "Pacifico", "PermanentMarker", "BebasNeue", "Lobster", "RubikMonoOne", "JetBrainsMono"];
 
-const useFonts = () => {
+export const useFonts = () => {
   const [handle] = useState(() => delayRender("fontlar"));
   useEffect(() => {
     Promise.all(FONTS.map((f) => new FontFace(f, `url(${staticFile(`fragman/fonts/${f}.woff2`)})`).load().then((ff) => document.fonts.add(ff))))
@@ -18,21 +18,21 @@ const useFonts = () => {
 };
 
 // bir sahnenin kare dizisi; girişte hafif zoom-punch ve beyaz flaş
-const Clip: React.FC<{ shot: string; start?: number; count: number; punch?: boolean; blur?: number }> = ({ shot, start = 0, count, punch = true, blur = 0 }) => {
+export const Clip: React.FC<{ shot: string; start?: number; count: number; punch?: boolean; blur?: number; dir?: string }> = ({ shot, start = 0, count, punch = true, blur = 0, dir = "fragman" }) => {
   const f = useCurrentFrame();
   const n = Math.min(count - 1, start + f);
   const sc = punch ? interpolate(f, [0, 10], [1.12, 1.0], { extrapolateRight: "clamp", easing: Easing.out(Easing.cubic) }) : 1;
   const flash = punch ? interpolate(f, [0, 4], [0.4, 0], { extrapolateRight: "clamp" }) : 0;
   return (
     <AbsoluteFill style={{ backgroundColor: "#000", overflow: "hidden" }}>
-      <Img src={staticFile(`fragman/${shot}/${String(n).padStart(4, "0")}.jpg`)} style={{ width: "100%", height: "100%", objectFit: "cover", transform: `scale(${sc})`, filter: blur ? `blur(${blur}px) brightness(.6)` : undefined }} />
+      <Img src={staticFile(`${dir}/${shot}/${String(n).padStart(4, "0")}.jpg`)} style={{ width: "100%", height: "100%", objectFit: "cover", transform: `scale(${sc})`, filter: blur ? `blur(${blur}px) brightness(.6)` : undefined }} />
       <AbsoluteFill style={{ background: "radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,.55) 100%)" }} />
       <AbsoluteFill style={{ backgroundColor: "#fff", opacity: flash }} />
     </AbsoluteFill>
   );
 };
 
-const Bars: React.FC = () => (
+export const Bars: React.FC = () => (
   <>
     <div style={{ position: "absolute", left: 0, right: 0, top: 0, height: 56, background: "#000" }} />
     <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 56, background: "#000" }} />
@@ -42,7 +42,7 @@ const Bars: React.FC = () => (
 const shadow = "0 6px 28px rgba(0,0,0,.65)";
 
 // 1) harfler tek tek takla atarak gelir
-const FlipLetters: React.FC<{ text: string; font: string; size: number; color: string }> = ({ text, font, size, color }) => {
+export const FlipLetters: React.FC<{ text: string; font: string; size: number; color: string }> = ({ text, font, size, color }) => {
   const f = useCurrentFrame(); const { fps } = useVideoConfig();
   return (
     <div style={{ display: "flex", justifyContent: "center" }}>
@@ -54,20 +54,20 @@ const FlipLetters: React.FC<{ text: string; font: string; size: number; color: s
   );
 };
 // 2) yere çakılır + ekran sarsıntısı
-const Slam: React.FC<{ text: string; font: string; size: number; color: string }> = ({ text, font, size, color }) => {
+export const Slam: React.FC<{ text: string; font: string; size: number; color: string }> = ({ text, font, size, color }) => {
   const f = useCurrentFrame(); const { fps } = useVideoConfig();
   const s = spring({ frame: f, fps, config: { damping: 9, stiffness: 220, mass: 0.7 } });
   const shake = f < 14 ? (random(`sx${f}`) - 0.5) * 18 * (1 - f / 14) : 0;
   return <div style={{ fontFamily: font, fontSize: size, color, transform: `translate(${shake}px, ${shake * 0.6}px) scale(${interpolate(s, [0, 1], [3, 1])})`, opacity: Math.min(1, s * 3), textShadow: shadow, letterSpacing: 2 }}>{text}</div>;
 };
 // 3) dönerek büyür
-const Spin: React.FC<{ text: string; font: string; size: number; color: string }> = ({ text, font, size, color }) => {
+export const Spin: React.FC<{ text: string; font: string; size: number; color: string }> = ({ text, font, size, color }) => {
   const f = useCurrentFrame(); const { fps } = useVideoConfig();
   const s = spring({ frame: f, fps, config: { damping: 12 } });
   return <div style={{ fontFamily: font, fontSize: size, color, transform: `rotate(${(1 - s) * -200}deg) scale(${s})`, textShadow: shadow }}>{text}</div>;
 };
 // 4) soldan sağa silme ile açılır
-const Wipe: React.FC<{ text: string; font: string; size: number; color: string }> = ({ text, font, size, color }) => {
+export const Wipe: React.FC<{ text: string; font: string; size: number; color: string }> = ({ text, font, size, color }) => {
   const f = useCurrentFrame();
   const p = interpolate(f, [2, 18], [0, 100], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.inOut(Easing.cubic) });
   const bar = interpolate(f, [2, 18, 26], [0, 100, 100], { extrapolateRight: "clamp" });
@@ -79,32 +79,32 @@ const Wipe: React.FC<{ text: string; font: string; size: number; color: string }
   );
 };
 // 5) daktilo
-const Typewriter: React.FC<{ text: string; font: string; size: number; color: string }> = ({ text, font, size, color }) => {
+export const Typewriter: React.FC<{ text: string; font: string; size: number; color: string }> = ({ text, font, size, color }) => {
   const f = useCurrentFrame();
   const n = Math.floor(interpolate(f, [0, text.length * 1.6], [0, text.length], { extrapolateRight: "clamp" }));
   return <div style={{ fontFamily: font, fontSize: size, color, textShadow: shadow, background: "rgba(10,12,16,.55)", padding: "10px 22px", borderLeft: `8px solid ${color}` }}>{text.slice(0, n)}<span style={{ opacity: f % 10 < 5 ? 1 : 0 }}>▌</span></div>;
 };
 // 6) yandan kayarak, eğik
-const SlideSkew: React.FC<{ text: string; font: string; size: number; color: string }> = ({ text, font, size, color }) => {
+export const SlideSkew: React.FC<{ text: string; font: string; size: number; color: string }> = ({ text, font, size, color }) => {
   const f = useCurrentFrame(); const { fps } = useVideoConfig();
   const s = spring({ frame: f, fps, config: { damping: 14 } });
   return <div style={{ fontFamily: font, fontSize: size, color, fontWeight: 800, transform: `translateX(${(1 - s) * -900}px) skewX(${(1 - s) * -25 - 8}deg)`, textShadow: shadow, fontStyle: "italic" }}>{text}</div>;
 };
 // 7) bulanıktan netleşir, parlar
-const BlurGlow: React.FC<{ text: string; font: string; size: number; color: string }> = ({ text, font, size, color }) => {
+export const BlurGlow: React.FC<{ text: string; font: string; size: number; color: string }> = ({ text, font, size, color }) => {
   const f = useCurrentFrame();
   const b = interpolate(f, [0, 22], [24, 0], { extrapolateRight: "clamp" });
   const ls = interpolate(f, [0, 30], [40, 6], { extrapolateRight: "clamp" });
   return <div style={{ fontFamily: font, fontSize: size, color, filter: `blur(${b}px)`, letterSpacing: ls, opacity: interpolate(f, [0, 10], [0, 1], { extrapolateRight: "clamp" }), textShadow: `0 0 30px ${color}, 0 4px 18px rgba(0,0,0,.85)` }}>{text}</div>;
 };
 // 8) el yazısı gibi çizilerek yazılır
-const Handwrite: React.FC<{ text: string; font: string; size: number; color: string }> = ({ text, font, size, color }) => {
+export const Handwrite: React.FC<{ text: string; font: string; size: number; color: string }> = ({ text, font, size, color }) => {
   const f = useCurrentFrame();
   const p = interpolate(f, [0, 34], [0, 100], { extrapolateRight: "clamp", easing: Easing.out(Easing.quad) });
   return <div style={{ fontFamily: font, fontSize: size, color, clipPath: `polygon(0 0, ${p}% 0, ${p - 6}% 100%, 0 100%)`, textShadow: shadow, transform: "rotate(-4deg)" }}>{text}</div>;
 };
 // 9) harfler zıplar
-const Bounce: React.FC<{ text: string; font: string; size: number; color: string }> = ({ text, font, size, color }) => {
+export const Bounce: React.FC<{ text: string; font: string; size: number; color: string }> = ({ text, font, size, color }) => {
   const f = useCurrentFrame(); const { fps } = useVideoConfig();
   return (
     <div style={{ display: "flex" }}>
@@ -116,7 +116,7 @@ const Bounce: React.FC<{ text: string; font: string; size: number; color: string
   );
 };
 // 10) dijital parazit (glitch)
-const Glitch: React.FC<{ text: string; font: string; size: number; color: string }> = ({ text, font, size, color }) => {
+export const Glitch: React.FC<{ text: string; font: string; size: number; color: string }> = ({ text, font, size, color }) => {
   const f = useCurrentFrame();
   const g = f < 16 || f % 23 < 2 ? 1 : 0;
   const dx = g ? (random(`g${f}`) - 0.5) * 30 : 0;
@@ -132,10 +132,10 @@ const Glitch: React.FC<{ text: string; font: string; size: number; color: string
 };
 
 type TitleProps = { at: "center" | "bottom" | "top" | "left"; children: React.ReactNode };
-const Place: React.FC<TitleProps> = ({ at, children }) => (
+export const Place: React.FC<TitleProps> = ({ at, children }) => (
   <AbsoluteFill style={{ justifyContent: at === "bottom" ? "flex-end" : at === "top" ? "flex-start" : "center", alignItems: at === "left" ? "flex-start" : "center", padding: at === "left" ? "0 90px" : "100px 60px", perspective: 900 }}>{children}</AbsoluteFill>
 );
-const Out: React.FC<{ dur: number; children: React.ReactNode }> = ({ dur, children }) => {
+export const Out: React.FC<{ dur: number; children: React.ReactNode }> = ({ dur, children }) => {
   const f = useCurrentFrame();
   const o = interpolate(f, [dur - 8, dur], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   return <AbsoluteFill style={{ opacity: o }}>{children}</AbsoluteFill>;
