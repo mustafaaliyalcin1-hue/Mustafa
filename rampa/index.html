@@ -2441,7 +2441,7 @@ function applyLoadout(){const lo=curLo(),m=lo.motor,a=lo.air,mo=lo.veh==='moto',
   const want=CARS[lo.veh];if(CAR!==want){CAR.g.visible=false;CAR=want;}CAR.g.visible=true;
   CAR.paint.color.setHex(lo.paint);CAR.bump[0].visible=lo.bumper===1;CAR.bump[1].visible=lo.bumper===2;CAR.pkg.visible=!!(S.cargo&&JOB.st==='drop');}
 /* ================= AUTOPILOT (free drive + courier): route on the street grid or fly over the city ================= */
-const AP_SPD=[{n:'Yavaş',road:11,fly:28},{n:'Normal',road:17,fly:50},{n:'Hızlı',road:28,fly:85},{n:'Aşırı',road:46,fly:150}];
+const AP_SPD=[{n:'Yavaş',road:15,fly:30,lights:true},{n:'Normal',road:25,fly:55,lights:true},{n:'Hızlı',road:40,fly:90,lights:false},{n:'Aşırı',road:70,fly:160,lights:false}];
 const AP={spd:1,hopT:0,hopCD:0,snap:false,on:false,mode:'road',cargo:false,dest:null,pts:[],k:0,fp:'',key:'',arrived:false,stopT:0,label:''};
 const AP_LANE=5.2,AP_ALT=118;
 const nodeKey=(i,j)=>i+','+j;
@@ -2490,12 +2490,12 @@ function apDrive(o){const c=car,P=AP.pts;if(P.length<2){o.gas=0;o.brake=1;o.stee
     rem=L*(1-t);for(let j=k+1;j<P.length-1;j++)rem+=Math.hypot(P[j+1].x-P[j].x,P[j+1].z-P[j].z);}
   let da=Math.atan2(pz-c.pos.z,px-c.pos.x)-c.yaw;while(da>Math.PI)da-=TAU;while(da<-Math.PI)da+=TAU;
   o.steer=clamp(da*(v>25?1.5:2.1),-1,1);const VMAX=AP_SPD[AP.spd].road;let vT=VMAX;
-  const vBrake=(d,end=6)=>Math.sqrt(end*end+2*9*Math.max(0,d));// speed we can still shed in d metres
+  const vBrake=(d,end=6)=>Math.sqrt(end*end+2*10.5*Math.max(0,d));// speed we can still shed in d metres
   // corners ahead
-  for(let j=k+1,acc=Math.hypot(P[k+1].x-c.pos.x,P[k+1].z-c.pos.z);j<P.length-1&&acc<120;j++){const d1=Math.atan2(P[j].z-P[j-1].z,P[j].x-P[j-1].x),d2=Math.atan2(P[j+1].z-P[j].z,P[j+1].x-P[j].x);let dd=Math.abs(d2-d1);if(dd>Math.PI)dd=TAU-dd;if(dd>.4)vT=Math.min(vT,vBrake(acc,7));acc+=Math.hypot(P[j+1].x-P[j].x,P[j+1].z-P[j].z);}
-  if(Math.abs(da)>.9)vT=Math.min(vT,5);
+  for(let j=k+1,acc=Math.hypot(P[k+1].x-c.pos.x,P[k+1].z-c.pos.z);j<P.length-1&&acc<120;j++){const d1=Math.atan2(P[j].z-P[j-1].z,P[j].x-P[j-1].x),d2=Math.atan2(P[j+1].z-P[j].z,P[j+1].x-P[j].x);let dd=Math.abs(d2-d1);if(dd>Math.PI)dd=TAU-dd;if(dd>.4)vT=Math.min(vT,vBrake(acc-2,10.5));acc+=Math.hypot(P[j+1].x-P[j].x,P[j+1].z-P[j].z);}
+  if(Math.abs(da)>.9)vT=Math.min(vT,7);
   // red light at the next stop line ahead
-  for(let j=k+1;j<P.length;j++){const p=P[j];const dd=Math.hypot(p.x-c.pos.x,p.z-c.pos.z);if(dd>120)break;if(!p.stop)continue;
+  for(let j=k+1;j<P.length&&AP_SPD[AP.spd].lights;j++){const p=P[j];const dd=Math.hypot(p.x-c.pos.x,p.z-c.pos.z);if(dd>120)break;if(!p.stop)continue;
     const ahead=((p.x-c.pos.x)*Math.cos(c.yaw)+(p.z-c.pos.z)*Math.sin(c.yaw))>.5,st=lightAt(p.i,p.j,p.d%2);if(ahead&&st!=='g'&&!(st==='y'&&dd<9))vT=Math.min(vT,vBrake(dd-1.5,0));break;}
   // a car in our lane: fan-hop over it when the road ahead is straight, otherwise follow it
   const fx=Math.cos(c.yaw),fz=Math.sin(c.yaw);let blockAl=1e9;
@@ -2506,8 +2506,8 @@ function apDrive(o){const c=car,P=AP.pts;if(P.length<2){o.gas=0;o.brake=1;o.stee
   // arrival
   vT=Math.min(vT,vBrake(rem-.8,0));
   // very fast: help with the rear thrusters on the straights
-  o.boost=VMAX>30&&straight&&v<vT-4&&Math.abs(da)<.08?1:0;
-  if(v<vT-.4){o.gas=clamp((vT-v)*.35,.15,1);o.brake=0;}else if(v>vT+.6){o.gas=0;o.brake=clamp((v-vT)*.3,.1,1);}else{o.gas=.12;o.brake=0;}
+  o.boost=VMAX>20&&straight&&v<vT-3&&Math.abs(da)<.1?1:0;
+  if(v<vT-.4){o.gas=clamp((vT-v)*.5,.25,1);o.brake=0;}else if(v>vT+.6){o.gas=0;o.brake=clamp((v-vT)*.35,.1,1);}else{o.gas=.2;o.brake=0;}
   // exact parking: ease into the middle of the bay and square up with the bay
   if(AP.dest&&AP.dest.park&&rem<3&&v<3)AP.snap=true;
   if(AP.snap){o.gas=0;o.brake=1;o.steer=0;const d=AP.dest,ty=bayYaw(d,c.yaw);let dy=ty-c.yaw;while(dy>Math.PI)dy-=TAU;while(dy<-Math.PI)dy+=TAU;
@@ -2549,7 +2549,7 @@ function apInput(o){const human=keys.gas||keys.brake||keys.left||keys.right||tou
   if(AP.cargo)apCargoReplan(false);
   if(car.state==='apfly'){o.gas=o.brake=0;o.steer=0;return;}
   if(car.state==='freeAir'){o.assist=true;o.gas=o.brake=0;if(AP.hopT>0){AP.hopT-=1/240;o.lift=1;}
-    else{const hgt=car.pos.y-cityGroundAt(car.pos.x,car.pos.z);if(car.vel.y<-5&&hgt<3.5)o.lift=1;o.boost=AP_SPD[AP.spd].road>30?1:0;}return;}
+    else{const hgt=car.pos.y-cityGroundAt(car.pos.x,car.pos.z);if(car.vel.y<-5&&hgt<3.5)o.lift=1;}return;}
   if(AP.mode==='fly'&&AP.dest&&car.state==='free'&&!(AP.cargo&&Math.hypot(JOB.x-car.pos.x,JOB.z-car.pos.z)<6)&&!AP.arrived){car.state='apfly';AP.fp='up';car.vel.set(0,0,0);o.gas=o.brake=0;return;}
   if(!AP.dest){o.gas=0;o.brake=1;o.steer=0;return;}
   if(car.state==='free')apDrive(o);}
