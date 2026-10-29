@@ -185,6 +185,10 @@ body.tplay #guide{top:calc(env(safe-area-inset-top,0px) + 80px)}
 .gst i{height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden}.gst b{display:block;height:100%;background:linear-gradient(90deg,#5fc4ff,#6dffa6)}
 #garMsg{min-height:1.2em;color:#ffd34d}
 .card.mapcard{max-width:980px;width:100%;display:flex;flex-direction:column;gap:10px}
+.apopts{display:flex;gap:12px;align-items:center;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+.btn.cargo{border-color:#3dff8a;color:#9dffc3}.btn.cargo[hidden]{display:none}
+#navHud{position:fixed;left:max(16px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 92px);width:300px;height:188px;border-radius:6px;border:1px solid rgba(62,139,255,.6);box-shadow:0 6px 24px rgba(0,0,0,.45)}
+#navHud[hidden]{display:none}body.touch #navHud{width:208px;height:130px;top:calc(env(safe-area-inset-top,0px) + 84px)}
 .mapwrap{position:relative}#bigmap{width:100%;height:min(58vh,560px);display:block;border-radius:4px;background:#2b2e33;touch-action:manipulation;cursor:crosshair}
 .mapz{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px}.mapz button{width:40px;height:40px;border-radius:4px;border:1px solid var(--line);background:rgba(13,15,20,.85);font-size:22px;font-weight:700}
 #apTag{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 58px);display:flex;align-items:center;gap:10px;background:rgba(13,15,20,.82);border:1px solid #3e8bff;border-radius:3px;padding:6px 8px 6px 12px;font-size:12.5px;font-weight:600;pointer-events:auto}
@@ -262,6 +266,7 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
   <canvas id="mini" width="300" height="300" hidden aria-label="Şehir haritası"></canvas>
   <div id="big"><div id="bigT"></div><div id="bigS"></div></div>
   <div id="pops"></div>
+  <canvas id="navHud" width="640" height="400" hidden aria-label="Otopilot haritası"></canvas>
   <div id="apTag" hidden><span class="dot"></span><span id="apTxt">Otopilot</span><button type="button" id="apTagStop">Durdur</button></div>
   <div id="padTag" hidden></div>
   <div id="netTag" hidden><b>ODA <span id="netCode"></span></b> · <span id="netN"></span><div id="netList"></div></div>
@@ -383,9 +388,10 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
 <div id="mapov" class="overlay center" hidden>
   <div class="card mapcard">
     <div class="ghead"><div><div class="eyebrow">Otopilot</div><h3 id="mapTitle">Harita</h3></div><div class="seg" id="apMode"><button type="button" data-m="road" aria-pressed="true">Yoldan git</button><button type="button" data-m="fly" aria-pressed="false">Uçarak git</button></div></div>
+    <div class="apopts"><span>Hız</span><span class="seg" id="apSpeed"><button type="button" data-s="0">Yavaş</button><button type="button" data-s="1">Normal</button><button type="button" data-s="2">Hızlı</button><button type="button" data-s="3">Aşırı</button></span></div>
     <div class="mapwrap"><canvas id="bigmap" width="900" height="520" aria-label="Şehir haritası"></canvas><div class="mapz"><button type="button" id="mapZin" aria-label="Yakınlaş">+</button><button type="button" id="mapZout" aria-label="Uzaklaş">−</button></div></div>
     <p class="fine" id="mapMsg"></p>
-    <div class="row"><button class="btn primary" type="button" id="apGo">Otopilotu başlat</button><button class="btn" type="button" id="apStop">Durdur</button><button class="btn" type="button" id="mapClose">Kapat</button></div>
+    <div class="row"><button class="btn primary" type="button" id="apGo">Otopilotu başlat</button><button class="btn cargo" type="button" id="apCargo">Teslimatları otomatik yap</button><button class="btn" type="button" id="apStop">Durdur</button><button class="btn" type="button" id="mapClose">Kapat</button></div>
   </div>
 </div>
 
@@ -1807,6 +1813,9 @@ const GHOSTS={};for(const m of ['rampa','atlama','gosteri']){const g=store.get('
 const S={cargo:false,phase:'loading',ui:'menu',mode:'gosteri',auto:false,autoSeq:0,attempt:0,t:0,score:0,items:[],st:null,count:0,lastCount:0,doneT:0,camMode:0,side:false,slow:false,shake:0,
   frames:[],events:[],replay:null,bot:{hangT:1.5,hopX:-87},ghostI:0,menuDemo:false,endT:0};
 const keys={},touchK={};
+// keep the phone screen on while the game is open (Screen Wake Lock)
+let WAKE=null;async function wakeOn(){try{if('wakeLock' in navigator&&!WAKE&&document.visibilityState==='visible'){WAKE=await navigator.wakeLock.request('screen');WAKE.addEventListener('release',()=>{WAKE=null;});}}catch(_){}}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')wakeOn();});addEventListener('pointerdown',wakeOn);addEventListener('keydown',wakeOn);wakeOn();
 /* ================= GAMEPAD (Xbox / PlayStation / standard mapping) ================= */
 // RT gas · LT brake/reverse · A jump · B front thruster · X boost · Y fan · LB/RB spin in the air
 // left stick steer / roll / pitch · right stick spin · D-pad ↑ slow motion ↓ horn ← side view → restart · View camera · Start menu
@@ -2394,13 +2403,13 @@ const CAM_NAMES=['Kamera: otomatik','Kamera: takip','Kamera: yan','Kamera: iç k
 function setCamMode(m){S.camMode=m;S.side=m===2;$('bSide').setAttribute('aria-pressed',String(S.side));$('bCab').setAttribute('aria-pressed',String(m===3));$('bFpv').setAttribute('aria-pressed',String(m>=4));FPV.init=false;pop(CAM_NAMES[m]);snapCam=true;}
 const fpvFree=()=>S.camMode===5&&S.mode==='serbest'&&!S.menuDemo&&S.phase!=='replay';
 function fpvTarget(dPos,dLook,dUp){const c=car,p=c.pos,dt=Math.min(camDt||.016,.05),t=performance.now()/1000;
-  if(!FPV.init){FPV.init=true;FPV.pos.copy(camera.position);FPV.vel.set(0,0,0);FPV.yaw=Math.atan2(p.z-FPV.pos.z,p.x-FPV.pos.x);FPV.roll=0;}
+  if(!FPV.init){FPV.init=true;const hd=c.state==='free'?c.yaw:Math.atan2(c.vel.z,c.vel.x)||0;if(S.camMode===4){FPV.pos.set(p.x-Math.cos(hd)*7,p.y+2,p.z-Math.sin(hd)*7);FPV.vel.copy(c.vel);}else{FPV.pos.copy(camera.position);FPV.vel.set(0,0,0);}FPV.yaw=Math.atan2(p.z-FPV.pos.z,p.x-FPV.pos.x);FPV.roll=0;}
   if(S.camMode===4){// chase drone: springs to a point behind the car, banks into its own turns, swoops lower when fast
     const sp=Math.hypot(c.vel.x,c.vel.z),hd=sp>3?Math.atan2(c.vel.z,c.vel.x):(c.state==='free'?c.yaw:FPV.yaw),back=6+sp*.09,h=1.6+Math.sin(t*.6)*.6+(c.state==='freeAir'||c.state==='air'?1.5:0);
     const tx=p.x-Math.cos(hd)*back+Math.sin(t*.37)*1.8*-Math.sin(hd),tz=p.z-Math.sin(hd)*back+Math.sin(t*.37)*1.8*Math.cos(hd),ty=Math.max(.7,p.y+h);
     const ax=(tx-FPV.pos.x)*12+(c.vel.x-FPV.vel.x)*5,ay=(ty-FPV.pos.y)*12+((c.vel.y||0)-FPV.vel.y)*5,az=(tz-FPV.pos.z)*12+(c.vel.z-FPV.vel.z)*5;
     FPV.vel.x+=ax*dt;FPV.vel.y+=ay*dt;FPV.vel.z+=az*dt;FPV.pos.addScaledVector(FPV.vel,dt);
-    const fx=Math.cos(FPV.yaw),fz=Math.sin(FPV.yaw),lat=-ax*fz+az*fx;FPV.roll+=(clamp(-lat*.006,-.55,.55)-FPV.roll)*Math.min(1,dt*4);
+    const fx=Math.cos(FPV.yaw),fz=Math.sin(FPV.yaw),lat=-ax*fz+az*fx;FPV.roll+=(clamp(-lat*.004,-.32,.32)-FPV.roll)*Math.min(1,dt*3);
     FPV.yaw=Math.atan2(p.z+c.vel.z*.3-FPV.pos.z,p.x+c.vel.x*.3-FPV.pos.x);
     dPos.copy(FPV.pos);dLook.set(p.x+c.vel.x*.25,p.y+.7,p.z+c.vel.z*.25);}
   else{// free flight: W/S or RT/LT throttle, A/D or stick turn, Space up, Shift down
@@ -2421,7 +2430,8 @@ function applyLoadout(){const lo=curLo(),m=lo.motor,a=lo.air,mo=lo.veh==='moto',
   const want=CARS[lo.veh];if(CAR!==want){CAR.g.visible=false;CAR=want;}CAR.g.visible=true;
   CAR.paint.color.setHex(lo.paint);CAR.bump[0].visible=lo.bumper===1;CAR.bump[1].visible=lo.bumper===2;CAR.pkg.visible=!!(S.cargo&&JOB.st==='drop');}
 /* ================= AUTOPILOT (free drive + courier): route on the street grid or fly over the city ================= */
-const AP={on:false,mode:'road',cargo:false,dest:null,pts:[],k:0,fp:'',key:'',arrived:false,stopT:0,label:''};
+const AP_SPD=[{n:'Yavaş',road:11,fly:28},{n:'Normal',road:17,fly:50},{n:'Hızlı',road:28,fly:85},{n:'Aşırı',road:46,fly:150}];
+const AP={spd:1,hopT:0,hopCD:0,snap:false,on:false,mode:'road',cargo:false,dest:null,pts:[],k:0,fp:'',key:'',arrived:false,stopT:0,label:''};
 const AP_LANE=5.2,AP_ALT=118;
 const nodeKey=(i,j)=>i+','+j;
 function apRoute(si,sj,ti,tj){// BFS over intersections, closed segments skipped
@@ -2437,7 +2447,7 @@ function apDestFromPoint(x,z){const i=CITY.ci(x),j=CITY.cj(z),fi=Math.round((x-C
   if(dh<=dv){const ii=CITY.ci(x);d={v:0,i:ii,j:fj,sg:Math.sign(z-CITY.nz(fj))||1};d.x=clamp(x,CITY.nx(ii)+CITY.HW+6,CITY.nx(ii+1)-CITY.HW-6);d.z=CITY.nz(fj)+d.sg*AP_LANE;}
   else{const jj=CITY.cj(z);d={v:1,i:fi,j:jj,sg:Math.sign(x-CITY.nx(fi))||1};d.z=clamp(z,CITY.nz(jj)+CITY.HW+6,CITY.nz(jj+1)-CITY.HW-6);d.x=CITY.nx(fi)+d.sg*AP_LANE;}
   if(CITY.closedE(d.i,d.j,d.v))return null;return d;}
-function apPlan(dest){const c=car;if(!dest)return false;AP.dest=dest;AP.k=0;AP.arrived=false;AP.stopT=0;
+function apPlan(dest){const c=car;if(!dest)return false;AP.dest=dest;AP.k=0;AP.arrived=false;AP.stopT=0;AP.snap=false;AP.hopT=0;
   if(AP.mode==='fly'){AP.pts=[{x:c.pos.x,z:c.pos.z},{x:dest.x,z:dest.z}];AP.fp=c.state==='apfly'?'cruise':'up';if(c.state==='free'){c.state='apfly';c.vel.set(0,0,0);}return true;}
   // start: the intersection ahead on the road we are on (or the nearest one)
   const fx=Math.cos(c.yaw),fz=Math.sin(c.yaw),fi=Math.round((c.pos.x-CITY.nx(0))/CITY.B),fj=Math.round((c.pos.z-CITY.nz(0))/CITY.B);
@@ -2468,42 +2478,74 @@ function apDrive(o){const c=car,P=AP.pts;if(P.length<2){o.gas=0;o.brake=1;o.stee
     while(true){if(need<=left){px=cx+(P[q].x-cx)*(need/left||0);pz=cz+(P[q].z-cz)*(need/left||0);break;}need-=left;if(q>=P.length-1){px=P[q].x;pz=P[q].z;break;}cx=P[q].x;cz=P[q].z;left=Math.hypot(P[q+1].x-cx,P[q+1].z-cz);q++;}
     rem=L*(1-t);for(let j=k+1;j<P.length-1;j++)rem+=Math.hypot(P[j+1].x-P[j].x,P[j+1].z-P[j].z);}
   let da=Math.atan2(pz-c.pos.z,px-c.pos.x)-c.yaw;while(da>Math.PI)da-=TAU;while(da<-Math.PI)da+=TAU;
-  o.steer=clamp(da*2.1,-1,1);let vT=AP.cargo?17:15;
+  o.steer=clamp(da*(v>25?1.5:2.1),-1,1);const VMAX=AP_SPD[AP.spd].road;let vT=VMAX;
+  const vBrake=(d,end=6)=>Math.sqrt(end*end+2*9*Math.max(0,d));// speed we can still shed in d metres
   // corners ahead
-  for(let j=k+1,acc=Math.hypot(P[k+1].x-c.pos.x,P[k+1].z-c.pos.z);j<P.length-1&&acc<40;j++){const d1=Math.atan2(P[j].z-P[j-1].z,P[j].x-P[j-1].x),d2=Math.atan2(P[j+1].z-P[j].z,P[j+1].x-P[j].x);let dd=Math.abs(d2-d1);if(dd>Math.PI)dd=TAU-dd;if(dd>.4)vT=Math.min(vT,6.5+acc*.32);acc+=Math.hypot(P[j+1].x-P[j].x,P[j+1].z-P[j].z);}
+  for(let j=k+1,acc=Math.hypot(P[k+1].x-c.pos.x,P[k+1].z-c.pos.z);j<P.length-1&&acc<120;j++){const d1=Math.atan2(P[j].z-P[j-1].z,P[j].x-P[j-1].x),d2=Math.atan2(P[j+1].z-P[j].z,P[j+1].x-P[j].x);let dd=Math.abs(d2-d1);if(dd>Math.PI)dd=TAU-dd;if(dd>.4)vT=Math.min(vT,vBrake(acc,7));acc+=Math.hypot(P[j+1].x-P[j].x,P[j+1].z-P[j].z);}
   if(Math.abs(da)>.9)vT=Math.min(vT,5);
   // red light at the next stop line ahead
-  for(let j=k+1;j<P.length;j++){const p=P[j];const dd=Math.hypot(p.x-c.pos.x,p.z-c.pos.z);if(dd>34)break;if(!p.stop)continue;
-    const ahead=((p.x-c.pos.x)*Math.cos(c.yaw)+(p.z-c.pos.z)*Math.sin(c.yaw))>.5,st=lightAt(p.i,p.j,p.d%2);if(ahead&&st!=='g'&&!(st==='y'&&dd<9))vT=Math.min(vT,Math.max(0,(dd-1.5)*.5));break;}
-  // traffic and police in front of us
-  const fx=Math.cos(c.yaw),fz=Math.sin(c.yaw);for(const a of TRAF.cars){if((a.y||0)>1.5)continue;const rx=a.x-c.pos.x,rz=a.z-c.pos.z,al=rx*fx+rz*fz;if(al>0&&al<20&&Math.abs(-rx*fz+rz*fx)<2.3)vT=Math.min(vT,Math.max(0,(al-6.5)*.9));}
+  for(let j=k+1;j<P.length;j++){const p=P[j];const dd=Math.hypot(p.x-c.pos.x,p.z-c.pos.z);if(dd>120)break;if(!p.stop)continue;
+    const ahead=((p.x-c.pos.x)*Math.cos(c.yaw)+(p.z-c.pos.z)*Math.sin(c.yaw))>.5,st=lightAt(p.i,p.j,p.d%2);if(ahead&&st!=='g'&&!(st==='y'&&dd<9))vT=Math.min(vT,vBrake(dd-1.5,0));break;}
+  // a car in our lane: fan-hop over it when the road ahead is straight, otherwise follow it
+  const fx=Math.cos(c.yaw),fz=Math.sin(c.yaw);let blockAl=1e9;
+  for(const a of TRAF.cars){if((a.y||0)>1.5)continue;const rx=a.x-c.pos.x,rz=a.z-c.pos.z,al=rx*fx+rz*fz;if(al>0&&al<40&&Math.abs(-rx*fz+rz*fx)<2.4)blockAl=Math.min(blockAl,al);}
+  let straight=true;for(let j=k+1,acc=Math.hypot(P[k+1].x-c.pos.x,P[k+1].z-c.pos.z);j<P.length-1&&acc<v*1.8+12;j++){const d1=Math.atan2(P[j].z-P[j-1].z,P[j].x-P[j-1].x),d2=Math.atan2(P[j+1].z-P[j].z,P[j+1].x-P[j].x);let dd=Math.abs(d2-d1);if(dd>Math.PI)dd=TAU-dd;if(dd>.3){straight=false;break;}acc+=Math.hypot(P[j+1].x-P[j].x,P[j+1].z-P[j].z);}
+  if(blockAl<40){const hopAt=6+v*.55;if(straight&&v>6&&rem>v*2+25&&AP.hopCD<=0&&blockAl<hopAt+4&&blockAl>3&&Math.abs(da)<.25){AP.hopT=.32+Math.min(.25,v*.006);AP.hopCD=2.2;o.lift=1;}
+    else if(!(straight&&rem>v*2+25))vT=Math.min(vT,Math.max(0,(blockAl-6.5)*.9));}
   // arrival
-  vT=Math.min(vT,Math.max(0,(rem-.6)*.7));
-  if(rem<4&&AP.dest&&AP.dest.park&&v<3){const ax=AP.dest.v?(Math.sin(c.yaw)>=0?Math.PI/2:-Math.PI/2):(Math.cos(c.yaw)>=0?0:Math.PI);let dy=ax-c.yaw;while(dy>Math.PI)dy-=TAU;while(dy<-Math.PI)dy+=TAU;c.yaw+=dy*.015;}
+  vT=Math.min(vT,vBrake(rem-.8,0));
+  // very fast: help with the rear thrusters on the straights
+  o.boost=VMAX>30&&straight&&v<vT-4&&Math.abs(da)<.08?1:0;
   if(v<vT-.4){o.gas=clamp((vT-v)*.35,.15,1);o.brake=0;}else if(v>vT+.6){o.gas=0;o.brake=clamp((v-vT)*.3,.1,1);}else{o.gas=.12;o.brake=0;}
+  // exact parking: ease into the middle of the bay and square up with the bay
+  if(AP.dest&&AP.dest.park&&rem<3&&v<3)AP.snap=true;
+  if(AP.snap){o.gas=0;o.brake=1;o.steer=0;const d=AP.dest,ty=bayYaw(d,c.yaw);let dy=ty-c.yaw;while(dy>Math.PI)dy-=TAU;while(dy<-Math.PI)dy+=TAU;
+    c.yaw+=clamp(dy,-.6/240,.6/240);c.pos.x+=clamp(d.x-c.pos.x,-1.2/240,1.2/240);c.pos.z+=clamp(d.z-c.pos.z,-1.2/240,1.2/240);c.vel.multiplyScalar(.9);
+    if(Math.abs(dy)<.004&&Math.hypot(d.x-c.pos.x,d.z-c.pos.z)<.03&&!AP.arrived){c.yaw=ty;c.pos.x=d.x;c.pos.z=d.z;c.vel.set(0,0,0);c.v=0;AP.arrived=true;apArrived();}return;}
   if(rem<1.2&&v<.8){o.gas=0;o.brake=1;AP.stopT+=1/240;if(!AP.arrived&&AP.stopT>.25){AP.arrived=true;apArrived();}}}
+// the bay's long axis, facing whichever way is closer to how the car already points
+function bayYaw(d,cur){const base=d.v?Math.PI/2:0;let a=base,b=base+Math.PI;const da=Math.abs(((a-cur)%TAU+3*Math.PI)%TAU-Math.PI),db=Math.abs(((b-cur)%TAU+3*Math.PI)%TAU-Math.PI);return da<=db?a:b;}
+function landYaw(d,cur){if(d.park)return bayYaw(d,cur);const hz=d.v===0;return hz?(d.sg>0?0:Math.PI):(d.sg<0?Math.PI/2:-Math.PI/2);}
 function apArrived(){if(AP.cargo)return;const park=AP.dest&&AP.dest.park;bigMsg(park?'PARK EDİLDİ':'VARDIN',park?'Otopilot arabayı park yerine bıraktı':'Otopilot hedefe ulaştı',1800);sfx('chime');apStop();}
 // flight: climb above the rooftops, cruise, hover over the target, come straight down
-function apFlyStep(c,h,inp){const d=AP.dest;if(!d){c.vel.multiplyScalar(.98);}
-  const gy=cityGroundAt(c.pos.x,c.pos.z),dx=d?d.x-c.pos.x:0,dz=d?d.z-c.pos.z:0,dist=Math.hypot(dx,dz),hv=Math.hypot(c.vel.x,c.vel.z);let tvx=0,tvz=0,tvy=0;
-  if(AP.fp==='up'){tvy=14;if(c.pos.y>AP_ALT-6)AP.fp='cruise';}
-  else if(AP.fp==='cruise'){const sp=Math.min(48,Math.sqrt(Math.max(0,dist-4)*2*7));tvx=dx/(dist||1)*sp;tvz=dz/(dist||1)*sp;tvy=(AP_ALT-c.pos.y)*1.2;if(dist<4&&hv<3)AP.fp='down';}
-  else if(AP.fp==='down'){tvx=dx*1.2;tvz=dz*1.2;const hgt=c.pos.y-gy;tvy=-clamp(hgt*.45,1.2,16);
-    if(hgt<.05){c.pos.y=gy;c.state='free';c.vel.set(0,0,0);c.v=0;c.w.set(0,0,0);basisQuat(c.q,_va.set(Math.cos(c.yaw),0,Math.sin(c.yaw)),AY);if(AP.cargo){AP.fp='';}else apArrived();return;}}
-  const k=Math.min(1,h*1.8);c.vel.x+=(tvx-c.vel.x)*k;c.vel.z+=(tvz-c.vel.z)*k;c.vel.y+=(tvy-c.vel.y)*Math.min(1,h*3);
-  c.pos.addScaledVector(c.vel,h);if(c.pos.y<gy)c.pos.y=gy;
-  if(hv>2){let dy=Math.atan2(c.vel.z,c.vel.x)-c.yaw;while(dy>Math.PI)dy-=TAU;while(dy<-Math.PI)dy+=TAU;c.yaw+=dy*Math.min(1,h*2.5);}
-  c.v=hv;c.lifting=AP.fp!=='cruise'||c.vel.y>2;c.boosting=AP.fp==='cruise'&&hv<44&&dist>30;c.fanOn=true;c.gLoad=1;c.N=G;
-  basisQuat(c.q,_va.set(Math.cos(c.yaw),0,Math.sin(c.yaw)),AY);const pitch=AP.fp==='cruise'?-clamp((48-hv)*.004+.05,0,.14):0,bank=0;if(pitch){_qa.setFromAxisAngle(AZ,pitch);c.q.multiply(_qa);}}
+function apFlyStep(c,h,inp){const d=AP.dest;
+  const gy=cityGroundAt(c.pos.x,c.pos.z),dx=d?d.x-c.pos.x:0,dz=d?d.z-c.pos.z:0,dist=Math.hypot(dx,dz),hv=Math.hypot(c.vel.x,c.vel.z),VF=AP_SPD[AP.spd].fly,ALT=AP_ALT+(AP.spd>2?20:0);
+  let tvx=0,tvz=0,tvy=0,yawT=null;
+  if(AP.fp==='up'){tvy=16;const f=Math.min(6,dist*.1);tvx=dx/(dist||1)*f;tvz=dz/(dist||1)*f;if(c.pos.y>ALT-8)AP.fp='cruise';}
+  else if(AP.fp==='cruise'){const sp=Math.min(VF,Math.sqrt(Math.max(0,dist-3)*2*(VF>90?11:7)));tvx=dx/(dist||1)*sp;tvz=dz/(dist||1)*sp;tvy=(ALT-c.pos.y)*1.2;if(dist<3&&hv<2.5)AP.fp=d?'align':'cruise';}
+  else if(AP.fp==='align'){tvx=dx*1.5;tvz=dz*1.5;tvy=(ALT*.35+gy-c.pos.y)*.8;yawT=landYaw(d,c.yaw);}
+  else if(AP.fp==='down'){tvx=dx*2;tvz=dz*2;const hgt=c.pos.y-gy;tvy=-clamp(hgt*.5,1,18);yawT=landYaw(d,c.yaw);
+    if(hgt<.04){c.pos.set(d.x,gy,d.z);c.yaw=yawT;c.state='free';c.vel.set(0,0,0);c.v=0;c.w.set(0,0,0);c.apRoll=c.apPitch=0;basisQuat(c.q,_va.set(Math.cos(c.yaw),0,Math.sin(c.yaw)),AY);if(AP.cargo){AP.fp='';}else apArrived();return;}}
+  // accelerations are limited so it flies like a thruster car, not a camera on a rail
+  const amax=VF>90?22:13,ax=clamp((tvx-c.vel.x)*1.6,-amax,amax),az=clamp((tvz-c.vel.z)*1.6,-amax,amax),ay=clamp((tvy-c.vel.y)*2.2,-14,14);
+  c.vel.x+=ax*h;c.vel.z+=az*h;c.vel.y+=ay*h;c.pos.addScaledVector(c.vel,h);if(c.pos.y<gy)c.pos.y=gy;
+  let yr=0;
+  if(yawT!==null){let dy=yawT-c.yaw;while(dy>Math.PI)dy-=TAU;while(dy<-Math.PI)dy+=TAU;yr=clamp(dy*2,-1.3,1.3);c.yaw+=yr*h;
+    if(AP.fp==='align'&&Math.abs(dy)<.01&&dist<.6&&hv<.8)AP.fp='down';
+    if(Math.abs(yr)>.05&&Math.random()<.12){const s=Math.sign(yr),fw=_vb.set(Math.cos(c.yaw),0,Math.sin(c.yaw)),rt=_vc.set(-fw.z,0,fw.x);// yaw jets (like Q/E)
+      for(const e of [1,-1])emit(c.pos.x+fw.x*2*e+rt.x*s*e*.9,c.pos.y+.6,c.pos.z+fw.z*2*e+rt.z*s*e*.9,rt.x*s*e*7,0,rt.z*s*e*7,.35,.5,.55,.6,.35,0,2.2);}}
+  else if(hv>2){let dy=Math.atan2(c.vel.z,c.vel.x)-c.yaw;while(dy>Math.PI)dy-=TAU;while(dy<-Math.PI)dy+=TAU;yr=clamp(dy*2.5,-1.6,1.6);c.yaw+=yr*h;}
+  c.v=hv;c.fanOn=true;c.gLoad=1;c.N=G;
+  // jets: lift thrusters always carry the car, rear thrusters push while it gathers or holds speed, front ones brake
+  const fwd=ax*Math.cos(c.yaw)+az*Math.sin(c.yaw);c.lifting=true;c.boosting=fwd>1.5||(AP.fp==='cruise'&&hv>VF*.5&&dist>40);c.retro=fwd<-3;
+  c.apPitch=(c.apPitch||0)+((AP.fp==='up'?.07:0)-clamp(fwd*.012,-.12,.16)-(c.apPitch||0))*Math.min(1,h*3);
+  c.apRoll=(c.apRoll||0)+(clamp(-yr*hv*.012,-.45,.45)-(c.apRoll||0))*Math.min(1,h*3);
+  const t=performance.now()/1000;basisQuat(c.q,_va.set(Math.cos(c.yaw),0,Math.sin(c.yaw)),AY);
+  _qa.setFromAxisAngle(AZ,c.apPitch+Math.sin(t*1.7)*.008);c.q.multiply(_qa);_qa.setFromAxisAngle(AX,c.apRoll+Math.sin(t*1.3)*.01);c.q.multiply(_qa);}
 function apInput(o){const human=keys.gas||keys.brake||keys.left||keys.right||touchK.gas||touchK.brake||touchK.left||touchK.right||padK.gas||padK.brake||(PAD.on&&Math.abs(PAD.lx)>.5);
   if(human&&car.state!=='apfly'){apStop('Kontrol sende');return;}
+  AP.hopCD-=1/240;
   if(AP.cargo)apCargoReplan(false);
   if(car.state==='apfly'){o.gas=o.brake=0;o.steer=0;return;}
+  if(car.state==='freeAir'){o.assist=true;o.gas=o.brake=0;if(AP.hopT>0){AP.hopT-=1/240;o.lift=1;}
+    else{const hgt=car.pos.y-cityGroundAt(car.pos.x,car.pos.z);if(car.vel.y<-5&&hgt<3.5)o.lift=1;o.boost=AP_SPD[AP.spd].road>30?1:0;}return;}
   if(AP.mode==='fly'&&AP.dest&&car.state==='free'&&!(AP.cargo&&Math.hypot(JOB.x-car.pos.x,JOB.z-car.pos.z)<6)&&!AP.arrived){car.state='apfly';AP.fp='up';car.vel.set(0,0,0);o.gas=o.brake=0;return;}
   if(!AP.dest){o.gas=0;o.brake=1;o.steer=0;return;}
   if(car.state==='free')apDrive(o);}
-function apHud(){if(!AP.on)return;const c=car,d=AP.dest;const dist=d?Math.hypot(d.x-c.pos.x,d.z-c.pos.z):0;
-  $('apTxt').textContent=(AP.cargo?'Kurye otopilotu':'Otopilot')+' · '+(AP.mode==='fly'?'uçarak':'yoldan')+(d?' · '+Math.round(dist)+' m':' · sipariş bekleniyor');}
+function apHud(){const show=AP.on&&!inCab()&&S.mode==='serbest'&&!S.menuDemo&&!SET.hide;$('navHud').hidden=!show;$('mini').style.visibility=show?'hidden':'';
+  if(show){AP.navT=(AP.navT||0)-(camDt||.016);if(AP.navT<=0){AP.navT=.1;drawNavScreen($('navHud').getContext('2d'),640,400);}}
+  if(!AP.on)return;const c=car,d=AP.dest;const dist=d?Math.hypot(d.x-c.pos.x,d.z-c.pos.z):0;
+  $('apTxt').textContent=(AP.cargo?'Kurye otopilotu':'Otopilot')+' · '+(AP.mode==='fly'?'uçarak':'yoldan')+' · '+AP_SPD[AP.spd].n.toLowerCase()+(d?' · '+Math.round(dist)+' m':' · sipariş bekleniyor');}
 /* ---- big map overlay ---- */
 const MAPV={scale:1.1,cx:0,cz:0,mode:'road',pick:null};
 function mapW2S(x,z,W,H){return [W/2+(x-MAPV.cx)*MAPV.scale,H/2+(z-MAPV.cz)*MAPV.scale];}
@@ -2519,17 +2561,21 @@ function drawBigMap(){const cv=$('bigmap'),x=cv.getContext('2d'),W=cv.width,H=cv
   const pk=MAPV.pick;if(pk){const [u,v]=mapW2S(pk.x,pk.z,W,H);x.fillStyle='#ff3b5c';x.beginPath();x.arc(u,v-12,9,Math.PI,0);x.lineTo(u,v);x.closePath();x.fill();x.fillStyle='#fff';x.beginPath();x.arc(u,v-12,3.5,0,TAU);x.fill();}
   const [cu,cv2]=mapW2S(car.pos.x,car.pos.z,W,H);x.save();x.translate(cu,cv2);x.rotate(car.yaw);x.fillStyle='#e3263b';x.strokeStyle='#fff';x.lineWidth=2;x.beginPath();x.moveTo(12,0);x.lineTo(-8,8);x.lineTo(-4,0);x.lineTo(-8,-8);x.closePath();x.fill();x.stroke();x.restore();}
 function openMap(){MAPV.cx=car.pos.x;MAPV.cz=car.pos.z;MAPV.pick=AP.on&&!AP.cargo?AP.dest:null;$('mapTitle').textContent=S.cargo?'Kurye otopilotu':'Otopilot · harita';
-  $('mapMsg').textContent=S.cargo?'Kurye otopilotu siparişe kendi gider, paketi alır, teslim eder ve sıradaki işe geçer.':'Gitmek istediğin yere dokun. Mavi P’ye dokunursan oraya park eder.';
+  $('mapMsg').textContent=S.cargo?'Haritada bir yere dokunup oraya gidebilir ya da “Teslimatları otomatik yap” ile siparişleri otopilota bırakabilirsin.':'Gitmek istediğin yere dokun. Mavi P’ye dokunursan oraya park eder.';$('apCargo').hidden=!S.cargo;
+  document.querySelectorAll('#apSpeed button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.s===AP.spd)));
   document.querySelectorAll('#apMode button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.m===MAPV.mode)));$('apStop').hidden=!AP.on;
   const cv=$('bigmap'),r=cv.getBoundingClientRect;openOverlay('map');requestAnimationFrame(()=>{const bb=cv.getBoundingClientRect();cv.width=Math.max(300,Math.round(bb.width));cv.height=Math.max(200,Math.round(bb.height));drawBigMap();});}
-$('bigmap').addEventListener('click',e=>{if(S.cargo)return;const cv=$('bigmap'),bb=cv.getBoundingClientRect(),u=(e.clientX-bb.left)*cv.width/bb.width,v=(e.clientY-bb.top)*cv.height/bb.height,wx=MAPV.cx+(u-cv.width/2)/MAPV.scale,wz=MAPV.cz+(v-cv.height/2)/MAPV.scale;
+$('bigmap').addEventListener('click',e=>{const cv=$('bigmap'),bb=cv.getBoundingClientRect(),u=(e.clientX-bb.left)*cv.width/bb.width,v=(e.clientY-bb.top)*cv.height/bb.height,wx=MAPV.cx+(u-cv.width/2)/MAPV.scale,wz=MAPV.cz+(v-cv.height/2)/MAPV.scale;
   let best=null,bd=28/MAPV.scale*2.2;for(const p of MAPV.spots||[]){const d=Math.hypot(p.x-wx,p.z-wz);if(d<bd){bd=d;best=p;}}
   if(best){MAPV.pick={x:best.x,z:best.z,v:best.v,i:best.i,j:best.j,sg:best.sg,park:true};$('mapMsg').textContent='Park yeri seçildi. “Otopilotu başlat”a bas.';}
   else{const d=apDestFromPoint(wx,wz);if(!d){$('mapMsg').textContent='Orası kapalı yol. Başka yere dokun.';return;}MAPV.pick=d;$('mapMsg').textContent='Hedef seçildi (yol kenarı). “Otopilotu başlat”a bas.';}
   drawBigMap();});
 document.querySelectorAll('#apMode button').forEach(b=>b.addEventListener('click',()=>{MAPV.mode=b.dataset.m;document.querySelectorAll('#apMode button').forEach(q=>q.setAttribute('aria-pressed',String(q===b)));}));
 $('mapZin').addEventListener('click',()=>{MAPV.scale=Math.min(4,MAPV.scale*1.4);drawBigMap();});$('mapZout').addEventListener('click',()=>{MAPV.scale=Math.max(.35,MAPV.scale/1.4);drawBigMap();});
-$('apGo').addEventListener('click',()=>{if(!S.cargo&&!MAPV.pick){$('mapMsg').textContent='Önce haritada bir yere dokun.';return;}if(AP.on)apStop();closeOverlay();apStart(MAPV.mode,S.cargo,MAPV.pick);});
+$('apGo').addEventListener('click',()=>{if(!MAPV.pick){$('mapMsg').textContent=S.cargo?'Önce haritada bir yere dokun ya da “Teslimatları otomatik yap”a bas.':'Önce haritada bir yere dokun.';return;}if(AP.on)apStop();closeOverlay();apStart(MAPV.mode,false,MAPV.pick);});
+$('apCargo').addEventListener('click',()=>{if(AP.on)apStop();closeOverlay();apStart(MAPV.mode,true,null);});
+document.querySelectorAll('#apSpeed button').forEach(b=>b.addEventListener('click',()=>{AP.spd=+b.dataset.s;SET.apSpd=AP.spd;saveSet();document.querySelectorAll('#apSpeed button').forEach(q=>q.setAttribute('aria-pressed',String(q===b)));}));
+AP.spd=clamp(SET.apSpd??1,0,3);
 $('apStop').addEventListener('click',()=>{apStop('Otopilot kapandı');closeOverlay();});$('mapClose').addEventListener('click',()=>closeOverlay());
 $('apTagStop').addEventListener('click',()=>apStop('Otopilot kapandı'));
 /* ================= COCKPIT: driver's-eye view with a working centre screen ================= */
