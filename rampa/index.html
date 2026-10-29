@@ -339,7 +339,7 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
     <div class="keys pad">
       <span><kbd>RT</kbd>Gaz</span><span><kbd>LT</kbd>Fren / geri</span><span><kbd>Sol çubuk</kbd>Direksiyon · havada takla</span><span><kbd>A</kbd>Zıpla</span>
       <span><kbd>B</kbd>Ön itici</span><span><kbd>X</kbd>İtici</span><span><kbd>Y</kbd>Fan</span><span><kbd>LB</kbd><kbd>RB</kbd>Havada dönüş</span>
-      <span><kbd>↑</kbd>Ağır çekim <kbd>↓</kbd>Korna</span><span><kbd>←</kbd>Yan görünüş <kbd>→</kbd>Yeniden</span><span><kbd>View</kbd>Kamera <kbd>Start</kbd>Menü</span><span>Menülerde: çubuk/ok ile seç, <kbd>A</kbd> tamam, <kbd>B</kbd> geri</span>
+      <span><kbd>↑</kbd>Ağır çekim <kbd>↓</kbd>Korna</span><span><kbd>←</kbd>Yan görünüş <kbd>→</kbd>Yeniden</span><span><kbd>View</kbd>Kamera <kbd>Start</kbd>Oyun menüsü</span><span><kbd>R3</kbd>(sağ çubuğa bas) Otopilot haritası</span><span><kbd>L3</kbd>(sol çubuğa bas) FPV drone</span><span>Haritada: sol çubuk imleç, <kbd>A</kbd> seç, <kbd>X</kbd> başlat, <kbd>Y</kbd> teslimatlar, <kbd>LB</kbd>/<kbd>RB</kbd> yoldan/uçarak, <kbd>←</kbd><kbd>→</kbd> hız, <kbd>LT</kbd>/<kbd>RT</kbd> yakınlaş, <kbd>B</kbd> kapat</span><span>Menülerde: çubuk/ok ile seç, <kbd>A</kbd> tamam, <kbd>B</kbd> geri</span>
     </div>
     <div class="row"><button class="btn primary" type="button" id="bHowOk">Anladım</button></div>
   </div>
@@ -1840,7 +1840,17 @@ function pollPad(dt){
   PAD.on=true;const b=n=>{const q=g.buttons[n];return q?(typeof q==='object'?q.value:q):0;},hit=n=>b(n)>.5&&!(PAD.prev[n]>.5);
   const ax=g.axes||[];PAD.lx=dz(ax[0]||0);PAD.ly=dz(ax[1]||0);PAD.rx=dz(ax[2]||0);PAD.gas=b(PB.RT);PAD.brake=b(PB.LT);
   const inGame=S.ui==='play'&&!S.menuDemo;
-  if(!inGame){for(const k in padK)padK[k]=0;
+  if(S.ui==='map'){for(const k in padK)padK[k]=0;// autopilot map: stick = cursor, A = pick, X = start, Y = courier, B = close, LB/RB = road/fly, ←/→ speed, LT/RT zoom
+    const cv=$('bigmap');if(!MAPV.cur)MAPV.cur={u:cv.width/2,v:cv.height/2};const q=MAPV.cur,sp=520*dt;let moved=false;
+    if(PAD.lx||PAD.ly){q.u=clamp(q.u+PAD.lx*sp,0,cv.width);q.v=clamp(q.v+PAD.ly*sp,0,cv.height);moved=true;}
+    if(PAD.rx||Math.abs(dz(ax[3]||0))>0){MAPV.cx+=PAD.rx*sp/MAPV.scale;MAPV.cz+=dz(ax[3]||0)*sp/MAPV.scale;moved=true;}
+    if(PAD.gas>.3){MAPV.scale=Math.min(4,MAPV.scale*(1+dt*1.5));moved=true;}if(PAD.brake>.3){MAPV.scale=Math.max(.35,MAPV.scale/(1+dt*1.5));moved=true;}
+    if(hit(PB.A))mapPickAt(q.u,q.v);
+    if(hit(PB.X))$('apGo').click();if(hit(PB.Y)&&S.cargo)$('apCargo').click();if(hit(PB.B)||hit(PB.START))closeOverlay();
+    if(hit(PB.LB)||hit(PB.RB)){const b=document.querySelector('#apMode button[data-m="'+(hit(PB.LB)?'road':'fly')+'"]');if(b)b.click();}
+    if(hit(PB.LEFT)||hit(PB.RIGHT)){const n=clamp(AP.spd+(hit(PB.RIGHT)?1:-1),0,3),b=document.querySelector('#apSpeed button[data-s="'+n+'"]');if(b)b.click();}
+    if(moved)drawBigMap();}
+  else if(!inGame){for(const k in padK)padK[k]=0;
     PAD.navT-=dt;let dir=0;if(hit(PB.DOWN)||hit(PB.RIGHT))dir=1;else if(hit(PB.UP)||hit(PB.LEFT))dir=-1;
     else if(Math.abs(PAD.ly)>.6&&PAD.navT<=0){dir=PAD.ly>0?1:-1;PAD.navT=.28;}else if(Math.abs(PAD.ly)<.3)PAD.navT=0;
     padNav(dir,hit(PB.A),hit(PB.B));
@@ -1858,7 +1868,8 @@ function pollPad(dt){
       if(hit(PB.RIGHT))startMode(S.mode);
       if(hit(PB.VIEW))setCamMode((S.camMode+1)%(S.mode==='serbest'?6:4));
       if(hit(PB.L3)&&S.mode==='serbest')setCamMode(S.camMode===4?5:S.camMode===5?0:4);
-      if(hit(PB.START))dispatchEvent(new KeyboardEvent('keydown',{code:'Escape',key:'Escape'}));}}
+      if(hit(PB.START))openTMenu();
+      if(hit(PB.R3)&&S.mode==='serbest')openMap();}}
   if(S.shake>PAD.shake+.25)padRumble(Math.min(1,S.shake),180);PAD.shake=S.shake;
   PAD.prev=g.buttons.map(q=>typeof q==='object'?q.value:q);}
 
@@ -2559,17 +2570,19 @@ function drawBigMap(){const cv=$('bigmap'),x=cv.getContext('2d'),W=cv.width,H=cv
   if(S.cargo&&(JOB.st==='pick'||JOB.st==='drop')){const [u,v]=mapW2S(JOB.x,JOB.z,W,H);x.fillStyle=JOB.st==='pick'?'#3dff8a':'#ffc93d';x.beginPath();x.arc(u,v,8,0,TAU);x.fill();}
   if(AP.on&&AP.pts.length){x.strokeStyle='#3e8bff';x.lineWidth=5;x.lineJoin='round';x.beginPath();AP.pts.forEach((p,n)=>{const [u,v]=mapW2S(p.x,p.z,W,H);n?x.lineTo(u,v):x.moveTo(u,v);});x.stroke();}
   const pk=MAPV.pick;if(pk){const [u,v]=mapW2S(pk.x,pk.z,W,H);x.fillStyle='#ff3b5c';x.beginPath();x.arc(u,v-12,9,Math.PI,0);x.lineTo(u,v);x.closePath();x.fill();x.fillStyle='#fff';x.beginPath();x.arc(u,v-12,3.5,0,TAU);x.fill();}
+  if(PAD.on&&MAPV.cur){const q=MAPV.cur;x.strokeStyle='#ffd34d';x.lineWidth=2.5;x.beginPath();x.arc(q.u,q.v,11,0,TAU);x.moveTo(q.u-18,q.v);x.lineTo(q.u-6,q.v);x.moveTo(q.u+6,q.v);x.lineTo(q.u+18,q.v);x.moveTo(q.u,q.v-18);x.lineTo(q.u,q.v-6);x.moveTo(q.u,q.v+6);x.lineTo(q.u,q.v+18);x.stroke();}
   const [cu,cv2]=mapW2S(car.pos.x,car.pos.z,W,H);x.save();x.translate(cu,cv2);x.rotate(car.yaw);x.fillStyle='#e3263b';x.strokeStyle='#fff';x.lineWidth=2;x.beginPath();x.moveTo(12,0);x.lineTo(-8,8);x.lineTo(-4,0);x.lineTo(-8,-8);x.closePath();x.fill();x.stroke();x.restore();}
 function openMap(){MAPV.cx=car.pos.x;MAPV.cz=car.pos.z;MAPV.pick=AP.on&&!AP.cargo?AP.dest:null;$('mapTitle').textContent=S.cargo?'Kurye otopilotu':'Otopilot · harita';
   $('mapMsg').textContent=S.cargo?'Haritada bir yere dokunup oraya gidebilir ya da “Teslimatları otomatik yap” ile siparişleri otopilota bırakabilirsin.':'Gitmek istediğin yere dokun. Mavi P’ye dokunursan oraya park eder.';$('apCargo').hidden=!S.cargo;
   document.querySelectorAll('#apSpeed button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.s===AP.spd)));
   document.querySelectorAll('#apMode button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.m===MAPV.mode)));$('apStop').hidden=!AP.on;
   const cv=$('bigmap'),r=cv.getBoundingClientRect;openOverlay('map');requestAnimationFrame(()=>{const bb=cv.getBoundingClientRect();cv.width=Math.max(300,Math.round(bb.width));cv.height=Math.max(200,Math.round(bb.height));drawBigMap();});}
-$('bigmap').addEventListener('click',e=>{const cv=$('bigmap'),bb=cv.getBoundingClientRect(),u=(e.clientX-bb.left)*cv.width/bb.width,v=(e.clientY-bb.top)*cv.height/bb.height,wx=MAPV.cx+(u-cv.width/2)/MAPV.scale,wz=MAPV.cz+(v-cv.height/2)/MAPV.scale;
+$('bigmap').addEventListener('click',e=>{const cv=$('bigmap'),bb=cv.getBoundingClientRect();mapPickAt((e.clientX-bb.left)*cv.width/bb.width,(e.clientY-bb.top)*cv.height/bb.height);});
+function mapPickAt(u,v){const cv=$('bigmap'),wx=MAPV.cx+(u-cv.width/2)/MAPV.scale,wz=MAPV.cz+(v-cv.height/2)/MAPV.scale;
   let best=null,bd=28/MAPV.scale*2.2;for(const p of MAPV.spots||[]){const d=Math.hypot(p.x-wx,p.z-wz);if(d<bd){bd=d;best=p;}}
   if(best){MAPV.pick={x:best.x,z:best.z,v:best.v,i:best.i,j:best.j,sg:best.sg,park:true};$('mapMsg').textContent='Park yeri seçildi. “Otopilotu başlat”a bas.';}
   else{const d=apDestFromPoint(wx,wz);if(!d){$('mapMsg').textContent='Orası kapalı yol. Başka yere dokun.';return;}MAPV.pick=d;$('mapMsg').textContent='Hedef seçildi (yol kenarı). “Otopilotu başlat”a bas.';}
-  drawBigMap();});
+  drawBigMap();}
 document.querySelectorAll('#apMode button').forEach(b=>b.addEventListener('click',()=>{MAPV.mode=b.dataset.m;document.querySelectorAll('#apMode button').forEach(q=>q.setAttribute('aria-pressed',String(q===b)));}));
 $('mapZin').addEventListener('click',()=>{MAPV.scale=Math.min(4,MAPV.scale*1.4);drawBigMap();});$('mapZout').addEventListener('click',()=>{MAPV.scale=Math.max(.35,MAPV.scale/1.4);drawBigMap();});
 $('apGo').addEventListener('click',()=>{if(!MAPV.pick){$('mapMsg').textContent=S.cargo?'Önce haritada bir yere dokun ya da “Teslimatları otomatik yap”a bas.':'Önce haritada bir yere dokun.';return;}if(AP.on)apStop();closeOverlay();apStart(MAPV.mode,false,MAPV.pick);});
