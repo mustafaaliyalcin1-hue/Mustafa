@@ -59,7 +59,7 @@ export const Tanitim: React.FC = () => {
   );
 };
 
-const End: React.FC = () => {
+export const End: React.FC = () => {
   const f = useCurrentFrame(); const { fps } = useVideoConfig();
   const a = spring({ frame: f - 2, fps, config: { damping: 13 } });
   const h = spring({ frame: f - 22, fps, config: { damping: 8, stiffness: 200 } });
