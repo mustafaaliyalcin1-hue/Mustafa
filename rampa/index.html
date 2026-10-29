@@ -191,6 +191,15 @@ body.tplay #guide{top:calc(env(safe-area-inset-top,0px) + 80px)}
 #navHud[hidden]{display:none}body.touch #navHud{width:208px;height:130px;top:calc(env(safe-area-inset-top,0px) + 84px)}
 .mapwrap{position:relative}#bigmap{width:100%;height:min(58vh,560px);display:block;border-radius:4px;background:#2b2e33;touch-action:manipulation;cursor:crosshair}
 .mapz{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px}.mapz button{width:40px;height:40px;border-radius:4px;border:1px solid var(--line);background:rgba(13,15,20,.85);font-size:22px;font-weight:700}
+#fadeBlk{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:30}
+#tunHud{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 64px);width:min(520px,88vw);background:rgba(8,12,18,.85);border:1px solid rgba(95,196,255,.5);border-radius:14px;padding:10px 14px;display:flex;flex-direction:column;gap:6px;font-size:14px;z-index:6}
+#tunHud[hidden]{display:none}#tunHud .tt{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#7fd6ff}#tunHud .tt b{font-size:16px;letter-spacing:0;color:#fff}
+#tunHud .tb2{height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden}#tunBar{display:block;height:100%;width:0;background:linear-gradient(90deg,#3e8bff,#7fd6ff)}
+#tunPick.overlay.center{background:rgba(3,6,10,.35)}.tuncard{width:min(760px,94vw);max-height:86vh;display:flex;flex-direction:column;gap:12px}
+#tunQ{font:inherit;font-size:16px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.07);color:var(--ink)}
+#tunList{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;overflow:auto;min-height:120px;max-height:52vh;padding:2px}
+.ilb{display:flex;align-items:center;gap:8px;text-align:left;font:inherit;font-size:14px;color:var(--ink);background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:10px;padding:9px 10px;cursor:pointer;min-height:44px}
+.ilb b{font-size:12px;color:#7fd6ff;font-variant-numeric:tabular-nums}.ilb span{flex:1}.ilb small{font-size:11px;opacity:.6}.ilb.big span{font-weight:800}.ilb:hover,.ilb.sel,.ilb:focus-visible{border-color:#5fc4ff;background:rgba(95,196,255,.16);outline:none}
 #askBox{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 120px);max-width:min(560px,86vw);display:flex;flex-direction:column;gap:4px;background:rgba(10,12,16,.88);border:1px solid rgba(62,139,255,.6);border-radius:14px;padding:10px 16px;font-size:15px;pointer-events:auto;box-shadow:0 8px 30px rgba(0,0,0,.5)}
 #askBox[hidden]{display:none}#askBox b{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#7fb6ff}#askBox.me b{color:#ffd34d}#askBox.listen{border-color:#3e8bff;box-shadow:0 0 24px rgba(62,139,255,.6)}
 #askIn{font:inherit;font-size:15px;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.08);color:var(--ink)}#askIn[hidden]{display:none}
@@ -272,6 +281,8 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
   <div id="big"><div id="bigT"></div><div id="bigS"></div></div>
   <div id="pops"></div>
   <canvas id="navHud" width="640" height="400" hidden aria-label="Otopilot haritası"></canvas>
+  <div id="fadeBlk"></div>
+  <div id="tunHud" hidden><div class="tt"><span>🚇 Yeraltı tüneli · otopilot</span><b id="tunEta">0:00</b></div><div id="tunTxt"></div><div class="tb2"><i id="tunBar"></i></div></div>
   <div id="askBox" hidden><b id="askWho">Tesla</b><span id="askTxt"></span><input id="askIn" hidden placeholder="Mesela: beni en yakın köfteciye götür" autocomplete="off"></div>
   <div id="apTag" hidden><span class="dot"></span><span id="apTxt">Otopilot</span><button type="button" id="apTagStop">Durdur</button></div>
   <div id="padTag" hidden></div>
@@ -342,7 +353,7 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
       <span><kbd>Boşluk</kbd>Zıpla · tavandan bırak · yavaşla</span><span><kbd>Shift</kbd>Hız iticisi</span>
       <span><kbd>F</kbd>Fan aç / kapa</span><span><kbd>X</kbd>Ön itici: hızlı fren</span><span><kbd>A</kbd><kbd>D</kbd>Havada takla</span>
       <span><kbd>Q</kbd><kbd>E</kbd>Havada dönüş</span><span><kbd>V</kbd>Kuvvet okları <kbd>T</kbd>Ağır çekim</span>
-      <span><kbd>C</kbd>Kamera <kbd>R</kbd>Yeniden <kbd>Esc</kbd>Menü</span><span><kbd>K</kbd>Korna</span><span><kbd>Enter</kbd>Arabadan in / bin</span><span><kbd>Y</kbd>Hey Tesla (sesli asistan)</span><span><kbd>M</kbd>Otopilot haritası <kbd>I</kbd>İç kamera</span><span>Sürükle: kamerayı çevir · tekerlek: yakınlaş · çift tık: sıfırla</span>
+      <span><kbd>C</kbd>Kamera <kbd>R</kbd>Yeniden <kbd>Esc</kbd>Menü</span><span><kbd>K</kbd>Korna</span><span><kbd>Enter</kbd>Arabadan in / bin</span><span><kbd>Y</kbd>Hey Tesla (sesli asistan)</span><span><b>TÜNEL</b> asansörüne park et, 3 sn bekle → 81 ile git</span><span><kbd>M</kbd>Otopilot haritası <kbd>I</kbd>İç kamera</span><span>Sürükle: kamerayı çevir · tekerlek: yakınlaş · çift tık: sıfırla</span>
     </div>
     <p><b>Kontrolcü (Xbox / PlayStation).</b> Bağlayıp bir tuşa bas, kendiliğinden tanınır.</p>
     <div class="keys pad">
@@ -396,6 +407,14 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
   </div>
 </div>
 
+<div id="tunPick" class="overlay center" hidden>
+  <div class="card tuncard">
+    <div class="ghead"><div><div class="eyebrow">Yeraltı tüneli · otopilot sürüyor</div><h3>Nereye gidelim?</h3></div><button class="btn" type="button" id="tunAsk">🎤 Hey Tesla</button></div>
+    <input id="tunQ" type="search" placeholder="İl ara: Ankara, İzmir, 06…" autocomplete="off" aria-label="İl ara">
+    <div id="tunList"></div>
+    <p class="fine">81 ilin hepsine tünel var. İli seç ya da “Hey Tesla, beni Trabzon'a götür” de. Tünelde sadece uçan arabalar var; direksiyon otopilotta.</p>
+  </div>
+</div>
 <div id="mapov" class="overlay center" hidden>
   <div class="card mapcard">
     <div class="ghead"><div><div class="eyebrow">Otopilot</div><h3 id="mapTitle">Harita</h3></div><div class="seg" id="apMode"><button type="button" data-m="road" aria-pressed="true">Yoldan git</button><button type="button" data-m="fly" aria-pressed="false">Uçarak git</button></div></div>
@@ -772,13 +791,16 @@ const STUDIO=scene.children.filter(o=>!o.isHemisphereLight&&o!==key&&o!==key.tar
 const CITY=(()=>{
   const B=70,RW=14,HW=7,OX=0,OZ=500,R=isTouch?3:4,SPAN=2*R+1;
   const nx=i=>OX+i*B,nz=j=>OZ+j*B,ci=x=>Math.floor((x-OX)/B),cj=z=>Math.floor((z-OZ)/B);
+  const waterAt=(x,z,m=0)=>{if(!ST.wat||z<=nz(6)+HW-m||z>=nz(8)-HW+m)return false;const i=Math.round((x-OX)/B);return !(isB(i)&&Math.abs(x-nx(i))<HW-m);};
   let SEED=0;
+  let ST={hm:1,park:1,wat:false,tint:0xffffff};
+  const isB=i=>((i%8)+8)%8===0,watRow=j=>ST.wat&&(j===6||j===7),watE=(i,j,v)=>ST.wat&&(v?(j===6||j===7)&&!isB(i):j===7);
   const hash=(i,j,k=0)=>{let h=(Math.imul(i,374761393)+Math.imul(j,668265263)+Math.imul(k,1442695041)+Math.imul(SEED,-1640531535))|0;h=Math.imul(h^h>>>13,1274126177);h^=h>>>16;return (h>>>0)/4294967296;};
   const hwyK=i=>Math.floor(i/3)*3,hwyKL=i=>Math.floor(i/6)*6,isLong=(i,j)=>{const k=hwyKL(i);return hash(k,j,31)<.035;},isHwy=(i,j)=>{if(isLong(i,j))return true;const k=hwyK(i);return hash(k,j,21)<.05;};
-  const isRamp=(i,j)=>!isHwy(i,j)&&((i===0&&j===3)||hash(i,j,13)<.07),isPark=(i,j)=>!isHwy(i,j)&&!isRamp(i,j)&&hash(i,j,9)<.12;
+  const isRamp=(i,j)=>!isHwy(i,j)&&((i===0&&j===3)||hash(i,j,13)<.07),isPark=(i,j)=>!isHwy(i,j)&&!isRamp(i,j)&&hash(i,j,9)<.12*ST.park;
   // dead ends: a closed road segment gets a planted median in the middle and a turnaround at each end
   const m4=i=>((i%4)+4)%4;
-  const closedE=(i,j,v)=>{if(!v&&j===3&&(i===0||i===-1))return false;if(!v&&m4(i)===3&&m4(j)===3)return false;return hash(i,j,v?83:81)<.11;};
+  const closedE=(i,j,v)=>{if(watE(i,j,v))return true;if(!v&&j===3&&(i===0||i===-1||i===1))return false;if(!v&&m4(i)===3&&m4(j)===3)return false;return hash(i,j,v?83:81)<.11;};
   const edgeClosed=(i,j,d)=>d===0?closedE(i,j,0):d===2?closedE(i-1,j,0):d===1?closedE(i,j,1):closedE(i,j-1,1);
   const rampDir=(i,j)=>(i===0&&j===3)?0:hash(i,j,14)*4|0;
   const group=new THREE.Group();group.visible=false;scene.add(group);
@@ -814,7 +836,7 @@ const CITY=(()=>{
     dPole=new THREE.InstancedMesh(new THREE.BoxGeometry(.1,2.6,.1),M.dark,MAXD*2),dSign=new THREE.InstancedMesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:signT,side:THREE.DoubleSide}),MAXD*2);
   for(const m of [dPlant,dGrass,dBar,dRing,dPole,dSign]){m.frustumCulled=false;m.count=0;group.add(m);}dPlant.castShadow=dBar.castShadow=true;dPlant.receiveShadow=dGrass.receiveShadow=true;
   // roadside parking bays on the sidewalk edge, parallel to the road
-  const spotsIn=(i0,i1,j0,j1)=>{const out=[];for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++)for(const v of [0,1]){if(closedE(i,j,v))continue;if(!v&&m4(i)===3&&m4(j)===3)continue;if(hash(i,j,v?91:90)>.28)continue;
+  const spotsIn=(i0,i1,j0,j1)=>{const out=[];for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++)for(const v of [0,1]){if(closedE(i,j,v))continue;if(!v&&m4(i)===3&&m4(j)===3)continue;if(!v&&i===1&&j===3)continue;if(hash(i,j,v?91:90)>.28)continue;
       const sg=hash(i,j,v?93:92)<.5?-1:1,al=(hash(i,j,v?95:94)-.5)*18,hz=!v;out.push({x:hz?nx(i)+B/2+al:nx(i)+sg*8,z:hz?nz(j)+sg*8:nz(j)+B/2+al,yaw:hz?0:Math.PI/2,i,j,v,sg});}return out;};
   const bayT=(()=>{const c=document.createElement('canvas');c.width=256;c.height=128;const x=c.getContext('2d');x.fillStyle='rgba(40,90,200,.55)';x.fillRect(0,0,256,128);x.strokeStyle='#fff';x.lineWidth=8;x.strokeRect(6,6,244,116);
     x.fillStyle='#fff';x.font='900 84px system-ui,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('P',128,68);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t;})();
@@ -863,11 +885,46 @@ const CITY=(()=>{
   const hwyPool=[],hwyPoolL=[];
   const rampPool=[];
   const plazaIM=new THREE.InstancedMesh(new THREE.PlaneGeometry(B-RW-6,B-RW-6),new THREE.MeshStandardMaterial({color:0xb7ad9c,roughness:.9}),SPAN*SPAN);plazaIM.receiveShadow=true;plazaIM.frustumCulled=false;group.add(plazaIM);
+  // Bosphorus (İstanbul only): a water band two blocks wide, crossed by suspension bridges on every 8th avenue
+  const z0W=nz(6)+HW,z1W=nz(8)-HW,zcW=(z0W+z1W)/2;
+  const wT=(()=>{const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');x.fillStyle='#164e70';x.fillRect(0,0,256,256);for(let k=0;k<500;k++){x.fillStyle=`rgba(${150+Math.random()*90|0},${200+Math.random()*55|0},255,${.08+Math.random()*.18})`;x.fillRect(Math.random()*256,Math.random()*256,10+Math.random()*26,2);}const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;return t;})();
+  wT.repeat.set((SPAN+2)*2,3);
+  const waterM=new THREE.Mesh(new THREE.PlaneGeometry(GW,z1W-z0W).rotateX(-Math.PI/2),new THREE.MeshStandardMaterial({map:wT,color:0x6fa4c4,roughness:.5,metalness:0,envMapIntensity:.18,emissive:0x0b3a5e,emissiveIntensity:.85}));waterM.position.y=.06;waterM.visible=false;waterM.receiveShadow=true;group.add(waterM);
+  const kerbIM=new THREE.InstancedMesh(box,new THREE.MeshStandardMaterial({color:0xb8b2a6,roughness:.8}),(SPAN+3)*4);kerbIM.frustumCulled=false;kerbIM.count=0;group.add(kerbIM);
+  const bridgePool=[],bridgeNames={0:'15 TEMMUZ ŞEHİTLER KÖPRÜSÜ',8:'FATİH SULTAN MEHMET KÖPRÜSÜ','-8':'YAVUZ SULTAN SELİM KÖPRÜSÜ'};
+  const mkBridge=()=>{const g=new THREE.Group(),steel=new THREE.MeshStandardMaterial({color:0xc9ccd1,metalness:.6,roughness:.35}),red=new THREE.MeshStandardMaterial({color:0xb23a2e,metalness:.3,roughness:.5}),
+      asph=new THREE.MeshStandardMaterial({color:0x3a3d43,roughness:.8}),L=z1W-z0W+8,top=62,zt=[-(L/2-24),L/2-24];
+    const deck=new THREE.Mesh(new THREE.BoxGeometry(RW+3,1.6,L),steel);deck.position.y=-.73;g.add(deck);const road=new THREE.Mesh(new THREE.BoxGeometry(RW,.04,L),asph);road.position.y=.08;g.add(road);
+    for(const sx of [-1,1]){const rail=new THREE.Mesh(new THREE.BoxGeometry(.25,1.1,L),red);rail.position.set(sx*(HW+.9),.55,0);g.add(rail);}
+    const tub=(pts,r,m)=>{const cu=new THREE.CatmullRomCurve3(pts);g.add(new THREE.Mesh(new THREE.TubeGeometry(cu,48,r,6,false),m));};
+    for(const z of zt){for(const sx of [-1,1]){const tw=new THREE.Mesh(new THREE.BoxGeometry(2.2,top+6,2.6),red);tw.position.set(sx*(HW+2.2),top/2-3,z);tw.castShadow=true;g.add(tw);}
+      for(const y of [top-4,28]){const bm=new THREE.Mesh(new THREE.BoxGeometry(RW+6.6,2.2,2.2),red);bm.position.set(0,y,z);g.add(bm);}}
+    for(const sx of [-1,1]){const x=sx*(HW+2.2),pts=[];for(let k=0;k<=24;k++){const z=zt[0]+(zt[1]-zt[0])*k/24,u=(z-zt[0])/(zt[1]-zt[0]),y=top-2-(top-10)*4*u*(1-u);pts.push(new V3(x,y,z));}
+      tub(pts,.38,steel);tub([new V3(x,top-2,zt[0]),new V3(x,30,zt[0]-14),new V3(x,1,-L/2-6)],.38,steel);tub([new V3(x,top-2,zt[1]),new V3(x,30,zt[1]+14),new V3(x,1,L/2+6)],.38,steel);
+      const hp=[];for(let k=1;k<24;k++){const z=zt[0]+(zt[1]-zt[0])*k/24,u=(z-zt[0])/(zt[1]-zt[0]),y=top-2-(top-10)*4*u*(1-u);hp.push(x,y,z,x*.92,.3,z);}
+      const hg=new THREE.BufferGeometry();hg.setAttribute('position',new THREE.Float32BufferAttribute(hp,3));g.add(new THREE.LineSegments(hg,new THREE.LineBasicMaterial({color:0xdfe3e8})));}
+    const sign=new THREE.Mesh(new THREE.PlaneGeometry(RW+4,2.6),new THREE.MeshBasicMaterial({transparent:true,side:THREE.DoubleSide}));sign.position.set(0,top-4,zt[0]-1.2);g.add(sign);g.userData.sign=sign;g.userData.name='';
+    group.add(g);return g;};
+  const boats=[];
+  const waterBuild=(I,J,boxes)=>{const on=ST.wat&&J+R>=5&&J-R<=8;waterM.visible=on;kerbIM.count=0;bridgePool.forEach(b=>b.visible=false);boats.forEach(b=>b.visible=false);if(!on)return;
+    waterM.position.x=ground.position.x;waterM.position.z=zcW;let nk=0;const kb=(x0,x1,z,w)=>{if(nk>=kerbIM.instanceMatrix.count)return;o.position.set((x0+x1)/2,.45,z);o.scale.set(x1-x0,.9,w);o.rotation.set(0,0,0);o.updateMatrix();kerbIM.setMatrixAt(nk++,o.matrix);};
+    let nb=0;
+    for(let i=I-R-1;i<=I+R+1;i++){const xa=nx(i)+(isB(i)?HW:-HW),xb=nx(i+1)-HW;
+      kb(xa,xb,z0W,.6);kb(xa,xb,z1W,.6);boxes.push({x0:xa,x1:xb,z0:z0W,z1:z1W,h:1.2,w:true});
+      if(isB(i)){if(nb>=bridgePool.length)bridgePool.push(mkBridge());const b=bridgePool[nb++];b.visible=true;b.position.set(nx(i),0,zcW);
+        const nm=bridgeNames[i]||'BOĞAZ KÖPRÜSÜ';if(b.userData.name!==nm){b.userData.name=nm;b.userData.sign.material.map=labelTex(nm,'#ffffff',1536,256,nm.length>22?110:140);b.userData.sign.material.needsUpdate=true;}}}
+    kerbIM.count=nk;kerbIM.instanceMatrix.needsUpdate=true;};
+  const boatTick=(dt,cx)=>{if(!waterM.visible)return;if(!boats.length){const hullM=new THREE.MeshStandardMaterial({color:0xf2f2ee,roughness:.5}),cabM=new THREE.MeshStandardMaterial({color:0x2b4a6f,roughness:.4}),fM=new THREE.MeshStandardMaterial({color:0xd62828});
+        for(let k=0;k<4;k++){const g=new THREE.Group(),h=new THREE.Mesh(new THREE.BoxGeometry(22,2.2,6),hullM);h.position.y=1;g.add(h);const cb=new THREE.Mesh(new THREE.BoxGeometry(13,2.4,5),cabM);cb.position.y=3.3;g.add(cb);const ch=new THREE.Mesh(new THREE.CylinderGeometry(.8,.8,2.6,10),fM);ch.position.set(2,5.6,0);g.add(ch);
+          g.userData={u:Math.random(),dir:k%2?1:-1,sp:.012+Math.random()*.01,lz:zcW+(k%2?-24:24)+(Math.random()-.5)*14};group.add(g);boats.push(g);}}
+      const i0=Math.floor((cx-OX)/(8*B))*8;boats.forEach((g,k)=>{const d=g.userData,a=nx(i0)+HW+16,b=nx(i0+8)-HW-16;d.u+=d.dir*d.sp*dt;if(d.u>1){d.u=1;d.dir=-1;}if(d.u<0){d.u=0;d.dir=1;}
+        g.visible=true;g.position.set(a+(b-a)*d.u,0,d.lz);g.rotation.set(0,d.dir>0?0:Math.PI,Math.sin(performance.now()/900+k)*.02);});};
   const C={group,B,HW,RW,R,nx,nz,ci,cj,hash,isPark,isRamp,isHwy,closedE,edgeClosed,seed:0,ramps:[],boxes:[],heads:[],lh,ground,cI:null,cJ:null,start:{x:nx(0)+16,z:nz(3)+1.9,yaw:0}};
   C.build=(I,J)=>{
     C.cI=I;C.cJ=J;const boxes=[],lots=[[],[],[]],roofs=[],parks=[],trees=[],lamps=[],heads=[],ramps=[],plazas=[],hwys=new Map();
     for(let i=I-R;i<=I+R;i++)for(let j=J-R;j<=J+R;j++){
       const cx=nx(i)+B/2,cz=nz(j)+B/2;
+      if(watRow(j))continue;
       lamps.push([nx(i)-8.6,nz(j)+22],[nx(i)+8.6,nz(j)+52],[nx(i)+22,nz(j)+8.6],[nx(i)+52,nz(j)-8.6]);
       if(isHwy(i,j)){plazas.push([cx,cz]);const long=isLong(i,j),k=long?hwyKL(i):hwyK(i),key=(long?'L':'S')+k+','+j,HC=long?HWYL:HWY,off=long?389:179;
         if(!hwys.has(key)){const ox=nx(k+(long?5:2))+B/2+4,oz=nz(j)+B/2,r={kind:'hwy',long,curve:HC,ox,oz,dx:1,dz:0,rx:0,rz:1,a:0};hwys.set(key,r);ramps.push(r);
@@ -881,7 +938,7 @@ const CITY=(()=>{
         boxes.push({x0:Math.min(...pts.map(q=>q[0])),x1:Math.max(...pts.map(q=>q[0])),z0:Math.min(...pts.map(q=>q[1])),z1:Math.max(...pts.map(q=>q[1])),h:RAMP.yMax+1.2});continue;}
       if(isPark(i,j)){parks.push([cx,cz]);for(let n=0;n<16;n++){const x=nx(i)+HW+5+hash(i,j,20+n)*(B-RW-10),z=nz(j)+HW+5+hash(i,j,60+n)*(B-RW-10),sc=.8+hash(i,j,99+n)*.6;trees.push([x,z,sc]);boxes.push({x0:x-.5,x1:x+.5,z0:z-.5,z1:z+.5,h:3});}continue;}
       const tall=hash(i,j,7),lay=hash(i,j,70),hh=n=>hash(i,j,n);
-      const put=(x,z,w,d,h,k)=>{lots[k].push([x,z,w,d,h]);boxes.push({x0:x-w/2,x1:x+w/2,z0:z-d/2,z1:z+d/2,h});if(h>45)roofs.push([x,h+.3,z]);};
+      const put=(x,z,w,d,h,k)=>{h*=ST.hm;if(ST.hm>1.3&&tall>.55)h*=1.35;lots[k].push([x,z,w,d,h]);boxes.push({x0:x-w/2,x1:x+w/2,z0:z-d/2,z1:z+d/2,h});if(h>45)roofs.push([x,h+.3,z]);};
       const tree=(x,z,sc)=>{trees.push([x,z,sc]);boxes.push({x0:x-.5,x1:x+.5,z0:z-.5,z1:z+.5,h:3});};
       if(lay<.3){[[-12.5,-12.5],[12.5,-12.5],[-12.5,12.5],[12.5,12.5]].forEach(([ox,oz],q)=>{
         const w=15+hh(q*3+1)*7,d=15+hh(q*3+2)*7,h=9+hh(q*3+3)*26+(tall>.7?hh(q+40)*60:0);put(cx+ox,cz+oz,w,d,h,hh(q+50)*3|0);});}
@@ -898,7 +955,7 @@ const CITY=(()=>{
         for(let q=0;q<5;q++){const x=cx+(hh(200+q)-.5)*48,z=cz+(hh(205+q)-.5)*48;if(!boxes.some(b=>x>b.x0-1&&x<b.x1+1&&z>b.z0-1&&z<b.z1+1))tree(x,z,.8);}}
     }
     let nd=0,nb=0,nr=0,ns=0;const dm=(im,n,x,y,z,sx,sy,sz,ry=0)=>{o.position.set(x,y,z);o.scale.set(sx,sy,sz);o.rotation.set(0,ry,0);o.updateMatrix();im.setMatrixAt(n,o.matrix);};
-    for(let i=I-R;i<=I+R+1;i++)for(let j=J-R;j<=J+R+1;j++)for(const v of [0,1]){if(!closedE(i,j,v)||nd>=MAXD)continue;
+    for(let i=I-R;i<=I+R+1;i++)for(let j=J-R;j<=J+R+1;j++)for(const v of [0,1]){if(!closedE(i,j,v)||nd>=MAXD||watE(i,j,v))continue;
       // one end is shut by a planted island; the open end leads to a turnaround circle
       const hz=!v,mx=hz?nx(i)+B/2:nx(i),mz=hz?nz(j):nz(j)+B/2,ax=hz?1:0,az=hz?0:1,L=13,W=13.8,sg=hash(i,j,v?84:82)<.5?-1:1,po=sg*(B/2-HW-L/2),cx=mx+ax*po,cz=mz+az*po;
       dm(dPlant,nd,cx,.5,cz,hz?L:W,1,hz?W:L);dm(dGrass,nd,cx,1.04,cz,hz?L-1:W-1,.1,hz?W-1:L-1);nd++;
@@ -913,7 +970,7 @@ const CITY=(()=>{
     pBay.count=pPole.count=pSign.count=np;for(const m of [pBay,pPole,pSign])m.instanceMatrix.needsUpdate=true;C.spots=sp;
     dPlant.count=dGrass.count=nd;dBar.count=nb;dRing.count=nr;dPole.count=dSign.count=ns;
     for(const m of [dPlant,dGrass,dBar,dRing,dPole,dSign])m.instanceMatrix.needsUpdate=true;o.rotation.set(0,0,0);o.scale.set(1,1,1);
-    for(let i=I-R;i<=I+R+1;i++)for(let j=J-R;j<=J+R+1;j++)for(const [sx,sz] of [[1,1],[-1,-1],[1,-1],[-1,1]])heads.push({i,j,axis:sx===sz?0:1,x:nx(i)+sx*8.2,z:nz(j)+sz*8.2});
+    for(let i=I-R;i<=I+R+1;i++)for(let j=J-R;j<=J+R+1;j++)for(const [sx,sz] of [[1,1],[-1,-1],[1,-1],[-1,1]]){if(waterAt(nx(i)+sx*8.2,nz(j)+sz*8.2,-1))continue;heads.push({i,j,axis:sx===sz?0:1,x:nx(i)+sx*8.2,z:nz(j)+sz*8.2});}
     o.rotation.set(0,0,0);
     lots.forEach((arr,k)=>{arr.forEach((b,n)=>{o.position.set(b[0],b[4]/2,b[1]);o.scale.set(b[2],b[4],b[3]);o.updateMatrix();bIM[k].setMatrixAt(n,o.matrix);});bIM[k].count=arr.length;bIM[k].instanceMatrix.needsUpdate=true;});
     o.scale.set(1,1,1);
@@ -921,6 +978,7 @@ const CITY=(()=>{
     trees.forEach((t,n)=>{o.position.set(t[0],1.5,t[1]);o.scale.set(1,1,1);o.updateMatrix();trunkIM.setMatrixAt(n,o.matrix);o.position.y=3.6*t[2]+1.2;o.scale.setScalar(t[2]);o.updateMatrix();crownIM.setMatrixAt(n,o.matrix);});
     trunkIM.count=crownIM.count=trees.length;trunkIM.instanceMatrix.needsUpdate=crownIM.instanceMatrix.needsUpdate=true;
     o.scale.set(1,1,1);
+    for(let n=lamps.length-1;n>=0;n--)if(waterAt(lamps[n][0],lamps[n][1],-1))lamps.splice(n,1);
     lamps.forEach((p,n)=>{o.position.set(p[0],3.25,p[1]);o.updateMatrix();poleIM.setMatrixAt(n,o.matrix);o.position.y=6.5;o.updateMatrix();headIM.setMatrixAt(n,o.matrix);});
     poleIM.count=headIM.count=lamps.length;poleIM.instanceMatrix.needsUpdate=headIM.instanceMatrix.needsUpdate=true;
     heads.forEach((h,n)=>{o.position.set(h.x,2.1,h.z);o.updateMatrix();lpIM.setMatrixAt(n,o.matrix);o.position.y=4.3;o.updateMatrix();lh.setMatrixAt(n,o.matrix);});
@@ -935,16 +993,19 @@ const CITY=(()=>{
     while(hwyPool.length<hs.length){const g2=HT.clone();group.add(g2);hwyPool.push(g2);}
     rampPool.forEach((g2,n)=>{const r=js[n];g2.visible=!!r;if(r){g2.position.set(r.ox,0,r.oz);g2.rotation.set(0,-r.a,0);}});
     hwyPool.forEach((g2,n)=>{const r=hs[n];g2.visible=!!r;if(r)g2.position.set(r.ox,0,r.oz);});
+    waterBuild(I,J,boxes);
     C.boxes=boxes;C.heads=heads;C.ramps=ramps;
   };
-  C.spotsIn=spotsIn;C.m4=m4;
+  C.spotsIn=spotsIn;C.m4=m4;C.waterAt=waterAt;C.isWater=watRow;C.watE=watE;C.isBridge=isB;C.boatTick=boatTick;
+  C.waterRect=(i,j)=>j===6?[nx(i)+HW,z0W,nx(i+1)+(isB(i+1)?-HW:HW),nz(7)+HW]:[nx(i)+HW,nz(7)+HW,nx(i+1)+(isB(i+1)?-HW:HW),z1W];
+  C.setStyle=st=>{ST=Object.assign({hm:1,park:1,wat:false,tint:0xffffff},st);mats.forEach(m=>m.color.setHex(ST.tint));};C.style=()=>ST;
   C.reseed=sd=>{SEED=sd|0;C.seed=SEED;C.cI=null;C.build(ci(C.start.x),cj(C.start.z));};
   C.update=(x,z)=>{const I=ci(x),J=cj(z);if(I!==C.cI||J!==C.cJ)C.build(I,J);};
   C.build(ci(C.start.x),cj(C.start.z));
   return C;
 })();
-function cityGroundAt(x,z){for(const b of CITY.boxes)if(x>b.x0&&x<b.x1&&z>b.z0&&z<b.z1)return b.h;return 0;}
-function inBuilding(p){for(const b of CITY.boxes)if(p.y<b.h&&p.x>b.x0-.3&&p.x<b.x1+.3&&p.z>b.z0-.3&&p.z<b.z1+.3)return true;return false;}
+function cityGroundAt(x,z){for(const b of CITY.boxes)if(!b.w&&x>b.x0&&x<b.x1&&z>b.z0&&z<b.z1)return b.h;return 0;}
+function inBuilding(p){if(TUN.on)return false;for(const b of CITY.boxes)if(!b.w&&p.y<b.h&&p.x>b.x0-.3&&p.x<b.x1+.3&&p.z>b.z0-.3&&p.z<b.z1+.3)return true;return false;}
 
 /* sky: blue gradient around the camera for the open world, black studio elsewhere */
 const SKY=(()=>{const c=document.createElement('canvas');c.width=16;c.height=256;const g=c.getContext('2d'),gr=g.createLinearGradient(0,0,0,256);
@@ -1146,8 +1207,8 @@ function stepFree(c,inp,h,ev){
       basisQuat(c.q,_va.set(Math.cos(c.yaw),0,Math.sin(c.yaw)),AY);
     }
   }
-  for(const bl of [CITY.boxes,GATE.boxes])for(const b of bl){if(c.pos.y>b.h-.3)continue;const m=1.1;
-    if(c.pos.x>b.x0-m&&c.pos.x<b.x1+m&&c.pos.z>b.z0-m&&c.pos.z<b.z1+m){
+  for(const bl of [CITY.boxes,GATE.boxes])for(const b of bl){if(c.pos.y>b.h-.3)continue;if(b.w&&c.pos.y>.25)continue;const m=1.1;
+    if(c.pos.x>b.x0-m&&c.pos.x<b.x1+m&&c.pos.z>b.z0-m&&c.pos.z<b.z1+m){if(b.w)waterSplash(c);
       const p=[c.pos.x-(b.x0-m),(b.x1+m)-c.pos.x,c.pos.z-(b.z0-m),(b.z1+m)-c.pos.z],k=p.indexOf(Math.min(...p));
       let imp;if(k<2){c.pos.x+=k===0?-p[0]:p[1];imp=Math.abs(c.vel.x);c.vel.x*=-.25;}else{c.pos.z+=k===2?-p[2]:p[3];imp=Math.abs(c.vel.z);c.vel.z*=-.25;}
       if(imp>3)ev.push({t:'wall',v:imp});}}
@@ -1186,10 +1247,12 @@ function freeTick(dt){
   if(!S.cargo&&S.score>(REC.serbest||0)){REC.serbest=S.score;F.recDirty=true;}
 }
 function freeScore(p,label){const F=S.free,g=Math.round(p*F.combo);S.score+=g;pop('+'+nf(g)+' '+label+(F.combo>1?' ×'+F.combo:''),'gold');F.combo=Math.min(5,F.combo+1);F.comboT=5;sfx('chime');}
+function ilLabel(){const x=$('mini').getContext('2d'),il=ilCur();{const m=.7,cx=car.pos.x,cz=car.pos.z;x.textAlign='center';x.textBaseline='middle';for(const r of REST.list){const u=150+(r.x-cx)*m,v=150+(r.z-cz)*m;if(u<0||u>300||v<0||v>300)continue;x.fillStyle='#ff9f1c';x.beginPath();x.arc(u,v,4,0,TAU);x.fill();}
+  for(const e of ELEV.list){const u=150+(e.x-cx)*m,v=150+(e.z-cz)*m;if(u<0||u>300||v<0||v>300)continue;x.fillStyle='#5fc4ff';x.fillRect(u-6,v-6,12,12);x.fillStyle='#04121c';x.font='900 10px system-ui,sans-serif';x.fillText('T',u,v+1);}}x.font='800 15px system-ui,sans-serif';x.textAlign='center';x.textBaseline='middle';const t='📍 '+il.name,w=x.measureText(t).width+18;x.fillStyle='rgba(10,12,16,.75)';x.fillRect(150-w/2,272,w,24);x.fillStyle='#fff';x.fillText(t,150,285);}
 function drawMinimap(){const x=$('mini').getContext('2d'),m=.7,cx=car.pos.x,cz=car.pos.z,P=(px,pz)=>[150+(px-cx)*m,150+(pz-cz)*m],I=CITY.ci(cx),J=CITY.cj(cz),w=(CITY.B-CITY.RW)*m;
   x.fillStyle='#3a3d43';x.fillRect(0,0,300,300);
-  for(let i=I-4;i<=I+4;i++)for(let j=J-4;j<=J+4;j++){const [u,v]=P(CITY.nx(i)+CITY.HW,CITY.nz(j)+CITY.HW);x.fillStyle=CITY.isHwy(i,j)?'#c0392b':CITY.isRamp(i,j)?'#e07a24':CITY.isPark(i,j)?'#4f7d3a':'#8f9297';x.fillRect(u,v,w,w);}
-  x.fillStyle='#8f9297';for(let i=I-4;i<=I+5;i++)for(let j=J-4;j<=J+5;j++){for(const v of [0,1]){if(!CITY.closedE(i,j,v))continue;const sg=CITY.hash(i,j,v?84:82)<.5?-1:1,po=sg*21.5;
+  for(let i=I-4;i<=I+4;i++)for(let j=J-4;j<=J+4;j++){const [u,v]=P(CITY.nx(i)+CITY.HW,CITY.nz(j)+CITY.HW);if(CITY.isWater(i,j)){const q=CITY.waterRect(i,j),[a,b]=P(q[0],q[1]);x.fillStyle='#1f5f86';x.fillRect(a,b,(q[2]-q[0])*m,(q[3]-q[1])*m);continue;}x.fillStyle=CITY.isHwy(i,j)?'#c0392b':CITY.isRamp(i,j)?'#e07a24':CITY.isPark(i,j)?'#4f7d3a':'#8f9297';x.fillRect(u,v,w,w);}
+  x.fillStyle='#8f9297';for(let i=I-4;i<=I+5;i++)for(let j=J-4;j<=J+5;j++){for(const v of [0,1]){if(!CITY.closedE(i,j,v)||CITY.watE(i,j,v))continue;const sg=CITY.hash(i,j,v?84:82)<.5?-1:1,po=sg*21.5;
     if(!v){const [u,q]=P(CITY.nx(i)+35+po-6.5,CITY.nz(j)-7);x.fillRect(u,q,13*m,14*m);}else{const [u,q]=P(CITY.nx(i)-7,CITY.nz(j)+35+po-6.5);x.fillRect(u,q,14*m,13*m);}}}
   x.fillStyle='#14161a';for(const a of TRAF.cars){const [u,v]=P(a.x,a.z);x.fillRect(u-2.5,v-2.5,5,5);}
   const blink=Math.floor(performance.now()/140)%2;for(const pc of POL.cars){const [u,v]=P(pc.x,pc.z);x.fillStyle=blink?'#ff2035':'#2f7bff';x.beginPath();x.arc(u,v,5,0,TAU);x.fill();}
@@ -1889,6 +1952,7 @@ const MODE_NAME={rampa:'Rampa',atlama:'Atlama',gosteri:'Tam gösteri',serbest:'S
 
 function newStats(){return {hang:0,releaseY:null,rolls:0,flips:0,land:null,landD:null,cars:0,maxG:1,step:0,crashed:false};}
 function startMode(mode,opts={}){
+  if(TUN.on||TUN.ph){TUN.on=false;TUN.ph='';TUN.fd=0;tunShow(false);$('tunPick').hidden=true;$('tunHud').hidden=true;fade(0,10);ELEV.rideP=null;}
   if(mode!=='serbest')S.cargo=false;
   if(AP.on)apStop();
   S.mode=mode;S.menuDemo=!!opts.demo;if(!S.menuDemo)audioInit();if(!S.menuDemo)S.attempt++;
@@ -1896,7 +1960,7 @@ function startMode(mode,opts={}){
   S.bot.hangT=1.1+Math.random()*1.6;S.bot.hopX=LAY.line0+12.5+Math.random()*1.5;
   car=newCar();for(const o of OBST)o.seen=false;applyLoadout();if(S.cargo){cargoReset();JOB.wait=1.2;}
   setEnv(mode==='serbest'&&!S.menuDemo);
-  if(mode==='serbest'){S.auto=false;if(!S.menuDemo)CITY.reseed(NET.on?NET.seed:(Math.random()*2147483647|0));setFree(car);if(NET.on)car.pos.x-=(NET.idx%NET_MAX)*9;CITY.update(car.pos.x,car.pos.z);trafficReset();polClear();cam.head=car.yaw;S.free={dist:0,top:0,near:0,hits:0,combo:1,comboT:0,driftT:0};}
+  if(mode==='serbest'){S.auto=false;if(!S.menuDemo){if(NET.on)IL.cur=34;CITY.setStyle(ilCur().style);CITY.reseed(NET.on?NET.seed:ilSeed(IL.cur));}setFree(car);if(NET.on)car.pos.x-=(NET.idx%NET_MAX)*9;CITY.update(car.pos.x,car.pos.z);trafficReset();polClear();cam.head=car.yaw;S.free={dist:0,top:0,near:0,hits:0,combo:1,comboT:0,driftT:0};}
   else if(mode==='atlama')setGround(car,LAY.start.atlama,-1,0);else setGround(car,LAY.start[mode],1,0);
   CITY.group.visible=mode==='serbest';mirror.visible=!LOW&&mode!=='serbest';$('mini').hidden=mode!=='serbest';
   parts.length=0;
@@ -2109,7 +2173,7 @@ function updateCamera(dt){camDt=dt;
   const k=camTarget(_cp,_cl,_cu.set(0,1,0));
   if((cam.orbY||cam.orbP)&&S.camMode!==3){_off.copy(_cp).sub(_cl);const r=_off.length();const yaw=Math.atan2(_off.z,_off.x)+cam.orbY;const pit=clamp(Math.asin(clamp(_off.y/r,-.99,.99))+cam.orbP,-.05,1.45);_cp.set(_cl.x+Math.cos(yaw)*Math.cos(pit)*r,_cl.y+Math.sin(pit)*r,_cl.z+Math.sin(yaw)*Math.cos(pit)*r);}
   const a=snapCam?1:1-Math.exp(-k*dt);snapCam=false;
-  cam.pos.lerp(_cp,a);cam.look.lerp(_cl,Math.min(1,a*1.5));cam.up.lerp(_cu,a).normalize();if(cam.pos.y<.4)cam.pos.y=.4;
+  cam.pos.lerp(_cp,a);cam.look.lerp(_cl,Math.min(1,a*1.5));cam.up.lerp(_cu,a).normalize();if(cam.pos.y<.4&&!(TUN.on&&TUN.ph!=='down'))cam.pos.y=.4;
   camera.position.copy(cam.pos);
   if(S.shake>0){S.shake=Math.max(0,S.shake-dt*1.6);const s=S.shake*.35;camera.position.x+=(Math.random()-.5)*s;camera.position.y+=(Math.random()-.5)*s;}
   if(S.mode==='serbest'&&S.camMode<3){for(let t=.2;t<=1.001;t+=.2){_off.copy(cam.pos).sub(cam.look).multiplyScalar(t).add(cam.look);if(inBuilding(_off)){camera.position.copy(cam.pos).sub(cam.look).multiplyScalar(Math.max(.15,t-.2)).add(cam.look);break;}}}
@@ -2192,19 +2256,20 @@ function frame(now){
   else if(S.phase==='play'||S.phase==='ended'){
     acc+=dt*(S.slow?.3:1);let steps=0;
     while(acc>=H&&steps<40){acc-=H;steps++;
+      if(TUN.on){tunStep(H);continue;}
       const inp=gatherInput();
       if(S.phase==='ended'){inp.gas=0;inp.brake=1;inp.lift=0;inp.boost=0;inp.liftPress=0;}
       const ev=[];physicsStep(car,inp,H,ev);
       if(S.phase==='play'){S.t+=H;handleEvents(ev);}else handleEvents(ev.filter(e=>e.t==='land'||e.t==='bump'));}
     simDt=steps*H;
-    if(S.mode==='serbest'&&!S.menuDemo){trafficTick(simDt);if(S.phase==='play')polTick(simDt);}
-    if(S.phase==='play'){modeTick(simDt);if(steps)record();}
+    if(S.mode==='serbest'&&!S.menuDemo&&!TUN.on){trafficTick(simDt);if(S.phase==='play')polTick(simDt);}
+    if(S.phase==='play'){if(!TUN.on)modeTick(simDt);if(steps)record();}
     else if(S.menuDemo||S.auto){S.endT+=dt;if(S.endT>2.2){if(S.menuDemo)startMode('gosteri',{demo:true});else nextAuto();}}
     ghostTick();
   }
   if(bigT>0){bigT-=dt;if(bigT<=0){$('bigT').textContent='';$('bigS').textContent='';}}
-  netTick(dt,simDt);gateUpdate(dt);cargoTick(simDt,dt);peopleTick(simDt,dt);heliTick(simDt,dt);pedTick(simDt,dt);skyTick(simDt);restTick(dt);footTick(simDt);
-  if(S.mode==='serbest'&&!S.menuDemo){CITY.update(car.pos.x,car.pos.z);trafficRender();polRender(now/1000);drawMinimap();if(S.free.recDirty&&Math.random()<.02){store.set('rec',REC);updateRecords();S.free.recDirty=false;}}
+  netTick(dt,simDt);if(!TUN.on){gateUpdate(dt);cargoTick(simDt,dt);peopleTick(simDt,dt);heliTick(simDt,dt);}elevTick(dt);tunRender();tunPad();CITY.boatTick(dt,car.pos.x);pedTick(simDt,dt);skyTick(simDt);restTick(dt);footTick(simDt);
+  if(S.mode==='serbest'&&!S.menuDemo&&!TUN.on){CITY.update(car.pos.x,car.pos.z);trafficRender();polRender(now/1000);drawMinimap();ilLabel();if(S.free.recDirty&&Math.random()<.02){store.set('rec',REC);updateRecords();S.free.recDirty=false;}}
   poseCar(simDt);updateCamera(dt);cockpitPose();apHud();tickParticles(paused?0:dt*(S.slow?.3:1));
   hud();audioTick(!paused&&(S.phase==='play'||S.phase==='ended'||S.phase==='count'));
   realismTick();
@@ -2587,8 +2652,8 @@ const MAPV={scale:1.1,cx:0,cz:0,mode:'road',pick:null};
 function mapW2S(x,z,W,H){return [W/2+(x-MAPV.cx)*MAPV.scale,H/2+(z-MAPV.cz)*MAPV.scale];}
 function drawBigMap(){const cv=$('bigmap'),x=cv.getContext('2d'),W=cv.width,H=cv.height,s=MAPV.scale;x.fillStyle='#2b2e33';x.fillRect(0,0,W,H);
   const span=W/s/2+CITY.B,i0=CITY.ci(MAPV.cx-span),i1=CITY.ci(MAPV.cx+span),j0=CITY.cj(MAPV.cz-span*H/W),j1=CITY.cj(MAPV.cz+span*H/W),w=(CITY.B-CITY.RW)*s;
-  for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const [u,v]=mapW2S(CITY.nx(i)+CITY.HW,CITY.nz(j)+CITY.HW,W,H);x.fillStyle=CITY.isHwy(i,j)?'#7a3530':CITY.isRamp(i,j)?'#8a5524':CITY.isPark(i,j)?'#3d5e31':'#55595f';x.fillRect(u,v,w,w);}
-  x.fillStyle='#55595f';for(let i=i0;i<=i1+1;i++)for(let j=j0;j<=j1+1;j++)for(const v of [0,1]){if(!CITY.closedE(i,j,v))continue;const sg=CITY.hash(i,j,v?84:82)<.5?-1:1,po=sg*21.5;if(!v){const [u,q]=mapW2S(CITY.nx(i)+35+po-6.5,CITY.nz(j)-7,W,H);x.fillRect(u,q,13*s,14*s);}else{const [u,q]=mapW2S(CITY.nx(i)-7,CITY.nz(j)+35+po-6.5,W,H);x.fillRect(u,q,14*s,13*s);}}
+  for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const [u,v]=mapW2S(CITY.nx(i)+CITY.HW,CITY.nz(j)+CITY.HW,W,H);if(CITY.isWater(i,j)){const q=CITY.waterRect(i,j),[a,b]=mapW2S(q[0],q[1],W,H);x.fillStyle='#1d4f6e';x.fillRect(a,b,(q[2]-q[0])*s,(q[3]-q[1])*s);continue;}x.fillStyle=CITY.isHwy(i,j)?'#7a3530':CITY.isRamp(i,j)?'#8a5524':CITY.isPark(i,j)?'#3d5e31':'#55595f';x.fillRect(u,v,w,w);}
+  x.fillStyle='#55595f';for(let i=i0;i<=i1+1;i++)for(let j=j0;j<=j1+1;j++)for(const v of [0,1]){if(!CITY.closedE(i,j,v)||CITY.watE(i,j,v))continue;const sg=CITY.hash(i,j,v?84:82)<.5?-1:1,po=sg*21.5;if(!v){const [u,q]=mapW2S(CITY.nx(i)+35+po-6.5,CITY.nz(j)-7,W,H);x.fillRect(u,q,13*s,14*s);}else{const [u,q]=mapW2S(CITY.nx(i)-7,CITY.nz(j)+35+po-6.5,W,H);x.fillRect(u,q,14*s,13*s);}}
   const sp=CITY.spotsIn(i0,i1,j0,j1);MAPV.spots=sp;x.font='bold '+Math.max(9,Math.round(8*s))+'px system-ui';x.textAlign='center';x.textBaseline='middle';
   for(const p of sp){const [u,v]=mapW2S(p.x,p.z,W,H);x.fillStyle='#1d6fe0';x.fillRect(u-6,v-6,12,12);x.fillStyle='#fff';x.fillText('P',u,v+.5);}
   for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){if(CITY.m4(i)!==3||CITY.m4(j)!==3)continue;const [u,v]=mapW2S(CITY.nx(i)+CITY.B/2,CITY.nz(j),W,H);x.fillStyle='#0b4f86';x.fillRect(u-7,v-7,14,14);x.fillStyle='#fff';x.fillText('G',u,v+.5);}
@@ -2673,7 +2738,7 @@ function drawNavScreen(x,W,H){const c=car,mw=Math.round(W*.64),s=1.5,yaw=c.yaw,c
   const P=(wx,wz)=>{const dx=wx-c.pos.x,dz=wz-c.pos.z;return [cx+(dx*rv[0]+dz*rv[1])*s,cy-(dx*f[0]+dz*f[1])*s];};
   x.fillStyle='#1b1e23';x.fillRect(0,0,W,H);x.save();x.beginPath();x.rect(0,0,mw,H);x.clip();x.fillStyle='#24282e';x.fillRect(0,0,mw,H);
   const I=CITY.ci(c.pos.x),J=CITY.cj(c.pos.z),poly=(pts,col)=>{x.fillStyle=col;x.beginPath();pts.forEach((p,n)=>{const [u,v]=P(p[0],p[1]);n?x.lineTo(u,v):x.moveTo(u,v);});x.closePath();x.fill();};
-  for(let i=I-4;i<=I+4;i++)for(let j=J-4;j<=J+4;j++){const a=CITY.nx(i)+CITY.HW,b=CITY.nz(j)+CITY.HW,e=CITY.B-CITY.RW;poly([[a,b],[a+e,b],[a+e,b+e],[a,b+e]],CITY.isPark(i,j)?'#2b3b2c':CITY.isHwy(i,j)||CITY.isRamp(i,j)?'#3a3430':'#33373d');}
+  for(let i=I-4;i<=I+4;i++)for(let j=J-4;j<=J+4;j++){if(CITY.isWater(i,j)){const q=CITY.waterRect(i,j);poly([[q[0],q[1]],[q[2],q[1]],[q[2],q[3]],[q[0],q[3]]],'#1c4a66');continue;}const a=CITY.nx(i)+CITY.HW,b=CITY.nz(j)+CITY.HW,e=CITY.B-CITY.RW;poly([[a,b],[a+e,b],[a+e,b+e],[a,b+e]],CITY.isPark(i,j)?'#2b3b2c':CITY.isHwy(i,j)||CITY.isRamp(i,j)?'#3a3430':'#33373d');}
   if(AP.on&&AP.pts.length){x.strokeStyle='#3e8bff';x.lineWidth=7;x.lineJoin='round';x.lineCap='round';x.beginPath();AP.pts.slice(AP.k).forEach((p,n)=>{const [u,v]=P(n?p.x:c.pos.x,n?p.z:c.pos.z);n?x.lineTo(u,v):x.moveTo(u,v);});x.stroke();}
   if(AP.dest){const [u,v]=P(AP.dest.x,AP.dest.z);x.fillStyle='#ff3b5c';x.beginPath();x.arc(u,v-10,7,Math.PI,0);x.lineTo(u,v);x.closePath();x.fill();}
   for(const a of TRAF.cars){const [u,v]=P(a.x,a.z);if(u<-5||u>mw+5||v<-5||v>H+5)continue;x.fillStyle='#8c939c';x.fillRect(u-2.5,v-2.5,5,5);}
@@ -2681,7 +2746,7 @@ function drawNavScreen(x,W,H){const c=car,mw=Math.round(W*.64),s=1.5,yaw=c.yaw,c
   // status panel
   const px=mw+18;x.fillStyle='#101215';x.fillRect(mw,0,W-mw,H);x.textAlign='left';x.textBaseline='alphabetic';
   x.fillStyle='#fff';x.font='700 64px system-ui';x.fillText(String(kmh(c.v)),px,78);x.font='600 18px system-ui';x.fillStyle='#8f98a3';x.fillText('km/s',px+2,104);
-  x.fillStyle=AP.on?'#3e8bff':'#4a4f56';x.beginPath();x.arc(px+12,140,11,0,TAU);x.fill();x.fillStyle='#fff';x.font='700 18px system-ui';x.fillText(AP.on?'Otopilot':'Otopilot kapalı',px+32,147);
+  x.fillStyle=AP.on||TUN.on?'#3e8bff':'#4a4f56';x.beginPath();x.arc(px+12,140,11,0,TAU);x.fill();x.fillStyle='#fff';x.font='700 18px system-ui';x.fillText(TUN.on?'Tünel otopilotu':AP.on?'Otopilot':'Otopilot kapalı',px+32,147);
   const d=AP.dest,dist=d?Math.hypot(d.x-c.pos.x,d.z-c.pos.z):0;x.fillStyle='#cfd5dc';x.font='600 17px system-ui';
   if(AP.on&&d){x.fillText((d.park?'Park yeri':AP.cargo?(JOB.st==='pick'?JOB.from:JOB.cust||'Teslimat'):'Hedef'),px,188);x.fillStyle='#8f98a3';x.fillText(Math.round(dist)+' m · '+Math.max(1,Math.round(dist/Math.max(6,Math.abs(c.v))/60*10)/10)+' dk',px,212);x.fillText(AP.mode==='fly'?'Uçarak':'Yoldan',px,236);}
   else if(S.cargo&&JOB.st!=='none'){x.fillText(JOB.st==='pick'?JOB.from:JOB.cust||'',px,188);x.fillStyle='#8f98a3';x.fillText(Math.round(JOB.d||0)+' m',px,212);}
@@ -2756,7 +2821,7 @@ const GATE={meshes:[],spots:[],t:0,inside:false,done:false,warned:false,boxes:[]
 function gateUpdate(dt){const on=S.mode==='serbest'&&!S.menuDemo;GATE.t-=dt;
   if(!on){for(const g of GATE.meshes)g.visible=false;GATE.spots.length=0;GATE.boxes.length=0;return;}
   if(GATE.t<=0){GATE.t=.5;const I=CITY.ci(car.pos.x),J=CITY.cj(car.pos.z),list=[];
-    for(let i=I-9;i<=I+9;i++){if(mod4(i)!==3)continue;for(let j=J-9;j<=J+9;j++){if(mod4(j)!==3)continue;const x=CITY.nx(i)+CITY.B/2,z=CITY.nz(j);list.push({x,z,d:Math.hypot(x-car.pos.x,z-car.pos.z)});}}
+    for(let i=I-9;i<=I+9;i++){if(mod4(i)!==3)continue;for(let j=J-9;j<=J+9;j++){if(mod4(j)!==3)continue;const x=CITY.nx(i)+CITY.B/2,z=CITY.nz(j);if(CITY.waterAt(x,z,-9))continue;list.push({x,z,d:Math.hypot(x-car.pos.x,z-car.pos.z)});}}
     list.sort((a,b)=>a.d-b.d);GATE.spots=list.slice(0,6);GATE.boxes.length=0;
     GATE.meshes.forEach((g,k)=>{const s=GATE.spots[k];g.visible=!!s;if(s){g.position.set(s.x,0,s.z);for(const z of [-7.6,7.6])GATE.boxes.push({x0:s.x-.45,x1:s.x+.45,z0:s.z+z-.45,z1:s.z+z+.45,h:6.6});}});}
   const c=car;let inside=false;for(const s of GATE.spots){if(Math.abs(c.pos.x-s.x)<4.5&&Math.abs(c.pos.z-s.z)<6.8&&c.pos.y<1){inside=true;break;}}
@@ -2904,7 +2969,7 @@ const PEDS=(()=>{const n=isTouch?8:14,out=[],shirts=[0xd62828,0x2a9d8f,0xe9c46a,
 const pedOn=()=>S.mode==='serbest'&&!S.menuDemo&&!(typeof TUN!=='undefined'&&TUN.on);
 function pedPlace(p){const c=car,I=Math.round((c.pos.x-CITY.nx(0))/CITY.B),J=Math.round((c.pos.z-CITY.nz(0))/CITY.B);
   for(let tries=0;tries<20;tries++){const i=I+Math.floor(Math.random()*5)-2,j=J+Math.floor(Math.random()*5)-2,axis=Math.random()<.5?0:1,sx=Math.random()<.5?-1:1,flip=Math.random()<.5;
-    const x=CITY.nx(i),z=CITY.nz(j);if(Math.hypot(x-c.pos.x,z-c.pos.z)<25)continue;
+    const x=CITY.nx(i),z=CITY.nz(j);if(Math.hypot(x-c.pos.x,z-c.pos.z)<25||CITY.waterAt(x,z,-12))continue;
     // axis 0: zebra across the road that runs along x (cars on axis 0 must have red)
     let a,b;if(axis===0){a=[x+sx*8.7,z-8.8];b=[x+sx*8.7,z+8.8];}else{a=[x-8.8,z+sx*8.7];b=[x+8.8,z+sx*8.7];}if(flip)[a,b]=[b,a];
     Object.assign(p,{st:'wait',t:Math.random()*2,ax:a[0],az:a[1],bx:b[0],bz:b[1],i,j,axis,sp:1.2+Math.random()*.5,k:0,down:0});
@@ -2929,11 +2994,135 @@ function pedPenalty(){if(S.cargo){const f=Math.min(CAREER.money,250);CAREER.mone
   if(SET.police)polWant(Math.min(3,POL.wanted+1),'Yayaya çarptın');}
 function pedAhead(c,fx,fz){let best=1e9;for(const p of PEDS){if(p.st!=='walk'&&p.st!=='wait')continue;const G=p.g,rx=G.position.x-c.pos.x,rz=G.position.z-c.pos.z,al=rx*fx+rz*fz;
   if(p.st==='wait'&&lightAt(p.i,p.j,p.axis)!=='r')continue;if(al>0&&al<30&&Math.abs(-rx*fz+rz*fx)<3.2)best=Math.min(best,al);}return best;}
+/* ================= 81 PROVINCES: every il is its own city; İstanbul is the biggest and has the Bosphorus ================= */
+const IL=(()=>{const raw='1 Adana 37.00 35.32|2 Adıyaman 37.76 38.28|3 Afyonkarahisar 38.76 30.54|4 Ağrı 39.72 43.05|5 Amasya 40.65 35.83|6 Ankara 39.93 32.86|7 Antalya 36.89 30.70|8 Artvin 41.18 41.82|9 Aydın 37.85 27.84|10 Balıkesir 39.65 27.88|11 Bilecik 40.14 29.98|12 Bingöl 38.88 40.50|13 Bitlis 38.40 42.11|14 Bolu 40.74 31.61|15 Burdur 37.72 30.29|16 Bursa 40.19 29.06|17 Çanakkale 40.15 26.41|18 Çankırı 40.60 33.62|19 Çorum 40.55 34.95|20 Denizli 37.78 29.09|21 Diyarbakır 37.91 40.24|22 Edirne 41.68 26.56|23 Elazığ 38.67 39.22|24 Erzincan 39.75 39.49|25 Erzurum 39.90 41.27|26 Eskişehir 39.78 30.52|27 Gaziantep 37.07 37.38|28 Giresun 40.91 38.39|29 Gümüşhane 40.46 39.48|30 Hakkari 37.58 43.74|31 Hatay 36.20 36.16|32 Isparta 37.76 30.55|33 Mersin 36.81 34.64|34 İstanbul 41.01 28.98|35 İzmir 38.42 27.14|36 Kars 40.60 43.10|37 Kastamonu 41.38 33.78|38 Kayseri 38.72 35.49|39 Kırklareli 41.73 27.22|40 Kırşehir 39.15 34.16|41 Kocaeli 40.77 29.92|42 Konya 37.87 32.48|43 Kütahya 39.42 29.98|44 Malatya 38.35 38.31|45 Manisa 38.61 27.43|46 Kahramanmaraş 37.58 36.94|47 Mardin 37.31 40.74|48 Muğla 37.22 28.36|49 Muş 38.74 41.49|50 Nevşehir 38.62 34.71|51 Niğde 37.97 34.68|52 Ordu 40.98 37.88|53 Rize 41.02 40.52|54 Sakarya 40.69 30.44|55 Samsun 41.29 36.33|56 Siirt 37.93 41.94|57 Sinop 42.03 35.15|58 Sivas 39.75 37.02|59 Tekirdağ 40.98 27.51|60 Tokat 40.31 36.55|61 Trabzon 41.00 39.72|62 Tunceli 39.11 39.55|63 Şanlıurfa 37.16 38.79|64 Uşak 38.68 29.41|65 Van 38.50 43.38|66 Yozgat 39.82 34.81|67 Zonguldak 41.45 31.79|68 Aksaray 38.37 34.03|69 Bayburt 40.26 40.23|70 Karaman 37.18 33.22|71 Kırıkkale 39.85 33.51|72 Batman 37.88 41.13|73 Şırnak 37.52 42.46|74 Bartın 41.63 32.34|75 Ardahan 41.11 42.70|76 Iğdır 39.92 44.05|77 Yalova 40.65 29.27|78 Karabük 41.20 32.62|79 Kilis 36.72 37.12|80 Osmaniye 37.07 36.25|81 Düzce 40.84 31.16';
+  const big=[6,35,16,7,42,1,27,41,33,38,21,55,26,31,63],small=[4,5,8,11,12,13,15,18,24,29,30,36,37,39,40,49,50,51,56,57,62,66,68,69,70,71,73,74,75,76,77,78,79,81,28,32,53,14,17,22,67];
+  const REG=[[[10,11,16,17,22,34,39,41,54,59,77],0xffffff,'Marmara'],[[3,9,20,35,43,45,48,64],0xfffaf0,'Ege'],[[1,7,15,31,32,33,46,80],0xffe6c4,'Akdeniz'],[[6,18,26,38,40,42,50,51,58,66,68,70,71],0xf2dfc4,'İç Anadolu'],
+    [[5,8,14,19,28,29,37,52,53,55,57,60,61,67,69,74,78,81],0xd6e3ea,'Karadeniz'],[[4,12,13,23,24,25,30,36,44,49,62,65,75,76],0xd9cec2,'Doğu Anadolu'],[[2,21,27,47,56,63,72,73,79],0xf3d6a2,'Güneydoğu']];
+  const list=raw.split('|').map(s=>{const [p,n,la,lo]=s.split(' '),plate=+p,reg=REG.find(r=>r[0].includes(plate));
+    const tier=plate===34?'mega':big.includes(plate)?'big':small.includes(plate)?'small':'mid';
+    return {plate,name:n,lat:+la,lon:+lo,tier,region:reg[2],low:n.toLocaleLowerCase('tr-TR'),
+      style:{hm:{mega:1.65,big:1.2,mid:.85,small:.55}[tier],park:{mega:.8,big:1,mid:1.3,small:2.1}[tier],tint:reg[1],wat:plate===34}};});
+  return {list,cur:34,sess:(Math.random()*2147483647)|0,by:p=>list.find(q=>q.plate===p)};})();
+const ilCur=()=>IL.by(IL.cur);
+const ilKm=(a,b)=>{const R=6371,r=Math.PI/180,dla=(b.lat-a.lat)*r,dlo=(b.lon-a.lon)*r,h=Math.sin(dla/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dlo/2)**2;return Math.round(2*R*Math.asin(Math.sqrt(h))*1.18);};
+const ilSeed=p=>(Math.imul(p,-1640531535)^IL.sess)|0;
+function ilApply(plate,seed){IL.cur=plate;const il=ilCur();CITY.setStyle(il.style);CITY.reseed(seed);}
+function ilFind(t){let best=null;for(const il of IL.list){const m=t.match(new RegExp('(^|[^a-zçğıöşü])'+il.low));if(m&&(!best||il.low.length>best.low.length))best=il;}return best;}
+/* ================= CAR ELEVATORS: park on one, wait 3 s and it takes you down to the tunnel ================= */
+function elevList(i0,i1,j0,j1){const C=CITY,H=C.hash,out=[];for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++)for(const v of [0,1]){
+    const forced=!v&&i===1&&j===3;if(!forced){if(C.closedE(i,j,v))continue;if(!v&&C.m4(i)===3&&C.m4(j)===3)continue;if(H(i,j,v?141:140)>.1)continue;if(H(i,j,v?91:90)<=.28||H(i,j,v?97:96)<=.16)continue;}
+    const sg=forced?1:H(i,j,v?143:142)<.5?-1:1,hz=!v,x=hz?C.nx(i)+C.B/2:C.nx(i)+sg*8,z=hz?C.nz(j)+sg*8:C.nz(j)+C.B/2;
+    if(C.waterAt(x,z))continue;out.push({x,z,yaw:hz?0:Math.PI/2,i,j,v,sg,elev:true});}return out;}
+const ELEV=(()=>{const stripe=canvasTex(256,128,g=>{g.fillStyle='#1b1e24';g.fillRect(0,0,256,128);for(let k=-4;k<20;k++){g.fillStyle='#f2c230';g.beginPath();g.moveTo(k*24,0);g.lineTo(k*24+12,0);g.lineTo(k*24-20,128);g.lineTo(k*24-32,128);g.fill();}
+    g.fillStyle='#262a31';g.fillRect(14,14,228,100);g.strokeStyle='#5fc4ff';g.lineWidth=4;g.strokeRect(22,22,212,84);g.fillStyle='#5fc4ff';g.font='900 54px system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('▼ TÜNEL',128,66);});
+  const padM=new THREE.MeshStandardMaterial({map:stripe,roughness:.5,metalness:.5}),postM=new THREE.MeshStandardMaterial({color:0x2a5d8f,metalness:.6,roughness:.35}),
+    glassM=new THREE.MeshStandardMaterial({color:0x9fd6ff,transparent:true,opacity:.22,roughness:.05,metalness:.2,depthWrite:false,side:THREE.DoubleSide}),
+    signM=new THREE.MeshBasicMaterial({map:labelTex('TÜNEL ASANSÖRÜ','#5fc4ff',1024,256,150),transparent:true,side:THREE.DoubleSide}),
+    glowM=new THREE.MeshBasicMaterial({color:0x5fc4ff,transparent:true,opacity:.0,depthWrite:false,blending:THREE.AdditiveBlending}),holeM=new THREE.MeshBasicMaterial({color:0x05070a});
+  const pool=[];for(let n=0;n<(isTouch?3:5);n++){const g=new THREE.Group(),plat=new THREE.Group();
+    const pad=new THREE.Mesh(new THREE.BoxGeometry(6.4,.14,3.3),padM);pad.position.y=.0;pad.receiveShadow=true;plat.add(pad);g.add(plat);
+    const hole=new THREE.Mesh(new THREE.PlaneGeometry(6.4,3.3).rotateX(-Math.PI/2),holeM);hole.position.y=.012;g.add(hole);
+    for(const ax of [-3.35,3.35])for(const az of [-1.75,1.75]){const p=new THREE.Mesh(new THREE.BoxGeometry(.18,4.4,.18),postM);p.position.set(ax,2.2,az);g.add(p);}
+    for(const az of [-1.75,1.75]){const b=new THREE.Mesh(new THREE.BoxGeometry(6.9,.22,.22),postM);b.position.set(0,4.4,az);g.add(b);}
+    const roof=new THREE.Mesh(new THREE.BoxGeometry(6.9,.06,3.7),glassM);roof.position.y=4.5;g.add(roof);
+    const back=new THREE.Mesh(new THREE.PlaneGeometry(6.7,4.2),glassM);back.position.set(0,2.1,1.75);g.add(back);
+    const sign=new THREE.Mesh(new THREE.PlaneGeometry(6.4,1.6),signM);sign.position.set(0,5.4,0);g.add(sign);
+    const glow=new THREE.Mesh(new THREE.BoxGeometry(6.5,4.2,3.4),glowM.clone());glow.position.y=2.1;g.add(glow);
+    g.visible=false;scene.add(g);pool.push({g,plat,glow,sign,spot:null});}
+  return {pool,list:[],t:0,wait:0,on:null,armed:true,rideP:null};})();
+function elevOnPad(c,e){const dx=c.pos.x-e.x,dz=c.pos.z-e.z,al=Math.abs(e.v?dz:dx),ac=Math.abs(e.v?dx:dz);return al<2.9&&ac<1.45;}
+function elevTick(dt){const on=S.mode==='serbest'&&!S.menuDemo;if(!on){for(const p of ELEV.pool)p.g.visible=false;ELEV.list=[];return;}
+  const c=car;ELEV.t-=dt;
+  if(ELEV.t<=0&&!TUN.on){ELEV.t=.5;const I=CITY.ci(c.pos.x),J=CITY.cj(c.pos.z);ELEV.list=elevList(I-4,I+4,J-4,J+4).map(e=>({...e,d:Math.hypot(e.x-c.pos.x,e.z-c.pos.z)})).sort((a,b)=>a.d-b.d);
+    ELEV.pool.forEach((p,k)=>{if(p===ELEV.rideP)return;const e=ELEV.list[k];p.spot=e||null;p.g.visible=!!e;if(e){p.g.position.set(e.x,0,e.z);p.g.rotation.set(0,-e.yaw,0);p.plat.position.y=0;p.sign.rotation.y=e.v?(e.sg>0?Math.PI/2:-Math.PI/2)+Math.PI/2:(e.sg>0?Math.PI:0);}});}
+  for(const p of ELEV.pool)p.sign.quaternion.copy(camera.quaternion);
+  if(TUN.on)return;
+  let pad=null;for(const p of ELEV.pool)if(p.spot&&p.g.visible&&elevOnPad(c,p.spot)){pad=p;break;}
+  if(!pad){ELEV.armed=true;ELEV.wait=0;for(const p of ELEV.pool)p.glow.material.opacity*=.9;return;}
+  pad.glow.material.opacity=.12+.08*Math.sin(performance.now()/120);
+  if(!ELEV.armed||c.state!=='free'||Math.abs(c.v)>1.2||FOOT.on)return;
+  if(NET.on){if(ELEV.wait===0)pop('Online odada tünel kapalı');ELEV.wait=-1;return;}
+  const n0=Math.ceil(3-ELEV.wait);ELEV.wait+=dt;const n1=Math.ceil(3-ELEV.wait);
+  if(n0!==n1||ELEV.wait===dt){if(n1>0){bigMsg(String(n1),'Asansör iniyor… yerinden kıpırdama',900);sfx('beep');}}
+  if(ELEV.wait>=3){ELEV.armed=false;ELEV.wait=0;tunEnter(pad);}}
+/* ================= UNDERGROUND TUNNEL: flying cars only, the autopilot drives, you only pick the province ================= */
+const TUN=(()=>{const g=new THREE.Group();g.visible=false;scene.add(g);
+  const wallT=canvasTex(512,256,x=>{x.fillStyle='#2a2f37';x.fillRect(0,0,512,256);for(let k=0;k<1400;k++){const v=36+Math.random()*18|0;x.fillStyle=`rgb(${v},${v+2},${v+6})`;x.fillRect(Math.random()*512,Math.random()*256,3,3);}
+    x.fillStyle='#1c2027';for(let k=0;k<8;k++)x.fillRect(k*64,0,4,256);x.fillStyle='#5fc4ff';x.fillRect(0,124,512,6);x.fillStyle='#ffb84d';for(let k=0;k<8;k++)x.fillRect(k*64+20,40,24,6);});
+  wallT.wrapS=wallT.wrapT=THREE.RepeatWrapping;wallT.repeat.set(1,3);
+  const wallM=new THREE.MeshStandardMaterial({map:wallT,emissive:0x1a2633,emissiveIntensity:.9,emissiveMap:wallT,roughness:.6,metalness:.3,side:THREE.BackSide});
+  const ringM=new THREE.MeshBasicMaterial({color:0x7fd6ff}),laneM=new THREE.MeshBasicMaterial({color:0x2d7dff,transparent:true,opacity:.7}),capM=new THREE.MeshBasicMaterial({color:0x020304,side:THREE.DoubleSide});
+  const SEG=40,NS=16,R=12.5,segs=[];
+  for(let k=0;k<NS;k++){const s=new THREE.Group(),tube=new THREE.Mesh(new THREE.CylinderGeometry(R,R,SEG,28,1,true).rotateZ(Math.PI/2),wallM);s.add(tube);
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(R-.25,.14,6,40).rotateY(Math.PI/2),ringM);s.add(ring);
+    for(const [ly,lz] of [[-R+.6,0],[-R+1.6,-5.4],[-R+1.6,5.4]]){const l=new THREE.Mesh(new THREE.BoxGeometry(SEG*.45,.08,.25),laneM);l.position.set(0,ly,lz);s.add(l);}
+    g.add(s);segs.push(s);}
+  const cap0=new THREE.Mesh(new THREE.CircleGeometry(R,28).rotateY(Math.PI/2),capM),cap1=cap0.clone();g.add(cap0,cap1);
+  const LANES=[[-5.4,-3.2],[0,-3.2],[5.4,-3.2],[-5.4,3.4],[0,3.4],[5.4,3.4]];
+  return {g,segs,SEG,NS,R,cap0,cap1,LANES,on:false,ph:'',t:0,x:0,y0:-700,z0:0,sp:0,lane:1,ly:-3.2,lz:0,laneT:0,roll:0,to:null,want:null,km:0,dur:0,pad:null,from:34,sel:0,veh:[],gp:{}};})();
+function tunShow(on){TUN.g.visible=on;CITY.group.visible=!on;if(scene.fog){if(on){if(TUN.fogC==null)TUN.fogC=scene.fog.color.getHex();scene.fog.color.setHex(0x06090e);}else if(TUN.fogC!=null){scene.fog.color.setHex(TUN.fogC);TUN.fogC=null;}}}
+function fade(a,ms=600){const f=$('fadeBlk');f.style.transition=`opacity ${ms}ms`;f.style.opacity=a;}
+function tunEnter(pad){const c=car;if(AP.on)apStop();TUN.on=true;TUN.ph='down';TUN.t=0;TUN.pad=pad;ELEV.rideP=pad;TUN.from=IL.cur;TUN.to=null;
+  c.vel.set(0,0,0);c.v=0;c.yaw=pad.spot.yaw+(Math.cos(c.yaw-pad.spot.yaw)<0?Math.PI:0);c.pos.x=pad.spot.x;c.pos.z=pad.spot.z;sfx('chime');pop('Asansör iniyor');}
+function tunStart(){const c=car;tunShow(true);TUN.ph='pick';TUN.t=0;TUN.x=c.pos.x;TUN.z0=c.pos.z;TUN.sp=0;TUN.lane=1;TUN.lz=TUN.LANES[1][0];TUN.ly=TUN.LANES[1][1];TUN.laneT=3;
+  c.yaw=0;cam.head=0;snapCam=true;if(S.camMode===2)setCamMode(0);
+  for(const s of SKYT){s.on=false;s.V.g.visible=false;}TUN.veh=SKYT.map((s,k)=>({s,lane:(k*2+3)%6,rx:(k%2?-1:1)*(40+k*26),rv:(Math.random()-.5)*16}));
+  for(const v of TUN.veh)if(v.lane===TUN.lane)v.lane=(v.lane+1)%6;
+  fade(0,700);
+  if(TUN.want){const w=TUN.want;TUN.want=null;tunGo(w);}else{tunPickOpen();say('Tünele hoş geldin. Nereye gidelim?');}}
+function tunPickOpen(){const ov=$('tunPick');ov.hidden=false;$('tunQ').value='';tunPickList();TUN.sel=0;setTimeout(()=>{if(!isTouch)$('tunQ').focus();},50);}
+function tunPickList(){const q=$('tunQ').value.toLocaleLowerCase('tr-TR').trim(),box=$('tunList'),here=ilCur();box.textContent='';
+  const L=IL.list.filter(il=>il.plate!==IL.cur&&(!q||il.low.includes(q)||String(il.plate)===q));
+  for(const il of L){const b=document.createElement('button');b.type='button';b.className='ilb'+(il.tier==='mega'||il.tier==='big'?' big':'');b.dataset.p=il.plate;
+    b.innerHTML=`<b>${String(il.plate).padStart(2,'0')}</b><span>${il.name}</span><small>${ilKm(here,il)} km</small>`;b.addEventListener('click',()=>tunGo(il));box.appendChild(b);}
+  TUN.sel=Math.min(TUN.sel,L.length-1);tunSelMark();}
+function tunSelMark(){const bs=[...$('tunList').children];bs.forEach((b,k)=>b.classList.toggle('sel',k===TUN.sel));const b=bs[TUN.sel];if(b&&PAD.on)b.scrollIntoView({block:'nearest'});}
+function tunGo(il){if(!il||il.plate===IL.cur){say('Zaten '+ilCur().name+' ilindeyiz.');return;}
+  $('tunPick').hidden=true;TUN.to=il;TUN.km=ilKm(ilCur(),il);TUN.dur=clamp(12+TUN.km/55,14,34);TUN.t=0;TUN.ph='ride';
+  say('Tamam, '+il.name+' yönüne gidiyoruz. Yaklaşık '+TUN.km+' kilometre.');$('tunHud').hidden=false;}
+function tunExit(){const c=car,il=TUN.to;ilApply(il.plate,ilSeed(il.plate));
+  const e0=elevList(-3,4,0,6).sort((a,b)=>Math.hypot(a.x-CITY.start.x,a.z-CITY.start.z)-Math.hypot(b.x-CITY.start.x,b.z-CITY.start.z))[0];
+  tunShow(false);$('tunHud').hidden=true;const p=TUN.pad;p.spot=e0;p.g.position.set(e0.x,0,e0.z);p.g.rotation.set(0,-e0.yaw,0);p.g.visible=true;
+  c.pos.set(e0.x,-9,e0.z);c.yaw=e0.yaw;c.vel.set(0,0,0);c.v=0;c.state='free';c.steer=0;basisQuat(c.q,_va.set(Math.cos(c.yaw),0,Math.sin(c.yaw)),AY);cam.head=c.yaw;snapCam=true;
+  CITY.update(c.pos.x,c.pos.z);trafficReset();polClear();if(S.cargo)cargoReset();for(const s of SKYT){s.on=false;}REST.t=0;ELEV.t=0;
+  TUN.ph='up';TUN.t=0;fade(0,900);}
+function tunStep(h){const c=car,T=TUN;T.t+=h;
+  if(T.ph==='down'){const k=Math.min(1,T.t/3.2),y=-12*k*k;c.pos.y=y;T.pad.plat.position.y=y;if(T.t>2.4&&!T.fd){T.fd=1;fade(1,700);}if(T.t>=3.2){T.fd=0;T.pad.plat.position.y=0;tunStart();}c.v=0;return;}
+  if(T.ph==='up'){const k=Math.min(1,T.t/3),y=-9*(1-k)*(1-k);c.pos.y=y;T.pad.plat.position.y=y;
+    if(T.t>=3){c.pos.y=0;T.pad.plat.position.y=0;T.on=false;T.ph='';ELEV.rideP=null;ELEV.armed=false;const il=ilCur();bigMsg(il.name.toLocaleUpperCase('tr-TR'),il.plate+' · '+il.region+' bölgesi · hoş geldin!',3200);say(il.name+' iline hoş geldin.');sfx('chime');}return;}
+  // cruise: pick phase rolls slowly, the ride runs at hyperloop speed and slows down at the end
+  let vT=T.ph==='pick'?40:150;if(T.ph==='ride'){if(T.dur-T.t<4)vT=40;}
+  // AP in the tunnel: keep a gap to the car ahead, change lanes when it is free
+  let ahead=1e9;for(const v of T.veh)if(v.lane===T.lane&&v.rx>0)ahead=Math.min(ahead,v.rx);
+  T.laneT-=h;if(T.laneT<=0||ahead<70){const free=[0,1,2,3,4,5].filter(l=>l!==T.lane&&Math.abs(l%3-T.lane%3)<=1&&T.veh.every(v=>v.lane!==l||Math.abs(v.rx)>45));
+    if(free.length){T.lane=free[Math.random()*free.length|0];T.laneT=4+Math.random()*4;}else T.laneT=.5;}
+  if(ahead<55)vT=Math.min(vT,T.sp-8);
+  T.sp+=clamp(vT-T.sp,-30*h,22*h);T.sp=Math.max(T.sp,15);
+  const [tz,ty]=T.LANES[T.lane],dz=tz-T.lz;T.lz+=clamp(dz,-5*h,5*h);T.ly+=clamp(ty-T.ly,-3.5*h,3.5*h);T.roll+=(clamp(-dz*.18,-.35,.35)-T.roll)*Math.min(1,4*h);
+  T.x+=T.sp*h;c.pos.set(T.x,T.y0+T.ly,T.z0+T.lz);c.vel.set(T.sp,0,0);c.v=T.sp;c.yaw=0;
+  basisQuat(c.q,_va.set(1,0,0),AY);_qa.setFromAxisAngle(AX,T.roll);c.q.multiply(_qa);
+  for(const v of T.veh){if(v.lane===T.lane&&v.rx<0&&v.rx>-30)v.rv=Math.min(v.rv,-2);v.rx+=v.rv*h;if(v.lane===T.lane&&v.rx>0&&v.rx<14)v.rx=14;if(v.rx>320||v.rx<-220){const fw=v.rv<0;v.rx=fw?240+Math.random()*60:-160-Math.random()*40;v.rv=fw?-(8+Math.random()*20):(6+Math.random()*16);v.lane=[0,1,2,3,4,5].filter(l=>l!==T.lane)[Math.random()*5|0];}}
+  if(T.ph==='ride'){if(T.t>=T.dur-1&&!T.fd){T.fd=1;fade(1,800);}if(T.t>=T.dur){T.fd=0;tunExit();}}}
+function tunRender(){const T=TUN;if(!T.on||(T.ph!=='pick'&&T.ph!=='ride'))return;const c=car,t=performance.now()/1000,base=Math.floor(T.x/T.SEG)*T.SEG;
+  T.segs.forEach((s,k)=>s.position.set(base+(k-5)*T.SEG,T.y0,T.z0));T.cap0.position.set(base-5.5*T.SEG,T.y0,T.z0);T.cap1.position.set(base+(T.NS-5.5)*T.SEG,T.y0,T.z0);
+  for(const v of T.veh){const g=v.s.V.g,[lz,ly]=T.LANES[v.lane];g.visible=true;g.position.set(T.x+v.rx,T.y0+ly+Math.sin(t*1.7+v.rx)*.15,T.z0+lz);g.rotation.set(0,0,0);if(v.s.V.fanGlow)v.s.V.fanGlow.material.opacity=.8;}
+  if(T.ph==='ride'){const k=Math.min(1,T.t/T.dur),left=Math.max(0,T.dur-T.t);$('tunTxt').textContent=`${ilCur().name} → ${T.to.name} · ${Math.round(T.km*(1-k))} km kaldı · ${Math.round(T.sp*3.6)} km/s`;
+    $('tunBar').style.width=(k*100).toFixed(1)+'%';$('tunEta').textContent='0:'+String(Math.ceil(left)).padStart(2,'0');}}
+function tunPad(){if(TUN.ph!=='pick'||$('tunPick').hidden)return;const gp=[...(navigator.getGamepads?navigator.getGamepads():[])].find(p=>p&&p.connected);if(!gp)return;
+  const b=n=>!!(gp.buttons[n]&&gp.buttons[n].pressed),E=TUN.gp,edge=n=>{const p=b(n),r=p&&!E[n];E[n]=p;return r;},n=$('tunList').children.length;
+  if(edge(15)||edge(5)||edge(13)){TUN.sel=(TUN.sel+(edge(13)?4:1))%n;tunSelMark();}if(edge(14)||edge(4)||edge(12)){TUN.sel=(TUN.sel-1+n)%n;tunSelMark();}
+  if(edge(0)){const el=$('tunList').children[TUN.sel];if(el)el.click();}if(edge(3))askStart();}
+$('tunQ').addEventListener('input',()=>{TUN.sel=0;tunPickList();});
+$('tunQ').addEventListener('keydown',e=>{const n=$('tunList').children.length;if(e.key==='ArrowDown'||e.key==='ArrowRight'){TUN.sel=Math.min(n-1,TUN.sel+1);tunSelMark();e.preventDefault();}
+  else if(e.key==='ArrowUp'||e.key==='ArrowLeft'){TUN.sel=Math.max(0,TUN.sel-1);tunSelMark();e.preventDefault();}else if(e.key==='Enter'){const el=$('tunList').children[TUN.sel];if(el)el.click();}e.stopPropagation();});
+$('tunAsk').addEventListener('click',()=>askStart());
+function waterSplash(c){const t=performance.now();if(t-(waterSplash.t||0)<1200)return;waterSplash.t=t;for(let k=0;k<26;k++)emit(c.pos.x,.3,c.pos.z,(Math.random()-.5)*6,3+Math.random()*5,(Math.random()-.5)*6,.9,.75,.88,1,.5,9,1.5);pop('Suya girme! Köprüden geç');sfx('whoosh');}
 /* ================= RESTAURANTS along the streets (free drive + courier) ================= */
 const FOOD=[['Mahalle Köftecisi','köfte',0x9d0208],['Ayrancı Baba','ayran',0x2a9d8f],['Lavaşçı Usta','lavaş',0xbc6c25],['Mahalle Dönercisi','döner',0xe36414],['Kebapçı Halil','kebap',0x8b1e3f],
   ['Mahalle Kafe','kafe',0x6b3e26],['Karadeniz Pide','pide',0x386641],['Simitçi Ahmet','simit',0xd4a373],['Usta Pizza','pizza',0xc1121f],['Mahalle Marketi','market',0x1d6fe0],['Tatlıcı Hafız','tatlı',0xff6fa7],['Balıkçı Yaşar','balık',0x1d3557]];
 const DAT={köfte:'köfteciye',ayran:'ayrancıya',lavaş:'lavaşçıya',döner:'dönerciye',kebap:'kebapçıya',kafe:'kafeye',pide:'pideciye',simit:'simitçiye',pizza:'pizzacıya',market:'markete',tatlı:'tatlıcıya',balık:'balıkçıya'};
-function restIn(i0,i1,j0,j1){const H=CITY.hash,out=[];for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++)for(const v of [0,1]){if(CITY.closedE(i,j,v))continue;if(!v&&CITY.m4(i)===3&&CITY.m4(j)===3)continue;if(H(i,j,v?97:96)>.16)continue;
+function restIn(i0,i1,j0,j1){const H=CITY.hash,out=[];for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++)for(const v of [0,1]){if(CITY.closedE(i,j,v))continue;if(!v&&CITY.m4(i)===3&&CITY.m4(j)===3)continue;if(!v&&i===1&&j===3)continue;if(H(i,j,v?97:96)>.16)continue;
     const spot=H(i,j,v?91:90)<=.28,sg=spot?-(H(i,j,v?93:92)<.5?-1:1):(H(i,j,v?99:98)<.5?-1:1),al=(H(i,j,v?101:100)-.5)*22,hz=!v,f=FOOD[Math.floor(H(i,j,v?103:102)*FOOD.length)];
     const cx=hz?CITY.nx(i)+CITY.B/2+al:CITY.nx(i),cz=hz?CITY.nz(j):CITY.nz(j)+CITY.B/2+al,nx=hz?0:sg,nz=hz?sg:0;
     out.push({x:cx+nx*AP_LANE,z:cz+nz*AP_LANE,nx,nz,cx,cz,i,j,v,sg,name:f[0],kind:f[1],col:f[2],door:{x:cx+nx*8.2,z:cz+nz*8.2}});}return out;}
@@ -2945,7 +3134,7 @@ function restTick(dt){const on=S.mode==='serbest'&&!S.menuDemo&&!(typeof TUN!=='
   REST.pool.forEach((p,k)=>{const r=L[k];p.m.g.visible=!!r;if(!r)return;if(p.name!==r.name+r.i+r.j){p.name=r.name+r.i+r.j;p.m.setShop([r.name,r.col]);}placeAtCurb(p.m.g,{x:r.cx,z:r.cz,nx:r.nx,nz:r.nz},8.5);});}
 /* ================= ON FOOT: get out of the car and walk around ================= */
 const FOOT=(()=>{const g=buildPerson(0x1d3557,0x22223b,0xe0ac69,{hair:0x2b1d14});g.visible=false;return {g,on:false,pos:new V3(),yaw:0,vy:0,cam:0,door:null};})();
-function footToggle(){const c=car;if(S.mode!=='serbest'||S.menuDemo){pop('Arabadan sadece serbest sürüşte inebilirsin');return;}
+function footToggle(){const c=car;if(TUN.on){pop('Tünelde arabadan inilmez');return;}if(S.mode!=='serbest'||S.menuDemo){pop('Arabadan sadece serbest sürüşte inebilirsin');return;}
   if(!FOOT.on){if(c.state!=='free'||Math.abs(c.v)>2){pop('İnmek için dur');return;}if(AP.on)apStop();
     const rx=-Math.sin(c.yaw),rz=Math.cos(c.yaw);FOOT.pos.set(c.pos.x-rx*1.8,0,c.pos.z-rz*1.8);FOOT.yaw=c.yaw;FOOT.cam=c.yaw;FOOT.on=true;FOOT.g.visible=true;FOOT.vy=0;
     if(S.camMode===3)setCamMode(0);pop('Arabadan indin · binmek için Enter / İN-BİN','gold');sfx('chime');}
@@ -2984,18 +3173,22 @@ function wakeLoop(){if(!SET.wake||!ASK.SR||ASK.wakeRec)return;try{const r=new AS
   r.onend=()=>{ASK.wakeRec=null;if(SET.wake)setTimeout(wakeLoop,400);};r.onerror=()=>{};r.start();ASK.wakeRec=r;}catch(_){}}
 function nearestOf(list,fn){const c=car;let best=null,bd=1e9;for(const x of list){if(fn&&!fn(x))continue;const d=Math.hypot(x.x-c.pos.x,x.z-c.pos.z);if(d<bd){bd=d;best=x;}}return best;}
 function askCommand(raw){const t=raw.toLocaleLowerCase('tr-TR'),c=car,I=CITY.ci(c.pos.x),J=CITY.cj(c.pos.z);
+  if(TUN.on){const il=ilFind(t);if(TUN.ph==='pick'&&il)tunGo(il);else say(TUN.ph==='pick'?'Hangi ile gidelim? Mesela “Ankara”.':'Tüneldeyiz, otopilot sürüyor.');return;}
   const mode=/uçarak|uç\b|havadan/.test(t)?'fly':/yoldan|sürerek/.test(t)?'road':MAPV.mode;
   if(/hızlı/.test(t))AP.spd=2;if(/aşırı|çok hızlı|en hızlı/.test(t))AP.spd=3;if(/yavaş/.test(t))AP.spd=0;
   const go=(dest,label)=>{if(!dest){say('Oraya giden bir yol bulamadım.');return;}if(AP.on)apStop();if(FOOT.on){say('Önce arabaya binmelisin.');return;}apStart(mode,false,dest);if(AP.on){say('Tamam, '+label+(mode==='fly'?' uçarak':'')+' gidiyoruz.');blip(false);}};
   if(/\b(dur|durdur|iptal)\b|otopilotu kapat/.test(t)){apStop();say('Tamam, kontrol sende.');return;}
   if(/teslimat|sipariş|kurye/.test(t)){if(!S.cargo){say('Teslimatlar için kurye modunu aç.');return;}if(AP.on)apStop();apStart(mode,true,null);say('Tamam, siparişleri ben getiriyorum.');return;}
   if(/park/.test(t)){const s=nearestOf(CITY.spotsIn(I-5,I+5,J-5,J+5));go(s&&{x:s.x,z:s.z,v:s.v,i:s.i,j:s.j,sg:s.sg,park:true},'en yakın park yerine');return;}
-  if(/garaj/.test(t)){const L=[];for(let i=I-9;i<=I+9;i++)for(let j=J-9;j<=J+9;j++)if(CITY.m4(i)===3&&CITY.m4(j)===3)L.push({x:CITY.nx(i)+CITY.B/2,z:CITY.nz(j)+AP_LANE});const g=nearestOf(L);go(g&&apDestFromPoint(g.x,g.z),'en yakın garaja');return;}
-  if(/asansör|tünel/.test(t)&&typeof elevList==='function'){const e=nearestOf(elevList(I-8,I+8,J-8,J+8));go(e&&apDestFromPoint(e.x,e.z),'en yakın araç asansörüne');return;}
+  if(/garaj/.test(t)){const L=[];for(let i=I-9;i<=I+9;i++)for(let j=J-9;j<=J+9;j++)if(CITY.m4(i)===3&&CITY.m4(j)===3&&!CITY.waterAt(CITY.nx(i)+CITY.B/2,CITY.nz(j),-9))L.push({x:CITY.nx(i)+CITY.B/2,z:CITY.nz(j)+AP_LANE});const g=nearestOf(L);go(g&&apDestFromPoint(g.x,g.z),'en yakın garaja');return;}
+  const ilT=ilFind(t);
+  if(/asansör|tünel/.test(t)&&!ilT){const e=nearestOf(elevList(I-8,I+8,J-8,J+8));go(e&&{x:e.x,z:e.z,v:e.v,i:e.i,j:e.j,sg:e.sg,park:true},'en yakın tünel asansörüne');return;}
   if(/arkadaş|yanına/.test(t)){const ps=[...NET.players.values()].filter(p=>p.shown);if(!ps.length){say(NET.on?'Arkadaşın şu an haritada görünmüyor.':'Sunucuda kimse yok. Önce online bir oda kur.');return;}
     let p=ps.find(q=>t.includes(q.name.toLocaleLowerCase('tr-TR')))||nearestOf(ps.map(q=>({x:q.pos.x,z:q.pos.z,q})))?.q||ps[0];go(apDestFromPoint(p.pos.x,p.pos.z),p.name+' yanına');return;}
   for(const f of FOOD){const stem=f[1];if(t.includes(stem)||(stem==='kafe'&&/kahve/.test(t))||(stem==='market'&&/bakkal/.test(t))){const L=restIn(I-8,I+8,J-8,J+8).filter(r=>r.kind===stem);const r=nearestOf(L);
       if(!r){say('Yakında '+stem+' bulamadım.');return;}go(apDestFromPoint(r.x,r.z),'en yakın '+DAT[stem]+' ('+r.name+')');return;}}
+  if(ilT){if(NET.on){say('Online odada tünel kapalı.');return;}if(ilT.plate===IL.cur){say('Zaten '+ilT.name+' ilindeyiz.');return;}const e=nearestOf(elevList(I-8,I+8,J-8,J+8));if(!e){say('Yakında tünel asansörü bulamadım.');return;}
+    go({x:e.x,z:e.z,v:e.v,i:e.i,j:e.j,sg:e.sg,park:true},ilT.name+' için en yakın tünel asansörüne');if(AP.on)TUN.want=ilT;return;}
   if(/yemek|restoran|acık|acıktım/.test(t)){const r=nearestOf(restIn(I-6,I+6,J-6,J+6));go(r&&apDestFromPoint(r.x,r.z),'en yakın lokantaya, '+(r?r.name:''));return;}
   say('Anlayamadım. Mesela “beni en yakın köfteciye götür” diyebilirsin.');}
 $('askIn').addEventListener('keydown',e=>{if(e.key==='Enter'){const v=e.target.value.trim();e.target.value='';e.target.hidden=true;if(v){askShow(v,'me');askCommand(v);}}e.stopPropagation();});
@@ -3026,7 +3219,7 @@ function skySpawn(s,far){const c=car,axis=Math.random()<.5?0:1,dir=Math.random()
   s.axis=axis;s.dir=dir;s.alt=26+Math.random()*34;s.v=24+Math.random()*26;
   const along=far?(-dir)*(180+Math.random()*120):(Math.random()-.5)*360;
   if(axis===0){s.line=CITY.nz(J+off)+lane;s.pos.set(c.pos.x+along,s.alt,s.line);}else{s.line=CITY.nx(I+off)+lane;s.pos.set(s.line,s.alt,c.pos.z+along);}s.on=true;}
-function skyTick(dt){const on=S.mode==='serbest'&&!S.menuDemo&&!(typeof TUN!=='undefined'&&TUN.on);const c=car,t=performance.now()/1000;
+function skyTick(dt){if(TUN.on)return;const on=S.mode==='serbest'&&!S.menuDemo;const c=car,t=performance.now()/1000;
   for(const s of SKYT){if(!on){s.V.g.visible=false;s.on=false;continue;}if(!s.on)skySpawn(s,false);
     if(s.axis===0)s.pos.x+=s.dir*s.v*dt;else s.pos.z+=s.dir*s.v*dt;const y=s.alt+Math.sin(t*.8+s.ph)*1.2;
     if(Math.hypot(s.pos.x-c.pos.x,s.pos.z-c.pos.z)>420){skySpawn(s,true);}
