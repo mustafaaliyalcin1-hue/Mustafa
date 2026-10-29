@@ -143,7 +143,8 @@ body.hideui #touch{opacity:0}
 
 #touch{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-between;align-items:flex-end;pointer-events:none;z-index:11;
   padding:0 max(14px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 14px) max(14px,env(safe-area-inset-left,0px))}
-#touch .grp{display:flex;gap:10px;align-items:flex-end;pointer-events:auto}
+#touch .grp{display:flex;gap:10px;align-items:flex-end;pointer-events:none}
+#touch .tb{pointer-events:auto}
 #touch .col{display:flex;flex-direction:column;gap:10px;align-items:center}
 #c,#hud,#touch{touch-action:none}
 .tb{width:64px;height:64px;border-radius:50%;border:1.5px solid rgba(255,255,255,.26);background:rgba(16,18,24,.5);font-weight:700;font-size:10.5px;letter-spacing:.08em;touch-action:none;-webkit-touch-callout:none;line-height:1.2;padding:0}
@@ -199,7 +200,10 @@ body.tplay #guide{top:calc(env(safe-area-inset-top,0px) + 80px)}
 #taMap{width:100%;height:auto;border-radius:14px;background:#1b1e23}#taSt{margin:0;font-size:12px;opacity:.85}
 .tagrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.tagrid button{min-height:52px;border-radius:12px;border:1px solid #2a2e36;background:#171a20;color:#eef0f3;font:inherit;font-size:11.5px;font-weight:700;padding:4px;touch-action:manipulation}
 .tagrid button.on{background:#3e8bff33;border-color:#3e8bff}.tagrid button.ask{background:#1d3b6e;border-color:#3e8bff}
-@media (max-height:520px){#tapp{top:8px}#taMap{max-height:110px;object-fit:cover}.tagrid button{min-height:40px}}
+@media (max-height:520px){#tapp{top:8px}.taphone{width:min(500px,62vw);display:grid;grid-template-columns:42% 1fr;column-gap:10px;row-gap:6px;padding:10px;border-radius:20px}.tahead{grid-column:1/3}#taMap{grid-column:1;grid-row:2}#taSt{grid-column:1;grid-row:3;font-size:11px}.tagrid{grid-column:2;grid-row:2/4}.tagrid button{min-height:37px;font-size:10.5px}}
+#taxiBox{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 54px);z-index:16;width:min(520px,70vw);background:rgba(17,17,17,.9);border:2px solid #ffd21f;border-radius:16px;padding:10px 14px;display:flex;flex-direction:column;gap:6px;pointer-events:auto}
+#taxiBox[hidden]{display:none}#taxiBox b{color:#ffd21f;font-size:15px}#taxiBox span{font-size:12px;opacity:.85}#txDest{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}#txDest[hidden]{display:none}
+#taxiBox button{min-height:40px;border-radius:10px;border:1px solid #444;background:#222;color:#fff;font:inherit;font-size:12px;font-weight:700;touch-action:manipulation}.txrow{display:flex;gap:6px}.txrow button{flex:1}#txAsk{background:#1d3b6e!important;border-color:#3e8bff!important}
 #fadeBlk{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:30}
 #tunHud{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 64px);width:min(520px,88vw);background:rgba(8,12,18,.85);border:1px solid rgba(95,196,255,.5);border-radius:14px;padding:10px 14px;display:flex;flex-direction:column;gap:6px;font-size:14px;z-index:6}
 #tunHud[hidden]{display:none}#tunHud .tt{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#7fd6ff}#tunHud .tt b{font-size:16px;letter-spacing:0;color:#fff}
@@ -292,15 +296,6 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
   <div id="pops"></div>
   <canvas id="navHud" width="640" height="400" hidden aria-label="Otopilot haritası"></canvas>
   <div id="fadeBlk"></div>
-  <div id="tapp" hidden><div class="taphone">
-    <div class="tahead"><div><b>TESLA</b><small id="taCar">Fan araba</small></div><button type="button" id="taClose" aria-label="Uygulamayı kapat">✕</button></div>
-    <canvas id="taMap" width="520" height="300" aria-label="Araban ve sen haritada"></canvas>
-    <p id="taSt">Park halinde</p>
-    <div class="tagrid">
-      <button type="button" id="taLock">🔒 Kilitle</button><button type="button" id="taHonk">📯 Korna</button><button type="button" id="taFlash">💡 Farlar</button>
-      <button type="button" id="taCome">📍 Gel beni al</button><button type="button" id="taTakeHome">🏠 Beni eve götür</button><button type="button" id="taHomeGo">🚗 Eve gönder</button>
-      <button type="button" id="taSetHome">⭐ Burayı ev yap</button><button type="button" id="taStop">⏹ Durdur</button><button type="button" id="taAsk" class="ask">🎤 Hey Tesla</button>
-    </div></div></div>
   <div id="tunHud" hidden><div class="tt"><span>🚇 Yeraltı tüneli · otopilot</span><b id="tunEta">0:00</b></div><div id="tunTxt"></div><div class="tb2"><i id="tunBar"></i></div></div>
   <div id="askBox" hidden><b id="askWho">Tesla</b><span id="askTxt"></span><input id="askIn" hidden placeholder="Mesela: beni en yakın köfteciye götür" autocomplete="off"></div>
   <div id="apTag" hidden><span class="dot"></span><span id="apTxt">Otopilot</span><button type="button" id="apTagStop">Durdur</button></div>
@@ -310,6 +305,19 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
   <div id="autoTag" hidden>Kendi kendine oynuyor · kontrolü almak için <kbd>W</kbd> ya da GAZ</div>
   <div id="rec" hidden><span class="dot"></span><span id="recT">TEKRAR</span><button id="bRecSpd" type="button">1×</button><button id="bRecEnd" type="button">Bitir</button></div>
 </div>
+  <div id="tapp" hidden><div class="taphone">
+    <div class="tahead"><div><b>TESLA</b><small id="taCar">Fan araba</small></div><button type="button" id="taClose" aria-label="Uygulamayı kapat">✕</button></div>
+    <canvas id="taMap" width="520" height="300" aria-label="Araban ve sen haritada"></canvas>
+    <p id="taSt">Park halinde</p>
+    <div class="tagrid">
+      <button type="button" id="taLock">🔒 Kilitle</button><button type="button" id="taHonk">📯 Korna</button><button type="button" id="taFlash">💡 Farlar</button>
+      <button type="button" id="taCome">📍 Gel beni al</button><button type="button" id="taTakeHome">🏠 Beni eve götür</button><button type="button" id="taHomeGo">🚗 Eve gönder</button>
+      <button type="button" id="taSetHome">⭐ Burayı ev yap</button><button type="button" id="taStop">⏹ Durdur</button><button type="button" id="taTaxi">🚕 Taksi çağır</button><button type="button" id="taAsk" class="ask">🎤 Hey Tesla</button>
+    </div></div></div>
+<div id="taxiBox" hidden><b id="txTitle">🚕 Taksi · Nereye gidelim?</b><span id="txInfo"></span>
+  <div id="txDest"><button type="button" data-t="home">🏠 Eve</button><button type="button" data-t="car">🚗 Arabamın yanına</button><button type="button" data-t="rest">🍽 En yakın lokanta</button>
+  <button type="button" data-t="köfte">🍢 Köfteci</button><button type="button" data-t="döner">🥙 Dönerci</button><button type="button" data-t="elev">🚇 Tünel asansörü</button></div>
+  <div class="txrow"><button type="button" id="txAsk">🎤 Hey Tesla</button><button type="button" id="txOut">✋ Burada in</button></div></div>
 <div id="rotate" hidden>Telefonu yan çevir: yatay ekranda çok daha iyi</div>
 
 <div id="tmenu" hidden>
@@ -317,6 +325,7 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
   <button type="button" data-for="bRestart">Yeniden</button>
   <button type="button" data-for="bAuto">Otopilot</button>
   <button type="button" data-for="bAsk">🎤 Hey Tesla</button>
+  <button type="button" data-for="bApp">📱 Tesla uygulaması</button>
   <button type="button" data-for="bFoot">Arabadan in / bin</button>
   <button type="button" data-for="bCab">İç kamera</button>
   <button type="button" data-for="bFpv">FPV drone</button>
@@ -1277,7 +1286,8 @@ function drawMinimap(){const x=$('mini').getContext('2d'),m=.7,cx=FOOT.on?FOOT.p
   x.fillStyle='#14161a';for(const a of TRAF.cars){const [u,v]=P(a.x,a.z);x.fillRect(u-2.5,v-2.5,5,5);}
   const blink=Math.floor(performance.now()/140)%2;for(const pc of POL.cars){const [u,v]=P(pc.x,pc.z);x.fillStyle=blink?'#ff2035':'#2f7bff';x.beginPath();x.arc(u,v,5,0,TAU);x.fill();}
   cargoMinimap(x,P);heliMinimap(x,P);netMinimap(x,P);{const [hu,hv]=P(teslaHome().x,teslaHome().z);x.font='18px system-ui';x.textAlign='center';x.textBaseline='middle';x.fillText('🏠',hu,hv);}
-  if(FOOT.on){x.fillStyle='rgba(62,139,255,.35)';x.beginPath();x.arc(150,150,13,0,TAU);x.fill();x.fillStyle='#3e8bff';x.strokeStyle='#fff';x.lineWidth=2;x.beginPath();x.arc(150,150,6,0,TAU);x.fill();x.stroke();}
+  if(TAXI.st!=='off'){const [tu,tv]=P(TAXI.pos.x,TAXI.pos.z);x.fillStyle='#ffd21f';x.strokeStyle='#111';x.lineWidth=2;x.fillRect(clamp(tu,8,292)-6,clamp(tv,8,292)-4,12,8);x.strokeRect(clamp(tu,8,292)-6,clamp(tv,8,292)-4,12,8);}
+  if(FOOT.on&&!FOOT.inTaxi){x.fillStyle='rgba(62,139,255,.35)';x.beginPath();x.arc(150,150,13,0,TAU);x.fill();x.fillStyle='#3e8bff';x.strokeStyle='#fff';x.lineWidth=2;x.beginPath();x.arc(150,150,6,0,TAU);x.fill();x.stroke();}
   {const [au,av]=P(car.pos.x,car.pos.z);x.save();x.translate(clamp(au,10,290),clamp(av,10,290));}x.rotate(car.yaw);x.fillStyle='#e3263b';x.strokeStyle='#fff';x.lineWidth=2;x.beginPath();x.moveTo(11,0);x.lineTo(-7,7);x.lineTo(-3,0);x.lineTo(-7,-7);x.closePath();x.fill();x.stroke();x.restore();}
 /* ===== hero car ===== */
 const COLORS=[['Beyaz','#eef0f2',0xeceef0],['Kırmızı','#b3121f',0x9c0f1b],['Gece','#1c1f26',0x15181e],['Gümüş','#a8afb8',0x9aa2ab],['Mavi','#2a5bd7',0x2350c4]];
@@ -2350,7 +2360,7 @@ function frame(now){
     ghostTick();
   }
   if(bigT>0){bigT-=dt;if(bigT<=0){$('bigT').textContent='';$('bigS').textContent='';}}
-  netTick(dt,simDt);if(!TUN.on){gateUpdate(dt);cargoTick(simDt,dt);peopleTick(simDt,dt);heliTick(simDt,dt);}elevTick(dt);tappTick(dt);tunRender();tunPad();CITY.boatTick(dt,car.pos.x);pedTick(simDt,dt);skyTick(simDt);restTick(dt);footTick(simDt);
+  netTick(dt,simDt);if(!TUN.on){gateUpdate(dt);cargoTick(simDt,dt);peopleTick(simDt,dt);heliTick(simDt,dt);}elevTick(dt);tappTick(dt);taxiStep(simDt);tunRender();tunPad();CITY.boatTick(dt,car.pos.x);pedTick(simDt,dt);skyTick(simDt);restTick(dt);footTick(simDt);
   if(S.mode==='serbest'&&!S.menuDemo&&!TUN.on){CITY.update(FOOT.on?FOOT.pos.x:car.pos.x,FOOT.on?FOOT.pos.z:car.pos.z);trafficRender();polRender(now/1000);drawMinimap();ilLabel();if(S.free.recDirty&&Math.random()<.02){store.set('rec',REC);updateRecords();S.free.recDirty=false;}}
   poseCar(simDt);updateCamera(dt);cockpitPose();apHud();tickParticles(paused?0:dt*(S.slow?.3:1));
   hud();audioTick(!paused&&(S.phase==='play'||S.phase==='ended'||S.phase==='count'));
@@ -3241,7 +3251,7 @@ function tAfterBoard(){if(TAPP.summon){TAPP.summon=false;if(AP.on)apStop();}if(T
 function tArrived(){if(!TAPP.summon)return false;TAPP.summon=false;TAPP.flashT=1.2;sfx('chime');bigMsg('ARABAN GELDİ','Binmek için Enter / İN-BİN',2200);
   say(TAPP.after?'Geldim! Bin, seni '+TAPP.after.label+' götüreyim.':'Geldim! Seni bekliyorum.');tappRender();return true;}
 function tStatus(){const c=car,p=teslaPos(),d=Math.round(Math.hypot(c.pos.x-p.x,c.pos.z-p.z));
-  const what=TAPP.summon?'Sana geliyor':AP.on?(FOOT.on?'Kendi kendine gidiyor':'Otopilotta'):FOOT.on?'Park halinde':'Sürüşte';return {d,what,kmh:Math.round(Math.abs(c.v)*3.6)};}
+  const what=TAXI.st==='come'?'Taksi yolda':TAXI.st==='wait'?'Taksi bekliyor':FOOT.inTaxi?'Taksidesin':TAPP.summon?'Sana geliyor':AP.on?(FOOT.on?'Kendi kendine gidiyor':'Otopilotta'):FOOT.on?'Park halinde':'Sürüşte';return {d,what,kmh:Math.round(Math.abs(c.v)*3.6)};}
 function tappRender(){if(!TAPP.open)return;const s=tStatus();$('taLock').textContent=TAPP.locked?'🔓 Kilidi aç':'🔒 Kilitle';$('taLock').classList.toggle('on',TAPP.locked);
   $('taSt').textContent=(TAPP.locked?'🔒 Kilitli':'🔓 Açık')+' · '+s.what+(FOOT.on?' · '+s.d+' m uzakta':'')+(s.kmh>2?' · '+s.kmh+' km/s':'');$('taCar').textContent=vehName(curLo().veh)+' · '+ilCur().name;}
 function tappOpen(on){TAPP.open=on===undefined?!TAPP.open:on;if(TAPP.open&&(S.mode!=='serbest'||S.menuDemo)){TAPP.open=false;pop('Tesla uygulaması serbest sürüşte');}$('tapp').hidden=!TAPP.open;$('tbApp').classList.toggle('on',TAPP.open);if(TAPP.open){TAPP.mapT=0;tappRender();}}
@@ -3252,6 +3262,7 @@ function tappMap(){const cv=$('taMap'),x=cv.getContext('2d'),W=cv.width,H=cv.hei
   if(AP.on&&AP.pts.length){x.strokeStyle='#3e8bff';x.lineWidth=4;x.beginPath();AP.pts.slice(AP.k).forEach((q,n)=>{const [u,v]=P(n?q.x:c.pos.x,n?q.z:c.pos.z);n?x.lineTo(u,v):x.moveTo(u,v);});x.stroke();}
   {const [u,v]=P(h.x,h.z);x.font='16px system-ui';x.textAlign='center';x.textBaseline='middle';x.fillText('🏠',u,v);}
   {const [u,v]=P(c.pos.x,c.pos.z);x.save();x.translate(u,v);x.rotate(c.yaw);x.fillStyle='#e3263b';x.strokeStyle='#fff';x.lineWidth=2;x.beginPath();x.moveTo(10,0);x.lineTo(-6,6);x.lineTo(-3,0);x.lineTo(-6,-6);x.closePath();x.fill();x.stroke();x.restore();}
+  if(TAXI.st!=='off'){const [u,v]=P(TAXI.pos.x,TAXI.pos.z);x.fillStyle='#ffd21f';x.fillRect(u-6,v-4,12,8);}
   if(FOOT.on){const [u,v]=P(p.x,p.z);x.fillStyle='rgba(62,139,255,.3)';x.beginPath();x.arc(u,v,11,0,TAU);x.fill();x.fillStyle='#3e8bff';x.strokeStyle='#fff';x.beginPath();x.arc(u,v,5,0,TAU);x.fill();x.stroke();}}
 function tappTick(dt){const on=S.mode==='serbest'&&!S.menuDemo&&!TUN.on;if(!on){HOMEM.visible=false;if(TAPP.open)tappOpen(false);return;}
   const h=teslaHome();HOMEM.visible=true;HOMEM.position.set(h.x+(h.v?h.sg*1.9:3.4),0,h.z+(h.v?3.4:h.sg*1.9));
@@ -3265,7 +3276,66 @@ function tappTick(dt){const on=S.mode==='serbest'&&!S.menuDemo&&!TUN.on;if(!on){
   b('taCome',()=>{if(tSummon(null))say('Tamam, yanına geliyorum.');});
   b('taHomeGo',()=>{if(tSendHome())say(FOOT.on?'Tamam, araba eve gidiyor.':'Tamam, eve gidiyoruz.');});
   b('taTakeHome',()=>{if(FOOT.on){if(tSummon({mode:'road',dest:teslaHome(),label:'eve'}))say('Tamam, seni almaya geliyorum, sonra eve gideriz.');}else if(tSendHome())say('Tamam, eve gidiyoruz.');});
-  b('taSetHome',tSetHome);b('taStop',()=>{TAPP.summon=false;TAPP.after=null;apStop('Otopilot durdu');tappRender();});b('taAsk',askStart);b('taClose',()=>tappOpen(false));b('bApp',()=>tappOpen());}
+  b('taSetHome',tSetHome);b('taTaxi',()=>taxiCall(null));b('taStop',()=>{TAPP.summon=false;TAPP.after=null;apStop('Otopilot durdu');tappRender();});b('taAsk',askStart);b('taClose',()=>tappOpen(false));b('bApp',()=>tappOpen());}
+/* ================= TAXI: call one from the phone or Hey Tesla, it drives to you, you tell it where to go ================= */
+const TAXI=(()=>{const g=new THREE.Group();let body=null;
+  const sign=new THREE.Mesh(new THREE.BoxGeometry(.5,.26,1.1),[new THREE.MeshBasicMaterial({color:0xffd21f}),new THREE.MeshBasicMaterial({color:0xffd21f}),new THREE.MeshBasicMaterial({color:0xffe14d}),new THREE.MeshBasicMaterial({color:0x222222}),
+    new THREE.MeshBasicMaterial({map:labelTex('TAKSİ','#111111',512,128,100),color:0xffe14d}),new THREE.MeshBasicMaterial({map:labelTex('TAKSİ','#111111',512,128,100),color:0xffe14d})]);
+  sign.rotation.y=Math.PI/2;g.add(sign);g.visible=false;scene.add(g);
+  return {g,sign,body:null,st:'off',pts:[],L:[],s:0,v:0,yaw:0,pos:new V3(),dest:null,label:'',pending:null,fare:0,meter0:0,leaveT:0};})();
+function taxiMesh(){const T=TAXI;if(T.body)return;let m=null;const tp=TCARS.types.find(q=>q.name==='Taxi');
+  if(tp){m=new THREE.Group();const b=new THREE.Mesh(tp.ib.geometry,new THREE.MeshPhysicalMaterial({color:0xf2c230,metalness:.4,roughness:.32,clearcoat:1})),r=new THREE.Mesh(tp.ir.geometry,tp.ir.material);b.castShadow=r.castShadow=true;m.add(b,r);
+    tp.ib.geometry.computeBoundingBox();T.sign.position.set(-.2,tp.ib.geometry.boundingBox.max.y+.1,0);}
+  else{const V=buildCar(false,true);V.paint.color.setHex(0xf2c230);m=V.g;scene.remove(m);T.sign.position.set(-.4,1.38,0);}
+  T.g.add(m);T.body=m;}
+// same planner as the autopilot, but from any start point
+function taxiPlan(st,dest){const fx=Math.cos(st.yaw),fz=Math.sin(st.yaw),fi=Math.round((st.x-CITY.nx(0))/CITY.B),fj=Math.round((st.z-CITY.nz(0))/CITY.B);
+  let s;const onH=Math.abs(st.z-CITY.nz(fj))<CITY.HW+1,onV=Math.abs(st.x-CITY.nx(fi))<CITY.HW+1;
+  if(onH&&!onV){const ii=CITY.ci(st.x);s=fx>=0?[ii+1,fj]:[ii,fj];}else if(onV&&!onH){const jj=CITY.cj(st.z);s=fz>=0?[fi,jj+1]:[fi,jj];}else s=[fi,fj];
+  const hz=dest.v===0,dirIn=hz?(dest.sg>0?0:2):(dest.sg<0?1:3),[dx,dz]=DIRS[dirIn],a=[dest.i+(hz?(dirIn===0?0:1):0),dest.j+(hz?0:(dirIn===1?0:1))];
+  const path=apRoute(s[0],s[1],a[0],a[1]);if(!path)return null;const pts=[{x:st.x,z:st.z}];
+  for(let k=0;k<path.length-1;k++){const d=dirOf(path[k],path[k+1]);pts.push(laneP(path[k][0],path[k][1],d,false),laneP(path[k+1][0],path[k+1][1],d,true));}
+  pts.push(laneP(a[0],a[1],dirIn,false));if(dest.park)pts.push(hz?{x:dest.x-dx*9,z:CITY.nz(dest.j)+dest.sg*AP_LANE}:{x:CITY.nx(dest.i)+dest.sg*AP_LANE,z:dest.z-dz*9});
+  pts.push({x:dest.x,z:dest.z,end:true});return apCurves(pts);}
+function taxiRoute(dest){const T=TAXI,P=taxiPlan({x:T.pos.x,z:T.pos.z,yaw:T.yaw},dest);if(!P)return false;T.pts=P;T.L=[0];for(let k=1;k<P.length;k++)T.L.push(T.L[k-1]+Math.hypot(P[k].x-P[k-1].x,P[k].z-P[k-1].z));T.s=0;T.dest=dest;return true;}
+function taxiCall(pending,dist=170){if(!FOOT.on){say('Taksi çağırmak için önce arabadan in.');return;}if(TAXI.st!=='off'&&TAXI.st!=='leave'){say('Taksi zaten yolda.');return;}
+  taxiMesh();const T=TAXI,F=FOOT.pos;let sp=null;
+  for(let k=0;k<12&&!sp;k++){const a=Math.random()*TAU,d=apDestFromPoint(F.x+Math.cos(a)*dist,F.z+Math.sin(a)*dist);if(!d||CITY.waterAt(d.x,d.z,-4))continue;
+    const yaw=d.v===0?(d.sg>0?0:Math.PI):(d.sg<0?Math.PI/2:-Math.PI/2);T.pos.set(d.x,0,d.z);T.yaw=yaw;const me=apDestFromPoint(F.x,F.z);if(me&&taxiRoute(me))sp=d;}
+  if(!sp){say('Şu an yakında taksi yok.');return;}T.st='come';T.v=8;T.pending=pending||null;T.g.visible=true;T.leaveT=0;
+  say(pending?'Taksi çağırdım, seni '+pending.label+' götürecek.':'Taksi çağırdım, yaklaşık '+Math.max(1,Math.round(T.L[T.L.length-1]/14/10)*10)+' saniyede yanında.');tappRender&&tappRender();}
+function taxiBoard(){const T=TAXI;T.st='ride';FOOT.inTaxi=true;FOOT.g.visible=false;FOOT.run=false;$('tbRun').hidden=true;sfx('chime');T.meter0=0;T.fare=0;
+  if(T.pending){const p=T.pending;T.pending=null;taxiGo(p.dest,p.label);}else{T.dest=null;T.pts=[];say('Hoş geldiniz! Nereye gidelim?');}taxiUI();}
+function taxiGo(dest,label){const T=TAXI;if(!dest){say('Oraya giden bir yol bulamadım.');return;}if(!taxiRoute(dest)){say('Oraya giden bir yol bulamadım.');return;}T.label=label;T.st='ride';T.going=true;say('Tamam, '+label+' gidiyoruz.');taxiUI();}
+function taxiExit(arrived){const T=TAXI;if(!FOOT.inTaxi)return;FOOT.inTaxi=false;T.going=false;const f=Math.round(12+T.meter0*.03);
+  const rx=-Math.sin(T.yaw),rz=Math.cos(T.yaw);FOOT.pos.set(T.pos.x+rx*2.4,0,T.pos.z+rz*2.4);FOOT.yaw=T.yaw;FOOT.cam=T.yaw;FOOT.g.visible=true;$('tbRun').hidden=false;
+  if(S.cargo){CAREER.money=Math.max(0,CAREER.money-f);saveCareer();}
+  pop('🚕 Taksi ücreti '+f+' ₺'+(S.cargo?'':' (serbestte bedava)'),'gold');bigMsg(arrived?'VARDIK':'TAKSİDEN İNDİN','Ücret '+f+' ₺'+(S.cargo?' · paradan düştü':' · serbest sürüşte bedava'),2200);say(arrived?'Geldik, iyi günler!':'Tamam, burada iniyorsun. İyi günler!');
+  T.st='leave';T.leaveT=0;const fw=apDestFromPoint(T.pos.x+Math.cos(T.yaw)*240,T.pos.z+Math.sin(T.yaw)*240);if(!fw||!taxiRoute(fw)){T.pts=[];}taxiUI();}
+function taxiStep(dt){const T=TAXI;if(T.st==='off')return;const on=S.mode==='serbest'&&!S.menuDemo&&!TUN.on;if(!on){T.st='off';T.g.visible=false;FOOT.inTaxi=false;taxiUI();return;}
+  const P=T.pts,Lend=T.L.length?T.L[T.L.length-1]:0,moving=P.length>1&&(T.st==='come'||(T.st==='ride'&&T.going)||T.st==='leave');
+  if(moving){let k=1;while(k<T.L.length-1&&T.L[k]<T.s)k++;
+    let vT=17;for(let m=k;m<P.length&&T.L[m]-T.s<16;m++)if(P[m].turn)vT=8;const left=Lend-T.s;vT=Math.min(vT,Math.sqrt(Math.max(0,2*3.5*left)));
+    if(T.st!=='leave'){for(const a of TRAF.cars){const rx=a.x-T.pos.x,rz=a.z-T.pos.z,al=rx*Math.cos(T.yaw)+rz*Math.sin(T.yaw),lat=Math.abs(-rx*Math.sin(T.yaw)+rz*Math.cos(T.yaw));if(al>2&&al<14&&lat<2)vT=Math.min(vT,Math.max(0,a.v-1));}}
+    T.v+=clamp(vT-T.v,-7*dt,3.2*dt);T.v=Math.min(T.v,17);T.s=Math.min(Lend,T.s+T.v*dt);if(T.st==='ride')T.meter0+=T.v*dt;
+    k=1;while(k<T.L.length-1&&T.L[k]<T.s)k++;const a=P[k-1],b=P[k],u=clamp((T.s-T.L[k-1])/Math.max(.01,T.L[k]-T.L[k-1]),0,1);
+    T.pos.set(a.x+(b.x-a.x)*u,0,a.z+(b.z-a.z)*u);if(Math.hypot(b.x-a.x,b.z-a.z)>.05){let ty=Math.atan2(b.z-a.z,b.x-a.x),dy=ty-T.yaw;while(dy>Math.PI)dy-=TAU;while(dy<-Math.PI)dy+=TAU;T.yaw+=dy*Math.min(1,dt*6);}
+    if(left<.3&&T.v<.6){T.v=0;if(T.st==='come'){T.st='wait';TAPP.flashT=1;sfx('chime');bigMsg('TAKSİ GELDİ','Binmek için Enter / İN-BİN',2200);say('Taksiniz geldi, buyrun binin.');}
+      else if(T.st==='ride'){taxiExit(true);}else if(T.st==='leave'){T.st='off';T.g.visible=false;}}}
+  if(T.st==='leave'){T.leaveT+=dt;if(T.leaveT>14||!P.length){T.st='off';T.g.visible=false;}}
+  T.g.position.copy(T.pos);T.g.rotation.set(0,-T.yaw,0);
+  if(FOOT.inTaxi){FOOT.pos.set(T.pos.x,0,T.pos.z);let dy=T.yaw-FOOT.cam;while(dy>Math.PI)dy-=TAU;while(dy<-Math.PI)dy+=TAU;FOOT.cam+=dy*Math.min(1,dt*3);FOOT.yaw=T.yaw;
+    TAXI.uiT=(TAXI.uiT||0)-dt;if(TAXI.uiT<=0){TAXI.uiT=.3;taxiUI();}}}
+function taxiNear(){return (TAXI.st==='wait'||TAXI.st==='come')&&FOOT.on&&!FOOT.inTaxi&&Math.hypot(TAXI.pos.x-FOOT.pos.x,TAXI.pos.z-FOOT.pos.z)<6&&TAXI.v<1;}
+function taxiUI(){const box=$('taxiBox'),T=TAXI,show=FOOT.inTaxi;box.hidden=!show;if(!show)return;const f=Math.round(12+T.meter0*.03);
+  if(T.going&&T.pts.length){const left=Math.max(0,T.L[T.L.length-1]-T.s);$('txTitle').textContent='🚕 '+T.label.replace(/^./,c=>c.toLocaleUpperCase('tr-TR'))+' gidiyoruz';$('txInfo').textContent=Math.round(left)+' m kaldı · '+Math.round(T.v*3.6)+' km/s · taksimetre '+f+' ₺';$('txDest').hidden=true;}
+  else{$('txTitle').textContent='🚕 Taksi · Nereye gidelim?';$('txInfo').textContent='Seç ya da Hey Tesla ile söyle · taksimetre '+f+' ₺';$('txDest').hidden=false;}}
+function taxiPick(kind){const T=TAXI,I=CITY.ci(T.pos.x),J=CITY.cj(T.pos.z),near=L=>{let b=null,bd=1e9;for(const q of L){const d=Math.hypot(q.x-T.pos.x,q.z-T.pos.z);if(d<bd&&d>20){bd=d;b=q;}}return b;};
+  if(kind==='home')return taxiGo(teslaHome(),'eve');if(kind==='car')return taxiGo(apDestFromPoint(car.pos.x,car.pos.z),'arabanın yanına');
+  if(kind==='elev'){const e=near(elevList(I-8,I+8,J-8,J+8));return taxiGo(e&&apDestFromPoint(e.x,e.z),'tünel asansörüne');}
+  const L=restIn(I-8,I+8,J-8,J+8).filter(r=>kind==='rest'||r.kind===kind),r=near(L);if(!r){say('Yakında bulamadım.');return;}taxiGo(apDestFromPoint(r.x,r.z),'en yakın '+(kind==='rest'?'lokantaya':DAT[kind])+' ('+r.name+')');}
+document.querySelectorAll('#txDest button[data-t]').forEach(b=>b.addEventListener('click',()=>{audioInit();taxiPick(b.dataset.t);}));
+$('txAsk').addEventListener('click',()=>askStart());$('txOut').addEventListener('click',()=>{TAXI.going=false;taxiExit(false);});
 /* ================= RESTAURANTS along the streets (free drive + courier) ================= */
 const FOOD=[['Mahalle Köftecisi','köfte',0x9d0208],['Ayrancı Baba','ayran',0x2a9d8f],['Lavaşçı Usta','lavaş',0xbc6c25],['Mahalle Dönercisi','döner',0xe36414],['Kebapçı Halil','kebap',0x8b1e3f],
   ['Mahalle Kafe','kafe',0x6b3e26],['Karadeniz Pide','pide',0x386641],['Simitçi Ahmet','simit',0xd4a373],['Usta Pizza','pizza',0xc1121f],['Mahalle Marketi','market',0x1d6fe0],['Tatlıcı Hafız','tatlı',0xff6fa7],['Balıkçı Yaşar','balık',0x1d3557]];
@@ -3281,15 +3351,15 @@ function restTick(dt){const on=S.mode==='serbest'&&!S.menuDemo&&!(typeof TUN!=='
   const L=restIn(I-3,I+3,J-3,J+3).map(r=>({...r,d:Math.hypot(r.x-c.pos.x,r.z-c.pos.z)})).sort((a,b)=>a.d-b.d);REST.list=L;
   REST.pool.forEach((p,k)=>{const r=L[k];p.m.g.visible=!!r;if(!r)return;if(p.name!==r.name+r.i+r.j){p.name=r.name+r.i+r.j;p.m.setShop([r.name,r.col]);}placeAtCurb(p.m.g,{x:r.cx,z:r.cz,nx:r.nx,nz:r.nz},8.5);});}
 /* ================= ON FOOT: get out of the car and walk around ================= */
-const FOOT=(()=>{const g=buildPerson(0x1d3557,0x22223b,0xe0ac69,{hair:0x2b1d14});g.visible=false;return {g,on:false,run:false,pos:new V3(),yaw:0,vy:0,cam:0,door:null};})();
+const FOOT=(()=>{const g=buildPerson(0x1d3557,0x22223b,0xe0ac69,{hair:0x2b1d14});g.visible=false;return {g,on:false,run:false,inTaxi:false,pos:new V3(),yaw:0,vy:0,cam:0,door:null};})();
 function footRun(){if(!FOOT.on)return;FOOT.run=!FOOT.run;$('tbRun').classList.toggle('on',FOOT.run);pop(FOOT.run?'Koşuyorsun 🏃':'Yürüyorsun');}
-function footToggle(){const c=car;if(TUN.on){pop('Tünelde arabadan inilmez');return;}if(S.mode!=='serbest'||S.menuDemo){pop('Arabadan sadece serbest sürüşte inebilirsin');return;}
+function footToggle(){const c=car;if(FOOT.inTaxi){TAXI.going=false;taxiExit(false);return;}if(taxiNear()){taxiBoard();return;}if(TUN.on){pop('Tünelde arabadan inilmez');return;}if(S.mode!=='serbest'||S.menuDemo){pop('Arabadan sadece serbest sürüşte inebilirsin');return;}
   if(!FOOT.on){if(c.state!=='free'||Math.abs(c.v)>2){pop('İnmek için dur');return;}if(AP.on)apStop();TAPP.summon=false;TAPP.after=null;
     const rx=-Math.sin(c.yaw),rz=Math.cos(c.yaw);FOOT.pos.set(c.pos.x-rx*1.8,0,c.pos.z-rz*1.8);FOOT.yaw=c.yaw;FOOT.cam=c.yaw;FOOT.on=true;FOOT.g.visible=true;FOOT.vy=0;
     if(S.camMode===3)setCamMode(0);pop('Arabadan indin · koşmak için Shift / KOŞ · binmek için Enter','gold');FOOT.run=false;sfx('chime');}
   else{if(Math.hypot(FOOT.pos.x-c.pos.x,FOOT.pos.z-c.pos.z)>4.5){pop('Arabaya yaklaş');return;}FOOT.on=false;FOOT.g.visible=false;pop('Arabaya bindin');sfx('chime');tAfterBoard();}
   $('tbFoot').classList.toggle('on',FOOT.on);$('tbRun').hidden=!FOOT.on;$('tbRun').classList.remove('on');}
-function footTick(dt){if(!FOOT.on)return;if(S.mode!=='serbest'||S.menuDemo){FOOT.on=false;FOOT.g.visible=false;return;}
+function footTick(dt){if(!FOOT.on)return;if(FOOT.inTaxi)return;if(S.mode!=='serbest'||S.menuDemo){FOOT.on=false;FOOT.g.visible=false;return;}
   const k=n=>keys[n]||touchK[n]||padK[n],running=FOOT.run||k('boost'),run=running?2.9:1;let fwd=(k('gas')?1:0)-(k('brake')?1:0),turn=(k('right')?1:0)-(k('left')?1:0);
   if(PAD.on){if(Math.abs(PAD.ly)>.15)fwd=-PAD.ly;if(Math.abs(PAD.lx)>.15)turn=PAD.lx;}
   FOOT.yaw+=turn*2.4*dt;const sp=fwd*2.3*run,fx=Math.cos(FOOT.yaw),fz=Math.sin(FOOT.yaw),last=FOOT.pos.clone();
@@ -3303,7 +3373,7 @@ function footTick(dt){if(!FOOT.on)return;if(S.mode!=='serbest'||S.menuDemo){FOOT
   // walking into a restaurant door
   let near=null;for(const r of REST.list){if(Math.hypot(r.door.x-FOOT.pos.x,r.door.z-FOOT.pos.z)<2.2){near=r;break;}}
   if(near&&FOOT.door!==near.name){FOOT.door=near.name;bigMsg(near.name.toLocaleUpperCase('tr-TR'),'Hoş geldin! Afiyet olsun 😋',1800);sfx('chime');}else if(!near)FOOT.door=null;}
-function footTarget(dPos,dLook,dUp){const p=FOOT.pos,fx=Math.cos(FOOT.cam),fz=Math.sin(FOOT.cam);dPos.set(p.x-fx*4.2,p.y+2.2,p.z-fz*4.2);dLook.set(p.x+fx*2,p.y+1.3,p.z+fz*2);dUp.set(0,1,0);return 6;}
+function footTarget(dPos,dLook,dUp){const p=FOOT.pos,fx=Math.cos(FOOT.cam),fz=Math.sin(FOOT.cam);if(FOOT.inTaxi){dPos.set(p.x-fx*8.5,3.3,p.z-fz*8.5);dLook.set(p.x+fx*4,1.1,p.z+fz*4);dUp.set(0,1,0);return 5;}dPos.set(p.x-fx*4.2,p.y+2.2,p.z-fz*4.2);dLook.set(p.x+fx*2,p.y+1.3,p.z+fz*2);dUp.set(0,1,0);return 6;}
 /* ================= "HEY TESLA" VOICE ASSISTANT ================= */
 const ASK=(()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;return {SR,rec:null,busy:false,wake:false,await:0};})();
 function blip(up=true){if(!AU.ctx||SET.mute)return;const c=AU.ctx,t=c.currentTime,o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.setValueAtTime(up?880:1320,t);o.frequency.exponentialRampToValueAtTime(up?1500:700,t+.14);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.25,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.2);o.connect(g);g.connect(AU.m||c.destination);o.start(t);o.stop(t+.22);}
@@ -3325,7 +3395,8 @@ function askCommand(raw){const t=raw.toLocaleLowerCase('tr-TR'),c=car,I=CITY.ci(
   if(TUN.on){const il=ilFind(t);if(TUN.ph==='pick'&&il)tunGo(il);else say(TUN.ph==='pick'?'Hangi ile gidelim? Mesela “Ankara”.':'Tüneldeyiz, otopilot sürüyor.');return;}
   const mode=/uçarak|uç\b|havadan/.test(t)?'fly':/yoldan|sürerek/.test(t)?'road':MAPV.mode;
   if(/hızlı/.test(t))AP.spd=2;if(/aşırı|çok hızlı|en hızlı/.test(t))AP.spd=3;if(/yavaş/.test(t))AP.spd=0;
-  const go=(dest,label)=>{if(!dest){say('Oraya giden bir yol bulamadım.');return;}if(FOOT.on){if(tSummon({mode,dest,label}))say('Tamam, önce seni almaya geliyorum, sonra '+label+' gideriz.');return;}if(AP.on)apStop();apStart(mode,false,dest);if(AP.on){say('Tamam, '+label+(mode==='fly'?' uçarak':'')+' gidiyoruz.');blip(false);}};
+  const taxiW=/taksi/.test(t);
+  const go=(dest,label)=>{if(!dest){say('Oraya giden bir yol bulamadım.');return;}if(FOOT.inTaxi){taxiGo(dest,label);return;}if(FOOT.on&&(TAXI.st==='come'||TAXI.st==='wait')){TAXI.pending={dest,label};say('Tamam, taksi seni '+label+' götürecek.');return;}if(FOOT.on&&taxiW){taxiCall({dest,label});return;}if(FOOT.on){if(tSummon({mode,dest,label}))say('Tamam, önce seni almaya geliyorum, sonra '+label+' gideriz.');return;}if(AP.on)apStop();apStart(mode,false,dest);if(AP.on){say('Tamam, '+label+(mode==='fly'?' uçarak':'')+' gidiyoruz.');blip(false);}};
   if(/\b(dur|durdur|iptal)\b|otopilotu kapat/.test(t)){TAPP.summon=false;TAPP.after=null;apStop();say('Tamam, kontrol sende.');return;}
   if(/kilidi aç|kilidi? açar|aç kilidi/.test(t)){tLock(false);say('Kilit açıldı.');return;}
   if(/kilitle/.test(t)){tLock(true);say('Araba kilitlendi.');return;}
@@ -3333,6 +3404,7 @@ function askCommand(raw){const t=raw.toLocaleLowerCase('tr-TR'),c=car,I=CITY.ci(
   if(/far(lar)?ı? (yak|aç)|selektör|ışıkları yak/.test(t)){tFlash();say('Farları yaktım.');return;}
   if(/burası (benim )?ev|burayı ev/.test(t)){tSetHome();return;}
   {const home=/(^|\s)ev(e|ime|imize)(\s|$)/.test(t),come=/gel beni|beni (buradan |gelip |gel )?al|yanıma gel|buraya gel|almaya gel|gel al/.test(t)||(FOOT.on&&/(^|\s)gel(\s|$)/.test(t)&&!home);
+    if((come||home)&&(taxiW||FOOT.inTaxi)){if(home){go(teslaHome(),'eve');return;}if(FOOT.inTaxi){say('Zaten taksidesin.');return;}taxiCall(null);return;}
     if(come||home){
       if(FOOT.on&&(come||/beni|götür/.test(t))){const after=home?{mode:'road',dest:teslaHome(),label:'eve'}:null;if(tSummon(after))say(after?'Tamam, seni almaya geliyorum, sonra eve gideriz.':'Tamam, yanına geliyorum.');return;}
       if(come&&!home){say('Zaten arabadasın.');return;}
@@ -3348,6 +3420,8 @@ function askCommand(raw){const t=raw.toLocaleLowerCase('tr-TR'),c=car,I=CITY.ci(
       if(!r){say('Yakında '+stem+' bulamadım.');return;}go(apDestFromPoint(r.x,r.z),'en yakın '+DAT[stem]+' ('+r.name+')');return;}}
   if(ilT){if(NET.on){say('Online odada tünel kapalı.');return;}if(ilT.plate===IL.cur){say('Zaten '+ilT.name+' ilindeyiz.');return;}const e=nearestOf(elevList(I-8,I+8,J-8,J+8));if(!e){say('Yakında tünel asansörü bulamadım.');return;}
     go({x:e.x,z:e.z,v:e.v,i:e.i,j:e.j,sg:e.sg,park:true},ilT.name+' için en yakın tünel asansörüne');if(AP.on)TUN.want=ilT;return;}
+  if(/arabam/.test(t)&&(FOOT.on)){go(apDestFromPoint(car.pos.x,car.pos.z),'arabanın yanına');return;}
+  if(taxiW){if(FOOT.inTaxi){say('Nereye gidelim?');return;}taxiCall(null);return;}
   if(/yemek|restoran|acık|acıktım/.test(t)){const r=nearestOf(restIn(I-6,I+6,J-6,J+6));go(r&&apDestFromPoint(r.x,r.z),'en yakın lokantaya, '+(r?r.name:''));return;}
   say('Anlayamadım. Mesela “beni en yakın köfteciye götür” diyebilirsin.');}
 $('askIn').addEventListener('keydown',e=>{if(e.key==='Enter'){const v=e.target.value.trim();e.target.value='';e.target.hidden=true;if(v){askShow(v,'me');askCommand(v);}}e.stopPropagation();});
