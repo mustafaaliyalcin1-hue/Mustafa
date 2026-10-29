@@ -2,3 +2,4 @@ node_modules/
 out/
 public/fragman/*/
 !public/fragman/fonts/
+sheet/
