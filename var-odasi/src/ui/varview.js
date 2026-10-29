@@ -80,18 +80,20 @@ export class VarView {
     this.tlInfo = h('div.tl-info');
     this.playBtn = h('button.btn.small', { onclick: () => this.togglePlay(), title: 'Oynat / Duraklat (Boşluk)' }, '▶');
     this.speedBtns = SPEEDS.map((s) => h('button.btn.small.speed-btn', { onclick: () => this.setSpeed(s) }, s + 'x'));
+    this.speedCycle = h('button.btn.small.speed-cycle', { onclick: () => this.setSpeed(SPEEDS[(SPEEDS.indexOf(this.speed) + 1) % SPEEDS.length]) }, '1x');
     this.layoutBtns = [1, 2, 4].map((n) => h('button.btn.small', { onclick: () => this.setLayout(n), title: n + ' görüntü' }, n === 1 ? '▣' : n === 2 ? '◫' : '⊞'));
     const step = (d) => () => this.stepFrame(d);
     const bottom = h('div.var-bottom', null,
       h('div.tl-row.wrap', null,
         h('button.btn.small', { onclick: () => this.seek(this.inc.appFrame), title: 'Atak başlangıç anına (APP) git' }, '⏮ APP'),
-        h('button.btn.small', { onclick: step(-10), title: '10 kare geri (Shift+←)' }, '«'),
+        h('button.btn.small.far', { onclick: step(-10), title: '10 kare geri (Shift+←)' }, '«'),
         h('button.btn.small', { onclick: step(-1), title: '1 kare geri (←)' }, '‹ 1'),
         this.playBtn,
         h('button.btn.small', { onclick: step(1), title: '1 kare ileri (→)' }, '1 ›'),
-        h('button.btn.small', { onclick: step(10), title: '10 kare ileri (Shift+→)' }, '»'),
-        h('span.muted', { style: { fontSize: '11px', marginLeft: '6px' } }, 'HIZ'),
+        h('button.btn.small.far', { onclick: step(10), title: '10 kare ileri (Shift+→)' }, '»'),
+        h('span.muted.hiz', { style: { fontSize: '11px', marginLeft: '6px' } }, 'HIZ'),
         ...this.speedBtns,
+        this.speedCycle,
         h('div.grow'),
         ...this.layoutBtns,
       ),
@@ -110,7 +112,7 @@ export class VarView {
       this.decideEl,
     );
     this.viewsEl.appendChild(this.readout);
-    this.guideEl = h('div.guide', { style: { display: 'none' } });
+    this.guideEl = h('div.guide', { style: { display: 'none' }, onclick: () => this.guideEl.classList.toggle('min'), title: 'Küçült / büyüt' });
     this.el = h('div.screen.var', null, top, this.viewsEl, side, bottom, this.guideEl);
     this.renderTools();
     this.renderDecision();
@@ -285,14 +287,20 @@ export class VarView {
     const cam = this.views[i].camObj;
     this.raycaster.setFromCamera(ndc, cam);
     const vis = this.app.world.pickables.filter((m) => m.parent && m.parent.visible);
-    const hits = this.raycaster.intersectObjects(vis, false);
-    return hits.length ? hits[0] : null;
+    return this.raycaster.intersectObjects(vis, false);
   }
 
   offsideClick(i, e) {
-    const hit = this.pick(i, e);
-    if (!hit) { toast('Bir oyuncunun vücuduna tıkla.'); return; }
-    const { ent, part } = hit.object.userData;
+    const hits = this.pick(i, e);
+    if (!hits.length) { toast('Bir oyuncunun vücuduna tıkla.'); return; }
+    let hit = hits[0];
+    const { ent } = hit.object.userData;
+    // önde bir kol varsa, aynı oyuncunun arkasındaki sayılabilir bölgeyi al
+    if (PARTS[hit.object.userData.part].cat === 'kol') {
+      const behind = hits.find((x) => x.object.userData.ent === ent && PARTS[x.object.userData.part].cat !== 'kol');
+      if (behind) hit = behind;
+    }
+    const part = hit.object.userData.part;
     const inc = this.inc;
     const team = ent < 11 ? 0 : ent < 22 ? 1 : 2;
     const step = !this.off.att ? 'att' : !this.off.def ? 'def' : null;
@@ -490,6 +498,7 @@ export class VarView {
   updateButtons() {
     this.playBtn.textContent = this.playing ? '⏸' : '▶';
     this.speedBtns.forEach((b, i) => b.classList.toggle('on', SPEEDS[i] === this.speed));
+    this.speedCycle.textContent = '⏱ ' + this.speed + 'x';
     this.layoutBtns.forEach((b, i) => b.classList.toggle('on', [1, 2, 4][i] === this.layout));
     const cur = this.views[this.active].cam;
     this.camBtns.forEach((b, i) => b.classList.toggle('on', i === cur));
@@ -538,6 +547,7 @@ export class VarView {
       this.timerEl.textContent = fmtTime(Math.ceil(left));
       this.timerEl.classList.toggle('warn', left <= this.timeLimit * 0.35 && left > 10);
       this.timerEl.classList.toggle('crit', left <= 10);
+      this.el.classList.toggle('crit', left <= 10);
       this.app.audio.setCrowd(0.25 + 0.75 * Math.min(1, this.timeUsed / this.timeLimit));
       const sLeft = Math.ceil(left);
       if (left <= 10 && sLeft !== this.lastTick) { this.lastTick = sLeft; this.app.audio.ui('tick'); }
@@ -555,6 +565,7 @@ export class VarView {
       if (cur && this._gk !== this.guideIdx) {
         this._gk = this.guideIdx;
         this.guideEl.style.display = '';
+        this.guideEl.classList.remove('min');
         this.guideEl.innerHTML = `<div class="gstep">ADIM ${this.guideIdx + 1} / ${g.length}</div>${cur.text}`;
       } else if (!cur) this.guideEl.style.display = 'none';
     }
@@ -590,7 +601,15 @@ export class VarView {
     else if (inc.line === 'box') lineX = dir * BOX_LINE_X;
     else lineX = focus[0];
     focus[1] = 0.9;
-    return { ball, focus, dir, lineX, lineKind: inc.line, ballRaw: rec.ball(f) };
+    // yakın plan için ikili (hücumcu – savunmacı) doğrultusu
+    let pair = null;
+    const m = inc.meta || {};
+    const other = [m.defender, m.offender, m.attacker, m.lineDefender].find((x) => x !== undefined && x !== null && x !== inc.focus);
+    if (other !== undefined && other !== null) {
+      const a = rec.ent(f, inc.focus, {}), b = rec.ent(f, other, {});
+      if (a.pose !== POSE.HIDDEN && b.pose !== POSE.HIDDEN && Math.hypot(a.x - b.x, a.z - b.z) < 12) pair = [b.x - a.x, b.z - a.z];
+    }
+    return { ball, focus, dir, lineX, lineKind: inc.line, ballRaw: rec.ball(f), pair };
   }
 
   render(g) {

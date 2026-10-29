@@ -125,11 +125,14 @@ export class StudioScreen {
     const tr = tier(g.note);
     // dikkat çekici pozisyonlar: önce hatalar
     const ranked = session.results.slice().sort((a, b) => a.ev.acc - b.ev.acc);
+    const used = new Set();
     const lines = PUNDITS.map((p, i) => {
       const base = r.pick(PUNDIT_LINES[p.tone][tr]);
       const rr = ranked[i % Math.max(1, ranked.length)];
       let extra = '';
-      if (rr) extra = ' ' + r.pick(PUNDIT_INCIDENT[rr.ev.verdict]).replace('{dk}', Math.floor(rr.inc.minute) + 1);
+      if (rr) { const opts = PUNDIT_INCIDENT[rr.ev.verdict]; extra = ' ' + opts[(i + r.int(0, 9)) % opts.length].replace('{dk}', Math.floor(rr.inc.minute) + 1); }
+      if (used.has(extra)) extra = '';
+      used.add(extra);
       return base + extra;
     });
     const tick = h('div.studio-ticker', null, h('span', null, '📺 HAKEM MASASI'), h('span', { style: { fontWeight: 500 } }, `${session.teams[0].name} ${session.sim.score[0]}-${session.sim.score[1]} ${session.teams[1].name} · VAR notu ${g.note.toFixed(1)}`));
@@ -166,6 +169,8 @@ export class SocialScreen {
       const name = session.teams[t].short;
       tweets.push(mood >= 50 ? `${name} taraftarı olarak bu akşam hakemlere söyleyecek sözüm yok 💪` : `Bu akşam ${name} olarak haksızlığa uğradık bence. Kayıtlar izlensin! 😤`);
     }
+    const uniq = [...new Set(tweets)];
+    tweets.length = 0; tweets.push(...uniq);
     r.shuffle(tweets);
     const feed = h('div.feed', null, ...tweets.map((txt) => {
       const [handle, name] = r.pick(HANDLES);

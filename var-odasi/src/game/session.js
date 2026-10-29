@@ -97,10 +97,10 @@ export class MatchSession {
       if (this.timer >= 0.6) { this.state = this.cutNext; this.acc = 0; }
     } else if (this.state === 'aftermath') {
       this.timer += dt;
-      if (this.timer >= 2.0) this.beginReview();
+      if (this.timer >= 3.2) this.beginReview();
     } else if (this.state === 'resume') {
       this.timer += dt;
-      if (this.timer >= 2.4) this.applyAftermath();
+      if (this.timer >= 0.4) this.applyAftermath();
     }
   }
 

@@ -33,6 +33,7 @@ export class Gfx {
     this.renderer.setPixelRatio(this.pixelRatio);
     const sh = q === 'yuksek';
     this.renderer.shadowMap.enabled = sh;
+    this.renderer.shadowMap.autoUpdate = false;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.sun.castShadow = sh;
     if (sh) {
@@ -56,6 +57,8 @@ export class Gfx {
     this.renderer.setScissorTest(false);
     this.renderer.setViewport(0, 0, this.w, this.h);
     this.renderer.clear();
+    // gölge haritası kare başına bir kez (bölünmüş ekranda 4 kez değil)
+    this.renderer.shadowMap.needsUpdate = true;
   }
 
   /** rect: CSS pikselinde {x, y, w, h} (sol üst köşeden). */

@@ -65,8 +65,15 @@ export function placeCamera(cam, id, info, aspect) {
       }
       break;
     }
-    case 5: { // yakın plan
-      P.set(f[0] - 3, 3.2, f[2] - 17);
+    case 5: { // yakın plan: iki oyuncu arasındaki doğruya dik bakar (temas net görünsün)
+      let px = -0.17, pz = -1;
+      if (info.pair) {
+        const [dx, dz] = info.pair;
+        const n = Math.hypot(dx, dz) || 1;
+        px = -dz / n; pz = dx / n;
+        if (pz > 0) { px = -px; pz = -pz; }
+      }
+      P.set(f[0] + px * 17, 3.2, f[2] + pz * 17);
       T.set(f[0], 0.85, f[2]);
       fov = 10;
       break;

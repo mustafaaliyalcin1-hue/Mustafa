@@ -1,6 +1,6 @@
 // Canlı maç ekranı: yayın görüntüsü, skor, telsiz paneli ve VAR incelemesi.
 import { h, clear, toast, modal } from '../dom.js';
-import { BroadcastCam } from '../../replay/cameras.js';
+import { BroadcastCam, makeCamera, placeCamera } from '../../replay/cameras.js';
 import { VarView } from '../varview.js';
 import { fmtMinute } from '../../core/util.js';
 import { DT } from '../../sim/constants.js';
@@ -13,6 +13,8 @@ export class MatchScreen {
   constructor(app, session, ctx) {
     this.app = app; this.s = session; this.ctx = ctx;
     this.cam = new BroadcastCam();
+    this.replayCam = makeCamera();
+    this.replayTag = h('div.replay-tag', { style: { display: 'none' } }, '⟲ TEKRAR');
     this.speed = 1;
     this.varView = null;
     this.paused = false;
@@ -58,6 +60,7 @@ export class MatchScreen {
       this.side,
       h('div.ticker', null, h('span.tag', null, 'CANLI'), this.tickerText),
       this.bannerBox,
+      this.replayTag,
       this.fade,
     );
     this.el = h('div.screen', null, this.liveEl);
@@ -239,6 +242,25 @@ export class MatchScreen {
   render(g, dt) {
     if (this.varView) { this.varView.render(g); return; }
     const rec = this.s.rec;
+    const inc = this.s.cur;
+    const replay = this.s.state === 'aftermath' && inc && inc.truth;
+    this.replayTag.style.display = replay ? '' : 'none';
+    if (replay) {
+      // saha kararı açıklanırken kritik anın yavaş çekim tekrarı
+      const k = inc.segStart + inc.truth.keyFrame;
+      const f = Math.min(inc.segEnd, Math.max(inc.segStart, k - 35 + this.s.timer * 18));
+      this.app.world.apply((i, out) => rec.sampleEnt(f, i, out), () => rec.sampleBall(f));
+      const a = rec.ent(Math.round(f), inc.focus, {}), b = rec.ball(Math.round(f));
+      const m = inc.meta || {};
+      const other = [m.defender, m.offender, m.attacker, m.lineDefender].find((x) => x !== undefined && x !== null && x !== inc.focus);
+      let pair = null;
+      if (other !== undefined) { const o = rec.ent(Math.round(f), other, {}); pair = [o.x - a.x, o.z - a.z]; }
+      placeCamera(this.replayCam, inc.type === 'OFSAYT' || inc.type === 'TOP_DISARI' ? 4 : 5, { ball: b, focus: [a.x, 0.9, a.z], dir: inc.dir, lineX: null, lineKind: inc.line === 'goal' ? 'goal' : null, ballRaw: b, pair }, g.w / g.h);
+      if (inc.type !== 'OFSAYT' && inc.type !== 'TOP_DISARI') this.replayCam.fov = 16;
+      this.replayCam.clearViewOffset(); this.replayCam.updateProjectionMatrix();
+      g.renderView(this.replayCam, { x: 0, y: 0, w: g.w, h: g.h });
+      return;
+    }
     const f = Math.max(0, rec.count - 2 + Math.min(1, (this.s.acc || 0) / DT));
     this.app.world.apply((i, out) => rec.sampleEnt(f, i, out), () => rec.sampleBall(f));
     this.app.world.setCrowd(this.app.time, this.bannerT > 0 && this.bannerBox.querySelector('.goal') ? 1 : 0.05);
