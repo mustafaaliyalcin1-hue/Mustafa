@@ -2326,7 +2326,7 @@ function realismTick(){
 const TCARS={ready:false,types:[]};
 (async()=>{let L;try{L=new GLTFLoader();}catch(_){return;}
   const names=['NormalCar1','NormalCar2','SUV','SportsCar','SportsCar2','Taxi'];
-  const got=await Promise.all(names.map(n=>L.loadAsync('models/cars/'+n+'.glb').then(g=>[n,g]).catch(()=>null)));
+  const got=await Promise.all(names.map(n=>L.loadAsync('models/cars/'+n+'.json').then(g=>[n,g]).catch(()=>null)));
   const list=got.filter(Boolean);if(!list.length)return;
   const bodyM=new THREE.MeshPhysicalMaterial({color:0xffffff,metalness:.55,roughness:.3,clearcoat:1,clearcoatRoughness:.06});
   const restM=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.45,metalness:.25});
