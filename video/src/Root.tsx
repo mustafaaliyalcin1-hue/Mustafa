@@ -4,6 +4,7 @@ import { Fragman } from "./fragman/Fragman";
 import { Tanitim } from "./fragman/Tanitim";
 import { Guncelleme2 } from "./fragman/Guncelleme2";
 import { Guncelleme3 } from "./fragman/Guncelleme3";
+import { Guncelleme4, G4_LEN } from "./fragman/Guncelleme4";
 
 export const Root: React.FC = () => {
   return (
@@ -20,6 +21,7 @@ export const Root: React.FC = () => {
     <Composition id="Tanitim" component={Tanitim} durationInFrames={1260} fps={30} width={1280} height={720} />
     <Composition id="Guncelleme2" component={Guncelleme2} durationInFrames={720} fps={30} width={1280} height={720} />
     <Composition id="Guncelleme3" component={Guncelleme3} durationInFrames={580} fps={30} width={1280} height={720} />
+    <Composition id="Guncelleme4" component={Guncelleme4} durationInFrames={G4_LEN} fps={30} width={1280} height={720} />
     </>
   );
 };

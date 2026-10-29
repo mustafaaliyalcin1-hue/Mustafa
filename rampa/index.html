@@ -3379,7 +3379,9 @@ const TSTEPS=[
     tick:()=>{if(S.cargo)return;const k=Math.floor(TOUR.t/1.8)%TLOOKS.length;if(k!==TOUR.lk){TOUR.lk=k;Object.assign(SET.lo,TLOOKS[k]);applyLoadout();}},min:11,end(){window.__camOverride=null;if(TOUR.lo0){Object.assign(SET.lo,JSON.parse(TOUR.lo0));TOUR.lo0=null;applyLoadout();}TOUR.lk=-1;}},
   {txt:'FPV drone kamerasıyla kendini dışarıdan, bir film gibi izleyebilirsin.',run(){setCamMode(4);AP.spd=2;tourDrive('road',[[200,90],[-200,90],[200,-90]]);},min:8,max:9,end(){setCamMode(0);if(AP.on)apStop();}},
   {txt:'Şimdi en sevdiğim yer: yeraltı tüneli. Araç asansörüne park edip üç saniye bekliyorum, asansör beni aşağı indiriyor.',if:()=>!NET.on,run(){const c=car,I=CITY.ci(c.pos.x),J=CITY.cj(c.pos.z),L=elevList(I-7,I+7,J-7,J+7).sort((a,b)=>Math.hypot(a.x-c.pos.x,a.z-c.pos.z)-Math.hypot(b.x-c.pos.x,b.z-c.pos.z));
-      const e=L[0];TOUR.noElev=!e;if(e){AP.spd=2;apStart('road',false,{x:e.x,z:e.z,v:e.v,i:e.i,j:e.j,sg:e.sg,park:true});}},done:()=>TUN.ph==='pick'||TOUR.noElev,max:75},
+      const e=L[0];TOUR.noElev=!e;TOUR.elev=e;if(e){AP.spd=2;apStart('road',false,{x:e.x,z:e.z,v:e.v,i:e.i,j:e.j,sg:e.sg,park:true});}},
+    tick:()=>{const e=TOUR.elev,c=car;if(!e||TUN.on)return;if((!AP.on&&TOUR.t>4&&!elevOnPad(c,e))||TOUR.t>45&&!elevOnPad(c,e)){if(AP.on)apStop();fade(1,200);c.pos.set(e.x,0,e.z);c.yaw=e.yaw;c.v=0;c.vel.set(0,0,0);c.state='free';CITY.update(c.pos.x,c.pos.z);ELEV.t=0;ELEV.armed=true;ELEV.wait=0;cam.head=c.yaw;snapCam=true;setTimeout(()=>fade(0,400),250);}},
+    done:()=>TUN.ph==='pick'||TOUR.noElev,max:75},
   {txt:'Türkiye\'nin 81 ilinin hepsine tünel var. Tünelde sadece uçan arabalar var ve ben sürüyorum. Hadi Ankara\'ya gidelim!',if:()=>TUN.ph==='pick',acts:[[6,()=>tunGo(IL.by(IL.cur===6?34:6))]],done:()=>TOUR.t>7&&!TUN.on,max:70},
   {txt:'Geldik! Her ilin kendine göre bir şehri var: büyük şehirlerde gökdelenler, küçük illerde alçak binalar ve bol yeşillik.',if:()=>IL.cur!==34,min:7},
   {txt:'Oyunda ayrıca rampa ve atlama modları, para kazandığın kurye modu, polis kovalamacası ve arkadaşlarınla online oda var. Tanıtım bitti, direksiyon sende. İyi eğlenceler!',min:10,run(){setCamMode(0);window.__camOverride=tourOrbit;},end(){window.__camOverride=null;}},
@@ -3387,6 +3389,7 @@ const TSTEPS=[
 function tourStart(){audioInit();if(NET.on){pop('Sunum modu online odada çalışmaz');return;}if(TOUR.on)tourStop(true);
   closeOverlay&&S.ui!=='play'&&S.ui!=='menu'&&closeOverlay();S.auto=false;S.cargo=false;IL.cur=34;startMode('serbest');TOUR.on=true;TOUR.i=-1;TOUR.lk=-1;$('tourBox').hidden=false;tourNext();}
 function tourEndStep(){const st=TOUR.step;if(st&&st.end)try{st.end();}catch(_){}}
+window.__tourJump=k=>{TOUR.i=k-1;tourNext();};
 function tourNext(){tourEndStep();TOUR.i++;while(TOUR.i<TSTEPS.length&&TSTEPS[TOUR.i].if&&!TSTEPS[TOUR.i].if())TOUR.i++;
   if(TOUR.i>=TSTEPS.length){tourStop(false);return;}const st=TSTEPS[TOUR.i];TOUR.step=st;TOUR.t=0;TOUR.fired=new Set();$('tourN').textContent=(TOUR.i+1)+' / '+TSTEPS.length;tourSay(st.txt);
   if(st.run)try{st.run();}catch(e){console.error(e);}}
