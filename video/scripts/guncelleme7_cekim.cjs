@@ -8,8 +8,8 @@ const clock=()=>{let T=0;const cbs=[];performance.now=()=>T;window.requestAnimat
       const ctx=await b.newContext(opt);const p=await ctx.newPage();await p.addInitScript(clock);
       await p.goto(BASE+page,{waitUntil:'domcontentloaded',timeout:120000});await p.waitForFunction(()=>window.__tepeReady,null,{timeout:120000});
       await p.evaluate(()=>{__T.SET.ultra=false;__T.applySet();for(let i=0;i<10;i++)__tick(50);});
-      await p.evaluate(()=>document.querySelector('.mode.tour').scrollIntoView({block:'center'}));await p.screenshot({path:`${OUT}kare/${ver}_${dev}_menu.png`});
-      await p.evaluate(()=>{__T.startMode('serbest');for(let i=0;i<30;i++)__tick(50);});await p.screenshot({path:`${OUT}kare/${ver}_${dev}_hud.png`});
+      await p.evaluate(()=>document.querySelector('.mode.tour').scrollIntoView({block:'center'}));await p.screenshot({timeout:120000,path:`${OUT}kare/${ver}_${dev}_menu.png`});
+      await p.evaluate(()=>{__T.startMode('serbest');for(let i=0;i<30;i++)__tick(50);});await p.screenshot({timeout:120000,path:`${OUT}kare/${ver}_${dev}_hud.png`});
       await ctx.close();console.log(ver,dev);}}
   if(which==='surus'){const p=await b.newPage({viewport:{width:1280,height:720}});await p.addInitScript(clock);
     await p.goto(BASE+'cap2.html',{waitUntil:'domcontentloaded',timeout:120000});await p.waitForFunction(()=>window.__tepeReady,null,{timeout:120000});
