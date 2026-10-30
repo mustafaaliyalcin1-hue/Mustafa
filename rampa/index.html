@@ -1112,9 +1112,9 @@ function trafficRender(){
   CITY.heads.forEach((h,n)=>CITY.lh.setColorAt(n,LC[lightAt(h.i,h.j,h.axis)]));CITY.lh.instanceColor.needsUpdate=true;
 }
 function trafficTick(dt){
-  TRAF.t+=dt;const cars=TRAF.cars,c=car,far=(CITY.R+.6)*CITY.B;
+  TRAF.t+=dt;const cars=TRAF.cars,c=car,far=(CITY.R+.6)*CITY.B,vp=viewPos();
   for(const a of cars){
-    if(Math.hypot(a.x-c.pos.x,a.z-c.pos.z)>far){placeCar(a,c.pos.x,c.pos.z,CITY.R*45,CITY.R*68);continue;}
+    if(Math.hypot(a.x-vp.x,a.z-vp.z)>far){placeCar(a,vp.x,vp.z,CITY.R*45,CITY.R*68);continue;}
     const fx=Math.cos(a.yaw),fz=Math.sin(a.yaw);let vT=a.cruise;
     if(a.seg.t==='s'){const rem=a.seg.len-a.s,st=lightAt(a.ti,a.tj,a.d%2);if(st!=='g'&&!(st==='y'&&rem<7)&&rem<34){vT=Math.min(vT,Math.max(0,(rem-1)*.55));if(rem<1.2)vT=0;}}
     else vT=Math.min(vT,9);
@@ -2943,8 +2943,8 @@ const GATE={meshes:[],spots:[],t:0,inside:false,done:false,warned:false,boxes:[]
     g.visible=false;scene.add(g);GATE.meshes.push(g);}}
 function gateUpdate(dt){const on=S.mode==='serbest'&&!S.menuDemo;GATE.t-=dt;
   if(!on){for(const g of GATE.meshes)g.visible=false;GATE.spots.length=0;GATE.boxes.length=0;return;}
-  if(GATE.t<=0){GATE.t=.5;const I=CITY.ci(car.pos.x),J=CITY.cj(car.pos.z),list=[];
-    for(let i=I-9;i<=I+9;i++){if(mod4(i)!==3)continue;for(let j=J-9;j<=J+9;j++){if(mod4(j)!==3)continue;const x=CITY.nx(i)+CITY.B/2,z=CITY.nz(j);if(CITY.waterAt(x,z,-9))continue;list.push({x,z,d:Math.hypot(x-car.pos.x,z-car.pos.z)});}}
+  if(GATE.t<=0){GATE.t=.5;const vp=viewPos(),I=CITY.ci(vp.x),J=CITY.cj(vp.z),list=[];
+    for(let i=I-9;i<=I+9;i++){if(mod4(i)!==3)continue;for(let j=J-9;j<=J+9;j++){if(mod4(j)!==3)continue;const x=CITY.nx(i)+CITY.B/2,z=CITY.nz(j);if(CITY.waterAt(x,z,-9))continue;list.push({x,z,d:Math.hypot(x-vp.x,z-vp.z)});}}
     list.sort((a,b)=>a.d-b.d);GATE.spots=list.slice(0,6);GATE.boxes.length=0;
     GATE.meshes.forEach((g,k)=>{const s=GATE.spots[k];g.visible=!!s;if(s){g.position.set(s.x,0,s.z);for(const z of [-7.6,7.6])GATE.boxes.push({x0:s.x-.45,x1:s.x+.45,z0:s.z+z-.45,z1:s.z+z+.45,h:6.6});}});}
   const c=car;let inside=false;for(const s of GATE.spots){if(Math.abs(c.pos.x-s.x)<4.5&&Math.abs(c.pos.z-s.z)<6.8&&c.pos.y<1){inside=true;break;}}
@@ -3090,7 +3090,7 @@ const PEDS=(()=>{const n=isTouch?8:14,out=[],shirts=[0xd62828,0x2a9d8f,0xe9c46a,
   for(let k=0;k<n;k++){const g=buildPerson(shirts[k%shirts.length],k%3?0x2b2d42:0x5c677d,skins[k%skins.length],{hair:k%2?0x2b1d14:0x6b4f2a});g.visible=false;out.push({g,st:'off',t:0,ax:0,az:0,bx:0,bz:0,i:0,j:0,axis:0,sp:1.4,k:0,down:0});}
   return out;})();
 const pedOn=()=>S.mode==='serbest'&&!S.menuDemo&&!(typeof TUN!=='undefined'&&TUN.on);
-function pedPlace(p){const c=car,I=Math.round((c.pos.x-CITY.nx(0))/CITY.B),J=Math.round((c.pos.z-CITY.nz(0))/CITY.B);
+function pedPlace(p){const c={pos:viewPos()},I=Math.round((c.pos.x-CITY.nx(0))/CITY.B),J=Math.round((c.pos.z-CITY.nz(0))/CITY.B);
   for(let tries=0;tries<20;tries++){const i=I+Math.floor(Math.random()*5)-2,j=J+Math.floor(Math.random()*5)-2,axis=Math.random()<.5?0:1,sx=Math.random()<.5?-1:1,flip=Math.random()<.5;
     const x=CITY.nx(i),z=CITY.nz(j);if(Math.hypot(x-c.pos.x,z-c.pos.z)<25||CITY.waterAt(x,z,-12))continue;
     // axis 0: zebra across the road that runs along x (cars on axis 0 must have red)
@@ -3102,7 +3102,7 @@ function pedTick(dt,rdt){const on=pedOn();if(!on){for(const p of PEDS){p.g.visib
   const c=car,t=performance.now()/1000;
   for(const p of PEDS){const g=g0=>g0;const G=p.g;
     if(p.st==='off'){if(Math.random()<.02)pedPlace(p);continue;}
-    if(Math.hypot(G.position.x-c.pos.x,G.position.z-c.pos.z)>170&&p.st!=='down'){pedPlace(p);continue;}
+    {const vp=viewPos();if(Math.hypot(G.position.x-vp.x,G.position.z-vp.z)>170&&p.st!=='down'){pedPlace(p);continue;}}
     const arms=G.userData.arms;
     if(p.st==='wait'){p.t-=dt;const st=lightAt(p.i,p.j,p.axis);if(st==='r'&&p.t<=0){p.st='walk';}arms[0].rotation.z=arms[1].rotation.z=0;}
     else if(p.st==='walk'){p.k+=p.sp*dt/Math.hypot(p.bx-p.ax,p.bz-p.az);const k=Math.min(1,p.k);G.position.set(p.ax+(p.bx-p.ax)*k,Math.abs(Math.sin(t*8+p.i))*.04,p.az+(p.bz-p.az)*k);
@@ -3157,7 +3157,7 @@ const ELEV=(()=>{const stripe=canvasTex(256,128,g=>{g.fillStyle='#1b1e24';g.fill
 function elevOnPad(c,e){const dx=c.pos.x-e.x,dz=c.pos.z-e.z,al=Math.abs(e.v?dz:dx),ac=Math.abs(e.v?dx:dz);return al<2.9&&ac<1.45;}
 function elevTick(dt){const on=S.mode==='serbest'&&!S.menuDemo;if(!on){for(const p of ELEV.pool)p.g.visible=false;ELEV.list=[];return;}
   const c=car;ELEV.t-=dt;
-  if(ELEV.t<=0&&!TUN.on){ELEV.t=.5;const I=CITY.ci(c.pos.x),J=CITY.cj(c.pos.z);ELEV.list=elevList(I-4,I+4,J-4,J+4).map(e=>({...e,d:Math.hypot(e.x-c.pos.x,e.z-c.pos.z)})).sort((a,b)=>a.d-b.d);
+  if(ELEV.t<=0&&!TUN.on){ELEV.t=.5;const vp=viewPos(),I=CITY.ci(vp.x),J=CITY.cj(vp.z);ELEV.list=elevList(I-4,I+4,J-4,J+4).map(e=>({...e,d:Math.hypot(e.x-vp.x,e.z-vp.z)})).sort((a,b)=>a.d-b.d);
     ELEV.pool.forEach((p,k)=>{if(p===ELEV.rideP)return;const e=ELEV.list[k];p.spot=e||null;p.g.visible=!!e;if(e){p.g.position.set(e.x,0,e.z);p.g.rotation.set(0,-e.yaw,0);p.plat.position.y=0;p.sign.rotation.y=e.v?(e.sg>0?Math.PI/2:-Math.PI/2)+Math.PI/2:(e.sg>0?Math.PI:0);}});}
   for(const p of ELEV.pool)p.sign.quaternion.copy(camera.quaternion);
   if(TUN.on)return;
@@ -3404,6 +3404,7 @@ $('tourSkip').addEventListener('click',()=>{audioInit();if(TOUR.on)tourNext();})
 const FOOD=[['Mahalle Köftecisi','köfte',0x9d0208],['Ayrancı Baba','ayran',0x2a9d8f],['Lavaşçı Usta','lavaş',0xbc6c25],['Mahalle Dönercisi','döner',0xe36414],['Kebapçı Halil','kebap',0x8b1e3f],
   ['Mahalle Kafe','kafe',0x6b3e26],['Karadeniz Pide','pide',0x386641],['Simitçi Ahmet','simit',0xd4a373],['Usta Pizza','pizza',0xc1121f],['Mahalle Marketi','market',0x1d6fe0],['Tatlıcı Hafız','tatlı',0xff6fa7],['Balıkçı Yaşar','balık',0x1d3557]];
 const DAT={köfte:'köfteciye',ayran:'ayrancıya',lavaş:'lavaşçıya',döner:'dönerciye',kebap:'kebapçıya',kafe:'kafeye',pide:'pideciye',simit:'simitçiye',pizza:'pizzacıya',market:'markete',tatlı:'tatlıcıya',balık:'balıkçıya'};
+const viewPos=()=>FOOT.on?FOOT.pos:car.pos;
 function restIn(i0,i1,j0,j1){const H=CITY.hash,out=[];for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++)for(const v of [0,1]){if(CITY.closedE(i,j,v))continue;if(!v&&CITY.m4(i)===3&&CITY.m4(j)===3)continue;if(!v&&i===1&&j===3)continue;if(H(i,j,v?97:96)>.16)continue;
     const spot=H(i,j,v?91:90)<=.28,sg=spot?-(H(i,j,v?93:92)<.5?-1:1):(H(i,j,v?99:98)<.5?-1:1),al=(H(i,j,v?101:100)-.5)*22,hz=!v,f=FOOD[Math.floor(H(i,j,v?103:102)*FOOD.length)];
     const cx=hz?CITY.nx(i)+CITY.B/2+al:CITY.nx(i),cz=hz?CITY.nz(j):CITY.nz(j)+CITY.B/2+al,nx=hz?0:sg,nz=hz?sg:0;
@@ -3411,7 +3412,7 @@ function restIn(i0,i1,j0,j1){const H=CITY.hash,out=[];for(let i=i0;i<=i1;i++)for
 const REST={pool:[],list:[],t:0};
 function restTick(dt){const on=S.mode==='serbest'&&!S.menuDemo&&!(typeof TUN!=='undefined'&&TUN.on);if(!REST.pool.length)for(let k=0;k<(isTouch?4:7);k++){REST.pool.push({m:mkShopFront(),name:''});}
   if(!on){for(const p of REST.pool)p.m.g.visible=false;REST.list=[];return;}
-  REST.t-=dt;if(REST.t>0)return;REST.t=.5;const c=car,I=CITY.ci(c.pos.x),J=CITY.cj(c.pos.z);
+  REST.t-=dt;if(REST.t>0)return;REST.t=.5;const c={pos:viewPos()},I=CITY.ci(c.pos.x),J=CITY.cj(c.pos.z);
   const L=restIn(I-3,I+3,J-3,J+3).map(r=>({...r,d:Math.hypot(r.x-c.pos.x,r.z-c.pos.z)})).sort((a,b)=>a.d-b.d);REST.list=L;
   REST.pool.forEach((p,k)=>{const r=L[k];p.m.g.visible=!!r;if(!r)return;if(p.name!==r.name+r.i+r.j){p.name=r.name+r.i+r.j;p.m.setShop([r.name,r.col]);}placeAtCurb(p.m.g,{x:r.cx,z:r.cz,nx:r.nx,nz:r.nz},8.5);});}
 /* ================= ON FOOT: get out of the car and walk around ================= */
@@ -3540,11 +3541,11 @@ const SKYT=(()=>{const n=isTouch?8:18,out=[],cols=[0xf2f4f7,0x15181e,0xa50f1d,0x
   for(let k=0;k<n;k++){const V=k%3===0?buildVoltra(true):buildCar(false,true);if(!V.voltra){const inner=new THREE.Group();while(V.g.children.length)inner.add(V.g.children[0]);mergeByMaterial(inner);V.g.add(inner);inner.traverse(o=>{if(o.isMesh)o.castShadow=false;});}
     V.paint.color.setHex(cols[k%cols.length]);V.g.visible=false;out.push({V,on:false,axis:0,line:0,dir:1,pos:new V3(),v:30,alt:30,ph:Math.random()*10});}
   return out;})();
-function skySpawn(s,far){const c=car,axis=Math.random()<.5?0:1,dir=Math.random()<.5?1:-1,I=Math.round((c.pos.x-CITY.nx(0))/CITY.B),J=Math.round((c.pos.z-CITY.nz(0))/CITY.B),off=Math.floor(Math.random()*7)-3,lane=(Math.random()<.5?-1:1)*(2+Math.random()*3);
+function skySpawn(s,far){const c={pos:viewPos()},axis=Math.random()<.5?0:1,dir=Math.random()<.5?1:-1,I=Math.round((c.pos.x-CITY.nx(0))/CITY.B),J=Math.round((c.pos.z-CITY.nz(0))/CITY.B),off=Math.floor(Math.random()*7)-3,lane=(Math.random()<.5?-1:1)*(2+Math.random()*3);
   s.axis=axis;s.dir=dir;s.alt=26+Math.random()*34;s.v=24+Math.random()*26;
   const along=far?(-dir)*(180+Math.random()*120):(Math.random()-.5)*360;
   if(axis===0){s.line=CITY.nz(J+off)+lane;s.pos.set(c.pos.x+along,s.alt,s.line);}else{s.line=CITY.nx(I+off)+lane;s.pos.set(s.line,s.alt,c.pos.z+along);}s.on=true;}
-function skyTick(dt){if(TUN.on)return;const on=S.mode==='serbest'&&!S.menuDemo;const c=car,t=performance.now()/1000;
+function skyTick(dt){if(TUN.on)return;const on=S.mode==='serbest'&&!S.menuDemo;const c={pos:viewPos()},t=performance.now()/1000;
   for(const s of SKYT){if(!on){s.V.g.visible=false;s.on=false;continue;}if(!s.on)skySpawn(s,false);
     if(s.axis===0)s.pos.x+=s.dir*s.v*dt;else s.pos.z+=s.dir*s.v*dt;const y=s.alt+Math.sin(t*.8+s.ph)*1.2;
     if(Math.hypot(s.pos.x-c.pos.x,s.pos.z-c.pos.z)>420){skySpawn(s,true);}
