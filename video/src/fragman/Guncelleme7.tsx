@@ -39,7 +39,7 @@ const Compare: React.FC<{ c: Cmp }> = ({ c }) => {
       {img("yeni")}
       <AbsoluteFill style={{ clipPath: `inset(0 0 0 ${100 - x}%)` }}>{img("eski")}</AbsoluteFill>
       <div style={{ position: "absolute", top: 0, bottom: 0, left: `${100 - x}%`, width: 6, marginLeft: -3, background: "#ff3b4e", opacity: x > 0 && x < 100 ? 1 : 0 }} />
-      <Tag text="ÖNCE" right color="rgba(120,124,132,.9)" />
+      <div style={{ opacity: interpolate(f, [44, 56], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) }}><Tag text="ÖNCE" right color="rgba(120,124,132,.9)" /></div>
       <div style={{ opacity: interpolate(f, [50, 60], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) }}><Tag text="ŞİMDİ" color="#e3263b" /></div>
       <Sequence from={10}><Title text={c.title} note={c.note} /></Sequence>
     </AbsoluteFill>
