@@ -71,7 +71,7 @@ h2{font-family:var(--font-d);font-weight:900;font-size:clamp(40px,8vw,64px);line
 .mode:hover,.mode:focus-visible{border-color:var(--red);transform:translateX(4px);outline:none}
 .mode .k{font-family:var(--font-d);font-weight:800;font-size:32px;line-height:1;letter-spacing:.02em}
 .mode .d{grid-column:1;font-size:13px;line-height:1.45;color:var(--dim)}
-.mode .rec{grid-column:2;grid-row:1 / span 2;text-align:right;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);align-self:center}
+.mode .rec{grid-column:2;grid-row:1 / span 2;text-align:right;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);align-self:center}
 .mode .rec b{display:block;font-family:var(--font-d);font-size:24px;letter-spacing:.02em;color:var(--ink);font-variant-numeric:tabular-nums}
 .mode.auto,.mode.tour{grid-template-columns:auto 1fr;align-items:center}
 .mode.tour{border-color:rgba(255,59,78,.5)}.mode.tour .k{color:#ff5a6b}
@@ -110,7 +110,7 @@ kbd{font-family:var(--font-u);font-weight:600;color:var(--ink);border:1px solid 
 
 #hud{position:fixed;inset:0;pointer-events:none;z-index:10}
 .tl{position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);left:max(16px,env(safe-area-inset-left,0px))}
-#hMode{font-size:10.5px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase}
+#hMode{font-size:11px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase}
 #hMain{font-family:var(--font-d);font-size:40px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;text-shadow:0 2px 12px rgba(0,0,0,.6)}
 #hSub{font-size:12px;color:var(--dim);letter-spacing:.06em;margin-top:3px;font-variant-numeric:tabular-nums}
 .tr{position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);right:max(16px,env(safe-area-inset-right,0px));display:flex;gap:6px;pointer-events:auto;flex-wrap:wrap;justify-content:flex-end;max-width:62vw}
@@ -118,13 +118,13 @@ kbd{font-family:var(--font-u);font-weight:600;color:var(--ink);border:1px solid 
 .tr button[aria-pressed="true"]{background:var(--red);border-color:var(--red)}
 #tele{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 16px);display:flex;gap:4px 22px;align-items:flex-end;flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 32px)}
 .tv{display:flex;flex-direction:column;gap:3px;min-width:56px}
-.tv span{font-size:9.5px;letter-spacing:.22em;color:var(--dim);text-transform:uppercase}
+.tv span{font-size:11px;letter-spacing:.22em;color:var(--dim);text-transform:uppercase}
 .tv b{font-family:var(--font-d);font-size:28px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;text-shadow:0 2px 10px rgba(0,0,0,.7)}
-.tv b small{font-family:var(--font-u);font-size:10px;font-weight:600;color:var(--dim);margin-left:3px;letter-spacing:.06em}
+.tv b small{font-family:var(--font-u);font-size:11px;font-weight:600;color:var(--dim);margin-left:3px;letter-spacing:.06em}
 .tv .bar{width:64px;height:4px;background:rgba(255,255,255,.12);overflow:hidden}
 .tv .bar i{display:block;height:100%;width:100%;background:var(--mist)}
 #tG.warn{color:var(--amber)}#tG.bad{color:var(--red)}
-#guide{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 74px);font-size:13.5px;color:#e7eaee;text-shadow:0 1px 8px #000;text-align:center;width:min(92vw,560px);line-height:1.45}
+#guide{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 84px);font-size:13.5px;color:#e7eaee;text-shadow:0 1px 8px #000;text-align:center;width:min(92vw,560px);line-height:1.45}
 #guide kbd{background:rgba(13,15,20,.6)}
 #big{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;text-align:center;padding-left:16px;padding-right:16px}
 #bigT{font-family:var(--font-d);font-size:clamp(52px,13vw,140px);font-weight:900;letter-spacing:.02em;text-shadow:0 4px 30px rgba(0,0,0,.7);line-height:.9}
@@ -148,7 +148,7 @@ body.hideui #touch{opacity:0}
 #touch .tb{pointer-events:auto}
 #touch .col{display:flex;flex-direction:column;gap:10px;align-items:center}
 #c,#hud,#touch{touch-action:none}
-.tb{width:64px;height:64px;border-radius:50%;border:1.5px solid rgba(255,255,255,.26);background:rgba(16,18,24,.5);font-weight:700;font-size:10.5px;letter-spacing:.08em;touch-action:none;-webkit-touch-callout:none;line-height:1.2;padding:0}
+.tb{width:64px;height:64px;border-radius:50%;border:1.5px solid rgba(255,255,255,.26);background:rgba(16,18,24,.5);font-weight:700;font-size:11px;letter-spacing:.08em;touch-action:none;-webkit-touch-callout:none;line-height:1.2;padding:0}
 .tb.big{width:82px;height:82px;font-size:12px}
 #touch .row2{display:flex;gap:10px;justify-content:center}
 .tb.sm{width:52px;height:52px;font-size:11px}
@@ -201,7 +201,7 @@ body.tplay #guide{top:calc(env(safe-area-inset-top,0px) + 80px)}
 #taMap{width:100%;height:auto;border-radius:14px;background:#1b1e23}#taSt{margin:0;font-size:12px;opacity:.85}
 .tagrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.tagrid button{min-height:52px;border-radius:12px;border:1px solid #2a2e36;background:#171a20;color:#eef0f3;font:inherit;font-size:11.5px;font-weight:700;padding:4px;touch-action:manipulation}
 .tagrid button.on{background:#3e8bff33;border-color:#3e8bff}.tagrid button.ask{background:#1d3b6e;border-color:#3e8bff}
-@media (max-height:520px){#tapp{top:8px}.taphone{width:min(500px,62vw);display:grid;grid-template-columns:42% 1fr;column-gap:10px;row-gap:6px;padding:10px;border-radius:20px}.tahead{grid-column:1/3}#taMap{grid-column:1;grid-row:2}#taSt{grid-column:1;grid-row:3;font-size:11px}.tagrid{grid-column:2;grid-row:2/4}.tagrid button{min-height:37px;font-size:10.5px}}
+@media (max-height:520px){#tapp{top:8px}.taphone{width:min(500px,62vw);display:grid;grid-template-columns:42% 1fr;column-gap:10px;row-gap:6px;padding:10px;border-radius:20px}.tahead{grid-column:1/3}#taMap{grid-column:1;grid-row:2}#taSt{grid-column:1;grid-row:3;font-size:11px}.tagrid{grid-column:2;grid-row:2/4}.tagrid button{min-height:37px;font-size:11px}}
 #taxiBox{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 54px);z-index:16;width:min(520px,70vw);background:rgba(17,17,17,.9);border:2px solid #ffd21f;border-radius:16px;padding:10px 14px;display:flex;flex-direction:column;gap:6px;pointer-events:auto}
 #taxiBox[hidden]{display:none}#taxiBox b{color:#ffd21f;font-size:15px}#taxiBox span{font-size:12px;opacity:.85}#txDest{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}#txDest[hidden]{display:none}
 #taxiBox button{min-height:40px;border-radius:10px;border:1px solid #444;background:#222;color:#fff;font:inherit;font-size:12px;font-weight:700;touch-action:manipulation}.txrow{display:flex;gap:6px}.txrow button{flex:1}#txAsk{background:#1d3b6e!important;border-color:#3e8bff!important}
@@ -210,13 +210,13 @@ body.tplay #guide{top:calc(env(safe-area-inset-top,0px) + 80px)}
 .oshead{display:flex;align-items:center;gap:12px;padding:8px 14px;background:#12151b;border-bottom:1px solid #22262e}.oshead b{letter-spacing:.24em;font-size:13px;color:#ff5a6b}.oshead span{flex:1;font-size:12px;opacity:.8}
 .oshead button{width:40px;height:40px;border-radius:50%;border:1px solid #333;background:#1a1d23;color:#fff;font-size:16px}
 .osbody{flex:1;display:flex;min-height:0}#osDock{width:92px;display:flex;flex-direction:column;gap:6px;padding:8px;background:#0e1116;overflow:auto}
-#osDock button{min-height:58px;border-radius:14px;border:1px solid #232831;background:#161a21;color:#fff;font-size:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;touch-action:manipulation}#osDock button span{font-size:9.5px;font-weight:700;opacity:.85}#osDock button.on{background:#1d3b6e;border-color:#3e8bff}
+#osDock button{min-height:58px;border-radius:14px;border:1px solid #232831;background:#161a21;color:#fff;font-size:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;touch-action:manipulation}#osDock button span{font-size:11px;font-weight:700;opacity:.85}#osDock button.on{background:#1d3b6e;border-color:#3e8bff}
 .osmain{flex:1;min-width:0;display:flex;flex-direction:column;padding:8px}.osmain>div{flex:1;display:flex;flex-direction:column;gap:8px;min-height:0}.osmain>div[hidden]{display:none}
 #osMap{width:100%;flex:1;min-height:0;object-fit:contain;border-radius:12px;background:#1b1e23}.osgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
 .osgrid button,.osrow button{min-height:42px;border-radius:11px;border:1px solid #2a2e36;background:#171a20;color:#eef0f3;font:inherit;font-size:12px;font-weight:700;touch-action:manipulation}
 .osrow{display:flex;gap:6px}.osrow input{flex:1;min-width:0;font:inherit;font-size:14px;padding:8px 10px;border-radius:10px;border:1px solid #2a2e36;background:#12151a;color:#fff}.osmain iframe[hidden],#osYtPh[hidden]{display:none}#osYtPh{flex:1;display:flex;flex-direction:column;gap:10px;justify-content:center;align-items:center;text-align:center;padding:20px;border-radius:12px;background:#12151a}#osYtPh p{max-width:520px;font-size:14px;line-height:1.5;opacity:.85}
 .osmain iframe{flex:1;width:100%;border:0;border-radius:12px;background:#000}
-@media (max-height:520px){.ospanel{height:96vh}#osDock{width:74px}#osDock button{min-height:46px;font-size:18px}.osgrid{grid-template-columns:repeat(6,1fr)}.osgrid button{min-height:34px;font-size:10.5px}}
+@media (max-height:520px){.ospanel{height:96vh}#osDock{width:74px}#osDock button{min-height:46px;font-size:18px}.osgrid{grid-template-columns:repeat(6,1fr)}.osgrid button{min-height:34px;font-size:11px}}
 #fadeBlk{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:30}
 #tunHud{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 64px);width:min(520px,88vw);background:rgba(8,12,18,.85);border:1px solid rgba(95,196,255,.5);border-radius:14px;padding:10px 14px;display:flex;flex-direction:column;gap:6px;font-size:14px;z-index:6}
 #tunHud[hidden]{display:none}#tunHud .tt{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#7fd6ff}#tunHud .tt b{font-size:16px;letter-spacing:0;color:#fff}
@@ -235,7 +235,7 @@ body.tplay #guide{top:calc(env(safe-area-inset-top,0px) + 80px)}
 #askBox[hidden]{display:none}#askBox b{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#7fb6ff}#askBox.me b{color:#ffd34d}#askBox.listen{border-color:#3e8bff;box-shadow:0 0 24px rgba(62,139,255,.6)}
 #askIn{font:inherit;font-size:15px;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.08);color:var(--ink)}#askIn[hidden]{display:none}
 #apTag{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 58px);display:flex;align-items:center;gap:10px;background:rgba(13,15,20,.82);border:1px solid #3e8bff;border-radius:3px;padding:6px 8px 6px 12px;font-size:12.5px;font-weight:600;pointer-events:auto}
-#apTag[hidden]{display:none}#apTag .dot{width:9px;height:9px;border-radius:50%;background:#3e8bff;box-shadow:0 0 10px #3e8bff}#apTag button{border:1px solid var(--line);border-radius:3px;background:transparent;padding:5px 9px;font-size:11.5px;font-weight:700}
+#apTag[hidden]{display:none}#apTag .dot{width:9px;height:9px;border-radius:50%;background:#3e8bff}#apTag button{border:1px solid var(--line);border-radius:3px;background:transparent;padding:5px 9px;font-size:11.5px;font-weight:700}
 #padTag{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);transform:translateX(-50%);z-index:60;background:rgba(13,15,20,.85);border:1px solid var(--line);border-radius:3px;padding:8px 14px;font-size:13px;font-weight:600;pointer-events:none}
 #padTag[hidden]{display:none}
 button:focus-visible,input:focus-visible{outline:3px solid #ffd34d;outline-offset:2px}
@@ -276,6 +276,32 @@ body.touch #wanted{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 104px)
 body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) + 84px)}
 #rotate{position:fixed;left:50%;top:45%;transform:translateX(-50%);font-size:12px;background:rgba(13,15,20,.8);border:1px solid var(--line);border-radius:3px;padding:7px 12px;white-space:nowrap;pointer-events:none;z-index:12}
 @media (orientation:landscape){#rotate{display:none}}
+
+/* cila: tarayıcı yüzeyleri, okunurluk, ikonlar */
+::selection{background:rgba(227,38,59,.45);color:#fff}
+input,textarea{caret-color:var(--red);accent-color:var(--red)}
+*{scrollbar-width:thin;scrollbar-color:rgba(226,232,240,.28) transparent}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(226,232,240,.22);border-radius:4px}::-webkit-scrollbar-thumb:hover{background:rgba(226,232,240,.4)}
+.ic{width:1.25em;height:1.25em;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.28em}
+.tr button,[data-for],#tunAsk{display:inline-flex;align-items:center;gap:6px}
+.tr button .ic{width:14px;height:14px}
+.tb .ic{display:block;margin:0 auto 2px;width:20px;height:20px}
+.tb[data-k="left"] .ic,.tb[data-k="right"] .ic{width:30px;height:30px;margin:0 auto;stroke-width:2.6}
+h3.ct{margin:0 0 6px;font-family:var(--font-d);font-weight:900;font-size:36px;line-height:1;letter-spacing:.01em}
+.cs{margin:4px 0 0;font-size:13px;line-height:1.45;color:#a9b1bc}
+#resEy{font-size:13px;letter-spacing:.08em;margin:-6px 0 0}
+.mode.tour .play,.mode.auto .play{width:40px;height:40px;border-radius:50%;background:var(--red);color:#fff;display:grid;place-items:center;grid-row:1 / span 2}
+.mode.tour .play .ic{width:20px;height:20px;vertical-align:0}.mode.auto .play .ic{width:16px;height:16px;margin-left:2px;vertical-align:0}
+.mode.tour .k{font-size:26px;grid-column:2}.mode.tour .d{grid-column:2}
+#hMode,#hSub,.tv span,.tv b small{color:#d3d8df;text-shadow:0 1px 2px rgba(0,0,0,.9),0 0 10px rgba(0,0,0,.55)}
+#hMode,#hSub{display:table;background:rgba(8,10,14,.55);padding:2px 7px;border-radius:3px;margin-left:-7px}#hSub:empty{display:none}
+#tele{background:rgba(8,10,14,.5);border:1px solid var(--line);border-radius:4px;padding:6px 14px 7px}
+#guide:not(:empty){width:fit-content;max-width:min(92vw,620px);background:rgba(8,10,14,.62);border:1px solid var(--line);border-radius:4px;padding:7px 14px}
+#guide b{color:#fff}
+body.touch #guide{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);width:fit-content;max-width:34vw;font-size:11.5px;padding:6px 10px}
+.mode .d{color:#a3abb6}
+.optrow,.fld,.or{color:#a3abb6}
+.fine{color:#7d8592}
 </style>
 </head>
 <body>
@@ -290,9 +316,9 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
     <button id="bSide" type="button" aria-pressed="false">Yan görünüş</button>
     <button id="bRestart" type="button">Yeniden</button>
     <button id="bAuto" type="button" aria-pressed="false">Otopilot</button>
-    <button id="bAsk" type="button">🎤 Hey Tepetaklak</button>
-    <button id="bApp" type="button">📱 Tesla uygulaması</button>
-    <button id="bTour" type="button">🎬 Sunum</button>
+    <button id="bAsk" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3z"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>Hey Tepetaklak</button>
+    <button id="bApp" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></svg>Tesla uygulaması</button>
+    <button id="bTour" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M8 5l-2 4M13 5l-2 4M18 5l-2 4"/></svg>Sunum</button>
     <button id="bFoot" type="button">İn / Bin</button>
     <button id="bCab" type="button" aria-pressed="false">İç kamera</button>
     <button id="bFpv" type="button" aria-pressed="false">FPV</button>
@@ -360,9 +386,9 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
   <button type="button" data-for="bSide">Yan görünüş</button>
   <button type="button" data-for="bRestart">Yeniden</button>
   <button type="button" data-for="bAuto">Otopilot</button>
-  <button type="button" data-for="bAsk">🎤 Hey Tepetaklak</button>
-  <button type="button" data-for="bApp">📱 Tesla uygulaması</button>
-  <button type="button" data-for="bTour">🎬 Sunum modu</button>
+  <button type="button" data-for="bAsk"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3z"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>Hey Tepetaklak</button>
+  <button type="button" data-for="bApp"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></svg>Tesla uygulaması</button>
+  <button type="button" data-for="bTour"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M8 5l-2 4M13 5l-2 4M18 5l-2 4"/></svg>Sunum modu</button>
   <button type="button" data-for="bFoot">Arabadan in / bin</button>
   <button type="button" data-for="bCab">İç kamera</button>
   <button type="button" data-for="bFpv">FPV drone</button>
@@ -373,18 +399,17 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
 </div>
 <div id="touch" hidden>
   <div class="grp"><div class="col"><div class="row2"><button class="tb sm" data-k="slow" type="button" id="tbSlow" aria-pressed="false" aria-label="Ağır çekim (T)">AĞIR<br>ÇEKİM</button><button class="tb sm" data-k="more" type="button" id="tbMore" aria-label="Menü tuşları">☰<br>MENÜ</button><button class="tb sm" data-k="honk" type="button" id="tbHonk" hidden aria-label="Korna (K)">KOR<br>NA</button></div>
-  <div class="row2"><button class="tb sm" data-k="foot" type="button" id="tbFoot" aria-label="Arabadan in / bin (Enter)">İN<br>BİN</button><button class="tb sm" data-k="ask" type="button" id="tbAsk" aria-label="Hey Tepetaklak (Y)">HEY<br>TEPE</button><button class="tb sm" data-k="run" type="button" id="tbRun" hidden aria-label="Koş (Shift)">KOŞ</button><button class="tb sm" data-k="app" type="button" id="tbApp" aria-label="Tesla uygulaması (U)">📱<br>APP</button></div><div class="row2"><button class="tb sm" data-k="yawL" type="button" aria-label="Havada sola dön (Q)">⟲<br>Q</button><button class="tb sm" data-k="yawR" type="button" aria-label="Havada sağa dön (E)">⟳<br>E</button></div><div class="row2"><button class="tb" data-k="left" type="button" aria-label="Sola">◀</button><button class="tb" data-k="right" type="button" aria-label="Sağa">▶</button></div></div></div>
+  <div class="row2"><button class="tb sm" data-k="foot" type="button" id="tbFoot" aria-label="Arabadan in / bin (Enter)">İN<br>BİN</button><button class="tb sm" data-k="ask" type="button" id="tbAsk" aria-label="Hey Tepetaklak (Y)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3z"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>HEY</button><button class="tb sm" data-k="run" type="button" id="tbRun" hidden aria-label="Koş (Shift)">KOŞ</button><button class="tb sm" data-k="app" type="button" id="tbApp" aria-label="Tesla uygulaması (U)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></svg>APP</button></div><div class="row2"><button class="tb sm" data-k="yawL" type="button" aria-label="Havada sola dön (Q)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4h4"/></svg>Q</button><button class="tb sm" data-k="yawR" type="button" aria-label="Havada sağa dön (E)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 4v4h-4"/></svg>E</button></div><div class="row2"><button class="tb" data-k="left" type="button" aria-label="Sola"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><button class="tb" data-k="right" type="button" aria-label="Sağa"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div></div></div>
   <div class="grp">
     <div class="col"><button class="tb blue" data-k="retro" type="button" aria-label="Ön itici, hızlı fren">ÖN<br>İTİCİ</button></div>
     <div class="col"><button class="tb blue" data-k="fan" type="button" id="tbFan">FAN</button><button class="tb blue" data-k="boost" type="button">İTİCİ</button></div>
-    <div class="col"><button class="tb blue" data-k="lift" type="button">ZIPLA<br>▲</button><button class="tb" data-k="brake" type="button">FREN</button></div>
+    <div class="col"><button class="tb blue" data-k="lift" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 15l7-7 7 7"/></svg>ZIPLA</button><button class="tb" data-k="brake" type="button">FREN</button></div>
     <button class="tb big" data-k="gas" type="button">GAZ</button>
   </div>
 </div>
 
 <div id="menu" class="overlay" hidden>
   <div class="panel">
-    <div class="eyebrow">Fan car · rampa testi · hayran yapımı</div>
     <h1>TEPE<span class="flip">TAKLAK</span></h1>
     <p class="lede">Tabandaki fanlar arabayı yüzeye bastırır. 19 metrelik J rampaya tırman, tavanda baş aşağı tutun, bırak, havada takla at ve iticilerle yumuşak in. Fizik gerçek: hızlı girersen g kuvveti arabayı dağıtır, fan kapalıysa tavan seni bırakır.</p>
     <div class="optrow"><span>Zorluk</span><span class="seg" id="diff"><button type="button" data-v="easy" aria-pressed="true">Kolay</button><button type="button" data-v="real" aria-pressed="false">Gerçekçi</button></span>
@@ -398,8 +423,8 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
       <button class="mode" data-mode="serbest" type="button"><span class="k">SERBEST SÜRÜŞ</span><span class="rec">EN İYİ<b id="rSerbest">—</b></span><span class="d">Sonsuz gündüz şehri: trafik, polis kovalamacası, J rampalar, 160 ve 370 m’lik ters otoyollar. Kıl payı geç, zıpla, takla at.</span></button>
       <button class="mode cargo" data-mode="kargo" type="button"><span class="k">KARGO</span><span class="rec">PARAN<b id="rKargo">0 ₺</b></span><span class="d">Paketi al, adrese götür, para kazan. Parayla fan motoru ve modifiye parçalarını satın al.</span></button>
       <button class="mode online" data-mode="online" type="button"><span class="k">ONLİNE</span><span class="rec">EN ÇOK<b>8 kişi</b></span><span class="d">Oda kur ya da arkadaşının koduyla katıl, aynı şehirde beraber serbest sürüş yapın.</span></button>
-      <button class="mode tour" data-mode="sunum" type="button"><span class="play">🎬</span><span class="k">SUNUM MODU</span><span class="d">Araba kendini tanıtır: otopilot, Boğaz, uçuş, kaza önleme, Hey Tepetaklak, uygulama, taksi, modifiye, tünel ve 81 il. Sesli anlatır, hepsini kendisi yapar.</span></button>
-      <button class="mode auto" data-mode="auto" type="button"><span class="play">▶</span><span class="k">KENDİ KENDİNE OYNASIN</span><span class="d">Otopilot üç modu sırayla oynar. İstediğin an GAZ’a basıp kontrolü alırsın.</span></button>
+      <button class="mode tour" data-mode="sunum" type="button"><span class="play"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M8 5l-2 4M13 5l-2 4M18 5l-2 4"/></svg></span><span class="k">SUNUM MODU</span><span class="d">Araba kendini tanıtır: otopilot, Boğaz, uçuş, kaza önleme, Hey Tepetaklak, uygulama, taksi, modifiye, tünel ve 81 il. Sesli anlatır, hepsini kendisi yapar.</span></button>
+      <button class="mode auto" data-mode="auto" type="button"><span class="play"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg></span><span class="k">KENDİ KENDİNE OYNASIN</span><span class="d">Otopilot üç modu sırayla oynar. İstediğin an GAZ’a basıp kontrolü alırsın.</span></button>
     </div>
     <div class="offrow" id="offRow" hidden><button type="button" class="btn" id="bOffline">İnternetsiz modu indir</button><span id="offMsg"></span></div>
     <div class="links"><button type="button" id="bGarage" class="gar">Garaj · modifiye</button><button type="button" id="bHow">Nasıl oynanır?</button><button type="button" id="bFull">Tam ekran</button><button type="button" id="bSet2">Ayarlar</button></div>
@@ -409,7 +434,7 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
 
 <div id="how" class="overlay center" hidden>
   <div class="card how">
-    <div class="eyebrow">Nasıl oynanır?</div>
+    <h3 class="ct">Nasıl oynanır?</h3>
     <p><b>Fan = dev süpürge.</b> Tabandaki fanlar arabanın altındaki havayı emer, üstteki atmosfer arabayı yüzeye bastırır: yaklaşık 1,5 g. Dik duvarda ve tavanda seni bu tutar. Fan kapalıysa tavanda yerçekimi kazanır.</p>
     <p><b>İtici = basınçlı hava.</b> 600 litrelik tanktan soğuk gaz fışkırır. Alttaki iticiler arabayı kaldırır ve inişi yavaşlatır; arkadakiler ileri iter. Ateşlenince fan vakumu boşaltılır, yoksa araba yüzeyden ayrılamazdı.</p>
     <p><b>G sınırı.</b> Rampanın ilk kavisi 7 m yarıçaplı. Merkezcil ivme v²/R’dir: 65 km/s’de fanla birlikte 6,5 g olur, 8 g’de süspansiyon dibe vurur, 11 g’de araç dağılır. İdeal giriş 40–65 km/s.</p>
@@ -433,7 +458,7 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
 
 <div id="settings" class="overlay center" hidden>
   <div class="card">
-    <div class="eyebrow">Ayarlar</div>
+    <h3 class="ct">Ayarlar</h3>
     <div class="optrow" style="margin:10px 0 6px"><span>Polis (serbest sürüş)</span><span class="seg pol" id="pol2"><button type="button" data-p="0">Kapalı</button><button type="button" data-p="1">Kolay</button><button type="button" data-p="2">Orta</button><button type="button" data-p="3">Zor</button></span></div>
     <div class="toggles">
       <label class="tg"><span>Kolay mod<small>Hız sabitleme, otomatik fan, tavanda fren</small></span><input type="checkbox" id="sEasy"></label>
@@ -454,7 +479,7 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
 
 <div id="online" class="overlay center" hidden>
   <div class="card online">
-    <div class="eyebrow">Online · arkadaşlarla serbest sürüş</div>
+    <h3 class="ct">Online</h3><p class="cs">Arkadaşlarınla aynı şehirde serbest sürüş.</p>
     <label class="fld"><span>Adın</span><input id="onName" maxlength="14" autocomplete="off" spellcheck="false"></label>
     <div id="onStart">
       <button class="btn primary wide" type="button" id="onHost">Oda kur</button>
@@ -475,7 +500,7 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
 
 <div id="tunPick" class="overlay center" hidden>
   <div class="card tuncard">
-    <div class="ghead"><div><div class="eyebrow">Yeraltı tüneli · otopilot sürüyor</div><h3>Nereye gidelim?</h3></div><button class="btn" type="button" id="tunAsk">🎤 Hey Tepetaklak</button></div>
+    <div class="ghead"><div><h3>Nereye gidelim?</h3><p class="cs">Yeraltı tünelindesin, otopilot sürüyor.</p></div><button class="btn" type="button" id="tunAsk"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3z"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>Hey Tepetaklak</button></div>
     <input id="tunQ" type="search" placeholder="İl ara: Ankara, İzmir, 06…" autocomplete="off" aria-label="İl ara">
     <div id="tunList"></div>
     <p class="fine">81 ilin hepsine tünel var. İli seç ya da “Hey Tepetaklak, beni Trabzon'a götür” de. Tünelde sadece uçan arabalar var; direksiyon otopilotta.</p>
@@ -483,7 +508,7 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
 </div>
 <div id="mapov" class="overlay center" hidden>
   <div class="card mapcard">
-    <div class="ghead"><div><div class="eyebrow">Otopilot</div><h3 id="mapTitle">Harita</h3></div><div class="seg" id="apMode"><button type="button" data-m="road" aria-pressed="true">Yoldan git</button><button type="button" data-m="fly" aria-pressed="false">Uçarak git</button></div></div>
+    <div class="ghead"><div><h3 id="mapTitle">Harita</h3></div><div class="seg" id="apMode"><button type="button" data-m="road" aria-pressed="true">Yoldan git</button><button type="button" data-m="fly" aria-pressed="false">Uçarak git</button></div></div>
     <div class="apopts"><span>Hız</span><span class="seg" id="apSpeed"><button type="button" data-s="0">Yavaş</button><button type="button" data-s="1">Normal</button><button type="button" data-s="2">Hızlı</button><button type="button" data-s="3">Aşırı</button></span></div>
     <div class="mapwrap"><canvas id="bigmap" width="900" height="520" aria-label="Şehir haritası"></canvas><div class="mapz"><button type="button" id="mapZin" aria-label="Yakınlaş">+</button><button type="button" id="mapZout" aria-label="Uzaklaş">−</button></div></div>
     <p class="fine" id="mapMsg"></p>
@@ -493,7 +518,7 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
 
 <div id="garage" class="overlay center" hidden>
   <div class="card garage">
-    <div class="ghead"><div><div class="eyebrow">Modifiye</div><h3 id="garTitle">Garaj</h3></div><div id="garMoney">0 ₺</div></div>
+    <div class="ghead"><div><h3 id="garTitle">Garaj</h3></div><div id="garMoney">0 ₺</div></div>
     <div class="seg" id="garTabs"><button type="button" data-c="free">Serbest · bedava</button><button type="button" data-c="cargo">Kargo · paralı</button></div>
     <p class="fine" id="garNote"></p>
     <div id="garBody"></div>
@@ -504,8 +529,8 @@ body.touch #mini{width:110px;height:110px;top:calc(env(safe-area-inset-top,0px) 
 
 <div id="result" class="overlay" hidden>
   <div class="panel">
-    <div class="eyebrow" id="resEy">SONUÇ</div>
     <h2 id="resTitle">—</h2>
+    <div class="cs" id="resEy">SONUÇ</div>
     <div class="stat" id="resStat">0</div>
     <div id="resMedal"></div>
     <p class="why" id="resWhy" hidden></p>
@@ -2270,7 +2295,11 @@ function modeTick(dt){
   }
 }
 function guideText(){
-  const c=car,st=S.st,easy=SET.easy;if(S.auto||S.menuDemo||!st||c.state==='crash')return '';
+  const c=car,st=S.st;if(S.auto||S.menuDemo||!st||c.state==='crash')return '';
+  if(document.body.classList.contains('touch')){if(S.mode==='serbest'&&S.t<10)return '<b>GAZ</b> ile git, oklarla dön · <b>ZIPLA</b> hava sınırsız · <b>ÖN İTİCİ</b> hızlı fren · turuncu meydanlarda J rampa var';return guideKeys().replace(/(<kbd>[^<]*<\/kbd>\s*)+(ya da\s*)?/g,'').replace(/\(\s*\)/g,'').replace(/\s+([.,·])/g,'$1').trim();}
+  return guideKeys();}
+function guideKeys(){
+  const c=car,st=S.st,easy=SET.easy;
   if(S.mode==='serbest'){if(S.t<10)return '<kbd>W</kbd> gaz · <kbd>A</kbd><kbd>D</kbd> direksiyon · virajda <kbd>S</kbd> drift · <kbd>Boşluk</kbd> zıpla (hava sınırsız) · <kbd>Shift</kbd> itici · <kbd>X</kbd> ön itici (hızlı fren) · şehirdeki turuncu meydanlarda J rampa var';if(c.state==='framp'&&c.rr&&c.rr.kind==='hwy')return c.fr.th>2.6&&c.fr.th<3.6?'Ters otoyoldasın! Gaza bas, öbür uçtaki rampadan ineceksin. <kbd>Boşluk</kbd> ile bırakabilirsin.':'Fan seni rampaya bastırıyor.';if(c.state==='framp')return c.fr.th>2.6?'Tepetaklaksın! Bırakmak için <kbd>Boşluk</kbd>.':'Fan seni rampaya bastırıyor, gaza devam.';if(c.state==='freeAir')return 'Havada <kbd>A</kbd><kbd>D</kbd> takla · <kbd>W</kbd><kbd>S</kbd> salto · <kbd>Q</kbd><kbd>E</kbd> düz dön. Tuşu bırakınca araba kendini düzeltir.';if(S.free.combo>1)return `Kombo ×${S.free.combo}: 5 saniye içinde bir kıl payı daha`;return '';}
   if(c.state==='ground'){
     if(S.mode!=='atlama'&&!st.land&&c.dir>0){if(c.pos.x<-30)return easy?'<kbd>W</kbd> ya da GAZ’ı basılı tut. Hız 56 km/s’de sabitlenir.':'Rampaya 40–65 km/s ile gir. Rampadan önce fanı aç: <kbd>F</kbd>';return c.fanOn?'Fan açık. Rampaya gir.':'<b>Fanı aç</b> <kbd>F</kbd>, yoksa duvarda tutunamazsın.';}
