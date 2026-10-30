@@ -5,6 +5,29 @@
     "headroom-large-file-and-log-reader@anthropic-plugin-directory": true,
     "task-observer-learn-your-preferences@anthropic-plugin-directory": true,
     "supabase@anthropic-plugin-directory": true,
-    "vercel@anthropic-plugin-directory": true
+    "vercel@anthropic-plugin-directory": true,
+    "oh-my-claudecode@omc": true,
+    "impeccable@impeccable": true,
+    "taste-skill@taste-skill": true
+  },
+  "extraKnownMarketplaces": {
+    "omc": {
+      "source": {
+        "source": "github",
+        "repo": "Yeachan-Heo/oh-my-claudecode"
+      }
+    },
+    "impeccable": {
+      "source": {
+        "source": "github",
+        "repo": "pbakaus/impeccable"
+      }
+    },
+    "taste-skill": {
+      "source": {
+        "source": "github",
+        "repo": "Leonxlnx/taste-skill"
+      }
+    }
   }
 }
