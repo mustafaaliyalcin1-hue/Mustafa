@@ -3360,9 +3360,229 @@ const LANDM={defs:{
   23:[{id:'harput',name:'Harput Kalesi',dat:"Harput Kalesi'ne",key:/harput|sut kale|elazig kale|elazigdaki kale/,near:[2,1],build:LMK.harput}]},
   key:'',spots:[],map:new Map(),mesh:{},seen:''};
 for(const p in LANDM.defs)for(const d of LANDM.defs[p])d.plate=+p;
+/* --- landmark kit: parametric builders for the famous places of the provinces --- */
+const LMK2=(()=>{const mats={},mt=(c,r=.85,o)=>{const k=c+':'+r+':'+(o||'');return mats[k]||(mats[k]=new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:r},o||{})));};
+  const W=()=>mt(0x2f7fb8,.15,{metalness:.1,transparent:true,opacity:.92});
+  const mesh=(g,geo,m,x,y,z,ry=0)=>{const o=new THREE.Mesh(geo,typeof m==='number'?mt(m):m);o.position.set(x,y,z);o.rotation.y=ry;o.castShadow=o.receiveShadow=true;g.add(o);return o;};
+  const box=(g,w,h,d,c,x,y,z,ry=0)=>mesh(g,new THREE.BoxGeometry(w,h,d),c,x,y,z,ry);
+  const cyl=(g,rt,rb,h,seg,c,x,y,z)=>mesh(g,new THREE.CylinderGeometry(rt,rb,h,seg),c,x,y,z);
+  const cone=(g,r,h,seg,c,x,y,z)=>mesh(g,new THREE.ConeGeometry(r,h,seg),c,x,y,z);
+  const dome=(g,r,c,x,y,z,sy=1)=>{const o=mesh(g,new THREE.SphereGeometry(r,20,12,0,TAU,0,Math.PI/2),c,x,y,z);o.scale.y=sy;return o;};
+  const rock=(g,r,x,y,z,c,sy=1)=>{const o=mesh(g,new THREE.IcosahedronGeometry(r,0),mt(c,1),x,y,z);o.scale.y=sy;o.rotation.set(x*.3,z*.7,0);return o;};
+  const water=(g,w,d,x=0,z=0,y=.06)=>{const o=new THREE.Mesh(new THREE.PlaneGeometry(w,d),W());o.rotation.x=-Math.PI/2;o.position.set(x,y+.12,z);g.add(o);return o;};
+  const disc=(g,r,c,x,y,z)=>{const o=new THREE.Mesh(new THREE.CircleGeometry(r,32),typeof c==='number'?mt(c):c);o.rotation.x=-Math.PI/2;o.position.set(x,y+.12,z);o.receiveShadow=true;g.add(o);return o;};
+  const ground=(g,c=0xc9b99a,s=50)=>box(g,s,.16,s,c,0,.08,0);
+  const flag=(g,x,y,z,s=1)=>{cyl(g,.06,.08,4*s,6,0xdedede,x,y+2*s,z);const f=new THREE.Mesh(new THREE.PlaneGeometry(2.1*s,1.4*s),new THREE.MeshBasicMaterial({map:lmFlag(),side:THREE.DoubleSide}));f.position.set(x+1.05*s,y+3.3*s,z);g.add(f);g.userData.flag=f;};
+  const wall=(g,x0,z0,x1,z1,h,t,c,cm,base=0)=>{const L=Math.hypot(x1-x0,z1-z0),a=-Math.atan2(z1-z0,x1-x0),mx=(x0+x1)/2,mz=(z0+z1)/2;box(g,L,h,t,c,mx,base+h/2,mz,a);
+    const n=Math.max(2,Math.floor(L/1.5));for(let k=0;k<n;k+=2){const u=(k+.5)/n-.5;box(g,L/n*.9,.9,t*.9,cm||c,mx+Math.cos(-a)*u*L,base+h+.45,mz+Math.sin(-a)*u*L,a);}};
+  const minaret=(g,x,z,h,c=0xe8e2d4,base=0,r=.7)=>{cyl(g,r,r*1.1,h,12,c,x,base+h/2,z);for(const f of [.55,.8])cyl(g,r*1.55,r*1.55,.35,12,c,x,base+h*f,z);cone(g,r*1.05,h*.22,12,0x6f7a84,x,base+h+h*.11,z);};
+  const B=(x0,x1,z0,z1,h)=>({x0,x1,z0,z1,h});
+  const out=(g,boxes,label,anim)=>({g,boxes,label,anim});
+  const T={
+    castle(o){const g=new THREE.Group(),S=o.c||0x8a7f72,S2=o.c2||0xa0978a,r=o.r||18,n=o.n||8,h=o.h||8,base=o.rock?4:0;ground(g,o.gc||0xb5a68c);
+      if(o.rock){for(let k=0;k<16;k++){const a=k/16*TAU,rr=r*.75+((k*5)%4);rock(g,4+((k*3)%3),Math.cos(a)*rr,1.5,Math.sin(a)*rr,o.rc||0x6f5d4c,.75);}box(g,r*1.6,4,r*1.6,o.rc||0x6f5d4c,0,2,0);}
+      const P=[];for(let k=0;k<n;k++){const a=k/n*TAU+.3,rr=r*(1+((k*7)%3-1)*.08);P.push([Math.cos(a)*rr,Math.sin(a)*rr]);}
+      for(let k=0;k<n;k++){const a=P[k],b=P[(k+1)%n];wall(g,a[0],a[1],b[0],b[1],h,1.7,S,S2,base);}
+      P.forEach(([x,z],k)=>{if(o.round!==false){cyl(g,2.5,2.9,h+3,12,k%2?S:S2,x,base+(h+3)/2,z);cyl(g,2.8,2.8,.9,12,S2,x,base+h+3.4,z);}else{box(g,4.6,h+3,4.6,k%2?S:S2,x,base+(h+3)/2,z);}});
+      if(o.keep!==false){box(g,8,h+7,8,S,-2,base+(h+7)/2,-2);box(g,8.6,1,8.6,S2,-2,base+h+7.5,-2);flag(g,-2,base+h+8,-2,1.4);}
+      return out(g,o.rock?[B(-r-2,r+2,-r-2,r+2,base+h+4)]:[B(-r-2,r+2,-r-2,-r+1.5,h+1),B(-r-2,-r+1.5,-r-2,r+2,h+1),B(r-1.5,r+2,-r-2,r+2,h+1),B(-r-2,r+2,r-1.5,r+2,h+1),B(-6,2,-6,2,h+7)],base+h+12);},
+    seacastle(o){const g=new THREE.Group();ground(g,0xd9c9a3);water(g,48,48);for(let k=0;k<10;k++){const a=k/10*TAU;rock(g,3,Math.cos(a)*11,.6,Math.sin(a)*11,0x8c7b66,.5);}box(g,20,2,20,0x8c7b66,0,1,0);
+      const r=8.5,P=[[-r,-r],[r,-r],[r,r],[-r,r]];for(let k=0;k<4;k++){const a=P[k],b=P[(k+1)%4];wall(g,a[0],a[1],b[0],b[1],6,1.4,o.c||0xcab68f,o.c2||0xdccaa4,2);}
+      P.forEach(([x,z],k)=>{(o.square?box(g,4,10,4,o.c||0xcab68f,x,7,z):cyl(g,2.2,2.5,10,12,o.c||0xcab68f,x,7,z));});box(g,6,13,6,o.c2||0xdccaa4,0,8.5,0);flag(g,0,15,0,1.2);
+      return out(g,[B(-12,12,-12,12,15),B(-25,25,-25.5,-24,1),B(-25,25,24,25.5,1),B(-25.5,-24,-25,25,1),B(24,25.5,-25,25,1)],22);},
+    mosque(o){const g=new THREE.Group(),C=o.c||0xe3ddd0,L=o.lead||0x7d8792,s=o.s||1;ground(g,0xd8d3c8);box(g,26*s,9*s,26*s,C,0,4.5*s,-2);cyl(g,9*s,9.6*s,3*s,24,C,0,10.5*s,-2);dome(g,9*s,L,0,12*s,-2,.9);
+      if(o.cascade){for(const[x,z]of[[0,-11],[0,7],[-11,-2],[11,-2]])dome(g,5.5*s,L,x*s,9*s,z*s-2*(1-s),.8);for(const[x,z]of[[-9,-11],[9,-11],[-9,7],[9,7]])dome(g,3*s,L,x*s,9*s,z*s,.9);}
+      if(o.grid){g.remove(g.children[g.children.length-1]);g.remove(g.children[g.children.length-1]);for(let i=0;i<5;i++)for(let j=0;j<4;j++)dome(g,2.4,L,-10+i*5,9.2,-11+j*6,.9);}
+      if(o.court){box(g,26*s,4,14,C,0,2,18);box(g,22*s,4.2,10,0xd2ccbe,0,2.1,18);}
+      const m=o.minarets||2,mh=(o.mh||26)*s,R=13.5*s,pos=[[-R,-R-2],[R,-R-2],[-R,R-2],[R,R-2],[-R,R+16],[R,R+16]];for(let k=0;k<m;k++)minaret(g,pos[k][0],pos[k][1],mh,o.mc||C);
+      return out(g,[B(-14*s,14*s,-15*s-2,11*s,12*s)],mh+6);},
+    clock(o){const g=new THREE.Group(),C=o.c||0xd8c8a8,h=o.h||18;ground(g,0xcfc6b5,30);box(g,6,2,6,o.c2||0xb9a98a,0,1,0);
+      if(o.oct){cyl(g,2.6,3,h,8,C,0,h/2+2,0);for(let k=0;k<8;k++){const a=k/8*TAU;cyl(g,.25,.25,h*.3,6,0xffffff,Math.cos(a)*2.8,h*.3,Math.sin(a)*2.8);}}else box(g,4.4,h,4.4,C,0,h/2+2,0);
+      for(let k=0;k<4;k++){const a=k*Math.PI/2,f=new THREE.Mesh(new THREE.CircleGeometry(1.4,24),mt(0xfaf7ee));f.position.set(Math.sin(a)*2.32,h-1.5,Math.cos(a)*2.32);f.rotation.y=a;g.add(f);const hd=new THREE.Mesh(new THREE.BoxGeometry(.12,1.1,.05),mt(0x111111));hd.position.copy(f.position).multiplyScalar(1.01);hd.position.y=h-1.2;hd.rotation.y=a;g.add(hd);}
+      if(o.roof==='dome')dome(g,2.6,o.rc||0x5b6670,0,h+2,0,1.2);else cone(g,3.4,4,4,o.rc||0x6b3a2a,0,h+4,0).rotation.y=Math.PI/4;
+      return out(g,[B(-3,3,-3,3,h)],h+8);},
+    tower(o){const g=new THREE.Group();ground(g,0xd0c6b2,30);cyl(g,4.2,4.6,o.h||30,24,o.c||0xb8a27e,0,(o.h||30)/2,0);for(let k=0;k<16;k++){const a=k/16*TAU;box(g,.8,1.6,.3,0x2a2a2a,Math.cos(a)*4.25,(o.h||30)-4,Math.sin(a)*4.25,-a+Math.PI/2);}
+      cyl(g,4.8,4.8,.6,24,0x8f7b5c,0,(o.h||30)-1.5,0);cone(g,4.4,8,24,o.rc||0x3c4650,0,(o.h||30)+4,0);return out(g,[B(-5,5,-5,5,o.h||30)],(o.h||30)+12);},
+    mountain(o){const g=new THREE.Group(),h=o.h||40;ground(g,o.gc||0x8a9a5b);const m=cone(g,25,h,9,o.c||0x7a6a58,0,h/2,0);m.material=mt(o.c||0x7a6a58,1,{flatShading:true});
+      if(o.snow!==false)cone(g,25*(o.snow||.4),h*(o.snow||.4),9,0xf4f6f8,0,h-h*(o.snow||.4)/2+.05,0).material=mt(0xf4f6f8,.6,{flatShading:true});
+      if(o.peaks)for(const[x,z,s]of[[-14,8,.5],[12,10,.45],[10,-12,.4]]){cone(g,12*s*2,h*s,7,o.c||0x7a6a58,x,h*s/2,z);cone(g,5*s*2,h*s*.35,7,0xf4f6f8,x,h*s*.83,z);}
+      if(o.heads)for(let k=0;k<5;k++){const x=-12+k*6,z=18;box(g,4,3,4,0xcfb68e,x,1.5,z);mesh(g,new THREE.SphereGeometry(1.6,14,10),0xd8c39a,x,4.6,z);cone(g,1.4,2.6,12,0xc9b28a,x,6.8,z);}
+      return out(g,[B(-17,17,-17,17,h*.6)],h+6);},
+    lake(o){const g=new THREE.Group();ground(g,o.gc||0x6aa84f);const wm=o.ice?mt(0xdbeaf3,.3):W();disc(g,21,wm,0,.1,0);
+      if(o.islands)for(const[x,z,r]of[[-6,-4,3.5],[5,6,2.6],[8,-8,2]]){disc(g,r,0x5c8f3a,x,.2,z);cone(g,.9,3,6,0x2f6b2a,x,1.6,z);}
+      if(o.sleigh)for(const[x,z]of[[-4,3],[6,-5]]){box(g,2.4,.6,1.2,0x6b3e22,x,.5,z);mesh(g,new THREE.BoxGeometry(1.6,1.2,.5),0x3b2a1a,x+2.2,1,z);}
+      if(o.trees!==false)for(let k=0;k<14;k++){const a=k/14*TAU;cone(g,1.4,5,7,0x2f5d2a,Math.cos(a)*23.5,2.5,Math.sin(a)*23.5);}
+      return out(g,[B(-25,25,-25.5,-24,1),B(-25,25,24,25.5,1),B(-25.5,-24,-25,25,1),B(24,25.5,-25,25,1)],10);},
+    cave(o){const g=new THREE.Group();ground(g,0x9c8b70);const r=rock(g,16,0,4,-4,o.c||0x8b7d6b,.7);r.scale.set(1.2,.7,1);const hole=new THREE.Mesh(new THREE.CircleGeometry(4,20,0,Math.PI),mt(0x0b0b0c));hole.position.set(0,.1,13.2);g.add(hole);
+      for(let k=0;k<5;k++)cone(g,.5,2.5+k%3,6,0xe8dcc0,-3+k*1.5,1.2,13.6);box(g,6,.3,3,0x777066,0,.15,16);return out(g,[B(-18,18,-18,12,12)],16);},
+    waterfall(o){const g=new THREE.Group();ground(g,0x5f8f4a);box(g,40,16,10,0x6e6152,0,8,-16);for(let k=0;k<8;k++)rock(g,3,-18+k*5,14,-12,0x5f5446,.8);water(g,30,14,0,2,.12);
+      const fm=mt(0xd8f0ff,.2,{transparent:true,opacity:.85});const fs=[];for(const x of [-5,1,6]){const f=new THREE.Mesh(new THREE.PlaneGeometry(3.4,15),fm);f.position.set(x,7.6,-10.9);g.add(f);fs.push(f);}
+      return out(g,[B(-20,20,-21,-11,16)],20,t=>{fs.forEach((f,k)=>{f.scale.x=1+Math.sin(t*6+k)*.06;});});},
+    ruins(o){const g=new THREE.Group(),C=o.c||0xe6dccb;ground(g,0xc9b68c);box(g,30,1.2,20,C,0,.6,0);box(g,26,.6,16,C,0,1.5,0);
+      const n=o.n||8;for(let k=0;k<n;k++)for(const z of [-6,6]){const broken=(k*7+(z>0))%5===0,h=broken?3+(k%3):9;cyl(g,.7,.8,h,14,C,-11+k*(22/(n-1)),1.8+h/2,z);}
+      if(o.roof){box(g,26,1.3,14,C,0,11.5,0);const p=new THREE.Mesh(new THREE.CylinderGeometry(0,8,3,3,1),mt(C));p.rotation.set(0,0,Math.PI/2);p.scale.set(1,1,.9);p.position.set(0,13.2,0);p.rotation.set(Math.PI/2,0,0);g.add(p);}
+      if(o.facade){box(g,22,14,2,C,0,8.8,-9);for(let k=0;k<4;k++){cyl(g,.6,.6,6,12,C,-7.5+k*5,4.8,-7.5);cyl(g,.5,.5,5,12,C,-7.5+k*5,10.5,-7.5);}}
+      for(let k=0;k<6;k++)box(g,2,.8,1,C,-14+k*5.5,.4,13+(k%2)*2,k*.4);return out(g,[B(-15,15,-10,10,o.roof||o.facade?14:10)],16);},
+    gate(o){const g=new THREE.Group(),C=o.c||0xd8cbb0;ground(g,0xd2c6ae,40);for(const x of [-9,-3,3,9])box(g,2.4,10,4,C,x,5,0);for(const x of [-6,0,6]){const a=new THREE.Mesh(new THREE.TorusGeometry(2.1,.6,8,16,Math.PI),mt(C));a.position.set(x,8.4,0);g.add(a);}
+      box(g,22,3,4.4,C,0,11.5,0);for(const x of [-9,9])box(g,3.6,14,4.6,C,x+(x>0?3:-3),7,0);return out(g,[B(-13,13,-2.3,2.3,14)],18);},
+    obelisk(o){const g=new THREE.Group();ground(g,0xc9c2b0,40);for(let k=0;k<3;k++)box(g,16-k*4,1,16-k*4,0xbdb3a0,0,.5+k,0);box(g,3,24,3,o.c||0xd9d2c3,0,15,0);cone(g,2.2,3,4,o.c||0xd9d2c3,0,28.5,0).rotation.y=Math.PI/4;flag(g,9,0,0,1.6);
+      return out(g,[B(-8,8,-8,8,3),B(-1.5,1.5,-1.5,1.5,27)],32);},
+    turbe(o){const g=new THREE.Group(),C=o.c||0xe8e0cf;ground(g,0xd6cfbf);box(g,22,7,16,C,0,3.5,-4);for(let k=0;k<6;k++)dome(g,2.2,0x7d8792,-8+k*3.2,7,-4,.9);
+      cyl(g,4,4.4,9,o.green?16:8,C,4,4.5,4);const c=cone(g,4.3,9,16,o.green?0x2e9e6b:0x7d8792,4,13.5,4);c.material=mt(o.green?0x2e9e6b:0x7d8792,.4,{flatShading:true});cyl(g,.3,.3,2,8,0xd4af37,4,18.8,4);
+      return out(g,[B(-11,11,-12,8.5,9)],22);},
+    pamukkale(){const g=new THREE.Group();ground(g,0xe9efe9);const pm=mt(0x69c3e0,.1,{transparent:true,opacity:.95});for(let k=0;k<6;k++){const y=k*1.6,z=12-k*5;box(g,44-k*3,y+1.6,6,0xf6f7f4,0,(y+1.6)/2,z);const p=new THREE.Mesh(new THREE.PlaneGeometry(40-k*3,4.4),pm);p.rotation.x=-Math.PI/2;p.position.set(0,y+1.62,z);g.add(p);}
+      return out(g,[B(-22,22,-16,15,9)],14);},
+    cappadocia(){const g=new THREE.Group();ground(g,0xd8b98c);const pts=[[-14,-10],[-6,-14],[4,-12],[12,-6],[-12,4],[0,0],[10,8],[-4,12]];pts.forEach(([x,z],k)=>{const h=8+(k*5)%6;cone(g,3.2,h,10,0xe0c49a,x,h/2,z);cone(g,2.2,2.2,10,0x8a6a4a,x,h+.9,z);});
+      const bl=[];for(let k=0;k<3;k++){const b=new THREE.Group();mesh(b,new THREE.SphereGeometry(3.4,16,12),[0xe63946,0xf4a261,0x2a9d8f][k],0,0,0);box(b,1.4,1.2,1.4,0x6b4423,0,-4.4,0);g.add(b);bl.push(b);}
+      return out(g,pts.map(([x,z])=>B(x-2.5,x+2.5,z-2.5,z+2.5,10)),24,t=>{bl.forEach((b,k)=>b.position.set(-14+k*14+Math.sin(t*.2+k)*4,22+k*4+Math.sin(t*.5+k)*2,-6+k*5));});},
+    gobekli(){const g=new THREE.Group();ground(g,0xc8a97a);disc(g,20,0xb08a5c,0,.18,0);for(const[r,n]of[[14,10],[7,6]])for(let k=0;k<n;k++){const a=k/n*TAU;const p=new THREE.Group();box(p,.9,5,2.2,0xd6c09a,0,2.5,0);box(p,1.4,1.2,4,0xd6c09a,0,5.4,-.8);p.position.set(Math.cos(a)*r,.2,Math.sin(a)*r);p.rotation.y=-a;g.add(p);}
+      for(const x of [-2,2]){const p=new THREE.Group();box(p,1.1,6,2.6,0xe0cba6,0,3,0);box(p,1.6,1.4,4.6,0xe0cba6,0,6.6,-.9);p.position.set(x,.2,0);g.add(p);}
+      const roof=new THREE.Mesh(new THREE.SphereGeometry(24,24,8,0,TAU,0,.45),mt(0xf3f3f0,.5,{side:THREE.DoubleSide,transparent:true,opacity:.7}));roof.position.y=-6;g.add(roof);return out(g,[B(-3,3,-2,2,7)],18);},
+    horse(){const g=new THREE.Group(),Wd=0x9a6b3e;ground(g,0xd9c79c,40);box(g,14,1.2,6,0x6b4a2a,0,.6,0);box(g,12,5,4.5,Wd,0,5.5,0);for(const[x,z]of[[-4.5,-1.6],[-4.5,1.6],[4.5,-1.6],[4.5,1.6]])box(g,1.2,4,1.2,Wd,x,2.4,z);
+      box(g,3,6,3,Wd,5.5,9,0).rotation.z=-.35;box(g,4.5,2.4,2.6,Wd,7.8,12,0);box(g,.6,3,.6,0x5a3a20,-6.5,7,0).rotation.z=.6;for(const z of [-1.2,1.2])box(g,.5,1.2,.4,Wd,6.6,13.6,z);box(g,1.6,1.4,.2,0x3b2a1a,-1,5,2.3);
+      return out(g,[B(-7,9,-3,3,14)],18);},
+    ship(o){const g=new THREE.Group();ground(g,0xd8d0c0);water(g,44,26,0,0,.1);const h=new THREE.Group();box(h,30,3.4,6,0x1c1c1c,0,1.6,0);box(h,24,.6,5.6,0xb03030,0,.4,0);box(h,26,.3,5.8,0xd9c9a8,0,3.45,0);box(h,10,2.6,4.4,0xf2f2ee,1,4.9,0);box(h,6,1.6,3.6,0xf2f2ee,1.5,7,0);
+      cyl(h,.8,.9,5,14,0x1c1c1c,-1.5,7.5,0);cyl(h,.82,.82,1,14,0xb03030,-1.5,9.2,0);for(const x of [-11,10])cyl(h,.15,.18,12,6,0x5a3a20,x,9,0);h.position.y=.2;g.add(h);flag(g,10,15,0,.8);
+      return out(g,[B(-22,22,-13.5,-12,1),B(-22,22,12,13.5,1),B(-16,16,-3.2,3.2,9)],18,t=>{h.rotation.z=Math.sin(t*.8)*.015;});},
+    palace(o){const g=new THREE.Group(),C=o.c||0xd8b98c;ground(g,0xb59a72);box(g,40,3,30,0x8c7558,0,1.5,0);box(g,34,10,22,C,0,8,-2);box(g,10,14,4,C,0,10,10);const a=new THREE.Mesh(new THREE.TorusGeometry(2.6,.7,8,16,Math.PI),mt(0xb79a70));a.position.set(0,11,12.1);g.add(a);
+      dome(g,5,C,8,13,-4,1);cyl(g,5,5,2,20,C,8,14,-4);minaret(g,-12,-8,16,C,13,.9);for(const[x,z]of[[-17,-13],[17,-13],[-17,9],[17,9]])cyl(g,2,2.2,13,12,C,x,9.5,z);
+      return out(g,[B(-20,20,-15,15,16)],26);},
+    cliffmon(o){const g=new THREE.Group(),R=o.rc||0x6e6559;ground(g,0x4f7d3a);box(g,48,34,14,R,0,17,-17);for(let k=0;k<10;k++)rock(g,4,-20+k*4.4,30+(k%3)*2,-12,R,.9);
+      box(g,26,10,7,o.c||0xe8e0cf,0,16,-7);for(let k=0;k<6;k++)box(g,1.4,2.4,.2,0x3a2f25,-10+k*4,17,-3.4);box(g,26,1,7.6,0x8a3b2a,0,21.5,-7);for(let k=0;k<12;k++)cone(g,1.6,8,7,0x2f5d2a,-20+k*3.6,4,-1+(k%2)*3);
+      return out(g,[B(-24,24,-24,-3,34)],36);},
+    rocktomb(){const g=new THREE.Group();ground(g,0x8d9a62);box(g,48,30,12,0x9b8a72,0,15,-18);for(let k=0;k<5;k++){const x=-16+k*8;box(g,5,9,.6,0x2a241e,x,14,-11.7);const p=new THREE.Mesh(new THREE.CylinderGeometry(0,3.4,2,3,1),mt(0x8a7a64));p.rotation.set(Math.PI/2,0,0);p.position.set(x,19.6,-11.4);g.add(p);}
+      water(g,48,6,0,4,.1);return out(g,[B(-24,24,-24,-11,30)],32);},
+    houses(o){const g=new THREE.Group();ground(g,0x9aa86a);for(let i=0;i<4;i++)for(let j=0;j<3;j++){const x=-16+i*10.5,z=-12+j*11,h=7+((i+j)%3)*1.5,y=j*1.2;box(g,7,2,7,0xb9a58a,x,y+1,z);box(g,8,h-2,8,0xf6f1e6,x,y+2+(h-2)/2,z);
+      for(const[dx,dz]of[[0,4.02],[4.02,0]]){box(g,dx?.1:8,.25,dz?.1:8,0x5a3a20,x+dx,y+5,z+dz);}const r=cone(g,6.4,3,4,0xa8442a,x,y+h+1.5,z);r.rotation.y=Math.PI/4;}
+      return out(g,[B(-21,21,-17,17,10)],16);},
+    field(o){const g=new THREE.Group();ground(g,o.gc||0x6b8f3a);const rows=o.terr?5:8;for(let r=0;r<rows;r++){const y=o.terr?r*1.4:0;if(o.terr)box(g,46,y+1,8,0x7a5c3a,0,(y+1)/2,18-r*9);for(let k=0;k<14;k++){const x=-21+k*3.2,z=o.terr?18-r*9:-20+r*5.6;mesh(g,new THREE.SphereGeometry(1.2,10,8),o.c||0xe76f9a,x,y+(o.terr?1.9:1),z);}}
+      if(o.house)box(g,6,4,5,0xf2ebe0,16,2,-18);return out(g,[],10);},
+    bridge(o){const g=new THREE.Group(),C=o.c||0xc6b28f;ground(g,0x7b9b55);water(g,50,14,0,0,.1);const n=o.n||5,L=46;box(g,L,1.6,6,C,0,6.2,0);for(let k=0;k<=n;k++)box(g,2.4,5.4,6.4,C,-L/2+k*L/n,2.7,0);
+      for(let k=0;k<n;k++){const a=new THREE.Mesh(new THREE.TorusGeometry(L/n/2-1.2,.8,8,16,Math.PI),mt(C));a.position.set(-L/2+(k+.5)*L/n,3.6,0);g.add(a);}for(const z of [-2.8,2.8])box(g,L,1,.4,C,0,7.5,z);
+      return out(g,[B(-25,25,-7,-3,1),B(-25,25,3,7,1)],14);},
+    dam(){const g=new THREE.Group();ground(g,0x7b8b5a);water(g,48,24,0,-12,.4);const d=new THREE.Mesh(new THREE.CylinderGeometry(40,40,16,24,1,true,-.6,1.2),mt(0xbfc3c6,.7,{side:THREE.DoubleSide}));d.position.set(0,8,-32);g.add(d);box(g,40,1,4,0x9aa0a6,0,16.5,8);
+      return out(g,[B(-24,24,-25,6,16)],22);},
+    mine(){const g=new THREE.Group();ground(g,0x3f3d3a);for(const[x,z]of[[-3,-3],[3,-3],[-3,3],[3,3]])cyl(g,.25,.3,20,6,0x7a2e1e,x,10,z);for(let y=3;y<20;y+=4)for(const s of [-3,3]){box(g,6,.25,.25,0x7a2e1e,0,y,s);box(g,.25,.25,6,0x7a2e1e,s,y,0);}
+      const w=new THREE.Mesh(new THREE.TorusGeometry(2.4,.25,8,24),mt(0x2b2b2b));w.position.set(0,21,0);g.add(w);box(g,12,6,8,0x6b6b6b,12,3,-10);for(let k=0;k<4;k++)cone(g,3,3,8,0x111111,-14+k*3,1.5,12);
+      return out(g,[B(-4,4,-4,4,21),B(6,18,-14,-6,6)],26,t=>{w.rotation.z=t*1.5;});},
+    canyon(){const g=new THREE.Group();ground(g,0x9c8b62);for(const s of [-1,1])box(g,48,18,16,0xa3784e,0,9,s*16);water(g,48,10,0,0,.1);box(g,10,.4,8,0xbfe6ff,0,18.2,-6).material=mt(0xbfe6ff,.1,{transparent:true,opacity:.5});
+      return out(g,[B(-24,24,-24,-8,18),B(-24,24,8,24,18)],24);},
+    thermal(){const g=new THREE.Group(),S=[];ground(g,0xd3cbbb);for(const[x,z,w]of[[-10,-6,14],[9,4,12],[-6,12,8]]){box(g,w+1.2,.6,w*.7+1.2,0xe8e2d4,x,.3,z);const p=water(g,w,w*.7,x,z,.62);p.material=mt(0x7fd3d6,.1,{transparent:true,opacity:.9});S.push([x,z]);}box(g,12,7,8,0xf4efe6,10,3.5,-14);
+      return out(g,[B(4,16,-18,-10,7)],12,t=>{if(Math.random()<.3){const s=S[(Math.random()*S.length)|0];g.updateMatrixWorld();const v=new V3(s[0]+(Math.random()-.5)*6,1,s[1]+(Math.random()-.5)*4).applyMatrix4(g.matrixWorld);emit(v.x,v.y,v.z,0,1.2,0,2,.95,.95,.95,1.4,-.4,3);}});},
+    anitkabir(){const g=new THREE.Group(),C=0xe9e3d6;ground(g,0xd8d2c4);for(let k=0;k<4;k++)box(g,30-k*2,1,22-k*2,0xcfc8b8,0,.5+k,-6);box(g,22,8,14,C,0,8,-6);for(let k=0;k<8;k++)for(const z of [-13.4,1.4])box(g,1.2,8,1.2,C,-9.8+k*2.8,8,z);box(g,24,1.6,16,0xd6cfbf,0,12.8,-6);
+      for(let k=0;k<6;k++)for(const x of [-5,5]){box(g,1.2,1.6,2.6,0xd8cfbd,x,.9,8+k*3);mesh(g,new THREE.SphereGeometry(.7,10,8),0xd8cfbd,x,2.1,7.2+k*3);}flag(g,12,13.6,-12,1.6);return out(g,[B(-15,15,-17,5,14)],22);},
+    hattusa(){const g=new THREE.Group(),C=0xb39b78;ground(g,0x9c8a64);for(const s of [-1,1])box(g,16,7,5,C,s*13,3.5,0);for(const s of [-1,1]){box(g,3,9,5,C,s*4,4.5,0);mesh(g,new THREE.SphereGeometry(1.2,12,10),0xa88d68,s*4,6.5,2.8);box(g,1.4,1,1.6,0xa88d68,s*4,5.6,3);}
+      const a=new THREE.Mesh(new THREE.TorusGeometry(2.6,.8,8,16,Math.PI),mt(C));a.position.set(0,8,0);g.add(a);for(let k=0;k<10;k++)box(g,3,1.2,2,0x9b8466,-18+k*4,.6,-12+(k%3)*2);
+      return out(g,[B(-21,-5,-2.5,2.5,8),B(5,21,-2.5,2.5,8),B(-5.5,-2.5,-2.5,2.5,9),B(2.5,5.5,-2.5,2.5,9)],14);},
+    ahlat(){const g=new THREE.Group();ground(g,0x8a9a5b);for(let k=0;k<36;k++){const x=-20+(k%9)*5+((k*7)%3-1),z=-12+Math.floor(k/9)*6,h=2.2+((k*5)%4)*.6;box(g,1.1,h,.35,0x9a5b3c,x,h/2,z,((k*3)%5-2)*.05);}
+      cyl(g,3.4,3.4,7,12,0x8e5a3e,14,3.5,14);cone(g,3.6,4,12,0x7a4a32,14,9,14);return out(g,[B(10.5,17.5,10.5,17.5,7)],12);},
+    fairy(){const g=new THREE.Group();ground(g,0x8fbf6a);box(g,20,10,14,0xf7e6f0,0,5,-4);for(const[x,z,h,c]of[[-10,-11,16,0xf3c4dc],[10,-11,16,0xc4dcf3],[-10,3,14,0xc4dcf3],[10,3,14,0xf3c4dc],[0,-4,20,0xfaf0f6]]){cyl(g,2.2,2.4,h,14,0xfaf3f7,x,h/2,z);cone(g,2.9,6,14,c,x,h+3,z);}
+      water(g,20,8,0,16,.12);return out(g,[B(-12.5,12.5,-13.5,5.5,14)],28);},
+    cable(){const g=new THREE.Group();ground(g,0x5f8f4a);const top=new THREE.Group();box(top,8,5,6,0xefefef,0,2.5,0);top.position.set(-18,10,-14);g.add(top);box(g,10,10,8,0x7a6a58,-18,5,-14);box(g,8,5,6,0xefefef,18,2.5,14);
+      for(const t of [.35,.7]){const x=-18+36*t,z=-14+28*t;cyl(g,.4,.5,15-t*8,6,0x888888,x,(15-t*8)/2,z);}const L=new THREE.BufferGeometry().setFromPoints([new V3(-18,15,-14),new V3(18,5,14)]);g.add(new THREE.Line(L,new THREE.LineBasicMaterial({color:0x222222})));
+      const cb=[0,1,2].map(k=>{const c=new THREE.Group();box(c,1.6,1.4,1.4,[0xd62828,0xf4a261,0x2a9d8f][k],0,-1,0);g.add(c);return c;});return out(g,[B(-23,-13,-18,-10,15),B(14,22,11,17,5)],20,t=>{cb.forEach((c,k)=>{const u=((t*.05+k/3)%1);c.position.set(-18+36*u,15-10*u,-14+28*u);});});},
+    medrese(o){const g=new THREE.Group(),C=o.c||0xc9a27a;ground(g,0xd1c4a8);box(g,30,9,22,C,0,4.5,-4);box(g,12,15,3,o.pc||C,0,7.5,7.5);box(g,5,9,.6,0x4b3b2a,0,5.5,9.1);
+      const a=new THREE.Mesh(new THREE.TorusGeometry(2.6,.6,8,16,Math.PI),mt(0xb8906a));a.position.set(0,10,9.2);g.add(a);if(o.minarets)for(const x of (o.minarets===2?[-4.5,4.5]:[4.5]))minaret(g,x,7.5,12,o.mc||0xa0603c,15,.9);
+      if(o.dome)dome(g,5,0x7d8792,-6,9,-6,.9);return out(g,[B(-15,15,-15,9,15)],o.minarets?30:20);},
+    hasankeyf(){const g=new THREE.Group();ground(g,0xc9b18a);water(g,50,14,0,4,.1);for(const x of [-14,-4,6])box(g,4,9,5,0xbfa37a,x,4.5,4);box(g,30,22,10,0xb9946a,0,11,-18);minaret(g,14,-7,22,0xc8a57a,0,1.3);
+      return out(g,[B(-24,24,-24,-13,22),B(12,16,-9,-5,22)],28);},
+    church(o){const g=new THREE.Group(),C=o.c||0xc9a27a;ground(g,o.island?0xd9c79c:0xb9a77f);if(o.island){water(g,48,48);disc(g,15,0x8c7b66,0,.2,0);}
+      const ruin=!!o.ruin;box(g,16,9,10,C,0,4.5,0);box(g,10,9,16,C,0,4.5,0);cyl(g,3.2,3.4,5,12,C,0,11.5,0);if(!ruin){const c=cone(g,3.8,4,12,0x7a6a58,0,16,0);c.material=mt(0x7a6a58,.6,{flatShading:true});}else{g.children[g.children.length-1].scale.y=.5;box(g,4,3,10,0x111111,5,7.5,0).visible=false;}
+      if(o.bell){box(g,4,16,4,C,10,8,-6);cone(g,2.8,3,4,0x7a6a58,10,17.5,-6).rotation.y=Math.PI/4;}
+      return out(g,[B(-8,8,-8,8,14)].concat(o.island?[B(-25,25,-25.5,-24,1),B(-25,25,24,25.5,1),B(-25.5,-24,-25,25,1),B(24,25.5,-25,25,1)]:[]),20);},
+    mound(){const g=new THREE.Group();ground(g,0xa8946c);const m=cyl(g,10,22,8,24,0x9c7f58,0,4,0);for(const[x,z]of[[-4,6],[4,6]]){box(g,1.4,1.6,3,0x8d7a5e,x,9,z);mesh(g,new THREE.SphereGeometry(.9,10,8),0x8d7a5e,x,10.2,z+1.2);}
+      box(g,12,.2,6,0x6b5236,0,8.1,-2);return out(g,[B(-16,16,-16,16,8)],16);},
+  };
+  return T;})();
+const LMDEF=[
+ [1,'adana','Sabancı Merkez Camii','sabanci|merkez cami|adana cami','mosque',{minarets:6,mh:30,cascade:1}],
+ [2,'nemrut','Nemrut Dağı','nemrut','mountain',{h:30,snow:false,c:0x9c8466,heads:1}],
+ [3,'afyonkale','Afyon Kalesi','afyon kale','castle',{rock:1,r:13,n:6,c:0x6f6458,rc:0x4f4640}],
+ [4,'ishakpasa','İshak Paşa Sarayı','ishak pasa|saray','palace',{}],
+ [5,'kralkaya','Kral Kaya Mezarları','kral kaya|kaya mezar','rocktomb',{}],
+ [7,'hadrian','Hadrian Kapısı','hadrian|uc kapi','gate',{}],
+ [8,'artvinkale','Artvin Kalesi','artvin kale','castle',{rock:1,r:12,n:6,c:0x7d7468}],
+ [9,'afrodisias','Afrodisias Antik Kenti','afrodisias|aphrodisias','ruins',{n:6}],
+ [10,'balikesirsaat','Balıkesir Saat Kulesi','balikesir saat','clock',{h:20}],
+ [11,'edebali','Şeyh Edebali Türbesi','edebali','turbe',{}],
+ [12,'yuzenada','Yüzen Adalar','yuzen ada','lake',{islands:1}],
+ [13,'ahlat','Ahlat Selçuklu Mezarlığı','ahlat|selcuklu mezar','ahlat',{}],
+ [14,'abant','Abant Gölü','abant','lake',{}],
+ [15,'sagalassos','Sagalassos Antik Kenti','sagalassos','ruins',{n:8,roof:1}],
+ [16,'bursaulu','Bursa Ulu Camii','bursa ulu|ulu cami','mosque',{grid:1,minarets:2,c:0xd9cdb5}],
+ [17,'truva','Truva Atı','truva|troya','horse',{}],
+ [18,'cankirikale','Çankırı Kalesi','cankiri kale','castle',{rock:1,r:12,n:7}],
+ [19,'hattusa','Hattuşa Aslanlı Kapı','hattusa|hattusas|aslanli kapi','hattusa',{}],
+ [20,'pamukkale','Pamukkale Travertenleri','pamukkale|traverten','pamukkale',{}],
+ [22,'selimiye','Selimiye Camii','selimiye','mosque',{minarets:4,mh:34,s:1.05}],
+ [24,'girlevik','Girlevik Şelalesi','girlevik|selale','waterfall',{}],
+ [25,'ciftemin','Çifte Minareli Medrese','cifte minare','medrese',{minarets:2,mc:0x9a5a3a}],
+ [26,'masalsato','Sazova Masal Şatosu','masal sato|sazova','fairy',{}],
+ [27,'antepkale','Gaziantep Kalesi','antep kale|gaziantep kale','castle',{r:16,n:10,c:0xb8a07a,c2:0xcab48c}],
+ [28,'giresunkale','Giresun Kalesi','giresun kale','castle',{rock:1,r:12,n:6,c:0x857c70}],
+ [29,'karaca','Karaca Mağarası','karaca','cave',{}],
+ [30,'cilo','Cilo Dağları','cilo','mountain',{h:44,snow:.5,peaks:1}],
+ [31,'stpierre','Saint Pierre Kilisesi','saint pierre|sen piyer','rocktomb',{}],
+ [32,'gulbahce','Isparta Gül Bahçeleri','gul bahce|isparta gul','field',{c:0xe76f9a,house:1}],
+ [33,'kizkalesi','Kızkalesi','kizkale','seacastle',{}],
+ [34,'sultanahmet','Sultanahmet Camii','sultanahmet|mavi cami','mosque',{minarets:6,mh:32,cascade:1,court:1,lead:0x8f9aa6}],
+ [34,'galata','Galata Kulesi','galata','tower',{h:30}],
+ [35,'izmirsaat','Konak Saat Kulesi','konak|izmir saat','clock',{h:16,oct:1,roof:'dome',c:0xe7dcc4}],
+ [36,'ani','Ani Harabeleri','ani harabe|ani oren|aniye','church',{ruin:1,c:0xa7745a}],
+ [37,'kastamonukale','Kastamonu Kalesi','kastamonu kale','castle',{rock:1,r:12,n:7,c:0x7a7268}],
+ [38,'erciyes','Erciyes Dağı','erciyes','mountain',{h:46,snow:.45}],
+ [39,'dupnisa','Dupnisa Mağarası','dupnisa','cave',{c:0x8e8678}],
+ [40,'cacabey','Cacabey Medresesi','cacabey','medrese',{minarets:1,dome:1}],
+ [41,'izmitsaat','İzmit Saat Kulesi','izmit saat','clock',{h:14,oct:1,roof:'dome',c:0xe9e2d0}],
+ [42,'mevlana','Mevlana Türbesi','mevlana','turbe',{green:1}],
+ [43,'aizanoi','Aizanoi Zeus Tapınağı','aizanoi|zeus tapinak','ruins',{n:6,roof:1}],
+ [44,'arslantepe','Arslantepe Höyüğü','arslantepe','mound',{}],
+ [45,'muradiye','Muradiye Camii','muradiye','mosque',{minarets:1,mh:24,s:.9}],
+ [46,'maraskale','Kahramanmaraş Kalesi','maras kale','castle',{rock:1,r:13,n:7,c:0x9a8a74}],
+ [47,'deyrulzafaran','Deyrulzafaran Manastırı','deyrulzafaran|zafaran','church',{c:0xd9b77a,bell:1}],
+ [48,'bodrumkale','Bodrum Kalesi','bodrum kale|bodrum','seacastle',{square:1,c:0xc8b58e}],
+ [49,'malazgirt','Malazgirt Zafer Anıtı','malazgirt','obelisk',{}],
+ [50,'kapadokya','Kapadokya Peribacaları','kapadokya|peribaca|balon','cappadocia',{}],
+ [51,'nigdekale','Niğde Kalesi','nigde kale','castle',{r:13,n:6,c:0x8e8676}],
+ [52,'boztepe','Boztepe Teleferiği','boztepe|teleferik','cable',{}],
+ [53,'caybahce','Rize Çay Bahçeleri','cay bahce|rize cay','field',{c:0x2f7d32,terr:1,gc:0x4f8a3a}],
+ [54,'justinianus','Justinianus Köprüsü','justinianus|besköprü|beskopru','bridge',{n:6}],
+ [55,'bandirma','Bandırma Vapuru','bandirma vapur','ship',{}],
+ [56,'siirtulu','Siirt Ulu Camii','siirt ulu','mosque',{minarets:1,mh:24,c:0xc9a27a,lead:0xa98b6a,s:.85}],
+ [57,'sinopcezaevi','Sinop Tarihi Cezaevi','sinop cezaevi|sinop kale','castle',{r:15,n:4,round:false,c:0x8f8a80}],
+ [58,'divrigi','Divriği Ulu Camii','divrigi','medrese',{minarets:1,dome:1,c:0xa88f72}],
+ [59,'rustempasa','Rüstem Paşa Camii','rustem pasa','mosque',{minarets:1,mh:24,s:.85}],
+ [60,'ballica','Ballıca Mağarası','ballica','cave',{}],
+ [61,'sumela','Sümela Manastırı','sumela','cliffmon',{}],
+ [62,'pertek','Pertek Kalesi','pertek','seacastle',{c:0x9a8a74}],
+ [63,'gobeklitepe','Göbeklitepe','gobeklitepe|gobekli tepe','gobekli',{}],
+ [64,'ulubey','Ulubey Kanyonu','ulubey|kanyon','canyon',{}],
+ [65,'akdamar','Akdamar Kilisesi','akdamar','church',{island:1,c:0xc9a27a}],
+ [66,'yozgatsaat','Yozgat Saat Kulesi','yozgat saat','clock',{h:18,c:0xd4c3a0}],
+ [67,'madenocagi','Zonguldak Maden Ocağı','maden ocag|zonguldak maden','mine',{}],
+ [68,'sultanhani','Sultanhanı Kervansarayı','sultanhan|kervansaray','medrese',{c:0xd8c4a0}],
+ [69,'bayburtkale','Bayburt Kalesi','bayburt kale','castle',{rock:1,r:13,n:8,c:0x7d7064}],
+ [70,'karamankale','Karaman Kalesi','karaman kale','castle',{r:14,n:6,c:0x9a8a74}],
+ [71,'kapulukaya','Kapulukaya Barajı','kapulukaya|baraj','dam',{}],
+ [72,'hasankeyf','Hasankeyf','hasankeyf','hasankeyf',{}],
+ [73,'cudi','Cudi Dağı','cudi','mountain',{h:38,snow:.3}],
+ [74,'amasra','Amasra Kalesi','amasra','seacastle',{c:0x8a8378}],
+ [75,'cildir','Çıldır Gölü','cildir','lake',{ice:1,sleigh:1}],
+ [76,'agridagi','Ağrı Dağı','agri dag|agri dagi|ararat','mountain',{h:50,snow:.5}],
+ [77,'termal','Yalova Termal Kaplıcaları','termal|kaplica','thermal',{}],
+ [78,'safranbolu','Safranbolu Evleri','safranbolu','houses',{}],
+ [79,'ravanda','Ravanda Kalesi','ravanda','castle',{rock:1,r:12,n:6,c:0x9a8a74}],
+ [80,'toprakkale','Toprakkale','toprakkale','castle',{rock:1,r:13,n:7,c:0x3b3a3c,c2:0x4b4a4d,rc:0x2e2c2b}],
+ [81,'guzeldere','Güzeldere Şelalesi','guzeldere','waterfall',{}],
+ [6,'anitkabir','Anıtkabir','anitkabir','anitkabir',{}],
+];
+// Turkish dative suffix for a place name: "Kalesi'ne", "Pamukkale'ye", "Hasankeyf'e"
+function trDat(n){const w=n.split(' '),last=w[w.length-1].toLocaleLowerCase('tr-TR'),vs=last.match(/[aeıioöuü]/g)||['a'],v=vs[vs.length-1],back=/[aıou]/.test(v)?'a':'e';
+  if(/[aeıioöuü]$/.test(last))return n+"'"+((w.length>1||/s[ıiuü]$/.test(last))?'n':'y')+back;return n+"'"+back;}
+for(const [pl,id,name,key,type,o] of LMDEF){(LANDM.defs[pl]=LANDM.defs[pl]||[]).push({id,name,dat:trDat(name),key:new RegExp(key),near:LANDM.defs[pl].length?[-3,-1]:[2,1],build:()=>LMK2[type](o),plate:pl});}
 function landSpots(){const k=IL.cur+':'+CITY.seed;if(LANDM.key===k)return LANDM.spots;LANDM.key=k;LANDM.map.clear();LANDM.spots=[];
   const C=CITY,used=new Set(),wat=C.style().wat,ok=(i,j)=>!used.has(i+','+j)&&!C.isHwy(i,j)&&!C.isRamp(i,j)&&!(wat&&(j===6||j===7||j===5||j===8))&&!(i===0&&j===3)&&!(C.m4(i)===3&&C.m4(j)===3)&&!(i===1&&j===3);
-  LANDM.sp={};for(const [id,near,bx,oz] of [['smug',SMUG_AT,SMUG.boxes,0],['hosp',[-3,3],ACCB.hospBoxes,6],['kara',[5,1],ACCB.karaBoxes,6]]){let at=null;for(let r=0;r<6&&!at;r++)for(let di=-r;di<=r&&!at;di++)for(let dj=-r;dj<=r&&!at;dj++){if(Math.max(Math.abs(di),Math.abs(dj))!==r)continue;const i=near[0]+di,j=near[1]+dj;if(ok(i,j))at=[i,j];}
+  LANDM.sp={};for(const [id,near,bx,oz] of [['smug',SMUG_AT,SMUG.boxes,0],['hosp',[-3,3],ACCB.hospBoxes,20],['kara',[5,1],ACCB.karaBoxes,20]]){let at=null;for(let r=0;r<6&&!at;r++)for(let di=-r;di<=r&&!at;di++)for(let dj=-r;dj<=r&&!at;dj++){if(Math.max(Math.abs(di),Math.abs(dj))!==r)continue;const i=near[0]+di,j=near[1]+dj;if(ok(i,j))at=[i,j];}
     if(at){used.add(at[0]+','+at[1]);const cx=C.nx(at[0])+C.B/2,cz=C.nz(at[1])+C.B/2,sm={d:{id},i:at[0],j:at[1],cx,cz,boxes:bx.map(b=>({x0:cx+b.x0,x1:cx+b.x1,z0:cz+oz+b.z0,z1:cz+oz+b.z1,h:b.h}))};LANDM.sp[id]=sm;LANDM.map.set(at[0]+','+at[1],sm);}}
   LANDM.smug=LANDM.sp.smug||null;
   for(const d of LANDM.defs[IL.cur]||[]){let at=null;for(let r=0;r<6&&!at;r++)for(let di=-r;di<=r&&!at;di++)for(let dj=-r;dj<=r&&!at;dj++){if(Math.max(Math.abs(di),Math.abs(dj))!==r)continue;const i=d.near[0]+di,j=d.near[1]+dj;if(ok(i,j))at=[i,j];}
@@ -3372,7 +3592,7 @@ function landSpots(){const k=IL.cur+':'+CITY.seed;if(LANDM.key===k)return LANDM.
 CITY.skip=(i,j)=>{landSpots();return LANDM.map.get(i+','+j)||null;};CITY.cI=null;
 function landTick(){const vp=viewPos(),here=S.mode==='serbest'&&!S.menuDemo&&!TUN.on,sp=here?landSpots():[];
   for(const id in LANDM.mesh){const m=LANDM.mesh[id],s=sp.find(q=>q.d.id===id),on=!!s&&Math.hypot(s.cx-vp.x,s.cz-vp.z)<CITY.R*CITY.B+80;m.g.visible=m.sign.visible=on;
-    if(on){m.g.position.set(s.cx,0,s.cz);m.sign.position.set(s.cx,m.label+4,s.cz);if(m.g.userData.flag)m.g.userData.flag.rotation.y=Math.sin(performance.now()/700)*.25;}}
+    if(on){m.g.position.set(s.cx,0,s.cz);m.sign.position.set(s.cx,m.label+4,s.cz);if(m.anim)m.anim(performance.now()/1000);if(m.g.userData.flag)m.g.userData.flag.rotation.y=Math.sin(performance.now()/700)*.25;}}
   let at=null;for(const s of sp)if(Math.hypot(s.cx-vp.x,s.cz-vp.z)<48)at=s;
   if(at&&LANDM.seen!==at.d.id){LANDM.seen=at.d.id;bigMsg(at.d.name.toLocaleUpperCase('tr-TR'),ilCur().name,2400);sfx('chime');}else if(!at)LANDM.seen='';}
 function landFind(nt){let best=null;for(const p in LANDM.defs)for(const d of LANDM.defs[p]){if(d.key.test(nt)||nt.includes(nrm(d.name)))best=d;}
@@ -3614,7 +3834,7 @@ function accCctvRender(){if(!KAZA.cctv||!KAZA.buf.length)return;const W=innerWid
   const d=new Date(Date.now()-(performance.now()-tt));$('cctvT').textContent=d.toLocaleTimeString('tr-TR');}
 function accWalk(p,to,dt,sp=1.6){const dx=to.x-p.position.x,dz=to.z-p.position.z,d=Math.hypot(dx,dz);const a=p.userData.arms;if(d<.4){a[0].rotation.z=a[1].rotation.z=0;return true;}p.position.x+=dx/d*Math.min(d,sp*dt);p.position.z+=dz/d*Math.min(d,sp*dt);p.rotation.y=-Math.atan2(dz,dx);const s=Math.sin(performance.now()/120)*.5;a[0].rotation.z=s;a[1].rotation.z=-s;return false;}
 function accLights(g,t){const on=Math.floor(t*7)%2===0;g.userData.r.visible=on;g.userData.b.visible=!on;}
-function accTick(dt){accRecord();KAZA.sir=false;if(KAZA.hideMe)FOOT.g.visible=false;if(KAZA.st==='off'){if(S.mode==='serbest'&&!S.menuDemo&&!TUN.on){const H=accSpot('hosp'),K=accSpot('kara');ACCB.hosp.visible=!!H;ACCB.kara.visible=!!K;if(H)ACCB.hosp.position.set(H.cx,0,H.cz+6);if(K)ACCB.kara.position.set(K.cx,0,K.cz+6);
+function accTick(dt){accRecord();KAZA.sir=false;if(KAZA.hideMe)FOOT.g.visible=false;if(KAZA.st==='off'){if(S.mode==='serbest'&&!S.menuDemo&&!TUN.on){const H=accSpot('hosp'),K=accSpot('kara');ACCB.hosp.visible=!!H;ACCB.kara.visible=!!K;if(H)ACCB.hosp.position.set(H.cx,0,H.cz+20);if(K)ACCB.kara.position.set(K.cx,0,K.cz+20);
       if(KAZA.hosp&&H&&Math.hypot(accMe().x-H.cx,accMe().z-H.cz)<40){KAZA.hosp=false;bigMsg('HASTANE','Yaya iyileşti ve sana teşekkür etti · geçmiş olsun',3200);sfx('chime');}}else{ACCB.hosp.visible=ACCB.kara.visible=false;}return;}
   if(dt<=0)return;KAZA.t+=dt;const T=KAZA.t,now=performance.now()/1000,me=accMe(),P=KAZA.P,A=KAZA.A,ped=KAZA.ped;accLights(P,now);accLights(A,now+.07);KAZA.sir=T<40;
   if(ped){ped.g.position.copy(KAZA.pos);ped.g.rotation.x=Math.PI/2;}
@@ -3649,10 +3869,10 @@ function accArrest(dt){const T=KAZA.t,me=accMe(),P=KAZA.P;
   if(T>7&&!KAZA.fadeA){KAZA.fadeA=true;$('fade').style.opacity='1';}
   if(T>8.5&&!KAZA.toKara){KAZA.toKara=true;const K=accSpot('kara');if(!K){accRelease();return;}
     KAZA.hideMe=true;KAZA.ped&&(KAZA.ped.g.visible=false);KAZA.A.visible=false;KAZA.M.forEach(m=>m.visible=false);KAZA.C.visible=false;FOOT.g.visible=false;
-    const door=new V3(K.cx,0,K.cz+6+3.5),road=CITY.nz(K.j+1);KAZA.kara={door,road,K};P.position.set(K.cx-70,0,road-1.9);P.rotation.y=0;
+    const door=new V3(K.cx,0,K.cz+20+3.5),road=CITY.nz(K.j+1);KAZA.kara={door,road,K};P.position.set(K.cx-70,0,road-1.9);P.rotation.y=0;
     const c=car;c.pos.x=K.cx+12;c.pos.z=road-1.9;c.yaw=0;c.v=0;c.vel.set(0,0,0);
     KAZA.R.forEach((r,k)=>{r.visible=true;r.position.set(K.cx-5+k*3.2,0,road-7.5-(k%2)*1.4);r.rotation.y=Math.PI/2;});
-    window.__camOverride=(Pp,L,U)=>{if(KAZA.st!=='arrest')return 0;const q=P.position;Pp.set(q.x-9,4.5,q.z+11);L.set(q.x+3,1.2,q.z-2);U.set(0,1,0);return 6;};$('fade').style.opacity='0';accSay('pol','Karakola gidiyoruz.',false);}
+    window.__camOverride=(Pp,L,U)=>{if(KAZA.st!=='arrest')return 0;const q=P.position;Pp.set(q.x-13,4.2,q.z+.5);L.set(q.x+4,1.2,q.z-3);U.set(0,1,0);return 6;};$('fade').style.opacity='0';accSay('pol','Karakola gidiyoruz.',false);}
   if(KAZA.toKara&&!KAZA.atKara){const K=KAZA.kara;if(accVeh(P,P.position,new V3(K.K.cx-2,0,K.road-1.9),13,dt)){KAZA.atKara=true;KAZA.hideMe=false;KAZA.kT=0;KAZA.q=-1;FOOT.pos.set(P.position.x+.5,0,P.position.z-1.6);FOOT.g.visible=true;KAZA.C.visible=true;KAZA.C.position.set(P.position.x-1,0,P.position.z-1.6);}}
   if(KAZA.atKara){KAZA.kT+=dt;const K=KAZA.kara,Qs=['Neden yaptınız?','Bilerek mi çarptınız?','Ailesine ne söyleyeceksiniz?','Hız sınırını aşmış mıydınız?'];
     window.__camOverride=(Pp,L,U)=>{const q=FOOT.pos;Pp.set(q.x+6,2.6,q.z+4);L.set(q.x,1.4,q.z-1);U.set(0,1,0);return 4;};
