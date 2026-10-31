@@ -3872,8 +3872,8 @@ function accArrest(dt){const T=KAZA.t,me=accMe(),P=KAZA.P;
     const door=new V3(K.cx,0,K.cz+20+3.5),road=CITY.nz(K.j+1);KAZA.kara={door,road,K};P.position.set(K.cx-70,0,road-1.9);P.rotation.y=0;
     const c=car;c.pos.x=K.cx+12;c.pos.z=road-1.9;c.yaw=0;c.v=0;c.vel.set(0,0,0);
     KAZA.R.forEach((r,k)=>{r.visible=true;r.position.set(K.cx-5+k*3.2,0,road-7.5-(k%2)*1.4);r.rotation.y=Math.PI/2;});
-    window.__camOverride=(Pp,L,U)=>{if(KAZA.st!=='arrest')return 0;const q=P.position;Pp.set(q.x-13,4.2,q.z+.5);L.set(q.x+4,1.2,q.z-3);U.set(0,1,0);return 6;};$('fade').style.opacity='0';accSay('pol','Karakola gidiyoruz.',false);}
-  if(KAZA.toKara&&!KAZA.atKara){const K=KAZA.kara;if(accVeh(P,P.position,new V3(K.K.cx-2,0,K.road-1.9),13,dt)){KAZA.atKara=true;KAZA.hideMe=false;KAZA.kT=0;KAZA.q=-1;FOOT.pos.set(P.position.x+.5,0,P.position.z-1.6);FOOT.g.visible=true;KAZA.C.visible=true;KAZA.C.position.set(P.position.x-1,0,P.position.z-1.6);}}
+    window.__camOverride=(Pp,L,U)=>{if(KAZA.st!=='arrest')return 0;const q=P.position;Pp.set(q.x-13,4.2,q.z+.5);L.set(q.x+4,1.2,q.z-3);U.set(0,1,0);return 6;};snapCam=true;$('fade').style.opacity='0';accSay('pol','Karakola gidiyoruz.',false);}
+  if(KAZA.toKara&&!KAZA.atKara){const K=KAZA.kara;if(accVeh(P,P.position,new V3(K.K.cx-2,0,K.road-1.9),13,dt)){KAZA.atKara=true;KAZA.hideMe=false;KAZA.kT=0;KAZA.q=-1;snapCam=true;FOOT.pos.set(P.position.x+.5,0,P.position.z-1.6);FOOT.g.visible=true;KAZA.C.visible=true;KAZA.C.position.set(P.position.x-1,0,P.position.z-1.6);}}
   if(KAZA.atKara){KAZA.kT+=dt;const K=KAZA.kara,Qs=['Neden yaptınız?','Bilerek mi çarptınız?','Ailesine ne söyleyeceksiniz?','Hız sınırını aşmış mıydınız?'];
     window.__camOverride=(Pp,L,U)=>{const q=FOOT.pos;Pp.set(q.x+6,2.6,q.z+4);L.set(q.x,1.4,q.z-1);U.set(0,1,0);return 4;};
     const goal=new V3(K.door.x,0,K.door.z-1),walked=accWalk({position:FOOT.pos,rotation:FOOT.g.rotation,userData:{arms:[{rotation:{}},{rotation:{}}]}},goal,dt,.9);FOOT.g.position.copy(FOOT.pos);FOOT.g.rotation.x=0;accWalk(KAZA.C,new V3(FOOT.pos.x-.9,0,FOOT.pos.z+.6),dt,1);
@@ -3890,7 +3890,7 @@ function ifadeVoice(){if(!ASK.SR){$('ifLog').textContent='Bu tarayıcı sesi tan
   r.onresult=e=>{const t=e.results[0][0].transcript;$('ifIn').value=t;ifadeAnswer(t);};r.onerror=()=>{$('ifLog').textContent='Duyamadım, tekrar dene ya da yaz.';};r.start();}catch(_){$('ifLog').textContent='Mikrofon açılamadı, yazarak cevap ver.';}}
 function accRelease(){$('ifade').hidden=true;accSay('kom','İfadeniz alındı. Adli kontrol şartıyla serbestsiniz. Aracınız karakolun önünde.');const K=KAZA.kara;
   KAZA.hideMe=false;if(K){FOOT.pos.set(K.door.x+1.5,0,K.road-8.5);FOOT.g.visible=true;}const a=FOOT.g.userData.arms;a[0].rotation.x=a[1].rotation.x=0;
-  bigMsg('SERBESTSİN','Adli kontrol · aracın karakolun önünde',2600);KAZA.fadeA=KAZA.toKara=KAZA.atKara=KAZA.inside=false;KAZA.kara=null;accClear();}
+  bigMsg('SERBESTSİN','Adli kontrol · aracın karakolun önünde',2600);snapCam=true;KAZA.fadeA=KAZA.toKara=KAZA.atKara=KAZA.inside=false;KAZA.kara=null;accClear();}
 function shopOpen(on=true){if(on&&!CB.shopNear){pop('Önce kaçakçının yanına git');return;}$('shop').hidden=!on;if(on){releaseAll();shopRender();}}
 function shopRender(){const L=$('shopList');L.textContent='';const free=!S.cargo;$('shopMoney').textContent=free?'Serbest sürüşte silahlar bedava':nf(CAREER.money)+' ₺';
   for(const k of WKEYS){const w=WPN[k],own=CB.own.has(k),row=document.createElement('div');row.className='srow';row.innerHTML='<div><b></b><small></small></div><button type="button"></button>';
