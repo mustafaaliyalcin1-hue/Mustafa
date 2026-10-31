@@ -356,7 +356,7 @@ body.touch #guide{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);w
     <p id="taSt">Park halinde</p>
     <div class="tagrid">
       <button type="button" id="taLock">🔒 Kilitle</button><button type="button" id="taHonk">📯 Korna</button><button type="button" id="taFlash">💡 Farlar</button>
-      <button type="button" id="taCome">📍 Gel beni al</button><button type="button" id="taTakeHome">🏠 Beni eve götür</button><button type="button" id="taHomeGo">🚗 Eve gönder</button>
+      <button type="button" id="taCome">📍 Gel beni al</button><button type="button" id="taTakeHome">🏠 Beni eve götür</button><button type="button" id="taHomeGo">🚗 Eve gönder</button><button type="button" id="taPark">🅿️ Park et</button>
       <button type="button" id="taSetHome">⭐ Burayı ev yap</button><button type="button" id="taStop">⏹ Durdur</button><button type="button" id="taTaxi">🚕 Taksi çağır</button><button type="button" id="taAsk" class="ask">🎤 Hey Tepetaklak</button>
     </div></div></div>
 <div id="taxiBox" hidden><b id="txTitle">🚕 Taksi · Nereye gidelim?</b><span id="txInfo"></span>
@@ -2853,7 +2853,7 @@ function apDrive(o){const c=car,P=AP.pts;if(P.length<2){o.gas=0;o.brake=1;o.stee
 // the bay's long axis, facing whichever way is closer to how the car already points
 function bayYaw(d,cur){const base=d.v?Math.PI/2:0;let a=base,b=base+Math.PI;const da=Math.abs(((a-cur)%TAU+3*Math.PI)%TAU-Math.PI),db=Math.abs(((b-cur)%TAU+3*Math.PI)%TAU-Math.PI);return da<=db?a:b;}
 function landYaw(d,cur){if(d.park)return bayYaw(d,cur);const hz=d.v===0;return hz?(d.sg>0?0:Math.PI):(d.sg<0?Math.PI/2:-Math.PI/2);}
-function apArrived(){if(AP.cargo)return;if(tArrived()){apStop();return;}const park=AP.dest&&AP.dest.park;bigMsg(park?'PARK EDİLDİ':'VARDIN',park?'Otopilot arabayı park yerine bıraktı':'Otopilot hedefe ulaştı',1800);sfx('chime');apStop();}
+function apArrived(){if(AP.cargo)return;if(tArrived()){apStop();return;}const park=AP.dest&&AP.dest.park;if(park&&FOOT.on){TAPP.parkGo=false;TAPP.relock=false;sfx('chime');pop('🅿️ Araban park etti ve kilitlendi','good');apStop();tLock(true,true);return;}bigMsg(park?'PARK EDİLDİ':'VARDIN',park?'Otopilot arabayı park yerine bıraktı':'Otopilot hedefe ulaştı',1800);sfx('chime');apStop();}
 // flight: climb above the rooftops, cruise, hover over the target, come straight down
 function apFlyStep(c,h,inp){const d=AP.dest;
   const gy=cityGroundAt(c.pos.x,c.pos.z),dx=d?d.x-c.pos.x:0,dz=d?d.z-c.pos.z:0,dist=Math.hypot(dx,dz),hv=Math.hypot(c.vel.x,c.vel.z),VF=AP_SPD[AP.spd].fly,ALT=AP_ALT+(AP.spd>2?20:0);
@@ -3402,13 +3402,16 @@ function tSetHome(){const p=teslaPos(),I=CITY.ci(p.x),J=CITY.cj(p.z),L=CITY.spot
 // summon: the empty car drives itself to where you stand; "after" is where it takes you once you get in
 function tSummon(after){if(!FOOT.on){say('Zaten arabadasın.');return false;}const d=apDestFromPoint(FOOT.pos.x,FOOT.pos.z);if(!d){say('Yanına gelecek bir yol bulamadım.');return false;}
   if(AP.on)apStop();apStart('road',false,d);if(!AP.on){say('Yanına gelecek bir yol bulamadım.');return false;}TAPP.summon=true;TAPP.after=after||null;if(TAPP.locked)tLock(false,true);tappRender();return true;}
+function tPark(){const c=car,I=CITY.ci(c.pos.x),J=CITY.cj(c.pos.z),s=nearestOf(CITY.spotsIn(I-5,I+5,J-5,J+5));if(!s){say('Yakında park yeri bulamadım.');return false;}
+  TAPP.summon=false;TAPP.after=null;if(AP.on)apStop();apStart(FOOT.on?'road':MAPV.mode==='fly'?'fly':'road',false,{x:s.x,z:s.z,v:s.v,i:s.i,j:s.j,sg:s.sg,park:true});if(!AP.on){say('Park yerine giden bir yol bulamadım.');return false;}
+  TAPP.parkGo=FOOT.on;if(FOOT.on&&TAPP.locked){TAPP.relock=true;tLock(false,true);}tappRender();return true;}
 function tSendHome(){const h=teslaHome();if(AP.on)apStop();apStart(FOOT.on?'road':MAPV.mode,false,h);return AP.on;}
 function tAfterBoard(){if(TAPP.summon){TAPP.summon=false;if(AP.on)apStop();}if(TAPP.locked)tLock(false,true),pop('📱 Telefon anahtarı: kilit açıldı');
   const a=TAPP.after;TAPP.after=null;if(a){apStart(a.mode,false,a.dest);if(AP.on)say('Tamam, '+a.label+' gidiyoruz.');}tappRender();}
 function tArrived(){if(!TAPP.summon)return false;TAPP.summon=false;TAPP.flashT=1.2;sfx('chime');bigMsg('ARABAN GELDİ','Binmek için Enter / İN-BİN',2200);
   say(TAPP.after?'Geldim! Bin, seni '+TAPP.after.label+' götüreyim.':'Geldim! Seni bekliyorum.');tappRender();return true;}
 function tStatus(){const c=car,p=teslaPos(),d=Math.round(Math.hypot(c.pos.x-p.x,c.pos.z-p.z));
-  const what=TAXI.st==='come'?'Taksi yolda':TAXI.st==='wait'?'Taksi bekliyor':FOOT.inTaxi?'Taksidesin':TAPP.summon?'Sana geliyor':AP.on?(FOOT.on?'Kendi kendine gidiyor':'Otopilotta'):FOOT.on?'Park halinde':'Sürüşte';return {d,what,kmh:Math.round(Math.abs(c.v)*3.6)};}
+  const what=TAXI.st==='come'?'Taksi yolda':TAXI.st==='wait'?'Taksi bekliyor':FOOT.inTaxi?'Taksidesin':TAPP.summon?'Sana geliyor':AP.on&&TAPP.parkGo?'Park yerine gidiyor':AP.on?(FOOT.on?'Kendi kendine gidiyor':'Otopilotta'):FOOT.on?'Park halinde':'Sürüşte';return {d,what,kmh:Math.round(Math.abs(c.v)*3.6)};}
 function tappRender(){if(!TAPP.open)return;const s=tStatus();$('taLock').textContent=TAPP.locked?'🔓 Kilidi aç':'🔒 Kilitle';$('taLock').classList.toggle('on',TAPP.locked);
   $('taSt').textContent=(TAPP.locked?'🔒 Kilitli':'🔓 Açık')+' · '+s.what+(FOOT.on?' · '+s.d+' m uzakta':'')+(s.kmh>2?' · '+s.kmh+' km/s':'');$('taCar').textContent=vehName(curLo().veh)+' · '+ilCur().name;}
 function tappOpen(on){TAPP.open=on===undefined?!TAPP.open:on;if(TAPP.open&&(S.mode!=='serbest'||S.menuDemo)){TAPP.open=false;pop('Tesla uygulaması serbest sürüşte');}$('tapp').hidden=!TAPP.open;$('tbApp').classList.toggle('on',TAPP.open);if(TAPP.open){TAPP.mapT=0;tappRender();}}
@@ -3427,13 +3430,14 @@ function tappTick(dt){const on=S.mode==='serbest'&&!S.menuDemo&&!TUN.on;if(!on){
   // walk away and the car locks itself, like a phone key
   if(FOOT.on&&!TAPP.locked&&!TAPP.summon&&!AP.on){const d=Math.hypot(car.pos.x-FOOT.pos.x,car.pos.z-FOOT.pos.z);if(d>14&&!TAPP.awayLock){TAPP.awayLock=true;tLock(true,true);pop('🔒 Uzaklaştın, araba kendini kilitledi');}}
   if(!FOOT.on)TAPP.awayLock=false;
+  if(TAPP.parkGo&&!AP.on){TAPP.parkGo=false;if(TAPP.relock&&FOOT.on)tLock(true,true);TAPP.relock=false;}
   if(TAPP.open){TAPP.mapT-=dt;if(TAPP.mapT<=0){TAPP.mapT=.25;tappMap();tappRender();}}}
 {const b=(id,fn)=>$(id).addEventListener('click',()=>{audioInit();fn();});
   b('taLock',()=>tLock(!TAPP.locked));b('taHonk',tHonk);b('taFlash',tFlash);
   b('taCome',()=>{if(tSummon(null))say('Tamam, yanına geliyorum.');});
   b('taHomeGo',()=>{if(tSendHome())say(FOOT.on?'Tamam, araba eve gidiyor.':'Tamam, eve gidiyoruz.');});
   b('taTakeHome',()=>{if(FOOT.on){if(tSummon({mode:'road',dest:teslaHome(),label:'eve'}))say('Tamam, seni almaya geliyorum, sonra eve gideriz.');}else if(tSendHome())say('Tamam, eve gidiyoruz.');});
-  b('taSetHome',tSetHome);b('bTour',()=>tourStart());b('taTaxi',()=>taxiCall(null));b('taStop',()=>{TAPP.summon=false;TAPP.after=null;apStop('Otopilot durdu');tappRender();});b('taAsk',askStart);b('taClose',()=>tappOpen(false));b('bApp',()=>tappOpen());}
+  b('taPark',()=>{if(tPark())say(FOOT.on?'Tamam, araba kendi kendine en yakın park yerine gidiyor.':'Tamam, en yakın park yerine park ediyorum.');});b('taSetHome',tSetHome);b('bTour',()=>tourStart());b('taTaxi',()=>taxiCall(null));b('taStop',()=>{TAPP.summon=false;TAPP.after=null;apStop('Otopilot durdu');tappRender();});b('taAsk',askStart);b('taClose',()=>tappOpen(false));b('bApp',()=>tappOpen());}
 /* ================= TAXI: call one from the phone or Hey Tepetaklak, it drives to you, you tell it where to go ================= */
 const TAXI=(()=>{const g=new THREE.Group();let body=null;
   const sign=new THREE.Mesh(new THREE.BoxGeometry(.5,.26,1.1),[new THREE.MeshBasicMaterial({color:0xffd21f}),new THREE.MeshBasicMaterial({color:0xffd21f}),new THREE.MeshBasicMaterial({color:0xffe14d}),new THREE.MeshBasicMaterial({color:0x222222}),
@@ -3718,6 +3722,7 @@ function askCommand(raw){const t=raw.toLocaleLowerCase('tr-TR'),c=car,I=CITY.ci(
       if(come&&!home){say('Zaten arabadasın.');return;}
       if(tSendHome())say(FOOT.on?'Tamam, araba eve gidiyor. Ben park ederim.':'Tamam, eve gidiyoruz.');else say('Eve giden bir yol bulamadım.');return;}}
   if(/teslimat|sipariş|kurye/.test(t)){if(!S.cargo){say('Teslimatlar için kurye modunu aç.');return;}if(AP.on)apStop();apStart(mode,true,null);say('Tamam, siparişleri ben getiriyorum.');return;}
+  if(/park/.test(t)&&FOOT.on&&!FOOT.inTaxi&&!taxiW&&!/beni/.test(t)){if(tPark())say('Tamam, araba kendi kendine en yakın park yerine gidiyor.');return;}
   if(/park/.test(t)){const s=nearestOf(CITY.spotsIn(I-5,I+5,J-5,J+5));go(s&&{x:s.x,z:s.z,v:s.v,i:s.i,j:s.j,sg:s.sg,park:true},'en yakın park yerine');return;}
   if(/garaj/.test(t)){const L=[];for(let i=I-9;i<=I+9;i++)for(let j=J-9;j<=J+9;j++)if(CITY.m4(i)===3&&CITY.m4(j)===3&&!CITY.waterAt(CITY.nx(i)+CITY.B/2,CITY.nz(j),-9))L.push({x:CITY.nx(i)+CITY.B/2,z:CITY.nz(j)+AP_LANE});const g=nearestOf(L);go(g&&apDestFromPoint(g.x,g.z),'en yakın garaja');return;}
   const ilT=ilFind(t);
