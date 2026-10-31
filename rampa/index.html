@@ -3582,7 +3582,7 @@ function trDat(n){const w=n.split(' '),last=w[w.length-1].toLocaleLowerCase('tr-
 for(const [pl,id,name,key,type,o] of LMDEF){(LANDM.defs[pl]=LANDM.defs[pl]||[]).push({id,name,dat:trDat(name),key:new RegExp(key),near:LANDM.defs[pl].length?[-3,-1]:[2,1],build:()=>LMK2[type](o),plate:pl});}
 function landSpots(){const k=IL.cur+':'+CITY.seed;if(LANDM.key===k)return LANDM.spots;LANDM.key=k;LANDM.map.clear();LANDM.spots=[];
   const C=CITY,used=new Set(),wat=C.style().wat,ok=(i,j)=>!used.has(i+','+j)&&!C.isHwy(i,j)&&!C.isRamp(i,j)&&!(wat&&(j===6||j===7||j===5||j===8))&&!(i===0&&j===3)&&!(C.m4(i)===3&&C.m4(j)===3)&&!(i===1&&j===3);
-  LANDM.sp={};for(const [id,near,bx,oz] of [['smug',SMUG_AT,SMUG.boxes,0],['hosp',[-3,3],ACCB.hospBoxes,20],['kara',[5,1],ACCB.karaBoxes,20]]){let at=null;for(let r=0;r<6&&!at;r++)for(let di=-r;di<=r&&!at;di++)for(let dj=-r;dj<=r&&!at;dj++){if(Math.max(Math.abs(di),Math.abs(dj))!==r)continue;const i=near[0]+di,j=near[1]+dj;if(ok(i,j))at=[i,j];}
+  LANDM.sp={};for(const [id,near,bx,oz] of [['smug',SMUG_AT,SMUG.boxes,0],['hosp',[-3,3],ACCB.hospBoxes,24],['kara',[5,1],ACCB.karaBoxes,26]]){let at=null;for(let r=0;r<6&&!at;r++)for(let di=-r;di<=r&&!at;di++)for(let dj=-r;dj<=r&&!at;dj++){if(Math.max(Math.abs(di),Math.abs(dj))!==r)continue;const i=near[0]+di,j=near[1]+dj;if(ok(i,j))at=[i,j];}
     if(at){used.add(at[0]+','+at[1]);const cx=C.nx(at[0])+C.B/2,cz=C.nz(at[1])+C.B/2,sm={d:{id},i:at[0],j:at[1],cx,cz,boxes:bx.map(b=>({x0:cx+b.x0,x1:cx+b.x1,z0:cz+oz+b.z0,z1:cz+oz+b.z1,h:b.h}))};LANDM.sp[id]=sm;LANDM.map.set(at[0]+','+at[1],sm);}}
   LANDM.smug=LANDM.sp.smug||null;
   for(const d of LANDM.defs[IL.cur]||[]){let at=null;for(let r=0;r<6&&!at;r++)for(let di=-r;di<=r&&!at;di++)for(let dj=-r;dj<=r&&!at;dj++){if(Math.max(Math.abs(di),Math.abs(dj))!==r)continue;const i=d.near[0]+di,j=d.near[1]+dj;if(ok(i,j))at=[i,j];}
@@ -3834,7 +3834,7 @@ function accCctvRender(){if(!KAZA.cctv||!KAZA.buf.length)return;const W=innerWid
   const d=new Date(Date.now()-(performance.now()-tt));$('cctvT').textContent=d.toLocaleTimeString('tr-TR');}
 function accWalk(p,to,dt,sp=1.6){const dx=to.x-p.position.x,dz=to.z-p.position.z,d=Math.hypot(dx,dz);const a=p.userData.arms;if(d<.4){a[0].rotation.z=a[1].rotation.z=0;return true;}p.position.x+=dx/d*Math.min(d,sp*dt);p.position.z+=dz/d*Math.min(d,sp*dt);p.rotation.y=-Math.atan2(dz,dx);const s=Math.sin(performance.now()/120)*.5;a[0].rotation.z=s;a[1].rotation.z=-s;return false;}
 function accLights(g,t){const on=Math.floor(t*7)%2===0;g.userData.r.visible=on;g.userData.b.visible=!on;}
-function accTick(dt){accRecord();KAZA.sir=false;if(KAZA.hideMe)FOOT.g.visible=false;if(KAZA.st==='off'){if(S.mode==='serbest'&&!S.menuDemo&&!TUN.on){const H=accSpot('hosp'),K=accSpot('kara');ACCB.hosp.visible=!!H;ACCB.kara.visible=!!K;if(H)ACCB.hosp.position.set(H.cx,0,H.cz+20);if(K)ACCB.kara.position.set(K.cx,0,K.cz+20);
+function accTick(dt){accRecord();KAZA.sir=false;if(KAZA.hideMe)FOOT.g.visible=false;if(KAZA.st==='off'){if(S.mode==='serbest'&&!S.menuDemo&&!TUN.on){const H=accSpot('hosp'),K=accSpot('kara');ACCB.hosp.visible=!!H;ACCB.kara.visible=!!K;if(H)ACCB.hosp.position.set(H.cx,0,H.cz+24);if(K)ACCB.kara.position.set(K.cx,0,K.cz+26);
       if(KAZA.hosp&&H&&Math.hypot(accMe().x-H.cx,accMe().z-H.cz)<40){KAZA.hosp=false;bigMsg('HASTANE','Yaya iyileşti ve sana teşekkür etti · geçmiş olsun',3200);sfx('chime');}}else{ACCB.hosp.visible=ACCB.kara.visible=false;}return;}
   if(dt<=0)return;KAZA.t+=dt;const T=KAZA.t,now=performance.now()/1000,me=accMe(),P=KAZA.P,A=KAZA.A,ped=KAZA.ped;accLights(P,now);accLights(A,now+.07);KAZA.sir=T<40;
   if(ped){ped.g.position.copy(KAZA.pos);ped.g.rotation.x=Math.PI/2;}
@@ -3843,7 +3843,7 @@ function accTick(dt){accRecord();KAZA.sir=false;if(KAZA.hideMe)FOOT.g.visible=fa
   if((KAZA.st==='scene'||KAZA.st==='talk')&&Math.hypot(me.x-KAZA.pos.x,me.z-KAZA.pos.z)>60){KAZA.st='run';KAZA.t=0;bigMsg('EZİP KAÇTIN','Bu bir suç! Polis seni arıyor',2600);if(SET.police)polWant(2,'Ezip kaçtın');sfx('beep');P.visible=false;}
   if(KAZA.st==='run'){A.visible=false;KAZA.M.forEach(m=>m.visible=false);KAZA.C.visible=false;if(T>3&&(!SET.police||!POL.wanted)){pop('Polisi atlattın','gold');accClear();}else if(T>90)accClear();return;}
   // police and ambulance drive in
-  const pArr=accVeh(P,KAZA.polFrom,KAZA.polTo,15,dt),aArr=accVeh(A,KAZA.ambFrom,KAZA.ambTo,16,dt);
+  const arr=KAZA.st!=='arrest'&&KAZA.st!=='leave',pArr=arr&&accVeh(P,KAZA.polFrom,KAZA.polTo,15,dt),aArr=arr&&accVeh(A,KAZA.ambFrom,KAZA.ambTo,16,dt);
   if(aArr&&!KAZA.M[0].visible){KAZA.M.forEach((m,k)=>{m.visible=true;m.position.set(A.position.x+(k?-1.2:1.2),0,A.position.z+(k?1.4:-1.4));});KAZA.medT=0;}
   if(KAZA.M[0].visible&&KAZA.st!=='done'){KAZA.medT+=dt;KAZA.M.forEach((m,k)=>{const to=new V3(KAZA.pos.x+(k?-.9:.9),0,KAZA.pos.z+(k?.8:-.8));if(accWalk(m,to,dt,2)){m.lookAt(KAZA.pos.x,0,KAZA.pos.z);m.rotateY(-Math.PI/2);m.userData.arms.forEach(a=>a.rotation.z=1.2+Math.sin(now*6+k)*.3);m.scale.y=.8;}});}
   if(KAZA.st==='scene'&&pArr){KAZA.st='walk';KAZA.C.visible=true;KAZA.C.position.set(P.position.x,0,P.position.z+1.5);}
@@ -3869,13 +3869,13 @@ function accArrest(dt){const T=KAZA.t,me=accMe(),P=KAZA.P;
   if(T>7&&!KAZA.fadeA){KAZA.fadeA=true;$('fade').style.opacity='1';}
   if(T>8.5&&!KAZA.toKara){KAZA.toKara=true;const K=accSpot('kara');if(!K){accRelease();return;}
     KAZA.hideMe=true;KAZA.ped&&(KAZA.ped.g.visible=false);KAZA.A.visible=false;KAZA.M.forEach(m=>m.visible=false);KAZA.C.visible=false;FOOT.g.visible=false;
-    const door=new V3(K.cx,0,K.cz+20+3.5),road=CITY.nz(K.j+1);KAZA.kara={door,road,K};P.position.set(K.cx-70,0,road-1.9);P.rotation.y=0;
+    const door=new V3(K.cx,0,K.cz+20+3.5),road=CITY.nz(K.j+1);KAZA.kara={door,road,K};P.position.set(K.cx-34,0,road-1.9);P.rotation.y=0;FOOT.pos.set(P.position.x,0,P.position.z);
     const c=car;c.pos.x=K.cx+12;c.pos.z=road-1.9;c.yaw=0;c.v=0;c.vel.set(0,0,0);
     KAZA.R.forEach((r,k)=>{r.visible=true;r.position.set(K.cx-5+k*3.2,0,road-7.5-(k%2)*1.4);r.rotation.y=Math.PI/2;});
-    window.__camOverride=(Pp,L,U)=>{if(KAZA.st!=='arrest')return 0;const q=P.position;Pp.set(q.x-13,4.2,q.z+.5);L.set(q.x+4,1.2,q.z-3);U.set(0,1,0);return 6;};snapCam=true;$('fade').style.opacity='0';accSay('pol','Karakola gidiyoruz.',false);}
-  if(KAZA.toKara&&!KAZA.atKara){const K=KAZA.kara;if(accVeh(P,P.position,new V3(K.K.cx-2,0,K.road-1.9),13,dt)){KAZA.atKara=true;KAZA.hideMe=false;KAZA.kT=0;KAZA.q=-1;snapCam=true;FOOT.pos.set(P.position.x+.5,0,P.position.z-1.6);FOOT.g.visible=true;KAZA.C.visible=true;KAZA.C.position.set(P.position.x-1,0,P.position.z-1.6);}}
+    window.__camOverride=(Pp,L,U)=>{if(KAZA.st!=='arrest')return 0;const q=P.position;const K2=KAZA.kara;Pp.set(K2.K.cx+16,5,K2.road+6);L.set(K2.K.cx-6,2,K2.road-10);U.set(0,1,0);return 6;};snapCam=true;$('fade').style.opacity='0';accSay('pol','Karakola gidiyoruz.',false);}
+  if(KAZA.toKara&&!KAZA.atKara){const K=KAZA.kara;FOOT.pos.set(P.position.x,0,P.position.z-1.6);if(accVeh(P,P.position,new V3(K.K.cx-2,0,K.road-1.9),13,dt)){KAZA.atKara=true;KAZA.hideMe=false;KAZA.kT=0;KAZA.q=-1;snapCam=true;FOOT.pos.set(P.position.x+.5,0,P.position.z-1.6);FOOT.g.visible=true;KAZA.C.visible=true;KAZA.C.position.set(P.position.x-1,0,P.position.z-1.6);}}
   if(KAZA.atKara){KAZA.kT+=dt;const K=KAZA.kara,Qs=['Neden yaptınız?','Bilerek mi çarptınız?','Ailesine ne söyleyeceksiniz?','Hız sınırını aşmış mıydınız?'];
-    window.__camOverride=(Pp,L,U)=>{const q=FOOT.pos;Pp.set(q.x+6,2.6,q.z+4);L.set(q.x,1.4,q.z-1);U.set(0,1,0);return 4;};
+    window.__camOverride=(Pp,L,U)=>{const q=FOOT.pos;Pp.set(q.x+7,2.8,q.z+6);L.set(q.x-1,1.6,q.z-2);U.set(0,1,0);return 4;};
     const goal=new V3(K.door.x,0,K.door.z-1),walked=accWalk({position:FOOT.pos,rotation:FOOT.g.rotation,userData:{arms:[{rotation:{}},{rotation:{}}]}},goal,dt,.9);FOOT.g.position.copy(FOOT.pos);FOOT.g.rotation.x=0;accWalk(KAZA.C,new V3(FOOT.pos.x-.9,0,FOOT.pos.z+.6),dt,1);
     KAZA.R.forEach((r,k)=>{r.lookAt(FOOT.pos.x,0,FOOT.pos.z);r.rotateY(-Math.PI/2);if(Math.random()<dt*2.5)emit(r.position.x+.3,1.65,r.position.z,0,0,0,.08,1,1,1,1.4,0,1);});
     const qi=Math.floor(KAZA.kT/2.6);if(qi<Qs.length&&qi!==KAZA.q){KAZA.q=qi;accSay('press',Qs[qi]);}
