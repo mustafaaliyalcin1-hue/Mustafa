@@ -314,6 +314,13 @@ body.touch #cbHud{top:auto;right:auto;left:50%;transform:translateX(-50%);bottom
 #shop .card{max-width:560px;max-height:88vh;overflow:auto}.srow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}.srow b{font-size:16px}.srow small{display:block;color:#a9b1bc;font-size:12px;margin-top:3px;line-height:1.4}.srow button{min-height:44px;min-width:112px;border:1px solid var(--line);border-radius:3px;background:rgba(255,255,255,.06);font-weight:700;cursor:pointer}.srow button:disabled{opacity:.55;cursor:default}
 .tb.red{background:rgba(227,38,59,.6)}
 body.armed #touch [data-k=retro],body.armed #touch [data-k=fan]{display:none}
+
+#cctv{position:fixed;pointer-events:none;border:2px solid rgba(255,255,255,.75);backdrop-filter:grayscale(1) contrast(1.25) brightness(.95);-webkit-backdrop-filter:grayscale(1) contrast(1.25);background:repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 2px,transparent 2px 4px);font-family:ui-monospace,Menlo,monospace;color:#fff;font-size:12px;text-shadow:0 1px 2px #000}
+#cctv b{position:absolute;left:8px;top:6px;letter-spacing:.08em}#cctv .rec{position:absolute;right:8px;top:6px;color:#ff3b4e}#cctv #cctvT{position:absolute;left:8px;bottom:6px}
+#ifade .card{max-width:520px}.ifq{font-size:18px;font-weight:700;line-height:1.4;margin:6px 0 10px}#ifIn{width:100%;box-sizing:border-box;font:inherit;font-size:16px;padding:12px 14px;min-height:48px;border:1px solid var(--line);border-radius:3px;background:rgba(255,255,255,.06);color:var(--ink)}
+#ban{position:fixed;inset:0;z-index:200;background:#0b0d12;display:grid;place-items:center;text-align:center;padding:24px}#ban b{font-family:var(--font-d);font-size:clamp(40px,8vw,72px);color:#ff3b4e;display:block}#ban p{color:#c9cfd8;font-size:16px}#banT{font-family:var(--font-d);font-size:64px;font-variant-numeric:tabular-nums}
+#fade{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .8s;z-index:40}
+#osYtRes{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;width:100%;max-height:100%;overflow:auto;text-align:left}#osYtRes button{display:flex;flex-direction:column;gap:4px;border:1px solid #2a2e36;border-radius:10px;background:#171a20;color:#eef0f3;padding:6px;font:inherit;font-size:11.5px;cursor:pointer}#osYtRes img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:6px;background:#000}#osYtRes span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.3}
 </style>
 </head>
 <body>
@@ -361,6 +368,7 @@ body.armed #touch [data-k=retro],body.armed #touch [data-k=fan]{display:none}
   <div id="xhair" hidden></div><div id="scope" hidden></div><div id="hurt"></div>
   <div id="cbHud" hidden><span class="hp"><i id="cbHpBar"></i></span><b id="cbHp">100</b><span id="cbW">Silahsız</span><span id="cbAmmo"></span></div>
   <div id="turHud" hidden><b>TARET</b><span id="turMode">Minigun</span><span>· Hedef:</span><span id="turTgt">Otomatik</span><button type="button" data-tm="minigun">Minigun</button><button type="button" data-tm="laser">Lazer</button><button type="button" data-tm="rpg">RPG</button><button type="button" id="turTg">Hedef değiştir</button><button type="button" id="turOff">Kapat</button></div>
+  <div id="cctv" hidden><span class="rec">● KAYIT</span><b>MOBESE · KAVŞAK KAMERASI 07</b><span id="cctvT"></span></div>
   <div id="wanted" hidden><span id="wStars">★☆☆</span><b id="wTxt">Polis peşinde</b></div>
   <div id="autoTag" hidden>Kendi kendine oynuyor · kontrolü almak için <kbd>W</kbd> ya da GAZ</div>
   <div id="rec" hidden><span class="dot"></span><span id="recT">TEKRAR</span><button id="bRecSpd" type="button">1×</button><button id="bRecEnd" type="button">Bitir</button></div>
@@ -392,12 +400,16 @@ body.armed #touch [data-k=retro],body.armed #touch [data-k=fan]{display:none}
       <div id="osSp" hidden><div class="osrow"><button type="button" data-pl="37i9dQZEVXbIVYVBNw9D5K">🇹🇷 Türkiye Top 50</button><button type="button" data-pl="37i9dQZF1DXcBWIGoYBM5M">🌍 Top Hits</button><input id="osSpIn" placeholder="Şarkı ara ya da Spotify linki yapıştır" autocomplete="off"><button type="button" id="osSpGo">Git</button><button type="button" id="osSpOut">↗ Spotify'da aç</button></div>
         <iframe id="osSpF" title="Spotify" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe></div>
       <div id="osYt" hidden><div class="osrow"><input id="osYtIn" placeholder="YouTube'da ara ya da video linki yapıştır" autocomplete="off"><button type="button" id="osYtGo">Ara</button></div>
-        <div id="osYtPh"><p>YouTube'da ne izlemek istersin? Yukarıya yaz ve Ara'ya bas: YouTube açılır. Video linkini yapıştırırsan burada, arabanın ekranında oynar.</p><div class="osrow"><button type="button" data-yq="türkçe pop şarkılar">🎤 Türkçe pop</button><button type="button" data-yq="türkçe rap">🎧 Rap</button><button type="button" data-yq="lofi müzik">☕ Lofi</button><button type="button" data-yq="uçan araba">🚗 Uçan araba</button></div></div>
+        <div id="osYtPh"><p id="osYtMsg">YouTube'da ne izlemek istersin? Yukarıya yaz ve Ara'ya bas: videolar burada, arabanın ekranında açılır.</p><div class="osrow"><button type="button" data-yq="türkçe pop şarkılar">🎤 Türkçe pop</button><button type="button" data-yq="türkçe rap">🎧 Rap</button><button type="button" data-yq="lofi müzik">☕ Lofi</button><button type="button" data-yq="uçan araba">🚗 Uçan araba</button></div></div>
+        <div id="osYtRes" hidden></div>
         <iframe id="osYtF" hidden title="YouTube" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div>
     </div></div></div></div>
 <div id="rotate" hidden>Telefonu yan çevir: yatay ekranda çok daha iyi</div>
 
 <div id="shop" class="overlay center" hidden><div class="card"><div class="ghead"><div><h3>Kaçakçı</h3><p class="cs">Fısıltıyla: “Ne lazım? Polise söyleme.”</p></div><div id="shopMoney" class="cs"></div></div><div id="shopList"></div><p class="cs">Masaüstü: 1-5 silah seç, fare ile nişan al ve ateş et (J de ateş eder), sağ tık ya da Z dürbün. Voltra R: P taret, N mod, L hedef.</p><div class="row" style="margin-top:12px"><button class="btn primary" type="button" id="shopClose">Kapat</button></div></div></div>
+<div id="ifade" class="overlay center" hidden><div class="card"><h3 class="ct">İfade · Karakol</h3><p class="cs">Komiser seni dinliyor. Sesle ya da yazarak cevap ver.</p><p id="ifQ" class="ifq"></p><input id="ifIn" placeholder="Cevabını yaz…" autocomplete="off"><div class="row" style="margin-top:10px"><button class="btn" type="button" id="ifMic">Sesle cevap ver</button><button class="btn primary" type="button" id="ifGo">Gönder</button></div><p id="ifLog" class="cs"></p></div></div>
+<div id="ban" hidden><div><b>3 DAKİKA UZAKLAŞTIRMA</b><p>Bilerek çok sayıda yayaya çarptın. Araban çekildi.</p><span id="banT">3:00</span></div></div>
+<div id="fade"></div>
 <div id="tmenu" hidden>
   <button type="button" data-for="bSide">Yan görünüş</button>
   <button type="button" data-for="bRestart">Yeniden</button>
@@ -2100,7 +2112,7 @@ for(const ev of ['click','pointerdown','pointerup']){document.addEventListener(e
 
 /* ================= AUDIO ================= */
 const AU={ctx:null};
-function audioInit(){if(AU.ctx){if(AU.ctx.state!=='running')AU.ctx.resume().catch(()=>{});return;}
+function audioInit(){try{if(navigator.audioSession&&navigator.audioSession.type!=='ambient')navigator.audioSession.type='ambient';}catch(_){}if(AU.ctx){if(AU.ctx.state!=='running')AU.ctx.resume().catch(()=>{});return;}
   try{const ctx=new (window.AudioContext||window.webkitAudioContext)();AU.ctx=ctx;const m=ctx.createGain();m.gain.value=.5;m.connect(ctx.destination);AU.m=m;
     const o1=ctx.createOscillator(),o2=ctx.createOscillator();o1.type='sawtooth';o2.type='sine';const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=600;const eg=ctx.createGain();eg.gain.value=0;o1.connect(lp);o2.connect(lp);lp.connect(eg);eg.connect(m);o1.start();o2.start();Object.assign(AU,{o1,o2,lp,eg});
     const buf=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate),d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;AU.buf=buf;
@@ -2112,7 +2124,7 @@ function audioTick(on){if(!AU.ctx)return;const t=AU.ctx.currentTime,c=car,sp=c.s
   AU.eg.gain.setTargetAtTime(live&&c.state!=='crash'?.018+(lastInp.gas?.045:0)+Math.min(.03,sp*.0008):0,t,.08);
   AU.fan.gn.gain.setTargetAtTime(live?c.fanS*.16:0,t,.1);AU.fan.b.frequency.setTargetAtTime(700+c.fanS*900,t,.2);
   AU.gas.gn.gain.setTargetAtTime(live&&(c.lifting||c.boosting||c.retro)?.28:0,t,.03);
-  {const chase=live&&S.mode==='serbest'&&POL.wanted&&POL.near<220;AU.sir.frequency.setTargetAtTime(760+260*Math.sin(t*7),t,.02);AU.sirG.gain.setTargetAtTime(chase?.05*(1-POL.near/220):0,t,.1);}
+  {const chase=live&&S.mode==='serbest'&&((POL.wanted&&POL.near<220)||KAZA.sir);AU.sir.frequency.setTargetAtTime(760+260*Math.sin(t*7),t,.02);AU.sirG.gain.setTargetAtTime(chase?.05*(KAZA.sir?.6:(1-POL.near/220)):0,t,.1);}
   AU.wind.gn.gain.setTargetAtTime(live?Math.min(.3,sp*sp*.0004):0,t,.2);}
 function sfx(k){if(!AU.ctx||SET.mute||S.menuDemo)return;const ctx=AU.ctx,t=ctx.currentTime;
   if(k==='chime'||k==='beep'||k==='go'){const o=ctx.createOscillator(),g=ctx.createGain();o.type='triangle';o.frequency.setValueAtTime(k==='beep'?620:k==='go'?930:880,t);if(k==='chime')o.frequency.exponentialRampToValueAtTime(1320,t+.12);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.22,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+(k==='go'?.6:.35));o.connect(g);g.connect(AU.m);o.start(t);o.stop(t+.7);return;}
@@ -2425,7 +2437,7 @@ function updateCamera(dt){camDt=dt;
   cam.pos.lerp(_cp,a);cam.look.lerp(_cl,Math.min(1,a*1.5));if(chase){const dd=cam.pos.distanceTo(car.pos),mx=30*(cam.zoom||1);if(dd>mx)cam.pos.lerp(car.pos,1-mx/dd);const dl=cam.look.distanceTo(car.pos);if(dl>25)cam.look.lerp(car.pos,1-25/dl);}cam.up.lerp(_cu,a).normalize();if(cam.pos.y<.4&&!(TUN.on&&TUN.ph!=='down'))cam.pos.y=.4;
   camera.position.copy(cam.pos);
   if(S.shake>0){S.shake=Math.max(0,S.shake-dt*1.6);const s=S.shake*.35;camera.position.x+=(Math.random()-.5)*s;camera.position.y+=(Math.random()-.5)*s;}
-  if(S.mode==='serbest'&&S.camMode<3){for(let t=.2;t<=1.001;t+=.2){_off.copy(cam.pos).sub(cam.look).multiplyScalar(t).add(cam.look);if(inBuilding(_off)){camera.position.copy(cam.pos).sub(cam.look).multiplyScalar(Math.max(.15,t-.2)).add(cam.look);break;}}}
+  if(S.mode==='serbest'&&S.camMode<3&&!window.__camOverride){for(let t=.2;t<=1.001;t+=.2){_off.copy(cam.pos).sub(cam.look).multiplyScalar(t).add(cam.look);if(inBuilding(_off)){camera.position.copy(cam.pos).sub(cam.look).multiplyScalar(Math.max(.15,t-.2)).add(cam.look);break;}}}
   camera.up.copy(cam.up);camera.lookAt(cam.look);
   const sp=car.state==='air'||car.state==='crash'?car.vel.length():Math.abs(car.v);const fov=cbArmed()&&CB.zoom?14:S.camMode===3&&!S.menuDemo?72:S.camMode>=4&&S.mode==='serbest'?96:46+Math.min(10,sp*.25);camera.fov+=(fov-camera.fov)*(1-Math.exp(-2*dt));camera.updateProjectionMatrix();
 }
@@ -2517,12 +2529,13 @@ function frame(now){
     ghostTick();
   }
   if(bigT>0){bigT-=dt;if(bigT<=0){$('bigT').textContent='';$('bigS').textContent='';}}
-  netTick(dt,simDt);if(!TUN.on){gateUpdate(dt);cargoTick(simDt,dt);peopleTick(simDt,dt);heliTick(simDt,dt);}elevTick(dt);tappTick(dt);taxiStep(simDt);shoreTick(dt);osTick(dt);tourTick(simDt);tunRender();tunPad();CITY.boatTick(dt,car.pos.x);pedTick(simDt,dt);skyTick(simDt);restTick(dt);landTick();footTick(simDt);cbTick(simDt,dt);
+  netTick(dt,simDt);if(!TUN.on){gateUpdate(dt);cargoTick(simDt,dt);peopleTick(simDt,dt);heliTick(simDt,dt);}elevTick(dt);tappTick(dt);taxiStep(simDt);shoreTick(dt);osTick(dt);tourTick(simDt);tunRender();tunPad();CITY.boatTick(dt,car.pos.x);pedTick(simDt,dt);skyTick(simDt);restTick(dt);landTick();footTick(simDt);cbTick(simDt,dt);accTick(simDt);
   if(S.mode==='serbest'&&!S.menuDemo&&!TUN.on){CITY.update(FOOT.on?FOOT.pos.x:car.pos.x,FOOT.on?FOOT.pos.z:car.pos.z);trafficRender();polRender(now/1000);drawMinimap();ilLabel();if(S.free.recDirty&&Math.random()<.02){store.set('rec',REC);updateRecords();S.free.recDirty=false;}}
   poseCar(simDt);updateCamera(dt);cockpitPose();apHud();tickParticles(paused?0:dt*(S.slow?.3:1));
   hud();audioTick(!paused&&(S.phase==='play'||S.phase==='ended'||S.phase==='count'));
   realismTick();
   if(LOW)renderer.render(scene,camera);else composer.render();
+  accCctvRender();
 }
 
 /* ================= ONLINE: rooms over WebRTC (PeerJS). Host relays, everyone simulates their own car ================= */
@@ -3274,10 +3287,10 @@ function pedTick(dt,rdt){const on=pedOn();if(!on){for(const p of PEDS){p.g.visib
     else if(p.st==='walk'){p.k+=p.sp*dt/Math.hypot(p.bx-p.ax,p.bz-p.az);const k=Math.min(1,p.k);G.position.set(p.ax+(p.bx-p.ax)*k,Math.abs(Math.sin(t*8+p.i))*.04,p.az+(p.bz-p.az)*k);
       const sw=Math.sin(t*8+p.j)*.5;arms[0].rotation.z=sw;arms[1].rotation.z=-sw;if(k>=1){p.st='idle';p.t=2+Math.random()*4;}}
     else if(p.st==='idle'){p.t-=dt;if(p.t<=0)pedPlace(p);}
-    else if(p.st==='down'){p.down+=rdt;G.rotation.x=Math.min(Math.PI/2,G.rotation.x+rdt*6);if(p.down>4){G.rotation.x=0;pedPlace(p);}continue;}
+    else if(p.st==='down'){if(p.acc)continue;p.down+=rdt;G.rotation.x=Math.min(Math.PI/2,G.rotation.x+rdt*6);if(p.down>4){G.rotation.x=0;pedPlace(p);}continue;}
     // getting hit by the player
     if((c.state==='free'||c.state==='freeAir')&&c.pos.y<1.3){const dx=G.position.x-c.pos.x,dz=G.position.z-c.pos.z;if(Math.hypot(dx,dz)<1.5&&Math.abs(c.v)>2.5){p.st='down';p.down=0;G.rotation.set(0,Math.atan2(-c.vel.z,c.vel.x),0);
-      G.position.x+=c.vel.x*.08;G.position.z+=c.vel.z*.08;c.v*=.8;c.vel.multiplyScalar(.8);S.shake=.4;sfx('thud');pedPenalty();}}}}
+      G.position.x+=c.vel.x*.08;G.position.z+=c.vel.z*.08;c.v*=.8;c.vel.multiplyScalar(.8);S.shake=.4;sfx('thud');if(S.mode==='serbest')accHit(p,c);else pedPenalty();}}}}
 function pedPenalty(){if(S.cargo){const f=Math.min(CAREER.money,250);CAREER.money-=f;saveCareer();bigMsg('YAYAYA ÇARPTIN','Ceza: −'+nf(f)+' ₺',1800);}
   else{const f=Math.min(S.score,600);S.score-=f;bigMsg('YAYAYA ÇARPTIN','−'+nf(f)+' puan',1800);}
   if(SET.police)polWant(Math.min(3,POL.wanted+1),'Yayaya çarptın');}
@@ -3349,8 +3362,9 @@ const LANDM={defs:{
 for(const p in LANDM.defs)for(const d of LANDM.defs[p])d.plate=+p;
 function landSpots(){const k=IL.cur+':'+CITY.seed;if(LANDM.key===k)return LANDM.spots;LANDM.key=k;LANDM.map.clear();LANDM.spots=[];
   const C=CITY,used=new Set(),wat=C.style().wat,ok=(i,j)=>!used.has(i+','+j)&&!C.isHwy(i,j)&&!C.isRamp(i,j)&&!(wat&&(j===6||j===7||j===5||j===8))&&!(i===0&&j===3)&&!(C.m4(i)===3&&C.m4(j)===3)&&!(i===1&&j===3);
-  {let at=null;for(let r=0;r<6&&!at;r++)for(let di=-r;di<=r&&!at;di++)for(let dj=-r;dj<=r&&!at;dj++){if(Math.max(Math.abs(di),Math.abs(dj))!==r)continue;const i=SMUG_AT[0]+di,j=SMUG_AT[1]+dj;if(ok(i,j))at=[i,j];}
-    if(at){used.add(at[0]+','+at[1]);const cx=C.nx(at[0])+C.B/2,cz=C.nz(at[1])+C.B/2,sm={d:{id:'smug'},i:at[0],j:at[1],cx,cz,boxes:SMUG.boxes.map(b=>({x0:cx+b.x0,x1:cx+b.x1,z0:cz+b.z0,z1:cz+b.z1,h:b.h}))};LANDM.smug=sm;LANDM.map.set(at[0]+','+at[1],sm);}else LANDM.smug=null;}
+  LANDM.sp={};for(const [id,near,bx,oz] of [['smug',SMUG_AT,SMUG.boxes,0],['hosp',[-3,3],ACCB.hospBoxes,6],['kara',[5,1],ACCB.karaBoxes,6]]){let at=null;for(let r=0;r<6&&!at;r++)for(let di=-r;di<=r&&!at;di++)for(let dj=-r;dj<=r&&!at;dj++){if(Math.max(Math.abs(di),Math.abs(dj))!==r)continue;const i=near[0]+di,j=near[1]+dj;if(ok(i,j))at=[i,j];}
+    if(at){used.add(at[0]+','+at[1]);const cx=C.nx(at[0])+C.B/2,cz=C.nz(at[1])+C.B/2,sm={d:{id},i:at[0],j:at[1],cx,cz,boxes:bx.map(b=>({x0:cx+b.x0,x1:cx+b.x1,z0:cz+oz+b.z0,z1:cz+oz+b.z1,h:b.h}))};LANDM.sp[id]=sm;LANDM.map.set(at[0]+','+at[1],sm);}}
+  LANDM.smug=LANDM.sp.smug||null;
   for(const d of LANDM.defs[IL.cur]||[]){let at=null;for(let r=0;r<6&&!at;r++)for(let di=-r;di<=r&&!at;di++)for(let dj=-r;dj<=r&&!at;dj++){if(Math.max(Math.abs(di),Math.abs(dj))!==r)continue;const i=d.near[0]+di,j=d.near[1]+dj;if(ok(i,j))at=[i,j];}
     if(!at)continue;used.add(at[0]+','+at[1]);const cx=C.nx(at[0])+C.B/2,cz=C.nz(at[1])+C.B/2;if(!LANDM.mesh[d.id]){const m=d.build();m.g.visible=false;scene.add(m.g);m.sign=nameSprite(d.name,0xffd34d);m.sign.scale.multiplyScalar(4);m.sign.visible=false;scene.add(m.sign);LANDM.mesh[d.id]=m;}
     const m=LANDM.mesh[d.id],s={d,i:at[0],j:at[1],cx,cz,boxes:m.boxes.map(b=>({x0:cx+b.x0,x1:cx+b.x1,z0:cz+b.z0,z1:cz+b.z1,h:b.h}))};LANDM.spots.push(s);LANDM.map.set(at[0]+','+at[1],s);}
@@ -3541,6 +3555,122 @@ function cbTick(simDt,dt){const live=S.mode==='serbest'&&!S.menuDemo;$('cbHud').
     if(simDt>0)cbFire(simDt);FOOT.cam=FOOT.yaw;}CB.rec*=Math.max(0,1-dt*6);if(FOOT.on&&!FOOT.inTaxi)FOOT.g.visible=!(cbArmed()&&CB.zoom);if(document.pointerLockElement===canvas&&!cbArmed())document.exitPointerLock();
   else if(FOOT.on){FOOT.g.userData.arms[1].rotation.x=0;}
   cbUi();}
+/* ================= ACCIDENTS: hitting a pedestrian brings police and an ambulance; hit-and-run is a crime ================= */
+const ACCB=(()=>{const mt=c=>new THREE.MeshStandardMaterial({color:c,roughness:.7}),bas=c=>new THREE.MeshBasicMaterial({color:c});
+  const box=(g,w,h,d,m,x,y,z)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=true;g.add(o);return o;};
+  const wheels=(g,xs,zs,r=.36)=>{for(const x of xs)for(const z of zs){const w=new THREE.Mesh(new THREE.CylinderGeometry(r,r,.26,14).rotateX(Math.PI/2),mt(0x111111));w.position.set(x,r,z);g.add(w);}};
+  function police(){const g=new THREE.Group();box(g,4.5,.8,1.9,mt(0x111827),0,.68,0);box(g,1.9,.42,1.94,mt(0xf2f4f7),-.1,.72,0);box(g,2.3,.6,1.64,mt(0x07080a),-.3,1.36,0);
+    const r=box(g,.32,.16,.62,bas(0xff2035),-.3,1.74,.36),b=box(g,.32,.16,.62,bas(0x2f7bff),-.3,1.74,-.36);wheels(g,[1.45,-1.45],[.86,-.86]);g.userData={r,b};g.visible=false;scene.add(g);return g;}
+  function ambulance(){const g=new THREE.Group(),W=mt(0xf4f4f2);box(g,3.6,2.2,2.1,W,-.7,1.45,0);box(g,1.6,1.5,2.0,W,1.85,1.1,0);box(g,1.0,.7,1.9,mt(0x0b0d10),2.2,1.5,0);
+    box(g,3.62,.28,2.12,bas(0xd81e2c),-.7,1.15,0);box(g,1.62,.2,2.02,bas(0xd81e2c),1.85,.85,0);box(g,3.62,.12,2.12,bas(0xffc400),-.7,.92,0);
+    const r=box(g,.3,.16,.5,bas(0xff2035),.9,2.62,.5),b=box(g,.3,.16,.5,bas(0x2f7bff),.9,2.62,-.5);wheels(g,[1.75,-1.6],[.9,-.9],.4);
+    const s=nameSprite('112 ACİL',0xd81e2c);s.position.set(-.7,3.2,0);s.scale.multiplyScalar(.8);g.add(s);g.userData={r,b};g.visible=false;scene.add(g);return g;}
+  const cop=()=>{const p=buildPerson(0x1f3a68,0x14213d,0xd9a066,{hair:0x2b1d14,cap:0x14213d});p.visible=false;return p;};
+  const medic=()=>{const p=buildPerson(0xc1121f,0x1d3557,0xe0ac69,{hair:0x3b2a1a});p.visible=false;return p;};
+  const reporter=k=>{const p=buildPerson([0x6c757d,0x8d99ae,0x264653,0xbc6c25][k%4],0x22223b,[0xf1c27d,0xc68642,0xe0ac69][k%3],{hair:0x2b1d14});const cam=new THREE.Mesh(new THREE.BoxGeometry(.45,.3,.25),mt(0x1b1b1b));cam.position.set(.2,1.62,.3);p.add(cam);p.visible=false;return p;};
+  const pole=new THREE.Group();{const c=new THREE.Mesh(new THREE.CylinderGeometry(.09,.12,7,8),mt(0x4a4f57));c.position.y=3.5;pole.add(c);const cb=new THREE.Mesh(new THREE.BoxGeometry(.5,.3,.3),mt(0xe9ecef));cb.position.set(.25,6.9,0);pole.add(cb);pole.visible=false;scene.add(pole);}
+  const stretcher=new THREE.Mesh(new THREE.BoxGeometry(2,.12,.6),mt(0xf1f1f1));stretcher.visible=false;scene.add(stretcher);
+  const hosp=new THREE.Group();{const w=mt(0xf3f4f6);box(hosp,34,20,16,w,0,10,-12);for(let y=0;y<4;y++)box(hosp,32,.9,16.2,mt(0x9fc5e8),0,3+y*4.6,-12);box(hosp,10,4,6,w,0,2,-1.5);box(hosp,10.6,.4,7,mt(0xd81e2c),0,4.2,-1.5);
+    const H=new THREE.Mesh(new THREE.PlaneGeometry(5,5),bas(0x1d4ed8));H.position.set(0,16,-3.9);hosp.add(H);const h1=box(hosp,.9,3.4,.05,bas(0xffffff),-1,16,-3.85),h2=box(hosp,.9,3.4,.05,bas(0xffffff),1,16,-3.85),h3=box(hosp,2.6,.8,.05,bas(0xffffff),0,16,-3.85);
+    const s=nameSprite('HASTANE',0x1d4ed8);s.scale.multiplyScalar(2.6);s.position.set(0,23,-4);hosp.add(s);hosp.visible=false;scene.add(hosp);}
+  const kara=new THREE.Group();{box(kara,26,4.4,12,mt(0x1e3a8a),0,2.2,-12);box(kara,26,4.4,12,mt(0xf8fafc),0,6.6,-12);box(kara,8,3.4,3,mt(0xe5e7eb),0,1.7,-4.5);box(kara,8.6,.35,3.6,mt(0x1e3a8a),0,3.6,-4.5);
+    const s=nameSprite('POLİS · KARAKOL',0x1e3a8a);s.scale.multiplyScalar(2.2);s.position.set(0,11.5,-6);kara.add(s);
+    const fp=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,9,6),mt(0xdedede));fp.position.set(9,4.5,-3);kara.add(fp);const fl=new THREE.Mesh(new THREE.PlaneGeometry(2.4,1.6),new THREE.MeshBasicMaterial({map:lmFlag(),side:THREE.DoubleSide}));fl.position.set(10.2,8.1,-3);kara.add(fl);kara.visible=false;scene.add(kara);}
+  return {police,ambulance,cop,medic,reporter,pole,stretcher,hosp,kara,
+    hospBoxes:[{x0:-17,x1:17,z0:-20,z1:-4,h:20},{x0:-5,x1:5,z0:-4.5,z1:1.5,h:4.4}],karaBoxes:[{x0:-13,x1:13,z0:-18,z1:-6,h:8.8},{x0:-4,x1:4,z0:-6,z1:-3,h:3.6}]};})();
+const KAZA={st:'off',t:0,ped:null,pos:new V3(),ap:false,kmh:0,dir:[1,0],live:true,hist:[],deaths:0,pol:null,amb:null,cop:null,medics:[],press:[],buf:[],hitT:0,cctv:false,ccam:new THREE.PerspectiveCamera(48,16/9,.5,800),lock:false,sir:false,hosp:false,line:0,q:0,ans:[],
+  P:ACCB.police(),A:ACCB.ambulance(),C:ACCB.cop(),C2:ACCB.cop(),M:[ACCB.medic(),ACCB.medic()],R:[0,1,2,3].map(ACCB.reporter)};
+function accSay(who,text,tts=true){askShow(text,who);if(tts)try{if(!SET.mute&&window.speechSynthesis){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='tr-TR';u.rate=1;u.pitch=who==='press'?1.2:who==='kom'?.85:1;const v=speechSynthesis.getVoices().find(v=>/^tr/i.test(v.lang));if(v)u.voice=v;speechSynthesis.speak(u);}}catch(_){}}
+function accSpot(id){landSpots();return LANDM.sp&&LANDM.sp[id];}
+function accDest(id,label){const s=accSpot(id);if(!s)return null;const r=apDestFromPoint(s.cx,CITY.nz(s.j+1));if(r)r.land=label;return r;}
+function accMe(){return FOOT.on?FOOT.pos:car.pos;}
+// on which road is the scene: drive the police car and the ambulance in along it
+function accRoad(p){const fi=Math.round((p.x-CITY.nx(0))/CITY.B),fj=Math.round((p.z-CITY.nz(0))/CITY.B),dx=Math.abs(p.x-CITY.nx(fi)),dz=Math.abs(p.z-CITY.nz(fj));return dz<dx?{dir:[1,0],lane:CITY.nz(fj)}:{dir:[0,1],lane:CITY.nx(fi)};}
+function accVeh(o,from,to,sp,dt){const dx=to.x-o.position.x,dz=to.z-o.position.z,d=Math.hypot(dx,dz);if(d<.3)return true;const s=Math.min(d,sp*dt*Math.min(1,d/12+.25));o.position.x+=dx/d*s;o.position.z+=dz/d*s;o.rotation.y=-Math.atan2(dz,dx);return false;}
+function accHit(p,c){const ap=AP.on,kmh=Math.round(Math.abs(c.v)*3.6),now=performance.now()/1000;KAZA.hist=KAZA.hist.filter(t=>now-t<90);if(!ap)KAZA.hist.push(now);
+  if(KAZA.hist.length>=3||KAZA.deaths>=2){accSevere();return;}
+  if(KAZA.st!=='off'){pedPenalty();return;}// one scene at a time
+  p.acc=true;Object.assign(KAZA,{st:'scene',t:0,ped:p,ap,kmh,live:Math.random()<(kmh>70?.8:kmh>45?.9:.95),hitT:performance.now(),cctv:false,hosp:false,line:0,sir:true});KAZA.pos.copy(p.g.position);
+  const R=accRoad(KAZA.pos);KAZA.dir=R.dir;KAZA.lane=R.lane;const [ux,uz]=R.dir,on=(s,off)=>new V3(R.dir[0]?KAZA.pos.x+s:R.lane+off,0,R.dir[1]?KAZA.pos.z+s:R.lane+off);
+  KAZA.polFrom=on(-90,-1.9);KAZA.polTo=on(-13,-1.9);KAZA.ambFrom=on(95,1.9);KAZA.ambTo=on(9,1.9);
+  KAZA.P.position.copy(KAZA.polFrom);KAZA.A.position.copy(KAZA.ambFrom);KAZA.P.visible=KAZA.A.visible=true;
+  bigMsg('YAYAYA ÇARPTIN',ap?'Otopilot sürüyordu · dur, polis ve ambulans geliyor':'Dur ve bekle: polis ve ambulans geliyor · kaçmak suç!',3200);sfx('crash');}
+function accSevere(){KAZA.hist=[];KAZA.deaths=0;accClear();bigMsg('AĞIR SUÇ','Bilerek çok sayıda yayaya çarptın · araban çekildi',3000);sfx('crash');
+  const until=Date.now()+3*60*1000;store.set('ban',until);setTimeout(()=>banShow(),1600);}
+function banShow(){const until=store.get('ban',0);if(!until||Date.now()>=until){$('ban').hidden=true;return;}$('ban').hidden=false;releaseAll();if(S.ui==='play'&&S.mode==='serbest'&&!S.menuDemo)toMenu();
+  const tick=()=>{const left=until-Date.now();if(left<=0){$('ban').hidden=true;store.set('ban',0);return;}$('banT').textContent=Math.floor(left/60000)+':'+String(Math.floor(left/1000)%60).padStart(2,'0');setTimeout(tick,500);};tick();}
+function accClear(){if(KAZA.ped){KAZA.ped.acc=false;KAZA.ped.g.rotation.x=0;pedPlace(KAZA.ped);}for(const o of [KAZA.P,KAZA.A,KAZA.C,KAZA.C2,...KAZA.M,...KAZA.R,ACCB.pole,ACCB.stretcher])o.visible=false;
+  Object.assign(KAZA,{st:'off',ped:null,cctv:false,lock:false,sir:false});window.__camOverride=null;$('cctv').hidden=true;$('ifade').hidden=true;$('fade').style.opacity='0';}
+function accRecord(){if(S.mode!=='serbest'||S.menuDemo)return;const V=CARS[curLo().veh].g,f={t:performance.now(),p:V.position.clone(),q:V.quaternion.clone(),peds:PEDS.map(p=>[p.g.position.x,p.g.position.y,p.g.position.z,p.g.rotation.y,p.g.rotation.x,p.g.visible])};KAZA.buf.push(f);while(KAZA.buf.length&&f.t-KAZA.buf[0].t>9000)KAZA.buf.shift();}
+// picture-in-picture CCTV: re-pose the car and the walkers from the recording, render from the pole camera, put everything back
+function accCctvRender(){if(!KAZA.cctv||!KAZA.buf.length)return;const W=innerWidth,H=innerHeight,w=Math.round(Math.min(W*.46,560)),h=Math.round(w*9/16),x=W-w-16,y=H-h-(isTouch?150:120);
+  const el=$('cctv');el.style.cssText=`left:${x}px;top:${y}px;width:${w}px;height:${h}px`;
+  const span=5200,t0=KAZA.hitT-3600,tt=t0+((performance.now()-KAZA.cctvT)*.8)%span;let f=KAZA.buf[0];for(const b of KAZA.buf){if(b.t>tt)break;f=b;}
+  const V=CARS[curLo().veh].g,sp=V.position.clone(),sq=V.quaternion.clone(),sv=V.visible,saved=PEDS.map(p=>[p.g.position.clone(),p.g.rotation.y,p.g.rotation.x,p.g.visible]);
+  V.position.copy(f.p);V.quaternion.copy(f.q);V.visible=true;PEDS.forEach((p,k)=>{const d=f.peds[k];if(!d)return;p.g.position.set(d[0],d[1],d[2]);p.g.rotation.y=d[3];p.g.rotation.x=d[4];p.g.visible=d[5];});
+  const fv=FOOT.g.visible;FOOT.g.visible=false;KAZA.ccam.aspect=w/h;KAZA.ccam.updateProjectionMatrix();
+  renderer.setRenderTarget(null);renderer.setScissorTest(true);renderer.setViewport(x,H-y-h,w,h);renderer.setScissor(x,H-y-h,w,h);renderer.render(scene,KAZA.ccam);renderer.setScissorTest(false);renderer.setViewport(0,0,W,H);
+  V.position.copy(sp);V.quaternion.copy(sq);V.visible=sv;FOOT.g.visible=fv;PEDS.forEach((p,k)=>{const s=saved[k];p.g.position.copy(s[0]);p.g.rotation.y=s[1];p.g.rotation.x=s[2];p.g.visible=s[3];});
+  const d=new Date(Date.now()-(performance.now()-tt));$('cctvT').textContent=d.toLocaleTimeString('tr-TR');}
+function accWalk(p,to,dt,sp=1.6){const dx=to.x-p.position.x,dz=to.z-p.position.z,d=Math.hypot(dx,dz);const a=p.userData.arms;if(d<.4){a[0].rotation.z=a[1].rotation.z=0;return true;}p.position.x+=dx/d*Math.min(d,sp*dt);p.position.z+=dz/d*Math.min(d,sp*dt);p.rotation.y=-Math.atan2(dz,dx);const s=Math.sin(performance.now()/120)*.5;a[0].rotation.z=s;a[1].rotation.z=-s;return false;}
+function accLights(g,t){const on=Math.floor(t*7)%2===0;g.userData.r.visible=on;g.userData.b.visible=!on;}
+function accTick(dt){accRecord();KAZA.sir=false;if(KAZA.hideMe)FOOT.g.visible=false;if(KAZA.st==='off'){if(S.mode==='serbest'&&!S.menuDemo&&!TUN.on){const H=accSpot('hosp'),K=accSpot('kara');ACCB.hosp.visible=!!H;ACCB.kara.visible=!!K;if(H)ACCB.hosp.position.set(H.cx,0,H.cz+6);if(K)ACCB.kara.position.set(K.cx,0,K.cz+6);
+      if(KAZA.hosp&&H&&Math.hypot(accMe().x-H.cx,accMe().z-H.cz)<40){KAZA.hosp=false;bigMsg('HASTANE','Yaya iyileşti ve sana teşekkür etti · geçmiş olsun',3200);sfx('chime');}}else{ACCB.hosp.visible=ACCB.kara.visible=false;}return;}
+  if(dt<=0)return;KAZA.t+=dt;const T=KAZA.t,now=performance.now()/1000,me=accMe(),P=KAZA.P,A=KAZA.A,ped=KAZA.ped;accLights(P,now);accLights(A,now+.07);KAZA.sir=T<40;
+  if(ped){ped.g.position.copy(KAZA.pos);ped.g.rotation.x=Math.PI/2;}
+  if(KAZA.lock){for(const k in keys)keys[k]=0;for(const k in touchK)touchK[k]=0;car.v=0;car.vel.set(0,0,0);if(AP.on)apStop();}
+  // hit and run: leaving the scene before the police are done is a crime
+  if((KAZA.st==='scene'||KAZA.st==='talk')&&Math.hypot(me.x-KAZA.pos.x,me.z-KAZA.pos.z)>60){KAZA.st='run';KAZA.t=0;bigMsg('EZİP KAÇTIN','Bu bir suç! Polis seni arıyor',2600);if(SET.police)polWant(2,'Ezip kaçtın');sfx('beep');P.visible=false;}
+  if(KAZA.st==='run'){A.visible=false;KAZA.M.forEach(m=>m.visible=false);KAZA.C.visible=false;if(T>3&&(!SET.police||!POL.wanted)){pop('Polisi atlattın','gold');accClear();}else if(T>90)accClear();return;}
+  // police and ambulance drive in
+  const pArr=accVeh(P,KAZA.polFrom,KAZA.polTo,15,dt),aArr=accVeh(A,KAZA.ambFrom,KAZA.ambTo,16,dt);
+  if(aArr&&!KAZA.M[0].visible){KAZA.M.forEach((m,k)=>{m.visible=true;m.position.set(A.position.x+(k?-1.2:1.2),0,A.position.z+(k?1.4:-1.4));});KAZA.medT=0;}
+  if(KAZA.M[0].visible&&KAZA.st!=='done'){KAZA.medT+=dt;KAZA.M.forEach((m,k)=>{const to=new V3(KAZA.pos.x+(k?-.9:.9),0,KAZA.pos.z+(k?.8:-.8));if(accWalk(m,to,dt,2)){m.lookAt(KAZA.pos.x,0,KAZA.pos.z);m.rotateY(-Math.PI/2);m.userData.arms.forEach(a=>a.rotation.z=1.2+Math.sin(now*6+k)*.3);m.scale.y=.8;}});}
+  if(KAZA.st==='scene'&&pArr){KAZA.st='walk';KAZA.C.visible=true;KAZA.C.position.set(P.position.x,0,P.position.z+1.5);}
+  if(KAZA.st==='walk'){const to=new V3(me.x-(me.x-KAZA.C.position.x)*.0,0,me.z);to.x=me.x-Math.sign(me.x-KAZA.C.position.x||1)*2.2;if(accWalk(KAZA.C,to,dt,1.8)||KAZA.t>18){KAZA.st='talk';KAZA.t=0;KAZA.line=0;}}
+  if(KAZA.st==='talk'){const L=[[0,()=>accSay('pol','Merhaba, polis. Ehliyet ve ruhsat lütfen. Olay nasıl oldu? Kavşaktaki mobese kaydını da inceliyoruz.')],
+      [5,()=>{KAZA.cctv=true;KAZA.cctvT=performance.now();$('cctv').hidden=false;const R=KAZA.dir,po=new V3(KAZA.pos.x+(R[0]?10:7),0,KAZA.pos.z+(R[1]?10:7));ACCB.pole.position.copy(po);ACCB.pole.visible=true;KAZA.ccam.position.set(po.x+.3,6.9,po.z);KAZA.ccam.lookAt(KAZA.pos.x,.5,KAZA.pos.z);}],
+      [12,()=>{KAZA.cctv=false;$('cctv').hidden=true;if(KAZA.ap)accSay('pol','Kayıtta aracın otopilotta olduğu görülüyor. Size ceza yok, rapor üreticiye iletilecek.');else{const fine=Math.round((450+KAZA.kmh*38)/10)*10;
+        if(S.cargo){const f=Math.min(CAREER.money,fine);CAREER.money-=f;saveCareer();}else S.score=Math.max(0,S.score-600);accSay('pol','Yayaya '+KAZA.kmh+' kilometre hızla çarptınız. Trafik cezanız '+nf(fine)+' lira.');bigMsg('CEZA',nf(fine)+' ₺ · '+KAZA.kmh+' km/s',2600);}}],
+      [18,()=>{KAZA.st='treat';KAZA.t=0;}]];
+    while(KAZA.line<L.length&&KAZA.t>=L[KAZA.line][0]){L[KAZA.line][1]();KAZA.line++;}if(KAZA.cctv)KAZA.C.rotation.y+=0;}
+  if(KAZA.st==='treat'&&(KAZA.medT||0)>8){if(KAZA.live){accSay('med','Yaya kurtuldu! Hastaneye götürüyoruz. İsterseniz siz de gelin.');KAZA.st='leave';KAZA.t=0;KAZA.hosp=true;setTimeout(()=>{if(KAZA.hosp)say('Hastaneye gitmek için “Hey Tepetaklak, beni hastaneye götür” de.');},4500);}
+    else{KAZA.deaths++;accSay('med','Maalesef yayayı kurtaramadık.');KAZA.st=KAZA.ap?'apdeath':'arrest';KAZA.t=0;}}
+  if(KAZA.st==='apdeath'&&KAZA.t>4){accSay('pol','Mobese kaydı otopilotu gösteriyor. İfadeniz alındı, tutuklama yok. Başınız sağ olsun.');KAZA.st='leave';KAZA.t=0;}
+  if(KAZA.st==='leave'){if(ped&&KAZA.t>1.5){ped.g.visible=false;ACCB.stretcher.visible=false;}KAZA.M.forEach(m=>{m.scale.y=1;accWalk(m,A.position,dt,2.2);});
+    if(KAZA.t>3){KAZA.M.forEach(m=>m.visible=false);accVeh(A,A.position,KAZA.ambFrom,16,dt);accVeh(P,P.position,KAZA.polFrom,15,dt);KAZA.C.visible=false;}if(KAZA.t>14)accClear();return;}
+  if(KAZA.st==='arrest')accArrest(dt);}
+// a death: handcuffs, the police car, the press at the station door, then a spoken statement
+function accArrest(dt){const T=KAZA.t,me=accMe(),P=KAZA.P;
+  if(!KAZA.lock){KAZA.lock=true;if(!FOOT.on){const c=car,rx=-Math.sin(c.yaw),rz=Math.cos(c.yaw);FOOT.pos.set(c.pos.x-rx*1.8,0,c.pos.z-rz*1.8);FOOT.yaw=c.yaw;FOOT.cam=c.yaw;FOOT.on=true;FOOT.g.visible=true;}CB.wpn&&cbEquip(null);accSay('pol','Ölümlü kaza nedeniyle sizi gözaltına alıyoruz. Ellerinizi arkaya koyun.');}
+  const a=FOOT.g.userData.arms;a[0].rotation.z=a[1].rotation.z=-.55;a[0].rotation.x=.35;a[1].rotation.x=-.35;
+  if(T>3&&T<3.1)bigMsg('KELEPÇE TAKILDI','',1500);
+  if(T>3&&T<7){accWalk(KAZA.C,new V3(FOOT.pos.x-1,0,FOOT.pos.z),dt,1.6);accWalk({position:FOOT.pos,rotation:{set(){}},userData:{arms:[{rotation:{}},{rotation:{}}]}},P.position,dt,1.3);FOOT.g.position.copy(FOOT.pos);}
+  if(T>7&&!KAZA.fadeA){KAZA.fadeA=true;$('fade').style.opacity='1';}
+  if(T>8.5&&!KAZA.toKara){KAZA.toKara=true;const K=accSpot('kara');if(!K){accRelease();return;}
+    KAZA.hideMe=true;KAZA.ped&&(KAZA.ped.g.visible=false);KAZA.A.visible=false;KAZA.M.forEach(m=>m.visible=false);KAZA.C.visible=false;FOOT.g.visible=false;
+    const door=new V3(K.cx,0,K.cz+6+3.5),road=CITY.nz(K.j+1);KAZA.kara={door,road,K};P.position.set(K.cx-70,0,road-1.9);P.rotation.y=0;
+    const c=car;c.pos.x=K.cx+12;c.pos.z=road-1.9;c.yaw=0;c.v=0;c.vel.set(0,0,0);
+    KAZA.R.forEach((r,k)=>{r.visible=true;r.position.set(K.cx-5+k*3.2,0,road-7.5-(k%2)*1.4);r.rotation.y=Math.PI/2;});
+    window.__camOverride=(Pp,L,U)=>{if(KAZA.st!=='arrest')return 0;const q=P.position;Pp.set(q.x-9,4.5,q.z+11);L.set(q.x+3,1.2,q.z-2);U.set(0,1,0);return 6;};$('fade').style.opacity='0';accSay('pol','Karakola gidiyoruz.',false);}
+  if(KAZA.toKara&&!KAZA.atKara){const K=KAZA.kara;if(accVeh(P,P.position,new V3(K.K.cx-2,0,K.road-1.9),13,dt)){KAZA.atKara=true;KAZA.hideMe=false;KAZA.kT=0;KAZA.q=-1;FOOT.pos.set(P.position.x+.5,0,P.position.z-1.6);FOOT.g.visible=true;KAZA.C.visible=true;KAZA.C.position.set(P.position.x-1,0,P.position.z-1.6);}}
+  if(KAZA.atKara){KAZA.kT+=dt;const K=KAZA.kara,Qs=['Neden yaptınız?','Bilerek mi çarptınız?','Ailesine ne söyleyeceksiniz?','Hız sınırını aşmış mıydınız?'];
+    window.__camOverride=(Pp,L,U)=>{const q=FOOT.pos;Pp.set(q.x+6,2.6,q.z+4);L.set(q.x,1.4,q.z-1);U.set(0,1,0);return 4;};
+    const goal=new V3(K.door.x,0,K.door.z-1),walked=accWalk({position:FOOT.pos,rotation:FOOT.g.rotation,userData:{arms:[{rotation:{}},{rotation:{}}]}},goal,dt,.9);FOOT.g.position.copy(FOOT.pos);FOOT.g.rotation.x=0;accWalk(KAZA.C,new V3(FOOT.pos.x-.9,0,FOOT.pos.z+.6),dt,1);
+    KAZA.R.forEach((r,k)=>{r.lookAt(FOOT.pos.x,0,FOOT.pos.z);r.rotateY(-Math.PI/2);if(Math.random()<dt*2.5)emit(r.position.x+.3,1.65,r.position.z,0,0,0,.08,1,1,1,1.4,0,1);});
+    const qi=Math.floor(KAZA.kT/2.6);if(qi<Qs.length&&qi!==KAZA.q){KAZA.q=qi;accSay('press',Qs[qi]);}
+    if(walked&&KAZA.kT>Qs.length*2.6+1&&!KAZA.inside){KAZA.inside=true;$('fade').style.opacity='1';setTimeout(()=>{KAZA.hideMe=true;KAZA.R.forEach(r=>r.visible=false);ifadeStart();},900);}}}
+const IFQ=['Komiser: Olayı en baştan anlatır mısınız?','Komiser: Yayayı ne zaman fark ettiniz, hızınız kaçtı?','Komiser: Eklemek istediğiniz bir şey var mı?'];
+function ifadeStart(){KAZA.ans=[];KAZA.qi=0;$('ifade').hidden=false;$('fade').style.opacity='0';ifadeAsk();}
+function ifadeAsk(){const q=IFQ[KAZA.qi];$('ifQ').textContent=q;$('ifIn').value='';$('ifLog').textContent=KAZA.ans.length?'Son cevabın: “'+KAZA.ans[KAZA.ans.length-1]+'”':'';accSay('kom',q.replace('Komiser: ',''));}
+function ifadeReply(a){const n=nrm(a);if(/bilerek degil|kasten degil|istemeden|bilmeden|kaza/.test(n))return 'Kasıt olmadığını tutanağa geçiriyorum.';if(/gormedim|fark etmedim|birden/.test(n))return 'Görüş açısını mobese kaydıyla karşılaştıracağız.';
+  if(/\d/.test(n)||/hiz/.test(n))return 'Hız beyanınız kayda geçti.';if(/uzgun|ozur|pisman|aile/.test(n))return 'Pişmanlığınızı not ettim. Ailesine iletilecek.';if(n.length<4)return 'Cevap vermek istemediğinizi not ediyorum.';return 'Anlaşıldı, tutanağa geçiyorum.';}
+function ifadeAnswer(a){a=String(a||'').trim().slice(0,240)||'(sessiz kaldı)';KAZA.ans.push(a);const r=ifadeReply(a);accSay('kom',r);KAZA.qi++;if(KAZA.qi<IFQ.length)setTimeout(ifadeAsk,2400);else setTimeout(accRelease,2600);}
+function ifadeVoice(){if(!ASK.SR){$('ifLog').textContent='Bu tarayıcı sesi tanımıyor, yazarak cevap ver.';return;}try{const r=new ASK.SR();r.lang='tr-TR';r.interimResults=false;$('ifLog').textContent='Dinliyorum… konuş';
+  r.onresult=e=>{const t=e.results[0][0].transcript;$('ifIn').value=t;ifadeAnswer(t);};r.onerror=()=>{$('ifLog').textContent='Duyamadım, tekrar dene ya da yaz.';};r.start();}catch(_){$('ifLog').textContent='Mikrofon açılamadı, yazarak cevap ver.';}}
+function accRelease(){$('ifade').hidden=true;accSay('kom','İfadeniz alındı. Adli kontrol şartıyla serbestsiniz. Aracınız karakolun önünde.');const K=KAZA.kara;
+  KAZA.hideMe=false;if(K){FOOT.pos.set(K.door.x+1.5,0,K.road-8.5);FOOT.g.visible=true;}const a=FOOT.g.userData.arms;a[0].rotation.x=a[1].rotation.x=0;
+  bigMsg('SERBESTSİN','Adli kontrol · aracın karakolun önünde',2600);KAZA.fadeA=KAZA.toKara=KAZA.atKara=KAZA.inside=false;KAZA.kara=null;accClear();}
 function shopOpen(on=true){if(on&&!CB.shopNear){pop('Önce kaçakçının yanına git');return;}$('shop').hidden=!on;if(on){releaseAll();shopRender();}}
 function shopRender(){const L=$('shopList');L.textContent='';const free=!S.cargo;$('shopMoney').textContent=free?'Serbest sürüşte silahlar bedava':nf(CAREER.money)+' ₺';
   for(const k of WKEYS){const w=WPN[k],own=CB.own.has(k),row=document.createElement('div');row.className='srow';row.innerHTML='<div><b></b><small></small></div><button type="button"></button>';
@@ -3868,7 +3998,13 @@ function osApp(a){OS.app=a;document.querySelectorAll('#osDock button[data-a]').f
   if(a==='sp'){$('osSp').hidden=false;if(!$('osSpF').src)osSpot(OS_SP[0][1],'playlist');}
   if(a==='yt'){$('osYt').hidden=false;$('osYtF').hidden=!$('osYtF').src;$('osYtPh').hidden=!!$('osYtF').src;}}
 function osSpot(id,kind){OS.sp=[kind||'playlist',id];$('osSpF').src='https://open.spotify.com/embed/'+(kind||'playlist')+'/'+id+'?utm_source=generator&theme=0';AU.mediaT=performance.now();}
-function osYt(id){$('osYtF').hidden=false;$('osYtPh').hidden=true;$('osYtF').src='https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1&playsinline=1&rel=0';AU.mediaT=performance.now();}
+const YT_API=['https://api.piped.private.coffee','https://pipedapi.kavin.rocks','https://pipedapi.adminforge.de','https://pipedapi.r4fo.com'];
+async function ytSearch(q){const res=$('osYtRes'),msg=$('osYtMsg');$('osYtF').src='';$('osYtF').hidden=true;$('osYtPh').hidden=false;res.hidden=false;res.textContent='';msg.textContent='“'+q+'” aranıyor…';
+  for(const base of YT_API){try{const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),7000);const r=await fetch(base+'/search?q='+encodeURIComponent(q)+'&filter=videos',{signal:ctl.signal});clearTimeout(to);if(!r.ok)continue;const j=await r.json();
+      const L=(j.items||[]).filter(it=>it&&typeof it.url==='string'&&/v=([A-Za-z0-9_-]{11})/.test(it.url)).slice(0,12);if(!L.length)continue;msg.textContent='“'+q+'” · bir videoya dokun, burada oynasın.';
+      for(const it of L){const id=/v=([A-Za-z0-9_-]{11})/.exec(it.url)[1],b=document.createElement('button');b.type='button';const im=document.createElement('img');im.loading='lazy';im.alt='';im.src='https://i.ytimg.com/vi/'+id+'/mqdefault.jpg';const sp=document.createElement('span');sp.textContent=String(it.title||'Video').slice(0,90);b.append(im,sp);b.addEventListener('click',()=>osYt(id));res.appendChild(b);}return;}catch(_){}}
+  msg.textContent='Arama şu an çalışmadı. İnternetini kontrol et ya da video linkini yukarıya yapıştır, burada oynasın.';}
+function osYt(id){$('osYtRes').hidden=true;$('osYtF').hidden=false;$('osYtPh').hidden=true;$('osYtF').src='https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1&playsinline=1&rel=0';AU.mediaT=performance.now();}
 function osDraw(){if(!OS.open||OS.app!=='home')return;const cv=$('osMap');drawNavScreen(cv.getContext('2d'),cv.width,cv.height);
   const c=car,il=ilCur();$('osInfo').textContent=il.name+' · '+Math.round(Math.abs(c.v)*3.6)+' km/s · '+(AP.on?'Otopilot açık':'Otopilot kapalı')+' · '+(TAPP.locked?'🔒 kilitli':'🔓 açık');}
 function osTick(dt){if(!OS.open)return;if(S.mode!=='serbest'||S.menuDemo){osClose();return;}OS.t-=dt;if(OS.t<=0){OS.t=.12;osDraw();}}
@@ -3887,9 +4023,9 @@ canvas.addEventListener('pointerup',e=>{if(!inCab()||OS.open||CAR.moto)return;co
   document.querySelectorAll('#osSp [data-pl]').forEach(b=>b.addEventListener('click',()=>osSpot(b.dataset.pl,'playlist')));
   const spIn=$('osSpIn');spIn.addEventListener('keydown',e=>{e.stopPropagation();if(e.key!=='Enter')return;const m=/(playlist|album|track|artist)[\/:]([A-Za-z0-9]{10,})/.exec(spIn.value);if(m)osSpot(m[2],m[1]);else window.open('https://open.spotify.com/search/'+encodeURIComponent(spIn.value),'_blank');});
   const ytIn=$('osYtIn');ytIn.addEventListener('keydown',e=>{e.stopPropagation();if(e.key!=='Enter')return;const v=ytIn.value.trim(),m=/(?:v=|youtu\.be\/|embed\/|shorts\/)([A-Za-z0-9_-]{11})/.exec(v);
-    if(m)osYt(m[1]);else if(v)window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(v),'_blank');});
+    if(m)osYt(m[1]);else if(v)ytSearch(v);});
   $('osSpOut').addEventListener('click',()=>{const q=OS.sp||['playlist',OS_SP[0][1]];window.open('https://open.spotify.com/'+q[0]+'/'+q[1],'_blank');});
-  document.querySelectorAll('#osYtPh [data-yq]').forEach(b=>b.addEventListener('click',()=>window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(b.dataset.yq),'_blank')));
+  document.querySelectorAll('#osYtPh [data-yq]').forEach(b=>b.addEventListener('click',()=>ytSearch(b.dataset.yq)));
   $('osYtGo').addEventListener('click',()=>ytIn.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter'})));$('osSpGo').addEventListener('click',()=>spIn.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter'})));}
 /* ================= RESTAURANTS along the streets (free drive + courier) ================= */
 const FOOD=[['Mahalle Köftecisi','köfte',0x9d0208],['Ayrancı Baba','ayran',0x2a9d8f],['Lavaşçı Usta','lavaş',0xbc6c25],['Mahalle Dönercisi','döner',0xe36414],['Kebapçı Halil','kebap',0x8b1e3f],
@@ -3938,10 +4074,10 @@ function footTarget(dPos,dLook,dUp){const p=FOOT.pos,fx=Math.cos(FOOT.cam),fz=Ma
 const ASK=(()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;return {SR,rec:null,busy:false,wake:false,await:0};})();
 function blip(up=true){if(!AU.ctx||SET.mute)return;const c=AU.ctx,t=c.currentTime,o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.setValueAtTime(up?880:1320,t);o.frequency.exponentialRampToValueAtTime(up?1500:700,t+.14);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.25,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.2);o.connect(g);g.connect(AU.m||c.destination);o.start(t);o.stop(t+.22);}
 function say(text){askShow(text,'tesla');try{if(!SET.mute&&window.speechSynthesis){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='tr-TR';u.rate=1.05;const v=speechSynthesis.getVoices().find(v=>/^tr/i.test(v.lang));if(v)u.voice=v;speechSynthesis.speak(u);}}catch(_){}}
-function askShow(text,who){const b=$('askBox');b.hidden=false;$('askWho').textContent=who==='me'?'Sen':who==='listen'?'Hey Tepetaklak':who==='fisher'?'Balıkçı abi':'Tepetaklak';$('askTxt').textContent=text;b.className=who;clearTimeout(askShow.t);askShow.t=setTimeout(()=>{if(!ASK.busy&&$('askChips').hidden&&document.activeElement!==$('askIn'))b.hidden=true;},5200);if(!$('askChips').hidden){clearTimeout(askShow.t2);askShow.t2=setTimeout(()=>{if(!ASK.busy){askChips(false);b.hidden=true;}},15000);}}
+function askShow(text,who){const b=$('askBox');b.hidden=false;$('askWho').textContent=who==='me'?'Sen':who==='listen'?'Hey Tepetaklak':who==='fisher'?'Balıkçı abi':who==='pol'?'Polis memuru':who==='med'?'Sağlık görevlisi':who==='press'?'Muhabir':who==='kom'?'Komiser':'Tepetaklak';$('askTxt').textContent=text;b.className=who;clearTimeout(askShow.t);askShow.t=setTimeout(()=>{if(!ASK.busy&&$('askChips').hidden&&document.activeElement!==$('askIn'))b.hidden=true;},5200);if(!$('askChips').hidden){clearTimeout(askShow.t2);askShow.t2=setTimeout(()=>{if(!ASK.busy){askChips(false);b.hidden=true;}},15000);}}
 // speech: a tap on the phone grants the mic only when the finger lifts, so listening starts on pointerup/click
 const nrm=s=>s.toLocaleLowerCase('tr-TR').replace(/[çğıöşüâî]/g,c=>({ç:'c',ğ:'g',ı:'i',ö:'o',ş:'s',ü:'u',â:'a',î:'i'})[c]);
-const ASK_KEYS=/kale|cami|harput|kaçakçı|silah|taret|lazer|vur|götür|git|gel|al|park|garaj|eve|evim|taksi|kilit|korna|far|dur|asansör|tünel|teslimat|sunum|tanıt|arkadaş|yemek|restoran|lokanta|acık|kofte|köfte|ayran|lavas|lavaş|doner|döner|kebap|kafe|kahve|pide|simit|pizza|market|tatli|tatlı|balik|balık/;
+const ASK_KEYS=/hastane|karakol|kale|cami|harput|kaçakçı|silah|taret|lazer|vur|götür|git|gel|al|park|garaj|eve|evim|taksi|kilit|korna|far|dur|asansör|tünel|teslimat|sunum|tanıt|arkadaş|yemek|restoran|lokanta|acık|kofte|köfte|ayran|lavas|lavaş|doner|döner|kebap|kafe|kahve|pide|simit|pizza|market|tatli|tatlı|balik|balık/;
 function askClean(t){return String(t||'').replace(/^\s*(hey|hay|hei|ey|eyy|hi|hello)?\s*,?\s*(tepe\s*taklak|tepetaklak|tepe\s*takla|tepetakla|tepe\s*tak\s*lak|tesla|teslam|teslâ|tesle|desla)\s*[,.!]?\s*/i,'').trim();}
 function askPick(alts){let best=alts[0]||'',bs=-1;for(const a of alts){const t=askClean(a),lo=t.toLocaleLowerCase('tr-TR');let sc=(lo.match(new RegExp(ASK_KEYS.source,'g'))||[]).length*2+(ilFind(lo)?3:0);if(sc>bs){bs=sc;best=t;}}return best;}
 function askChips(on){$('askChips').hidden=!on;}
@@ -3984,6 +4120,8 @@ function askCommand(raw){const t=raw.toLocaleLowerCase('tr-TR'),c=car,I=CITY.ci(
   if(/\b(dur|durdur|iptal)\b|otopilotu kapat/.test(t)){CB.follow=null;TAPP.summon=false;TAPP.after=null;apStop();say('Tamam, kontrol sende.');return;}
   if(/sunum|tanıt|kendini anlat/.test(t)&&!/^\s*$/.test(t)){tourStart();return;}
   if(/kaçakçı|kacakci|silah al|silahçı/.test(t)){go(smugDest(),'kaçakçıya');return;}
+  if(/hastane/.test(t)){go(accDest('hosp','Hastane'),'hastaneye');return;}
+  if(/karakol/.test(t)){go(accDest('kara','Karakol'),'karakola');return;}
   if(/taret/.test(t)||/ateşi kes/.test(t)){if(/kapat|indir|kapa|kes/.test(t)){cbTurret(false);say('Taret kapandı.');}else{cbTurret(true);if(CB.turret)say('Taret açıldı. Hedefleri ben seçerim.');}return;}
   if(CB.turret&&/lazer/.test(t)&&!/vur|öldür|saldır|takip/.test(t)){turMode('laser');say('Lazer modu: yavaş ama çok isabetli.');return;}
   if(CB.turret&&/minigun|taramalı|makineli/.test(t)&&!/vur|öldür|saldır|takip/.test(t)){turMode('minigun');say('Minigun modu.');return;}
@@ -4178,6 +4316,8 @@ window.__tepeReady=true;$('loading').hidden=true;
 requestAnimationFrame(frame);
 
 {document.querySelectorAll('#turHud [data-tm]').forEach(b=>b.addEventListener('click',()=>turMode(b.dataset.tm)));$('turTg').addEventListener('click',turTargetCycle);$('turOff').addEventListener('click',()=>cbTurret(false));$('shopClose').addEventListener('click',()=>shopOpen(false));}
+
+{$('ifGo').addEventListener('click',()=>ifadeAnswer($('ifIn').value));$('ifMic').addEventListener('click',ifadeVoice);$('ifIn').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')ifadeAnswer($('ifIn').value);});banShow();}
 </script>
 
 </body>
