@@ -9,7 +9,8 @@ type Seg = { shot: string; dur: number; titles: [number, string][] };
 const SEG: Seg[] = [
   { shot: "kaza", dur: 150, titles: [[0, "Yayaya çarptın: dur ve bekle"], [60, "Polis ve ambulans geliyor"]] },
   { shot: "mobese", dur: 150, titles: [[0, "Polis ifadeni alıyor"], [40, "Mobese kaydını izliyorlar"], [110, "Otopilot çarptıysa ceza yok"]] },
-  { shot: "karakol", dur: 260, titles: [[0, "Yaya ölürse: kelepçe"], [90, "Polis arabasıyla karakola"], [170, "Kapıda basın: “Neden yaptınız?”"]] },
+  { shot: "karakol", dur: 110, titles: [[0, "Yaya ölürse: kelepçe takılır"]] },
+  { shot: "basin", dur: 220, titles: [[0, "Polis arabasıyla karakola"], [90, "Kapıda basın: \u201CNeden yaptınız?\u201D"]] },
   { shot: "ifade", dur: 90, titles: [[0, "İfadeni sesle ya da yazarak ver"]] },
   { shot: "yt", dur: 100, titles: [[0, "Ezip kaçarsan polis kovalar"], [34, "YouTube artık arabanın ekranında"]] },
 ];
