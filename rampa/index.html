@@ -328,6 +328,7 @@ body.armed #touch [data-k=retro],body.armed #touch [data-k=fan]{display:none}
 #hospUi b{color:#7fb0ff;letter-spacing:.1em}#hospUi .hp{width:120px;height:8px;background:rgba(255,255,255,.14);border-radius:4px;overflow:hidden}#hospBar{display:block;height:100%;width:1%;background:var(--good)}
 #intAct{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 120px);pointer-events:auto;min-height:52px;padding:0 22px;border:0;border-radius:4px;background:#2a9d8f;color:#fff;font:inherit;font-weight:800;letter-spacing:.08em;cursor:pointer}
 body.inside #guide,body.inside #tele,body.inside #mini{display:none!important}
+#osYtSlot{flex:1;min-height:180px;border-radius:10px;background:#000}#osYtSlot[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -412,6 +413,7 @@ body.inside #guide,body.inside #tele,body.inside #mini{display:none!important}
       <div id="osYt" hidden><div class="osrow"><input id="osYtIn" placeholder="YouTube'da ara ya da video linki yapıştır" autocomplete="off"><button type="button" id="osYtGo">Ara</button></div>
         <div id="osYtPh"><p id="osYtMsg">YouTube'da ne izlemek istersin? Yukarıya yaz ve Ara'ya bas: videolar burada, arabanın ekranında açılır.</p><div class="osrow"><button type="button" data-yq="türkçe pop şarkılar">🎤 Türkçe pop</button><button type="button" data-yq="türkçe rap">🎧 Rap</button><button type="button" data-yq="lofi müzik">☕ Lofi</button><button type="button" data-yq="uçan araba">🚗 Uçan araba</button></div></div>
         <div id="osYtRes" hidden></div>
+        <div id="osYtSlot" hidden></div>
         <iframe id="osYtF" hidden title="YouTube" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy"></iframe></div>
     </div></div></div></div>
 <div id="rotate" hidden>Telefonu yan çevir: yatay ekranda çok daha iyi</div>
@@ -2540,13 +2542,13 @@ function frame(now){
     ghostTick();
   }
   if(bigT>0){bigT-=dt;if(bigT<=0){$('bigT').textContent='';$('bigS').textContent='';}}
-  netTick(dt,simDt);if(!TUN.on){gateUpdate(dt);cargoTick(simDt,dt);peopleTick(simDt,dt);heliTick(simDt,dt);}elevTick(dt);tappTick(dt);taxiStep(simDt);shoreTick(dt);osTick(dt);tourTick(simDt);tunRender();tunPad();CITY.boatTick(dt,car.pos.x);pedTick(simDt,dt);skyTick(simDt);restTick(dt);landTick();footTick(simDt);cbTick(simDt,dt);accTick(simDt);intTick(simDt);injTick(simDt);
+  netTick(dt,simDt);if(!TUN.on){gateUpdate(dt);cargoTick(simDt,dt);peopleTick(simDt,dt);heliTick(simDt,dt);}elevTick(dt);tappTick(dt);taxiStep(simDt);shoreTick(dt);osTick(dt);tourTick(simDt);tunRender();tunPad();CITY.boatTick(dt,car.pos.x);pedTick(simDt,dt);skyTick(simDt);restTick(dt);landTick();passTick();footTick(simDt);cbTick(simDt,dt);accTick(simDt);intTick(simDt);injTick(simDt);
   if(S.mode==='serbest'&&!S.menuDemo&&!TUN.on){CITY.update(FOOT.on?FOOT.pos.x:car.pos.x,FOOT.on?FOOT.pos.z:car.pos.z);trafficRender();polRender(now/1000);drawMinimap();ilLabel();if(S.free.recDirty&&Math.random()<.02){store.set('rec',REC);updateRecords();S.free.recDirty=false;}}
   poseCar(simDt);updateCamera(dt);cockpitPose();apHud();tickParticles(paused?0:dt*(S.slow?.3:1));
   hud();audioTick(!paused&&(S.phase==='play'||S.phase==='ended'||S.phase==='count'));
   realismTick();
   if(LOW)renderer.render(scene,camera);else composer.render();
-  accCctvRender();
+  accCctvRender();vidTick();
 }
 
 /* ================= ONLINE: rooms over WebRTC (PeerJS). Host relays, everyone simulates their own car ================= */
@@ -2636,7 +2638,7 @@ function honk(){if(!NET.on)return;sfx('beep');pop('DİT DİT!');if(NET.host)netB
 const r2=v=>Math.round(v*100)/100,r4=v=>Math.round(v*1e4)/1e4;
 function netTick(dt,simDt){if(!NET.on)return;NET.tagT=(NET.tagT||0)-dt;if(NET.tagT<=0){NET.tagT=2;updNetTag();}
   NET.sendT-=dt;if(NET.sendT<=0&&S.mode==='serbest'&&!S.menuDemo){NET.sendT=1/15;const c=car,fl=(c.fanS>.3?1:0)|(c.boosting?2:0)|(c.lifting?4:0)|(c.retro?8:0)|(CB.turret&&isVoltra()&&CB.tUp>.5?16:0);
-    const d=[r2(c.pos.x),r2(c.pos.y),r2(c.pos.z),r4(c.q.x),r4(c.q.y),r4(c.q.z),r4(c.q.w),r2(c.state==='free'||c.state==='framp'?c.v:0),fl,TUN.on?0:IL.cur];if(FOOT.on&&!FOOT.inTaxi)d.push(r2(FOOT.pos.x),r2(FOOT.pos.y),r2(FOOT.pos.z),r2(FOOT.yaw));
+    const d=[r2(c.pos.x),r2(c.pos.y),r2(c.pos.z),r4(c.q.x),r4(c.q.y),r4(c.q.z),r4(c.q.w),r2(c.state==='free'||c.state==='framp'?c.v:0),fl,TUN.on?0:IL.cur];if(FOOT.on&&!FOOT.inTaxi&&!PASS.id)d.push(r2(FOOT.pos.x),r2(FOOT.pos.y),r2(FOOT.pos.z),r2(FOOT.yaw));
     if(NET.host)netBroadcast({t:'s',id:'h',d});else netSend(NET.conn,{t:'s',d});}
   const now=performance.now(),rt=now-130;
   for(const p of NET.players.values()){const b=p.buf;if(!b.length||now-p.last>8000||(p.il??34)!==IL.cur||TUN.on){p.m.g.visible=p.label.visible=p.shown=false;if(p.person)p.person.visible=false;continue;}
@@ -3018,14 +3020,15 @@ function cockpitPose(){const on=inCab()&&!CAR.moto;COCK.g.visible=on;if(CAR.moto
     COCK.t-=camDt||.016;if(COCK.t<=0){COCK.t=.1;drawNavScreen(COCK.sc.getContext('2d'),COCK.sc.width,COCK.sc.height);COCK.st.needsUpdate=true;drawCluster();COCK.ct.needsUpdate=true;}}
   else if(!CUBE.hiding)CAR.g.visible=true;}
 const _hp=new V3(),_hl=new V3();let headLag=new V3();
+const CABQ=new THREE.Quaternion();
 function driverTarget(dPos,dLook,dUp){const c=car,hp=HEAD[CAR.moto?'moto':CAR.voltra?'voltra':'car'];
   // head sways against acceleration and leans into corners, like a real neck
   const along=-(c.aLong||0)*.0035,lat=c.state==='free'?clamp(-(c.steer||0)*Math.min(1,Math.abs(c.v)/15)*.05,-.06,.06):0;
   headLag.x+=(clamp(along,-.07,.07)-headLag.x)*.12;headLag.z+=(lat-headLag.z)*.12;
-  _hp.copy(hp).add(headLag);if(Math.abs(c.v)>3){_hp.y+=Math.sin(performance.now()/1000*23)*.0018*Math.min(1,Math.abs(c.v)/30);}
-  dPos.copy(_hp).applyQuaternion(CAR.g.quaternion).add(CAR.g.position);
-  const yaw=c.state==='free'?(c.steer||0)*.16:0;_hl.set(Math.cos(yaw)*20,-1.9,Math.sin(yaw)*20).add(hp).applyQuaternion(CAR.g.quaternion).add(CAR.g.position);dLook.copy(_hl);
-  dUp.set(0,1,0).applyQuaternion(CAR.g.quaternion);return 80;}
+  _hp.copy(hp).add(headLag);if(CABQ.angleTo(CAR.g.quaternion)>.6)CABQ.copy(CAR.g.quaternion);else CABQ.slerp(CAR.g.quaternion,1-Math.exp(-(camDt||1/60)*9));
+  dPos.copy(_hp).applyQuaternion(CABQ).add(CAR.g.position);
+  const yaw=c.state==='free'?(c.steer||0)*.16:0;_hl.set(Math.cos(yaw)*20,-1.9,Math.sin(yaw)*20).add(hp).applyQuaternion(CABQ).add(CAR.g.position);dLook.copy(_hl);
+  dUp.set(0,1,0).applyQuaternion(CABQ);return 80;}
 function drawCluster(){const x=COCK.cc.getContext('2d');x.fillStyle='#050608';x.fillRect(0,0,256,96);x.fillStyle='#fff';x.font='700 54px system-ui';x.textAlign='left';x.textBaseline='middle';const sp=String(kmh(car.v));x.fillText(sp,16,48);
   const w=x.measureText(sp).width;x.font='600 18px system-ui';x.fillStyle='#9aa3ad';x.fillText('km/s',24+w,62);x.fillStyle=AP.on?'#3e8bff':'#555';x.textAlign='right';x.font='700 18px system-ui';x.fillText(AP.on?'OTOPİLOT':'MANUEL',244,30);x.fillStyle='#9aa3ad';x.fillText('D',244,66);}
 // Tesla-style navigation: heading-up map on the left, status panel on the right
@@ -3692,7 +3695,9 @@ function cbRecv(from,m){if(!m||typeof m!=='object')return;const p=NET.players.ge
   else if(m.k==='kill')pop(String(m.by||nm).slice(0,14)+' ➜ '+String(m.v||nm).slice(0,14)+' · '+String(m.w||'').slice(0,16),'red');
   else if(m.k==='fx'&&fin(m.a)&&fin(m.b)){const a=new V3(...m.a),b=new V3(...m.b);if(m.l)fxLaser(a,b,.22);else{fxTracer(a,b);fxMuzzle(a);}const d=a.distanceTo(vp);if(d<220&&Math.random()<.6)gsfx(m.l?'laser':m.s||'rifle',d);}
   else if(m.k==='rk'&&fin(m.a)&&fin(m.v)){const w=m.t?TURW.rpg:WPN.rpg;fxRocket(new V3(...m.a),new V3(...m.v).normalize(),w,false);gsfx('rpg',new V3(...m.a).distanceTo(vp));}
-  else if(m.k==='boom'&&fin(m.a))fxBoom(new V3(...m.a),clamp(+m.r||6,2,10));}
+  else if(m.k==='boom'&&fin(m.a))fxBoom(new V3(...m.a),clamp(+m.r||6,2,10));
+  else if(m.k==='pas'&&m.to===NET.id&&p){p.ride=!!m.on;if(!p.ride&&p.seat)p.seat.visible=false;pop(nm+(p.ride?' arabana bindi':' arabandan indi'),'gold');if(p.ride&&VID.id)cbSend({k:'vid',to:p.id,id:VID.id,sec:(Date.now()-VID.t0)/1000});}
+  else if(m.k==='vid'&&m.to===NET.id&&PASS.id===from&&/^[A-Za-z0-9_-]{11}$/.test(m.id)){osYt(m.id,clamp(+m.sec||0,0,36000),true);pop(nm+' ekranda video açtı');}}
 
 /* --- the smuggler's yard: dealer, van, crates and a small shooting range --- */
 const SMUG=(()=>{const g=new THREE.Group(),mt=c=>new THREE.MeshStandardMaterial({color:c,roughness:.85});
@@ -4331,7 +4336,31 @@ async function ytSearch(q){const res=$('osYtRes'),msg=$('osYtMsg');$('osYtF').sr
       const L=(j.items||[]).filter(it=>it&&typeof it.url==='string'&&/v=([A-Za-z0-9_-]{11})/.test(it.url)).slice(0,12);if(!L.length)continue;msg.textContent='“'+q+'” · bir videoya dokun, burada oynasın.';
       for(const it of L){const id=/v=([A-Za-z0-9_-]{11})/.exec(it.url)[1],b=document.createElement('button');b.type='button';const im=document.createElement('img');im.loading='lazy';im.alt='';im.src='https://i.ytimg.com/vi/'+id+'/mqdefault.jpg';const sp=document.createElement('span');sp.textContent=String(it.title||'Video').slice(0,90);b.append(im,sp);b.addEventListener('click',()=>osYt(id));res.appendChild(b);}return;}catch(_){}}
   msg.textContent='Arama şu an çalışmadı. İnternetini kontrol et ya da video linkini yukarıya yapıştır, burada oynasın.';}
-function osYt(id){$('osYtRes').hidden=true;$('osYtF').hidden=false;$('osYtPh').hidden=true;$('osYtF').src='https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1&playsinline=1&rel=0';AU.mediaT=performance.now();}
+// maps a 640x360 rectangle onto four screen points (a perspective quad), for CSS matrix3d
+function homography(src,dst){const A=[],b=[];for(let i=0;i<4;i++){const [x,y]=src[i],[u,v]=dst[i];A.push([x,y,1,0,0,0,-u*x,-u*y]);b.push(u);A.push([0,0,0,x,y,1,-v*x,-v*y]);b.push(v);}
+  for(let c=0;c<8;c++){let m=c;for(let r=c+1;r<8;r++)if(Math.abs(A[r][c])>Math.abs(A[m][c]))m=r;[A[c],A[m]]=[A[m],A[c]];[b[c],b[m]]=[b[m],b[c]];const d=A[c][c];if(Math.abs(d)<1e-9)return null;
+    for(let r=0;r<8;r++){if(r===c)continue;const k=A[r][c]/d;for(let j=c;j<8;j++)A[r][j]-=k*A[c][j];b[r]-=k*b[c];}}
+  return b.map((v,i)=>v/A[i][i]);}
+const VID={id:null,t0:0};
+// the player floats over the page: inside the car screen panel when it is open, on the dashboard screen in the inside camera, on the dash for a passenger
+function vidTick(){const f=$('osYtF'),slot=$('osYtSlot'),on=!!f.src&&!f.hidden&&/youtube/.test(f.src);slot.hidden=!on;if(!on){f.style.display='none';return;}f.style.display='block';
+  const put=(x,y,w,h,z,pe)=>{f.style.cssText='display:block;position:fixed;left:'+x+'px;top:'+y+'px;width:'+w+'px;height:'+h+'px;z-index:'+z+';pointer-events:'+(pe?'auto':'none')+';border:0;border-radius:'+(pe?10:3)+'px;background:#000';};
+  if(OS.open&&OS.app==='yt'){const r=slot.getBoundingClientRect();if(r.width>10){put(r.left,r.top,r.width,r.height,25,true);return;}}
+  if(inCab()&&!OS.open&&COCK.g.visible){COCK.scr.updateMatrixWorld(true);const q=[[-.19,.118],[.19,.118],[.19,-.118],[-.19,-.118]].map(([x,y])=>{const v=new V3(x,y,0).applyMatrix4(COCK.scr.matrixWorld).project(camera);return [(v.x+1)/2*innerWidth,(1-v.y)/2*innerHeight,v.z];});
+    if(q.every(c=>c[2]<1)){const H=homography([[0,0],[640,0],[640,360],[0,360]],q);if(H){f.style.cssText='display:block;position:fixed;left:0;top:0;width:640px;height:360px;z-index:5;pointer-events:none;border:0;background:#000;transform-origin:0 0;transform:matrix3d('+[H[0],H[3],0,H[6],H[1],H[4],0,H[7],0,0,1,0,H[2],H[5],0,1].join(',')+')';return;}}}
+  if(PASS.id){const w=Math.min(innerWidth*.34,420),h=w*9/16;put((innerWidth-w)/2,innerHeight*.62,w,h,5,false);return;}
+  put(-3000,0,320,180,1,false);}
+// riding with a friend: the passenger seat of their car, and they can show you the video on the car screen
+const PASS={id:null};
+function passBoard(p){PASS.id=p.id;FOOT.g.visible=false;cbSend({k:'pas',to:p.id,on:1});pop(p.name+' adlı arkadaşının arabasına bindin · inmek için Enter / İN-BİN','gold');sfx('chime');snapCam=true;}
+function passLeave(){const p=NET.players.get(PASS.id);if(p){FOOT.pos.set(p.pos.x+Math.sin(Math.atan2(2*(p.q.w*p.q.y+p.q.x*p.q.z),1-2*(p.q.y*p.q.y+p.q.z*p.q.z)))*0,0,p.pos.z+2.2);cbSend({k:'pas',to:p.id,on:0});}PASS.id=null;FOOT.g.visible=true;pop('Arkadaşının arabasından indin');snapCam=true;}
+const PSEAT=new V3(-.32,1.2,.37),_pq=new THREE.Quaternion();
+function passTick(){if(PASS.id){const p=NET.players.get(PASS.id);if(!p||!p.shown||!NET.on||p.foot){passLeave();return;}FOOT.pos.set(p.pos.x,0,p.pos.z);FOOT.g.visible=false;}
+  // a friend riding in my car sits in my passenger seat
+  for(const p of NET.players.values()){if(!p.ride)continue;if(!p.seat){p.seat=buildPerson(p.col,0x22223b,0xe0ac69,{hair:0x2b1d14});p.seat.scale.setScalar(.92);}const sv=!FOOT.on&&S.mode==='serbest';p.seat.visible=sv;if(sv){p.seat.position.copy(PSEAT).setY(.15).applyQuaternion(CAR.g.quaternion).add(CAR.g.position);p.seat.quaternion.copy(CAR.g.quaternion);}}}
+function passTarget(dPos,dLook,dUp){const p=NET.players.get(PASS.id);if(!p)return 0;const q=p.m.g.quaternion,o=p.m.g.position;if(_pq.angleTo(q)>.6)_pq.copy(q);else _pq.slerp(q,1-Math.exp(-(camDt||1/60)*9));
+  const fw=_va.set(1,0,0).applyQuaternion(_pq);fw.y=0;fw.normalize();dPos.set(o.x-fw.x*8,o.y+3.4,o.z-fw.z*8);dLook.set(o.x+fw.x*4,o.y+1,o.z+fw.z*4);dUp.set(0,1,0);return 6;}
+function osYt(id,sec,remote){VID.id=id;VID.t0=Date.now()-(sec||0)*1000;if(!remote)for(const p of NET.players.values())if(p.ride)cbSend({k:'vid',to:p.id,id,sec:0});if(remote){$('osYtF').hidden=false;$('osYtF').src='https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1&playsinline=1&rel=0&start='+Math.floor(sec||0);return;}$('osYtRes').hidden=true;$('osYtF').hidden=false;$('osYtPh').hidden=true;$('osYtF').src='https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1&playsinline=1&rel=0';AU.mediaT=performance.now();}
 function osDraw(){if(!OS.open||OS.app!=='home')return;const cv=$('osMap');drawNavScreen(cv.getContext('2d'),cv.width,cv.height);
   const c=car,il=ilCur();$('osInfo').textContent=il.name+' · '+Math.round(Math.abs(c.v)*3.6)+' km/s · '+(AP.on?'Otopilot açık':'Otopilot kapalı')+' · '+(TAPP.locked?'🔒 kilitli':'🔓 açık');}
 function osTick(dt){if(!OS.open)return;if(S.mode!=='serbest'||S.menuDemo){osClose();return;}OS.t-=dt;if(OS.t<=0){OS.t=.12;osDraw();}}
@@ -4372,7 +4401,7 @@ function restTick(dt){const on=S.mode==='serbest'&&!S.menuDemo&&!(typeof TUN!=='
 /* ================= ON FOOT: get out of the car and walk around ================= */
 const FOOT=(()=>{const g=buildPerson(0x1d3557,0x22223b,0xe0ac69,{hair:0x2b1d14});g.visible=false;return {g,on:false,run:false,inTaxi:false,sit:null,pos:new V3(),yaw:0,vy:0,cam:0,door:null};})();
 function footRun(){if(!FOOT.on)return;FOOT.run=!FOOT.run;$('tbRun').classList.toggle('on',FOOT.run);pop(FOOT.run?'Koşuyorsun 🏃':'Yürüyorsun');}
-function footToggle(){const c=car;if(FOOT.sit){footStand();pop('Kalktın');return;}if(FOOT.on&&!FOOT.inTaxi&&Math.hypot(FOOT.pos.x-c.pos.x,FOOT.pos.z-c.pos.z)>4.5){const bn=benchNear();if(bn){footSit(bn);return;}}if(FOOT.inTaxi){TAXI.going=false;taxiExit(false);return;}if(taxiNear()){taxiBoard();return;}if(TUN.on){pop('Tünelde arabadan inilmez');return;}if(S.mode!=='serbest'||S.menuDemo){pop('Arabadan sadece serbest sürüşte inebilirsin');return;}
+function footToggle(){const c=car;if(PASS.id){passLeave();return;}if(FOOT.sit){footStand();pop('Kalktın');return;}if(FOOT.on&&NET.on&&Math.hypot(FOOT.pos.x-c.pos.x,FOOT.pos.z-c.pos.z)>4.5){for(const p of NET.players.values())if(p.shown&&!p.foot&&Math.hypot(FOOT.pos.x-p.pos.x,FOOT.pos.z-p.pos.z)<4.5){passBoard(p);return;}}if(FOOT.on&&!FOOT.inTaxi&&Math.hypot(FOOT.pos.x-c.pos.x,FOOT.pos.z-c.pos.z)>4.5){const bn=benchNear();if(bn){footSit(bn);return;}}if(FOOT.inTaxi){TAXI.going=false;taxiExit(false);return;}if(taxiNear()){taxiBoard();return;}if(TUN.on){pop('Tünelde arabadan inilmez');return;}if(S.mode!=='serbest'||S.menuDemo){pop('Arabadan sadece serbest sürüşte inebilirsin');return;}
   if(!FOOT.on){if(c.state!=='free'||Math.abs(c.v)>2){pop('İnmek için dur');return;}if(AP.on)apStop();TAPP.summon=false;TAPP.after=null;
     const rx=-Math.sin(c.yaw),rz=Math.cos(c.yaw);FOOT.pos.set(c.pos.x-rx*1.8,0,c.pos.z-rz*1.8);FOOT.yaw=c.yaw;FOOT.cam=c.yaw;FOOT.on=true;FOOT.g.visible=true;FOOT.vy=0;
     if(S.camMode===3)setCamMode(0);pop('Arabadan indin · koşmak için Shift / KOŞ · binmek için Enter','gold');FOOT.run=false;sfx('chime');}
@@ -4394,7 +4423,7 @@ function footTick(dt){if(!FOOT.on)return;if(FOOT.inTaxi)return;if(INT.on||INJ.st
   // walking into a restaurant door
   let near=null;for(const r of REST.list){if(Math.hypot(r.door.x-FOOT.pos.x,r.door.z-FOOT.pos.z)<2.2){near=r;break;}}
   if(near&&FOOT.door!==near.name){FOOT.door=near.name;bigMsg(near.name.toLocaleUpperCase('tr-TR'),'Hoş geldin! Afiyet olsun 😋',1800);sfx('chime');}else if(!near)FOOT.door=null;}
-function footTarget(dPos,dLook,dUp){const p=FOOT.pos,fx=Math.cos(FOOT.cam),fz=Math.sin(FOOT.cam);
+function footTarget(dPos,dLook,dUp){if(PASS.id){const k=passTarget(dPos,dLook,dUp);if(k)return k;}const p=FOOT.pos,fx=Math.cos(FOOT.cam),fz=Math.sin(FOOT.cam);
   if(INT.on){dUp.set(0,1,0);if(INT.mode==='bed'){dPos.set(p.x+2.6,p.y+3.4,p.z+3.4);dLook.set(p.x,p.y+.5,p.z);return 8;}dPos.set(p.x-fx*4.2,p.y+6.8,p.z-fz*4.2);dLook.set(p.x+fx*1.2,p.y+.6,p.z+fz*1.2);return 8;}if(FOOT.inTaxi){dPos.set(p.x-fx*8.5,3.3,p.z-fz*8.5);dLook.set(p.x+fx*4,1.1,p.z+fz*4);dUp.set(0,1,0);return 5;}
   if(cbArmed()){const rx=-fz,rz=fx,pt=CB.pitch+CB.rec;dUp.set(0,1,0);if(CB.zoom){dPos.set(p.x+fx*.35,p.y+1.62,p.z+fz*.35);dLook.set(p.x+fx*60,p.y+1.62+Math.tan(pt)*60,p.z+fz*60);return 60;}
     dPos.set(p.x-fx*3.6+rx*.85,p.y+2.05-pt*1.2,p.z-fz*3.6+rz*.85);dLook.set(p.x+fx*25+rx*.8,p.y+1.6+Math.tan(pt)*25,p.z+fz*25+rz*.8);return 16;}dPos.set(p.x-fx*4.2,p.y+2.2,p.z-fz*4.2);dLook.set(p.x+fx*2,p.y+1.3,p.z+fz*2);dUp.set(0,1,0);return 6;}
@@ -4649,6 +4678,8 @@ requestAnimationFrame(frame);
 {$('ifGo').addEventListener('click',()=>ifadeAnswer($('ifIn').value));$('ifMic').addEventListener('click',ifadeVoice);$('ifIn').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')ifadeAnswer($('ifIn').value);});banShow();}
 
 {$('intAct').addEventListener('click',intGetWell);$('ifBribe').addEventListener('click',ifadeBribe);$('hospNow').addEventListener('click',()=>{if(INT.on&&INT.mode==='bed'){CB.hp=100;pop('Doktor: Tamamen iyileştin!','good');}});}
+
+{const f=$('osYtF');document.body.appendChild(f);}
 </script>
 
 </body>
