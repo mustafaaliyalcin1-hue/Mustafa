@@ -13,6 +13,7 @@ import { Guncelleme9, G9_LEN } from "./fragman/Guncelleme9";
 import { Guncelleme10, G10_LEN } from "./fragman/Guncelleme10";
 import { Guncelleme11, G11_LEN } from "./fragman/Guncelleme11";
 import { Guncelleme12, G12_LEN } from "./fragman/Guncelleme12";
+import { Guncelleme13, G13_LEN } from "./fragman/Guncelleme13";
 import { TanitimReels, REELS_LEN } from "./reels/TanitimReels";
 
 export const Root: React.FC = () => {
@@ -39,6 +40,7 @@ export const Root: React.FC = () => {
     <Composition id="Guncelleme10" component={Guncelleme10} durationInFrames={G10_LEN} fps={30} width={1280} height={720} />
     <Composition id="Guncelleme11" component={Guncelleme11} durationInFrames={G11_LEN} fps={30} width={1280} height={720} />
     <Composition id="Guncelleme12" component={Guncelleme12} durationInFrames={G12_LEN} fps={30} width={1280} height={720} />
+    <Composition id="Guncelleme13" component={Guncelleme13} durationInFrames={G13_LEN} fps={30} width={1280} height={720} />
     <Composition id="TanitimReels" component={TanitimReels} durationInFrames={REELS_LEN} fps={30} width={1080} height={1920} />
     </>
   );
