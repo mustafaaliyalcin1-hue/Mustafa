@@ -336,6 +336,24 @@ body.inside #guide,body.inside #tele,body.inside #mini{display:none!important}
 .newsitem{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:6px;padding:10px 12px}.newsitem h4{margin:6px 0 4px;font-size:16px;line-height:1.3}.newsitem p{margin:0;font-size:13px;line-height:1.45;color:#c9cfd8}
 .nmeta{display:flex;gap:8px;align-items:center;font-size:11.5px;color:#a9b1bc}.nmeta i{font-style:normal;font-weight:800;letter-spacing:.08em;color:#fff;padding:2px 7px;border-radius:3px;font-size:11px}.newsempty{color:#a9b1bc;font-size:14px;margin:6px 0}
 #newsBox .card.news{max-width:560px;max-height:86vh;display:flex;flex-direction:column}#newsBox .newslist{max-height:70vh}
+
+.nplay{margin-top:8px;border:0;border-radius:4px;background:#e3263b;color:#fff;font:inherit;font-size:12.5px;font-weight:800;padding:7px 12px;cursor:pointer;touch-action:manipulation}
+#newsTV{position:fixed;inset:0;z-index:46;pointer-events:auto;color:#fff}
+#newsTV .ntop{position:absolute;left:0;right:0;top:0;height:52px;display:flex;align-items:center;gap:12px;padding:0 16px;background:linear-gradient(90deg,#b0101f,#e3263b)}#newsTV .ntop b{font-family:var(--font-d);font-size:26px;letter-spacing:.06em}
+#newsTV .live{background:#fff;color:#e3263b;font-weight:800;font-size:12px;padding:3px 8px;border-radius:3px;letter-spacing:.08em}#ntClock{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:700}
+#ntClose{border:1px solid rgba(255,255,255,.6);border-radius:4px;background:transparent;color:#fff;font:inherit;font-weight:800;padding:7px 12px;cursor:pointer;min-height:38px}
+#ntScreen{position:absolute;left:50%;top:66px;transform:translateX(-50%);width:min(92vw,980px,calc((100vh - 230px)*16/9));aspect-ratio:16/9;border:3px solid rgba(255,255,255,.85);border-radius:4px;overflow:hidden}
+#ntScreen.cctvon{backdrop-filter:grayscale(1) contrast(1.2);-webkit-backdrop-filter:grayscale(1) contrast(1.2);background:repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 2px,transparent 2px 4px)}
+#ntTag{position:absolute;left:10px;top:8px;font-family:ui-monospace,Menlo,monospace;font-size:13px;font-weight:700;color:#ff5a6b;text-shadow:0 1px 2px #000}#ntCam{position:absolute;left:10px;bottom:8px;font-family:ui-monospace,Menlo,monospace;font-size:12px;text-shadow:0 1px 2px #000}
+#ntStudio{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:radial-gradient(circle at 30% 30%,#2a3550,#0b0f1a);text-align:center;padding:20px}#ntStudio[hidden]{display:none}
+#ntStudio b{font-family:var(--font-d);font-size:clamp(40px,8vw,84px);color:#ff3b4e;letter-spacing:.06em;animation:ntp 1.2s ease-in-out infinite}#ntStudio span{font-size:clamp(18px,3vw,30px);font-weight:800;max-width:80%}
+@keyframes ntp{50%{opacity:.55}}
+#newsTV .nlower{position:absolute;left:50%;transform:translateX(-50%);bottom:44px;width:min(94vw,1000px);display:flex;gap:12px;align-items:flex-start;background:rgba(8,10,14,.92);border-left:0;border-radius:4px;padding:10px 14px}
+#ntKind{font-style:normal;font-weight:800;font-size:12px;letter-spacing:.08em;padding:4px 8px;border-radius:3px;white-space:nowrap}#ntTitle{margin:0 0 4px;font-size:20px;line-height:1.25}#ntBody{margin:0;font-size:14px;line-height:1.45;color:#d3d8df}
+#newsTV .nticker{position:absolute;left:0;right:0;bottom:0;height:34px;background:#ffd34d;color:#111;overflow:hidden;display:flex;align-items:center;font-weight:800;font-size:14px}#ntTicker{white-space:nowrap;padding-left:100%;animation:ntk 22s linear infinite}
+@keyframes ntk{to{transform:translateX(-100%)}}
+@media (max-height:520px){#ntScreen{top:58px;width:min(70vw,calc((100vh - 170px)*16/9))}#newsTV .nlower{bottom:36px;padding:6px 10px}#ntTitle{font-size:16px}#ntBody{font-size:12px}#newsTV .ntop{height:46px}}
+body.newstv #hud,body.newstv #touch,body.newstv #osYtF{display:none!important}
 </style>
 </head>
 <body>
@@ -432,6 +450,7 @@ body.inside #guide,body.inside #tele,body.inside #mini{display:none!important}
 <div id="ban" hidden><div><b>3 DAKİKA UZAKLAŞTIRMA</b><p>Bilerek çok sayıda yayaya çarptın. Araban çekildi.</p><span id="banT">3:00</span></div></div>
 <div id="fade"></div>
 <div id="newsBox" class="overlay center" hidden><div class="card news"><div id="newsList" class="newslist"></div><div class="row" style="margin-top:12px"><button class="btn primary" type="button" id="newsClose">Kapat</button></div></div></div>
+<div id="newsTV" hidden><div class="ntop"><b>TEPETAKLAK HABER</b><span class="live">● CANLI</span><span id="ntClock"></span><button type="button" id="ntClose">Kapat ✕</button></div><div id="ntScreen"><span id="ntTag">MOBESE KAYDI</span><span id="ntCam"></span><div id="ntStudio" hidden><b>SON DAKİKA</b><span id="ntStudioT"></span></div></div><div class="nlower"><i id="ntKind">KAZA</i><div><h3 id="ntTitle"></h3><p id="ntBody"></p></div></div><div class="nticker"><span id="ntTicker"></span></div></div>
 <div id="tmenu" hidden>
   <button type="button" data-for="bSide">Yan görünüş</button>
   <button type="button" data-for="bRestart">Yeniden</button>
@@ -1268,7 +1287,7 @@ function polSpawnOne(minD,maxD){const c=car;
   for(let tries=0;tries<40;tries++){const a=Math.random()*TAU,d=minD+Math.random()*(maxD-minD),i=Math.round((c.pos.x+Math.cos(a)*d-CITY.nx(0))/CITY.B),j=Math.round((c.pos.z+Math.sin(a)*d-CITY.nz(0))/CITY.B),x=CITY.nx(i),z=CITY.nz(j);
     if(Math.hypot(x-c.pos.x,z-c.pos.z)<minD*.7)continue;return {x,z,yaw:Math.atan2(c.pos.z-z,c.pos.x-x),v:8,tx:c.pos.x,tz:c.pos.z,reT:0,stuckT:0};}
   return {x:c.pos.x+120,z:c.pos.z,yaw:Math.PI,v:8,tx:c.pos.x,tz:c.pos.z,reT:0,stuckT:0};}
-function polWant(lv,reason){if(!SET.police||S.menuDemo)return;const nw=Math.min(3,lv);if(nw>POL.wanted){newsAdd(/ateş|silah|patlat/i.test(reason)?'catisma':'polis',/ateş|silah/i.test(reason)?'Şehirde silah sesleri':'Polis alarma geçti',reason+'. Polis ekipleri bölgeye yönlendirildi, aranma seviyesi '+nw+' yıldız.');POL.reason=reason;POL.crimeT=performance.now();POL.crimePos=(FOOT.on?FOOT.pos:car.pos).clone();POL.clip=null;POL.wanted=nw;bigMsg('POLİS!',reason+' · '+'★'.repeat(nw),1500);sfx('beep');
+function polWant(lv,reason){if(!SET.police||S.menuDemo)return;const nw=Math.min(3,lv);if(nw>POL.wanted){newsClip(newsAdd(/ateş|silah|patlat/i.test(reason)?'catisma':'polis',/ateş|silah/i.test(reason)?'Şehirde silah sesleri':'Polis alarma geçti',reason+'. Polis ekipleri bölgeye yönlendirildi, aranma seviyesi '+nw+' yıldız.'),FOOT.on?FOOT.pos:car.pos);POL.reason=reason;POL.crimeT=performance.now();POL.crimePos=(FOOT.on?FOOT.pos:car.pos).clone();POL.clip=null;POL.wanted=nw;bigMsg('POLİS!',reason+' · '+'★'.repeat(nw),1500);sfx('beep');
     const need=POLDIF[SET.police].n[nw-1];while(POL.cars.length<need)POL.cars.push(polSpawnOne(110,170));}POL.escT=0;}
 function polTick(dt){
   const c=car,D=POLDIF[SET.police];if(!D){if(POL.wanted)polClear();return;}
@@ -2559,7 +2578,7 @@ function frame(now){
   hud();audioTick(!paused&&(S.phase==='play'||S.phase==='ended'||S.phase==='count'));
   realismTick();
   if(LOW)renderer.render(scene,camera);else composer.render();
-  accCctvRender();vidTick();
+  accCctvRender();newsTVRender();vidTick();
 }
 
 /* ================= ONLINE: rooms over WebRTC (PeerJS). Host relays, everyone simulates their own car ================= */
@@ -3696,7 +3715,7 @@ function cbSplash(p,w,noSelf){for(const q of [...cbTargets(),...(CB.trafOK?cbTra
   if(!noSelf){const me=FOOT.on?FOOT.pos:car.pos,d=Math.hypot(me.x-p.x,me.z-p.z,(me.y+.8)-p.y);if(d<w.rad)cbDamage(w.dmg*(1-d/w.rad*.7),'Kendi roketin',w.name||'RPG');}}
 function cbDamage(d,by,w){if(CB.dead||CB.inv>0||S.mode!=='serbest'||TUN.on)return;const arm=FOOT.on?1:isVoltra()?.35:.55;d*=arm;if(d<=0)return;
   CB.hp=Math.max(0,CB.hp-d);CB.hurtT=0;$('hurt').style.opacity=String(Math.min(.85,.25+d/40));S.shake=Math.max(S.shake,Math.min(.6,d/60));
-  if(CB.hp<=0){newsAdd('catisma','Silahlı çatışmada bir kişi vuruldu',netName()+', '+by+' tarafından '+w+' ile vuruldu ve kısa süre sonra yeniden ayağa kalktı.');CB.dead=4;CB.zoom=false;CB.trig=false;bigMsg('ÖLDÜN',by+' · '+w,3500);sfx('crash');cbSend({k:'kill',by,w,v:netName()});if(by!=='Kendi roketin')pop(by+' ➜ '+netName()+' · '+w,'red');}}
+  if(CB.hp<=0){newsClip(newsAdd('catisma','Silahlı çatışmada bir kişi vuruldu',netName()+', '+by+' tarafından '+w+' ile vuruldu ve kısa süre sonra yeniden ayağa kalktı.'),FOOT.on?FOOT.pos:car.pos);CB.dead=4;CB.zoom=false;CB.trig=false;bigMsg('ÖLDÜN',by+' · '+w,3500);sfx('crash');cbSend({k:'kill',by,w,v:netName()});if(by!=='Kendi roketin')pop(by+' ➜ '+netName()+' · '+w,'red');}}
 function cbRespawn(){CB.hp=100;CB.inv=3;CB.dead=0;if(FOOT.on){const c=car,rx=-Math.sin(c.yaw),rz=Math.cos(c.yaw);FOOT.pos.set(c.pos.x-rx*1.8,0,c.pos.z-rz*1.8);FOOT.g.rotation.x=0;}pop('Yeniden doğdun · 3 sn korumalısın','good');}
 function cbRecv(from,m){if(!m||typeof m!=='object')return;const p=NET.players.get(from),nm=p?p.name:'Oyuncu',vp=viewPos();
   if(m.k==='hit'&&m.to===NET.id&&Number.isFinite(m.d))cbDamage(clamp(m.d,0,200),nm,String(m.w||'').slice(0,16));
@@ -3805,14 +3824,14 @@ function cbTick(simDt,dt){const live=S.mode==='serbest'&&!S.menuDemo;$('cbHud').
 const NEWS={list:store.get('news',[]).filter(n=>n&&n.day)};
 const NEWSK={kaza:['KAZA','#e3263b'],saglik:['SAĞLIK','#2a9d8f'],ifade:['İFADE','#8d99ae'],tutuklama:['TUTUKLAMA','#3e8bff'],polis:['POLİS','#ffb347'],catisma:['ÇATIŞMA','#ff5a1f'],basin:['BASIN','#b07cff']};
 function newsAdd(kind,title,body){if(S.menuDemo)return;const now=Date.now(),last=NEWS.list[NEWS.list.length-1];if(last&&last.title===title&&now-last.t<20000)return;
-  let il='';try{il=ilCur().name;}catch(_){}NEWS.list.push({t:now,day:new Date().toDateString(),il,kind,title,body:String(body||'').slice(0,320)});if(NEWS.list.length>120)NEWS.list.splice(0,NEWS.list.length-120);store.set('news',NEWS.list);
-  if(OS.open&&OS.app==='news')newsRender($('osNewsList'));if(!$('newsBox').hidden)newsRender($('newsList'));}
+  let il='';try{il=ilCur().name;}catch(_){}const item={t:now,day:new Date().toDateString(),il,kind,title,body:String(body||'').slice(0,320)};NEWS.list.push(item);if(NEWS.list.length>120)NEWS.list.splice(0,NEWS.list.length-120);store.set('news',NEWS.list.map(n=>({t:n.t,day:n.day,il:n.il,kind:n.kind,title:n.title,body:n.body})));
+  if(OS.open&&OS.app==='news')newsRender($('osNewsList'));if(!$('newsBox').hidden)newsRender($('newsList'));return item;}
 function newsRender(el){const today=new Date().toDateString(),L=NEWS.list.filter(n=>n.day===today).slice().reverse();el.textContent='';
   const h=document.createElement('div');h.className='newshead';h.innerHTML='<b>TEPETAKLAK HABER</b><span></span>';h.querySelector('span').textContent=new Date().toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long'})+' · '+L.length+' haber';el.appendChild(h);
   if(!L.length){const e=document.createElement('p');e.className='newsempty';e.textContent='Bugün sakin bir gün. Henüz kaza, gözaltı ya da çatışma haberi yok.';el.appendChild(e);return;}
   for(const n of L){const a=document.createElement('article');a.className='newsitem';const k=NEWSK[n.kind]||['HABER','#8d99ae'];
     a.innerHTML='<div class="nmeta"><i></i><span></span></div><h4></h4><p></p>';a.querySelector('i').textContent=k[0];a.querySelector('i').style.background=k[1];
-    a.querySelector('span').textContent=new Date(n.t).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})+(n.il?' · '+n.il:'');a.querySelector('h4').textContent=n.title;a.querySelector('p').textContent=n.body;el.appendChild(a);}}
+    a.querySelector('span').textContent=new Date(n.t).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})+(n.il?' · '+n.il:'');a.querySelector('h4').textContent=n.title;a.querySelector('p').textContent=n.body;const b=document.createElement('button');b.type='button';b.className='nplay';b.textContent=n.clip?'▶ Haber videosu · mobese kaydı':'▶ Haberi izle';b.addEventListener('click',()=>{if(OS.open)osClose();newsOpen(false);newsPlay(n);});a.appendChild(b);el.appendChild(a);}}
 function newsOpen(on=true){$('newsBox').hidden=!on;if(on){releaseAll();newsRender($('newsList'));}}
 /* ================= ACCIDENTS: hitting a pedestrian brings police and an ambulance; hit-and-run is a crime ================= */
 const ACCB=(()=>{const mt=c=>new THREE.MeshStandardMaterial({color:c,roughness:.7}),bas=c=>new THREE.MeshBasicMaterial({color:c});
@@ -3853,7 +3872,7 @@ function accHit(p,c){const ap=AP.on,kmh=Math.round(Math.abs(c.v)*3.6),now=perfor
   const R=accRoad(KAZA.pos);KAZA.dir=R.dir;KAZA.lane=R.lane;const [ux,uz]=R.dir,on=(s,off)=>new V3(R.dir[0]?KAZA.pos.x+s:R.lane+off,0,R.dir[1]?KAZA.pos.z+s:R.lane+off);
   KAZA.polFrom=on(-90,-1.9);KAZA.polTo=on(-13,-1.9);KAZA.ambFrom=on(95,1.9);KAZA.ambTo=on(9,1.9);
   KAZA.P.position.copy(KAZA.polFrom);KAZA.A.position.copy(KAZA.ambFrom);KAZA.P.visible=KAZA.A.visible=true;
-  newsAdd('kaza','Yayaya araç çarptı',(ap?'Otopilotta giden bir araç':'Bir araç')+' '+kmh+' km/s hızla bir yayaya çarptı. Polis ve 112 ekipleri olay yerine yönlendirildi.');bigMsg('YAYAYA ÇARPTIN',ap?'Otopilot sürüyordu · dur, polis ve ambulans geliyor':'Dur ve bekle: polis ve ambulans geliyor · kaçmak suç!',3200);sfx('crash');}
+  newsClip(newsAdd('kaza','Yayaya araç çarptı',(ap?'Otopilotta giden bir araç':'Bir araç')+' '+kmh+' km/s hızla bir yayaya çarptı. Polis ve 112 ekipleri olay yerine yönlendirildi.'),p.g.position);bigMsg('YAYAYA ÇARPTIN',ap?'Otopilot sürüyordu · dur, polis ve ambulans geliyor':'Dur ve bekle: polis ve ambulans geliyor · kaçmak suç!',3200);sfx('crash');}
 function accSevere(){KAZA.hist=[];KAZA.deaths=0;accClear();bigMsg('AĞIR SUÇ','Bilerek çok sayıda yayaya çarptın · araban çekildi',3000);sfx('crash');
   const until=Date.now()+3*60*1000;store.set('ban',until);setTimeout(()=>banShow(),1600);}
 function banShow(){const until=store.get('ban',0);if(!until||Date.now()>=until){$('ban').hidden=true;return;}$('ban').hidden=false;releaseAll();if(S.ui==='play'&&S.mode==='serbest'&&!S.menuDemo)toMenu();
@@ -3863,6 +3882,25 @@ function accClear(){if(KAZA.ped){KAZA.ped.acc=false;KAZA.ped.g.rotation.x=0;pedP
 function accRecord(){if(S.mode!=='serbest'||S.menuDemo)return;const V=CARS[curLo().veh].g,f={t:performance.now(),p:V.position.clone(),q:V.quaternion.clone(),peds:PEDS.map(p=>[p.g.position.x,p.g.position.y,p.g.position.z,p.g.rotation.y,p.g.rotation.x,p.g.visible])};KAZA.buf.push(f);while(KAZA.buf.length&&f.t-KAZA.buf[0].t>9000)KAZA.buf.shift();}
 // picture-in-picture CCTV: re-pose the car and the walkers from the recording, render from the pole camera, put everything back
 function ACC_CC(p){KAZA.ccam.position.set(p.x+16,12,p.z+16);KAZA.ccam.lookAt(p.x,.6,p.z);}
+// replays a recorded moment (car + walkers) from a fixed camera into a screen rectangle
+function cctvDraw(BUF,hitT,startT,cam,x,y,w,h){const H=innerHeight,W=innerWidth,span=5200,t0=hitT-3600,tt=t0+((performance.now()-startT)*.8)%span;let f=BUF[0];for(const b of BUF){if(b.t>tt)break;f=b;}
+  const V=CARS[curLo().veh].g,sp=V.position.clone(),sq=V.quaternion.clone(),sv=V.visible,saved=PEDS.map(p=>[p.g.position.clone(),p.g.rotation.y,p.g.rotation.x,p.g.visible]);
+  V.position.copy(f.p);V.quaternion.copy(f.q);V.visible=true;PEDS.forEach((p,k)=>{const d=f.peds[k];if(!d)return;p.g.position.set(d[0],d[1],d[2]);p.g.rotation.y=d[3];p.g.rotation.x=d[4];p.g.visible=d[5];});
+  const fv=FOOT.g.visible;FOOT.g.visible=false;const npc=[KAZA.P,KAZA.A,KAZA.C,...KAZA.M,INJ.P,INJ.A,INJ.C,...INJ.M],nv=npc.map(o=>o.visible);npc.forEach(o=>o.visible=false);cam.aspect=w/h;cam.updateProjectionMatrix();
+  renderer.setRenderTarget(null);renderer.setScissorTest(true);renderer.setViewport(x,H-y-h,w,h);renderer.setScissor(x,H-y-h,w,h);renderer.render(scene,cam);renderer.setScissorTest(false);renderer.setViewport(0,0,W,H);
+  V.position.copy(sp);V.quaternion.copy(sq);V.visible=sv;FOOT.g.visible=fv;npc.forEach((o,k)=>o.visible=nv[k]);PEDS.forEach((p,k)=>{const s=saved[k];p.g.position.copy(s[0]);p.g.rotation.y=s[1];p.g.rotation.x=s[2];p.g.visible=s[3];});return tt;}
+/* ================= NEWS TV: a bulletin with a narrator, replaying the CCTV of the event when it was recorded this session ================= */
+const NEWSCLIP=[],NTV={on:false,item:null,t0:0,cam:new THREE.PerspectiveCamera(46,16/9,.5,900)};
+function newsClip(item,pos,t){if(item)NEWSCLIP.push({item,pos:pos.clone(),t:t||performance.now()});}
+function newsClipTick(){const now=performance.now();for(let k=NEWSCLIP.length-1;k>=0;k--){const c=NEWSCLIP[k];if(now-c.t<1800)continue;NEWSCLIP.splice(k,1);const clip=KAZA.buf.filter(f=>f.t>=c.t-4500&&f.t<=c.t+1800);if(clip.length>10){c.item.clip=clip;c.item.ct=c.t;c.item.cpos=c.pos;}}}
+function newsPlay(item){if(!item)return;document.body.classList.add('newstv');NTV.on=true;NTV.item=item;NTV.t0=performance.now();releaseAll();const k=NEWSK[item.kind]||['HABER','#8d99ae'];$('newsTV').hidden=false;$('ntKind').textContent=k[0];$('ntKind').style.background=k[1];$('ntTitle').textContent=item.title;$('ntBody').textContent=item.body;
+  $('ntTicker').textContent=NEWS.list.filter(n=>n.day===new Date().toDateString()).slice(-8).reverse().map(n=>'● '+n.title).join('     ');const vid=!!item.clip;$('ntStudio').hidden=vid;$('ntTag').hidden=!vid;$('ntScreen').classList.toggle('cctvon',vid);$('ntStudioT').textContent=item.title;
+  if(vid){const p=item.cpos,R=accRoad(p);if(R.dir[0])NTV.cam.position.set(p.x+18,10,R.lane+3);else NTV.cam.position.set(R.lane+3,10,p.z+18);NTV.cam.lookAt(p.x,.6,p.z);}
+  try{if(!SET.mute&&window.speechSynthesis){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance('Son dakika. '+item.title+'. '+item.body+(vid?' Olay anı mobese kameralarına böyle yansıdı.':''));u.lang='tr-TR';u.rate=.98;const v=speechSynthesis.getVoices().find(v=>/^tr/i.test(v.lang));if(v)u.voice=v;speechSynthesis.speak(u);}}catch(_){}}
+function newsStop(){document.body.classList.remove('newstv');NTV.on=false;$('newsTV').hidden=true;try{speechSynthesis.cancel();}catch(_){}}
+function newsTVRender(){if(!NTV.on)return;$('ntClock').textContent=new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});const it=NTV.item;
+  renderer.setRenderTarget(null);renderer.setScissorTest(false);const cc=renderer.getClearColor(new THREE.Color()),ca=renderer.getClearAlpha();renderer.setClearColor(0x05070b,1);renderer.clear(true,true,false);renderer.setClearColor(cc,ca);
+  if(it&&it.clip&&it.clip.length){const r=$('ntScreen').getBoundingClientRect();const tt=cctvDraw(it.clip,it.ct,NTV.t0,NTV.cam,Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height));$('ntCam').textContent='MOBESE · '+new Date(Date.now()-(performance.now()-tt)).toLocaleTimeString('tr-TR');}}
 function accCctvRender(){const BUF=KAZA.clip||KAZA.buf;if(!KAZA.cctv||!BUF.length)return;const W=innerWidth,H=innerHeight,top=!$('ifade').hidden,w=Math.round(Math.min(W*(top?.38:.46),top?440:560)),h=Math.round(w*9/16),x=top?16:W-w-16,y=top?(isTouch?8:70):H-h-(isTouch?150:120);
   const el=$('cctv');el.style.cssText=`left:${x}px;top:${y}px;width:${w}px;height:${h}px`;
   const span=5200,t0=KAZA.hitT-3600,tt=t0+((performance.now()-KAZA.cctvT)*.8)%span;let f=BUF[0];for(const b of BUF){if(b.t>tt)break;f=b;}
@@ -3874,13 +3912,13 @@ function accCctvRender(){const BUF=KAZA.clip||KAZA.buf;if(!KAZA.cctv||!BUF.lengt
   const d=new Date(Date.now()-(performance.now()-tt));$('cctvT').textContent=d.toLocaleTimeString('tr-TR');}
 function accWalk(p,to,dt,sp=1.6){const dx=to.x-p.position.x,dz=to.z-p.position.z,d=Math.hypot(dx,dz);const a=p.userData.arms;if(d<.4){a[0].rotation.z=a[1].rotation.z=0;return true;}p.position.x+=dx/d*Math.min(d,sp*dt);p.position.z+=dz/d*Math.min(d,sp*dt);p.rotation.y=-Math.atan2(dz,dx);const s=Math.sin(performance.now()/120)*.5;a[0].rotation.z=s;a[1].rotation.z=-s;return false;}
 function accLights(g,t){const on=Math.floor(t*7)%2===0;g.userData.r.visible=on;g.userData.b.visible=!on;}
-function accTick(dt){accRecord();if(POL.crimeT&&!POL.clip&&performance.now()-POL.crimeT>1800)POL.clip=KAZA.buf.filter(f=>f.t>=POL.crimeT-4500&&f.t<=POL.crimeT+1800);KAZA.sir=false;if(KAZA.st!=='off'&&!KAZA.clip&&performance.now()-KAZA.hitT>1600)KAZA.clip=KAZA.buf.filter(f=>f.t>=KAZA.hitT-4500);if(KAZA.hideMe)FOOT.g.visible=false;if(KAZA.st==='off'){if(S.mode==='serbest'&&!S.menuDemo&&!TUN.on){const H=accSpot('hosp'),K=accSpot('kara');ACCB.hosp.visible=!!H;ACCB.kara.visible=!!K;if(H)ACCB.hosp.position.set(H.cx,0,H.cz+24);if(K)ACCB.kara.position.set(K.cx,0,K.cz+26);
+function accTick(dt){accRecord();newsClipTick();if(POL.crimeT&&!POL.clip&&performance.now()-POL.crimeT>1800)POL.clip=KAZA.buf.filter(f=>f.t>=POL.crimeT-4500&&f.t<=POL.crimeT+1800);KAZA.sir=false;if(KAZA.st!=='off'&&!KAZA.clip&&performance.now()-KAZA.hitT>1600)KAZA.clip=KAZA.buf.filter(f=>f.t>=KAZA.hitT-4500);if(KAZA.hideMe)FOOT.g.visible=false;if(KAZA.st==='off'){if(S.mode==='serbest'&&!S.menuDemo&&!TUN.on){const H=accSpot('hosp'),K=accSpot('kara');ACCB.hosp.visible=!!H;ACCB.kara.visible=!!K;if(H)ACCB.hosp.position.set(H.cx,0,H.cz+24);if(K)ACCB.kara.position.set(K.cx,0,K.cz+26);
       if(false&&H&&Math.hypot(accMe().x-H.cx,accMe().z-H.cz)<40){KAZA.hosp=false;bigMsg('HASTANE','Yaya iyileşti ve sana teşekkür etti · geçmiş olsun',3200);sfx('chime');}}else{ACCB.hosp.visible=ACCB.kara.visible=false;}return;}
   if(dt<=0)return;KAZA.t+=dt;const T=KAZA.t,now=performance.now()/1000,me=accMe(),P=KAZA.P,A=KAZA.A,ped=KAZA.ped;accLights(P,now);accLights(A,now+.07);KAZA.sir=T<40;
   if(ped){ped.g.position.copy(KAZA.pos);ped.g.rotation.x=Math.PI/2;}
   if(KAZA.lock){for(const k in keys)keys[k]=0;for(const k in touchK)touchK[k]=0;car.v=0;car.vel.set(0,0,0);if(AP.on)apStop();}
   // hit and run: leaving the scene before the police are done is a crime
-  if((KAZA.st==='scene'||KAZA.st==='talk')&&Math.hypot(me.x-KAZA.pos.x,me.z-KAZA.pos.z)>60){KAZA.st='run';KAZA.t=0;newsAdd('kaza','Yayaya çarpıp kaçtı','Yayaya çarpan sürücü olay yerinden kaçtı. Polis ekipleri sürücüyü arıyor.');bigMsg('EZİP KAÇTIN','Bu bir suç! Polis seni arıyor',2600);if(SET.police)polWant(2,'Ezip kaçtın');sfx('beep');P.visible=false;}
+  if((KAZA.st==='scene'||KAZA.st==='talk')&&Math.hypot(me.x-KAZA.pos.x,me.z-KAZA.pos.z)>60){KAZA.st='run';KAZA.t=0;newsClip(newsAdd('kaza','Yayaya çarpıp kaçtı','Yayaya çarpan sürücü olay yerinden kaçtı. Polis ekipleri sürücüyü arıyor.'),KAZA.pos,KAZA.hitT);bigMsg('EZİP KAÇTIN','Bu bir suç! Polis seni arıyor',2600);if(SET.police)polWant(2,'Ezip kaçtın');sfx('beep');P.visible=false;}
   if(KAZA.st==='run'){A.visible=false;KAZA.M.forEach(m=>m.visible=false);KAZA.C.visible=false;if(T>3&&(!SET.police||!POL.wanted)){pop('Polisi atlattın','gold');newsAdd('polis','Kaçan sürücü bulunamadı','Yayaya çarpıp kaçan sürücü polisin takibinden kurtuldu. Arama çalışmaları sürüyor.');accClear();}else if(T>90)accClear();return;}
   // police and ambulance drive in
   const arr=KAZA.st!=='arrest'&&KAZA.st!=='leave',pArr=arr&&accVeh(P,KAZA.polFrom,KAZA.polTo,15,dt),aArr=arr&&accVeh(A,KAZA.ambFrom,KAZA.ambTo,16,dt);
@@ -4024,7 +4062,7 @@ function injTick(dt){if(INJ.st==='off'){if(FOOT.on&&!FOOT.inTaxi&&!INT.on&&KAZA.
   const pArr=accVeh(INJ.P,INJ.polFrom,INJ.polTo,15,dt),aArr=accVeh(INJ.A,INJ.ambFrom,INJ.ambTo,16,dt);
   if(pArr&&!INJ.C.visible){INJ.C.visible=true;INJ.C.position.set(INJ.P.position.x,0,INJ.P.position.z+1.5);}
   if(INJ.C.visible&&INJ.st==='wait'){if(accWalk(INJ.C,new V3(INJ.D.position.x-1.2,0,INJ.D.position.z),dt,1.8)){INJ.st='verdict';INJ.vT=0;
-    newsAdd(INJ.both?'kaza':'kaza',INJ.both?'İki araç çarpıştı':'Yayaya araç çarptı',INJ.both?'Şehir içinde iki araç çarpıştı. İki sürücü de hastaneye kaldırıldı.':'Bir araç '+INJ.kmh+' km/s hızla yayaya çarptı. Yaralı yaya hastaneye kaldırıldı.'+(INJ.fault?' Kusurlu sürücü gözaltına alındı.':' Sürücünün kusuru bulunmadı.'));
+    newsClip(newsAdd(INJ.both?'kaza':'kaza',INJ.both?'İki araç çarpıştı':'Yayaya araç çarptı',INJ.both?'Şehir içinde iki araç çarpıştı. İki sürücü de hastaneye kaldırıldı.':'Bir araç '+INJ.kmh+' km/s hızla yayaya çarptı. Yaralı yaya hastaneye kaldırıldı.'+(INJ.fault?' Kusurlu sürücü gözaltına alındı.':' Sürücünün kusuru bulunmadı.')),INJ.pos,performance.now()-INJ.t*1000);
     if(INJ.both)accSay('pol','İki tarafın da ifadesini aldık. Yaralılar hastaneye kaldırılıyor.');else if(INJ.fault)accSay('pol','Sürücü '+INJ.kmh+' kilometreyle çarpmış ve kusurlu. Gözaltına alındı.');else accSay('pol','Mobese kaydına göre sürücünün kusuru yok, yaya aniden yola çıkmış. Sürücü serbest.');}}
   if(INJ.st==='verdict'){INJ.vT+=dt;if(INJ.fault&&!INJ.both){const a=INJ.D.userData.arms;a[0].rotation.z=a[1].rotation.z=-.55;if(INJ.vT>2){accWalk(INJ.D,INJ.P.position,dt,1.2);if(INJ.D.position.distanceTo(INJ.P.position)<2)INJ.D.visible=false;}}}
   if(aArr&&!INJ.M[0].visible){INJ.M.forEach((m,k)=>{m.visible=true;m.position.set(INJ.A.position.x+(k?-1.2:1.2),0,INJ.A.position.z);});}
@@ -4606,6 +4644,7 @@ const KEYMAP={KeyJ:'fire',KeyW:'gas',ArrowUp:'gas',KeyS:'brake',ArrowDown:'brake
 addEventListener('keydown',e=>{
   if(!$('shop').hidden){if(e.code==='Escape'||e.code==='KeyB')shopOpen(false);return;}
   if(!$('newsBox').hidden){if(e.code==='Escape')newsOpen(false);return;}
+  if(NTV.on){if(e.code==='Escape')newsStop();return;}
   if(S.ui!=='play'&&S.ui!=='replay'){if(e.code==='Escape'&&(S.ui==='how'||S.ui==='settings'))closeOverlay();if(e.code==='Escape'&&S.ui==='garage')closeGarage();if(e.code==='Escape'&&S.ui==='map')closeOverlay();if(e.code==='Escape'&&S.ui==='online')$('onBack').click();if(e.code==='Enter'&&S.ui==='result'){e.preventDefault();startMode(S.mode);}return;}
   const k=KEYMAP[e.code];if(k){keys[k]=1;e.preventDefault();if(k==='gas'&&S.auto)takeControl();}
   if(e.repeat)return;
@@ -4708,7 +4747,7 @@ requestAnimationFrame(frame);
 
 {$('ifGo').addEventListener('click',()=>ifadeAnswer($('ifIn').value));$('ifMic').addEventListener('click',ifadeVoice);$('ifIn').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')ifadeAnswer($('ifIn').value);});banShow();}
 
-{$('intAct').addEventListener('click',intGetWell);$('taNews').addEventListener('click',()=>{tappOpen(false);newsOpen(true);});$('newsClose').addEventListener('click',()=>newsOpen(false));$('osSpLogin').addEventListener('click',()=>window.open('https://accounts.spotify.com/login','_blank'));$('ifBribe').addEventListener('click',ifadeBribe);$('hospNow').addEventListener('click',()=>{if(INT.on&&INT.mode==='bed'){CB.hp=100;pop('Doktor: Tamamen iyileştin!','good');}});}
+{$('intAct').addEventListener('click',intGetWell);$('ntClose').addEventListener('click',newsStop);$('taNews').addEventListener('click',()=>{tappOpen(false);newsOpen(true);});$('newsClose').addEventListener('click',()=>newsOpen(false));$('osSpLogin').addEventListener('click',()=>window.open('https://accounts.spotify.com/login','_blank'));$('ifBribe').addEventListener('click',ifadeBribe);$('hospNow').addEventListener('click',()=>{if(INT.on&&INT.mode==='bed'){CB.hp=100;pop('Doktor: Tamamen iyileştin!','good');}});}
 
 {const f=$('osYtF');document.body.appendChild(f);}
 </script>
