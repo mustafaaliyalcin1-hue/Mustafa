@@ -323,6 +323,7 @@ body.armed #touch [data-k=retro],body.armed #touch [data-k=fan]{display:none}
 #osYtRes{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;width:100%;max-height:100%;overflow:auto;text-align:left}#osYtRes button{display:flex;flex-direction:column;gap:4px;border:1px solid #2a2e36;border-radius:10px;background:#171a20;color:#eef0f3;padding:6px;font:inherit;font-size:11.5px;cursor:pointer}#osYtRes img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:6px;background:#000}#osYtRes span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.3}
 
 #hospUi{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 58px);display:flex;align-items:center;gap:10px;background:rgba(8,10,14,.8);border:1px solid #1d4ed8;border-radius:4px;padding:8px 12px;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+#hospUi{pointer-events:auto}#hospNow{min-height:40px;padding:0 14px;border:0;border-radius:4px;background:#2a9d8f;color:#fff;font:inherit;font-weight:800;letter-spacing:.06em;cursor:pointer;touch-action:manipulation}
 #hospUi b{color:#7fb0ff;letter-spacing:.1em}#hospUi .hp{width:120px;height:8px;background:rgba(255,255,255,.14);border-radius:4px;overflow:hidden}#hospBar{display:block;height:100%;width:1%;background:var(--good)}
 #intAct{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 120px);pointer-events:auto;min-height:52px;padding:0 22px;border:0;border-radius:4px;background:#2a9d8f;color:#fff;font:inherit;font-weight:800;letter-spacing:.08em;cursor:pointer}
 body.inside #guide,body.inside #tele,body.inside #mini{display:none!important}
@@ -374,7 +375,7 @@ body.inside #guide,body.inside #tele,body.inside #mini{display:none!important}
   <div id="cbHud" hidden><span class="hp"><i id="cbHpBar"></i></span><b id="cbHp">100</b><span id="cbW">Silahsız</span><span id="cbAmmo"></span></div>
   <div id="turHud" hidden><b>TARET</b><span id="turMode">Minigun</span><span>· Hedef:</span><span id="turTgt">Otomatik</span><button type="button" data-tm="minigun">Minigun</button><button type="button" data-tm="laser">Lazer</button><button type="button" data-tm="rpg">RPG</button><button type="button" id="turTg">Hedef değiştir</button><button type="button" id="turOff">Kapat</button></div>
   <div id="cctv" hidden><span class="rec">● KAYIT</span><b>MOBESE · KAVŞAK KAMERASI 07</b><span id="cctvT"></span></div>
-  <div id="hospUi" hidden><b>HASTANEDESİN</b><span class="hp"><i id="hospBar"></i></span><span id="hospHp">1</span><span>· taburcu</span><span id="hospT">3:00</span></div>
+  <div id="hospUi" hidden><b>HASTANEDESİN</b><span class="hp"><i id="hospBar"></i></span><span id="hospHp">1</span><span>· taburcu</span><span id="hospT">3:00</span><button type="button" id="hospNow">Hemen iyileş</button></div>
   <button type="button" id="intAct" hidden>GEÇMİŞ OLSUN</button>
   <div id="wanted" hidden><span id="wStars">★☆☆</span><b id="wTxt">Polis peşinde</b></div>
   <div id="autoTag" hidden>Kendi kendine oynuyor · kontrolü almak için <kbd>W</kbd> ya da GAZ</div>
@@ -4639,7 +4640,7 @@ requestAnimationFrame(frame);
 
 {$('ifGo').addEventListener('click',()=>ifadeAnswer($('ifIn').value));$('ifMic').addEventListener('click',ifadeVoice);$('ifIn').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')ifadeAnswer($('ifIn').value);});banShow();}
 
-{$('intAct').addEventListener('click',intGetWell);}
+{$('intAct').addEventListener('click',intGetWell);$('hospNow').addEventListener('click',()=>{if(INT.on&&INT.mode==='bed'){CB.hp=100;pop('Doktor: Tamamen iyileştin!','good');}});}
 </script>
 
 </body>
