@@ -2451,15 +2451,16 @@ function updateCamera(dt){camDt=dt;
   const a=snapCam?1:1-Math.exp(-k*dt);snapCam=false;
   cam.pos.lerp(_cp,a);cam.look.lerp(_cl,Math.min(1,a*1.5));if(chase){const dd=cam.pos.distanceTo(car.pos),mx=30*(cam.zoom||1);if(dd>mx)cam.pos.lerp(car.pos,1-mx/dd);const dl=cam.look.distanceTo(car.pos);if(dl>25)cam.look.lerp(car.pos,1-25/dl);}cam.up.lerp(_cu,a).normalize();if(cam.pos.y<.4&&!(TUN.on&&TUN.ph!=='down'))cam.pos.y=.4;
   camera.position.copy(cam.pos);
-  if(S.shake>0){S.shake=Math.max(0,S.shake-dt*1.6);const s=S.shake*.35;camera.position.x+=(Math.random()-.5)*s;camera.position.y+=(Math.random()-.5)*s;}
+  if(S.shake>0){S.shake=Math.max(0,S.shake-dt*1.6);const s=S.shake*(S.camMode===3?.08:.35);camera.position.x+=(Math.random()-.5)*s;camera.position.y+=(Math.random()-.5)*s;}
   if(S.mode==='serbest'&&S.camMode<3&&!window.__camOverride){for(let t=.2;t<=1.001;t+=.2){_off.copy(cam.pos).sub(cam.look).multiplyScalar(t).add(cam.look);if(inBuilding(_off)){camera.position.copy(cam.pos).sub(cam.look).multiplyScalar(Math.max(.15,t-.2)).add(cam.look);break;}}}
   camera.up.copy(cam.up);camera.lookAt(cam.look);
   const sp=car.state==='air'||car.state==='crash'?car.vel.length():Math.abs(car.v);const fov=cbArmed()&&CB.zoom?14:S.camMode===3&&!S.menuDemo?72:S.camMode>=4&&S.mode==='serbest'?96:46+Math.min(10,sp*.25);camera.fov+=(fov-camera.fov)*(1-Math.exp(-2*dt));camera.updateProjectionMatrix();
 }
 
 /* ================= VISUAL SYNC ================= */
+const PREV={p:new V3(),q:new THREE.Quaternion(),a:1,ok:false};
 function poseCar(simDt){
-  const c=car;CAR.g.position.copy(c.pos);CAR.g.quaternion.copy(c.q);
+  const c=car;if(PREV.ok&&PREV.a<1&&S.phase==='play'&&PREV.p.distanceToSquared(c.pos)<25){CAR.g.position.lerpVectors(PREV.p,c.pos,PREV.a);CAR.g.quaternion.slerpQuaternions(PREV.q,c.q,PREV.a);}else{CAR.g.position.copy(c.pos);CAR.g.quaternion.copy(c.q);}
   if(CAR.moto&&c.state==='free'){c.lean=(c.lean||0)+(clamp(c.steer*Math.min(1,Math.abs(c.v)/12)*.5,-.5,.5)-(c.lean||0))*.2;CAR.g.quaternion.multiply(_qa.setFromAxisAngle(AX,c.lean));}else c.lean=0;
   if(c.state==='ground'||c.state==='ramp')CAR.g.position.addScaledVector(_va.copy(AY).applyQuaternion(c.q),-c.su*.6);
   for(const fp of CAR.front)fp.rotation.y=c.state==='free'?-c.steer*.5:0;
@@ -2535,9 +2536,9 @@ function frame(now){
       if(TUN.on){tunStep(H);continue;}
       const inp=gatherInput();
       if(S.phase==='ended'){inp.gas=0;inp.brake=1;inp.lift=0;inp.boost=0;inp.liftPress=0;}
-      const ev=[];physicsStep(car,inp,H,ev);
+      PREV.p.copy(car.pos);PREV.q.copy(car.q);PREV.ok=true;const ev=[];physicsStep(car,inp,H,ev);
       if(S.phase==='play'){S.t+=H;handleEvents(ev);}else handleEvents(ev.filter(e=>e.t==='land'||e.t==='bump'));}
-    simDt=steps*H;
+    simDt=steps*H;PREV.a=steps?clamp(acc/H,0,1):1;
     if(S.mode==='serbest'&&!S.menuDemo&&!TUN.on){trafficTick(simDt);if(S.phase==='play')polTick(simDt);}
     if(S.phase==='play'){if(!TUN.on)modeTick(simDt);if(steps)record();}
     else if(S.menuDemo||S.auto){S.endT+=dt;if(S.endT>2.2){if(S.menuDemo)startMode('gosteri',{demo:true});else nextAuto();}}
@@ -3024,13 +3025,10 @@ function cockpitPose(){const on=inCab()&&!CAR.moto;COCK.g.visible=on;if(CAR.moto
 const _hp=new V3(),_hl=new V3();let headLag=new V3();
 const CABQ=new THREE.Quaternion();
 function driverTarget(dPos,dLook,dUp){const c=car,hp=HEAD[CAR.moto?'moto':CAR.voltra?'voltra':'car'];
-  // head sways against acceleration and leans into corners, like a real neck
-  const along=-(c.aLong||0)*.0035,lat=c.state==='free'?clamp(-(c.steer||0)*Math.min(1,Math.abs(c.v)/15)*.05,-.06,.06):0;
-  headLag.x+=(clamp(along,-.07,.07)-headLag.x)*.12;headLag.z+=(lat-headLag.z)*.12;
-  _hp.copy(hp).add(headLag);if(CABQ.angleTo(CAR.g.quaternion)>.6)CABQ.copy(CAR.g.quaternion);else CABQ.slerp(CAR.g.quaternion,1-Math.exp(-(camDt||1/60)*9));
-  dPos.copy(_hp).applyQuaternion(CABQ).add(CAR.g.position);
-  const yaw=c.state==='free'?(c.steer||0)*.16:0;_hl.set(Math.cos(yaw)*20,-1.9,Math.sin(yaw)*20).add(hp).applyQuaternion(CABQ).add(CAR.g.position);dLook.copy(_hl);
-  dUp.set(0,1,0).applyQuaternion(CABQ);return 80;}
+  // the head is part of the car: no sway, no lag; on the road the horizon stays level
+  const Q=CAR.g.quaternion,flat=c.state==='free'||c.state==='ground';dPos.copy(hp).applyQuaternion(Q).add(CAR.g.position);
+  _hl.set(20,-1.9,0).add(hp).applyQuaternion(Q).add(CAR.g.position);dLook.copy(_hl);
+  if(flat)dUp.set(0,1,0);else dUp.set(0,1,0).applyQuaternion(Q);return 1e6;}
 function drawCluster(){const x=COCK.cc.getContext('2d');x.fillStyle='#050608';x.fillRect(0,0,256,96);x.fillStyle='#fff';x.font='700 54px system-ui';x.textAlign='left';x.textBaseline='middle';const sp=String(kmh(car.v));x.fillText(sp,16,48);
   const w=x.measureText(sp).width;x.font='600 18px system-ui';x.fillStyle='#9aa3ad';x.fillText('km/s',24+w,62);x.fillStyle=AP.on?'#3e8bff':'#555';x.textAlign='right';x.font='700 18px system-ui';x.fillText(AP.on?'OTOPİLOT':'MANUEL',244,30);x.fillStyle='#9aa3ad';x.fillText('D',244,66);}
 // Tesla-style navigation: heading-up map on the left, status panel on the right
