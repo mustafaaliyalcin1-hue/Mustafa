@@ -330,6 +330,12 @@ body.armed #touch [data-k=retro],body.armed #touch [data-k=fan]{display:none}
 body.inside #guide,body.inside #tele,body.inside #mini{display:none!important}
 #osYtSlot{flex:1;min-height:180px;border-radius:10px;background:#000}#osYtSlot[hidden]{display:none}
 .spnote{margin:0;font-size:12px;line-height:1.4;color:#c9cfd8;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.spnote button{border:1px solid #1db954;border-radius:999px;background:#1db954;color:#06120a;font:inherit;font-weight:800;padding:5px 12px;cursor:pointer}
+
+.newslist{display:flex;flex-direction:column;gap:10px;overflow:auto;max-height:100%;padding-right:4px}#osNews{flex:1;min-height:0;display:flex;flex-direction:column}#osNews[hidden]{display:none}
+.newshead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;border-bottom:2px solid #e3263b;padding-bottom:6px}.newshead b{font-family:var(--font-d);font-size:26px;letter-spacing:.04em}.newshead span{font-size:12px;color:#a9b1bc}
+.newsitem{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:6px;padding:10px 12px}.newsitem h4{margin:6px 0 4px;font-size:16px;line-height:1.3}.newsitem p{margin:0;font-size:13px;line-height:1.45;color:#c9cfd8}
+.nmeta{display:flex;gap:8px;align-items:center;font-size:11.5px;color:#a9b1bc}.nmeta i{font-style:normal;font-weight:800;letter-spacing:.08em;color:#fff;padding:2px 7px;border-radius:3px;font-size:11px}.newsempty{color:#a9b1bc;font-size:14px;margin:6px 0}
+#newsBox .card.news{max-width:560px;max-height:86vh;display:flex;flex-direction:column}#newsBox .newslist{max-height:70vh}
 </style>
 </head>
 <body>
@@ -392,7 +398,7 @@ body.inside #guide,body.inside #tele,body.inside #mini{display:none!important}
     <div class="tagrid">
       <button type="button" id="taLock">🔒 Kilitle</button><button type="button" id="taHonk">📯 Korna</button><button type="button" id="taFlash">💡 Farlar</button>
       <button type="button" id="taCome">📍 Gel beni al</button><button type="button" id="taTakeHome">🏠 Beni eve götür</button><button type="button" id="taHomeGo">🚗 Eve gönder</button><button type="button" id="taPark">🅿️ Park et</button>
-      <button type="button" id="taSetHome">⭐ Burayı ev yap</button><button type="button" id="taStop">⏹ Durdur</button><button type="button" id="taTaxi">🚕 Taksi çağır</button><button type="button" id="taAsk" class="ask">🎤 Hey Tepetaklak</button>
+      <button type="button" id="taNews">📰 Haberler</button><button type="button" id="taSetHome">⭐ Burayı ev yap</button><button type="button" id="taStop">⏹ Durdur</button><button type="button" id="taTaxi">🚕 Taksi çağır</button><button type="button" id="taAsk" class="ask">🎤 Hey Tepetaklak</button>
     </div></div></div>
 <div id="taxiBox" hidden><b id="txTitle">🚕 Taksi · Nereye gidelim?</b><span id="txInfo"></span>
   <div id="txDest"><button type="button" data-t="home">🏠 Eve</button><button type="button" data-t="car">🚗 Arabamın yanına</button><button type="button" data-t="rest">🍽 En yakın lokanta</button>
@@ -403,7 +409,7 @@ body.inside #guide,body.inside #tele,body.inside #mini{display:none!important}
 <div id="carOS" hidden><div class="ospanel">
   <div class="oshead"><b>TEPETAKLAK OS</b><span id="osInfo"></span><button type="button" id="osClose" aria-label="Ekranı kapat">✕</button></div>
   <div class="osbody">
-    <div id="osDock"><button type="button" data-a="home" class="on">🗺<span>Ana ekran</span></button><button type="button" data-a="sp">🎵<span>Spotify</span></button><button type="button" data-a="yt">▶️<span>YouTube</span></button>
+    <div id="osDock"><button type="button" data-a="home" class="on">🗺<span>Ana ekran</span></button><button type="button" data-a="sp">🎵<span>Spotify</span></button><button type="button" data-a="yt">▶️<span>YouTube</span></button><button type="button" data-a="news">📰<span>Haberler</span></button>
       <button type="button" data-x="ask">🎤<span>Hey Tepetaklak</span></button><button type="button" data-x="map">🧭<span>Otopilot</span></button><button type="button" data-x="gar">🎨<span>Garaj</span></button><button type="button" data-x="set">⚙️<span>Ayarlar</span></button></div>
     <div class="osmain">
       <div id="osHome"><canvas id="osMap" width="900" height="460"></canvas>
@@ -412,6 +418,7 @@ body.inside #guide,body.inside #tele,body.inside #mini{display:none!important}
       <div id="osSp" hidden><div class="osrow"><button type="button" data-pl="37i9dQZEVXbIVYVBNw9D5K">🇹🇷 Türkiye Top 50</button><button type="button" data-pl="37i9dQZF1DXcBWIGoYBM5M">🌍 Top Hits</button><input id="osSpIn" placeholder="Şarkı ara ya da Spotify linki yapıştır" autocomplete="off"><button type="button" id="osSpGo">Git</button><button type="button" id="osSpOut">↗ Spotify'da aç</button></div>
         <p class="spnote">Spotify, giriş yapılmamışsa şarkıların sadece 30 saniyesini çalar. Tamamı için bu tarayıcıda Spotify hesabına bir kez giriş yap. <button type="button" id="osSpLogin">Spotify'a giriş yap</button></p>
         <iframe id="osSpF" title="Spotify" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe></div>
+      <div id="osNews" hidden><div id="osNewsList" class="newslist"></div></div>
       <div id="osYt" hidden><div class="osrow"><input id="osYtIn" placeholder="YouTube'da ara ya da video linki yapıştır" autocomplete="off"><button type="button" id="osYtGo">Ara</button></div>
         <div id="osYtPh"><p id="osYtMsg">YouTube'da ne izlemek istersin? Yukarıya yaz ve Ara'ya bas: videolar burada, arabanın ekranında açılır.</p><div class="osrow"><button type="button" data-yq="türkçe pop şarkılar">🎤 Türkçe pop</button><button type="button" data-yq="türkçe rap">🎧 Rap</button><button type="button" data-yq="lofi müzik">☕ Lofi</button><button type="button" data-yq="uçan araba">🚗 Uçan araba</button></div></div>
         <div id="osYtRes" hidden></div>
@@ -424,6 +431,7 @@ body.inside #guide,body.inside #tele,body.inside #mini{display:none!important}
 <div id="ifade" class="overlay center" hidden><div class="card"><h3 class="ct" id="ifTitle">İfade · Karakol</h3><p class="cs">Komiser seni dinliyor. Sesle ya da yazarak cevap ver.</p><p id="ifQ" class="ifq"></p><input id="ifIn" placeholder="Cevabını yaz…" autocomplete="off"><div class="row" style="margin-top:10px"><button class="btn" type="button" id="ifMic">Sesle cevap ver</button><button class="btn primary" type="button" id="ifGo">Gönder</button><button class="btn" type="button" id="ifBribe">Rüşvet ver</button></div><p id="ifLog" class="cs"></p></div></div>
 <div id="ban" hidden><div><b>3 DAKİKA UZAKLAŞTIRMA</b><p>Bilerek çok sayıda yayaya çarptın. Araban çekildi.</p><span id="banT">3:00</span></div></div>
 <div id="fade"></div>
+<div id="newsBox" class="overlay center" hidden><div class="card news"><div id="newsList" class="newslist"></div><div class="row" style="margin-top:12px"><button class="btn primary" type="button" id="newsClose">Kapat</button></div></div></div>
 <div id="tmenu" hidden>
   <button type="button" data-for="bSide">Yan görünüş</button>
   <button type="button" data-for="bRestart">Yeniden</button>
@@ -1260,7 +1268,7 @@ function polSpawnOne(minD,maxD){const c=car;
   for(let tries=0;tries<40;tries++){const a=Math.random()*TAU,d=minD+Math.random()*(maxD-minD),i=Math.round((c.pos.x+Math.cos(a)*d-CITY.nx(0))/CITY.B),j=Math.round((c.pos.z+Math.sin(a)*d-CITY.nz(0))/CITY.B),x=CITY.nx(i),z=CITY.nz(j);
     if(Math.hypot(x-c.pos.x,z-c.pos.z)<minD*.7)continue;return {x,z,yaw:Math.atan2(c.pos.z-z,c.pos.x-x),v:8,tx:c.pos.x,tz:c.pos.z,reT:0,stuckT:0};}
   return {x:c.pos.x+120,z:c.pos.z,yaw:Math.PI,v:8,tx:c.pos.x,tz:c.pos.z,reT:0,stuckT:0};}
-function polWant(lv,reason){if(!SET.police||S.menuDemo)return;const nw=Math.min(3,lv);if(nw>POL.wanted){POL.reason=reason;POL.crimeT=performance.now();POL.crimePos=(FOOT.on?FOOT.pos:car.pos).clone();POL.clip=null;POL.wanted=nw;bigMsg('POLİS!',reason+' · '+'★'.repeat(nw),1500);sfx('beep');
+function polWant(lv,reason){if(!SET.police||S.menuDemo)return;const nw=Math.min(3,lv);if(nw>POL.wanted){newsAdd(/ateş|silah|patlat/i.test(reason)?'catisma':'polis',/ateş|silah/i.test(reason)?'Şehirde silah sesleri':'Polis alarma geçti',reason+'. Polis ekipleri bölgeye yönlendirildi, aranma seviyesi '+nw+' yıldız.');POL.reason=reason;POL.crimeT=performance.now();POL.crimePos=(FOOT.on?FOOT.pos:car.pos).clone();POL.clip=null;POL.wanted=nw;bigMsg('POLİS!',reason+' · '+'★'.repeat(nw),1500);sfx('beep');
     const need=POLDIF[SET.police].n[nw-1];while(POL.cars.length<need)POL.cars.push(polSpawnOne(110,170));}POL.escT=0;}
 function polTick(dt){
   const c=car,D=POLDIF[SET.police];if(!D){if(POL.wanted)polClear();return;}
@@ -3682,17 +3690,17 @@ function cbHit(q,dmg,wname,at){if(!q)return;CB.hm=.18;gsfx('hit');
   if(q.k==='net'){cbSend({k:'hit',to:q.id,d:Math.round(dmg),w:wname});return;}
   if(q.k==='ped'){const p=q.ref;if(p.st!=='down'){p.st='down';p.down=0;sparks(q.c,6,3);}polWant(Math.max(1,POL.wanted),'Yayaya ateş ettin');return;}
   if(q.k==='dum'){const d=q.ref;d.hp-=dmg;if(d.hp<=0){d.down=4;d.hp=100;pop('Hedef düştü','gold');}return;}
-  if(q.k==='pol'){const p=q.ref;p.hp=(p.hp??150)-dmg;sparks(q.c,8,5);if(p.hp<=0){const i=POL.cars.indexOf(p);if(i>=0)POL.cars.splice(i,1);fxBoom(q.c,5);pop('Polis aracı patladı','red');polWant(Math.min(3,POL.wanted+1),'Polise ateş ettin');}else polWant(Math.max(2,POL.wanted),'Polise ateş ettin');return;}
-  if(q.k==='traf'){const a=q.ref;a.hp=(a.hp??80)-dmg;a.hitT=2.5;sparks(q.c,6,5);if(a.hp<=0){a.hp=80;fxBoom(q.c,5);cbSplash(q.c,{dmg:35,rad:5},true);const vp=viewPos();placeCar(a,vp.x,vp.z,CITY.R*45,CITY.R*68);polWant(Math.max(1,POL.wanted),'Araç patlattın');}return;}}
+  if(q.k==='pol'){const p=q.ref;p.hp=(p.hp??150)-dmg;sparks(q.c,8,5);if(p.hp<=0){const i=POL.cars.indexOf(p);if(i>=0)POL.cars.splice(i,1);fxBoom(q.c,5);pop('Polis aracı patladı','red');newsAdd('catisma','Polis aracına saldırı','Silahlı saldırıya uğrayan bir polis aracı patladı. Bölgede geniş güvenlik önlemi alındı.');polWant(Math.min(3,POL.wanted+1),'Polise ateş ettin');}else polWant(Math.max(2,POL.wanted),'Polise ateş ettin');return;}
+  if(q.k==='traf'){const a=q.ref;a.hp=(a.hp??80)-dmg;a.hitT=2.5;sparks(q.c,6,5);if(a.hp<=0){a.hp=80;fxBoom(q.c,5);newsAdd('catisma','Silahlı saldırıda araç patladı','Şehirde ateş açılan bir araç alev alarak patladı.');cbSplash(q.c,{dmg:35,rad:5},true);const vp=viewPos();placeCar(a,vp.x,vp.z,CITY.R*45,CITY.R*68);polWant(Math.max(1,POL.wanted),'Araç patlattın');}return;}}
 function cbSplash(p,w,noSelf){for(const q of [...cbTargets(),...(CB.trafOK?cbTrafTargets():[])]){const d=q.c.distanceTo(p);if(d<w.rad+q.r)cbHit(q,w.dmg*(1-Math.max(0,d-q.r)/w.rad*.7),w.name||'RPG');}
   if(!noSelf){const me=FOOT.on?FOOT.pos:car.pos,d=Math.hypot(me.x-p.x,me.z-p.z,(me.y+.8)-p.y);if(d<w.rad)cbDamage(w.dmg*(1-d/w.rad*.7),'Kendi roketin',w.name||'RPG');}}
 function cbDamage(d,by,w){if(CB.dead||CB.inv>0||S.mode!=='serbest'||TUN.on)return;const arm=FOOT.on?1:isVoltra()?.35:.55;d*=arm;if(d<=0)return;
   CB.hp=Math.max(0,CB.hp-d);CB.hurtT=0;$('hurt').style.opacity=String(Math.min(.85,.25+d/40));S.shake=Math.max(S.shake,Math.min(.6,d/60));
-  if(CB.hp<=0){CB.dead=4;CB.zoom=false;CB.trig=false;bigMsg('ÖLDÜN',by+' · '+w,3500);sfx('crash');cbSend({k:'kill',by,w,v:netName()});if(by!=='Kendi roketin')pop(by+' ➜ '+netName()+' · '+w,'red');}}
+  if(CB.hp<=0){newsAdd('catisma','Silahlı çatışmada bir kişi vuruldu',netName()+', '+by+' tarafından '+w+' ile vuruldu ve kısa süre sonra yeniden ayağa kalktı.');CB.dead=4;CB.zoom=false;CB.trig=false;bigMsg('ÖLDÜN',by+' · '+w,3500);sfx('crash');cbSend({k:'kill',by,w,v:netName()});if(by!=='Kendi roketin')pop(by+' ➜ '+netName()+' · '+w,'red');}}
 function cbRespawn(){CB.hp=100;CB.inv=3;CB.dead=0;if(FOOT.on){const c=car,rx=-Math.sin(c.yaw),rz=Math.cos(c.yaw);FOOT.pos.set(c.pos.x-rx*1.8,0,c.pos.z-rz*1.8);FOOT.g.rotation.x=0;}pop('Yeniden doğdun · 3 sn korumalısın','good');}
 function cbRecv(from,m){if(!m||typeof m!=='object')return;const p=NET.players.get(from),nm=p?p.name:'Oyuncu',vp=viewPos();
   if(m.k==='hit'&&m.to===NET.id&&Number.isFinite(m.d))cbDamage(clamp(m.d,0,200),nm,String(m.w||'').slice(0,16));
-  else if(m.k==='kill')pop(String(m.by||nm).slice(0,14)+' ➜ '+String(m.v||nm).slice(0,14)+' · '+String(m.w||'').slice(0,16),'red');
+  else if(m.k==='kill'&&newsAdd('catisma','Silahlı çatışma','Online odada '+String(m.by||nm).slice(0,14)+', '+String(m.v||nm).slice(0,14)+' adlı oyuncuyu '+String(m.w||'silah').slice(0,16)+' ile vurdu.')!==1)pop(String(m.by||nm).slice(0,14)+' ➜ '+String(m.v||nm).slice(0,14)+' · '+String(m.w||'').slice(0,16),'red');
   else if(m.k==='fx'&&fin(m.a)&&fin(m.b)){const a=new V3(...m.a),b=new V3(...m.b);if(m.l)fxLaser(a,b,.22);else{fxTracer(a,b);fxMuzzle(a);}const d=a.distanceTo(vp);if(d<220&&Math.random()<.6)gsfx(m.l?'laser':m.s||'rifle',d);}
   else if(m.k==='rk'&&fin(m.a)&&fin(m.v)){const w=m.t?TURW.rpg:WPN.rpg;fxRocket(new V3(...m.a),new V3(...m.v).normalize(),w,false);gsfx('rpg',new V3(...m.a).distanceTo(vp));}
   else if(m.k==='boom'&&fin(m.a))fxBoom(new V3(...m.a),clamp(+m.r||6,2,10));
@@ -3793,6 +3801,19 @@ function cbTick(simDt,dt){const live=S.mode==='serbest'&&!S.menuDemo;$('cbHud').
     if(simDt>0)cbFire(simDt);FOOT.cam=FOOT.yaw;}CB.rec*=Math.max(0,1-dt*6);if(FOOT.on&&!FOOT.inTaxi)FOOT.g.visible=!(cbArmed()&&CB.zoom);if(document.pointerLockElement===canvas&&!cbArmed())document.exitPointerLock();
   else if(FOOT.on){FOOT.g.userData.arms[1].rotation.x=0;}
   cbUi();}
+/* ================= NEWS: what happened in the game today, on the phone and the car screen ================= */
+const NEWS={list:store.get('news',[]).filter(n=>n&&n.day)};
+const NEWSK={kaza:['KAZA','#e3263b'],saglik:['SAĞLIK','#2a9d8f'],ifade:['İFADE','#8d99ae'],tutuklama:['TUTUKLAMA','#3e8bff'],polis:['POLİS','#ffb347'],catisma:['ÇATIŞMA','#ff5a1f'],basin:['BASIN','#b07cff']};
+function newsAdd(kind,title,body){if(S.menuDemo)return;const now=Date.now(),last=NEWS.list[NEWS.list.length-1];if(last&&last.title===title&&now-last.t<20000)return;
+  let il='';try{il=ilCur().name;}catch(_){}NEWS.list.push({t:now,day:new Date().toDateString(),il,kind,title,body:String(body||'').slice(0,320)});if(NEWS.list.length>120)NEWS.list.splice(0,NEWS.list.length-120);store.set('news',NEWS.list);
+  if(OS.open&&OS.app==='news')newsRender($('osNewsList'));if(!$('newsBox').hidden)newsRender($('newsList'));}
+function newsRender(el){const today=new Date().toDateString(),L=NEWS.list.filter(n=>n.day===today).slice().reverse();el.textContent='';
+  const h=document.createElement('div');h.className='newshead';h.innerHTML='<b>TEPETAKLAK HABER</b><span></span>';h.querySelector('span').textContent=new Date().toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long'})+' · '+L.length+' haber';el.appendChild(h);
+  if(!L.length){const e=document.createElement('p');e.className='newsempty';e.textContent='Bugün sakin bir gün. Henüz kaza, gözaltı ya da çatışma haberi yok.';el.appendChild(e);return;}
+  for(const n of L){const a=document.createElement('article');a.className='newsitem';const k=NEWSK[n.kind]||['HABER','#8d99ae'];
+    a.innerHTML='<div class="nmeta"><i></i><span></span></div><h4></h4><p></p>';a.querySelector('i').textContent=k[0];a.querySelector('i').style.background=k[1];
+    a.querySelector('span').textContent=new Date(n.t).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})+(n.il?' · '+n.il:'');a.querySelector('h4').textContent=n.title;a.querySelector('p').textContent=n.body;el.appendChild(a);}}
+function newsOpen(on=true){$('newsBox').hidden=!on;if(on){releaseAll();newsRender($('newsList'));}}
 /* ================= ACCIDENTS: hitting a pedestrian brings police and an ambulance; hit-and-run is a crime ================= */
 const ACCB=(()=>{const mt=c=>new THREE.MeshStandardMaterial({color:c,roughness:.7}),bas=c=>new THREE.MeshBasicMaterial({color:c});
   const box=(g,w,h,d,m,x,y,z)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=true;g.add(o);return o;};
@@ -3832,7 +3853,7 @@ function accHit(p,c){const ap=AP.on,kmh=Math.round(Math.abs(c.v)*3.6),now=perfor
   const R=accRoad(KAZA.pos);KAZA.dir=R.dir;KAZA.lane=R.lane;const [ux,uz]=R.dir,on=(s,off)=>new V3(R.dir[0]?KAZA.pos.x+s:R.lane+off,0,R.dir[1]?KAZA.pos.z+s:R.lane+off);
   KAZA.polFrom=on(-90,-1.9);KAZA.polTo=on(-13,-1.9);KAZA.ambFrom=on(95,1.9);KAZA.ambTo=on(9,1.9);
   KAZA.P.position.copy(KAZA.polFrom);KAZA.A.position.copy(KAZA.ambFrom);KAZA.P.visible=KAZA.A.visible=true;
-  bigMsg('YAYAYA ÇARPTIN',ap?'Otopilot sürüyordu · dur, polis ve ambulans geliyor':'Dur ve bekle: polis ve ambulans geliyor · kaçmak suç!',3200);sfx('crash');}
+  newsAdd('kaza','Yayaya araç çarptı',(ap?'Otopilotta giden bir araç':'Bir araç')+' '+kmh+' km/s hızla bir yayaya çarptı. Polis ve 112 ekipleri olay yerine yönlendirildi.');bigMsg('YAYAYA ÇARPTIN',ap?'Otopilot sürüyordu · dur, polis ve ambulans geliyor':'Dur ve bekle: polis ve ambulans geliyor · kaçmak suç!',3200);sfx('crash');}
 function accSevere(){KAZA.hist=[];KAZA.deaths=0;accClear();bigMsg('AĞIR SUÇ','Bilerek çok sayıda yayaya çarptın · araban çekildi',3000);sfx('crash');
   const until=Date.now()+3*60*1000;store.set('ban',until);setTimeout(()=>banShow(),1600);}
 function banShow(){const until=store.get('ban',0);if(!until||Date.now()>=until){$('ban').hidden=true;return;}$('ban').hidden=false;releaseAll();if(S.ui==='play'&&S.mode==='serbest'&&!S.menuDemo)toMenu();
@@ -3859,8 +3880,8 @@ function accTick(dt){accRecord();if(POL.crimeT&&!POL.clip&&performance.now()-POL
   if(ped){ped.g.position.copy(KAZA.pos);ped.g.rotation.x=Math.PI/2;}
   if(KAZA.lock){for(const k in keys)keys[k]=0;for(const k in touchK)touchK[k]=0;car.v=0;car.vel.set(0,0,0);if(AP.on)apStop();}
   // hit and run: leaving the scene before the police are done is a crime
-  if((KAZA.st==='scene'||KAZA.st==='talk')&&Math.hypot(me.x-KAZA.pos.x,me.z-KAZA.pos.z)>60){KAZA.st='run';KAZA.t=0;bigMsg('EZİP KAÇTIN','Bu bir suç! Polis seni arıyor',2600);if(SET.police)polWant(2,'Ezip kaçtın');sfx('beep');P.visible=false;}
-  if(KAZA.st==='run'){A.visible=false;KAZA.M.forEach(m=>m.visible=false);KAZA.C.visible=false;if(T>3&&(!SET.police||!POL.wanted)){pop('Polisi atlattın','gold');accClear();}else if(T>90)accClear();return;}
+  if((KAZA.st==='scene'||KAZA.st==='talk')&&Math.hypot(me.x-KAZA.pos.x,me.z-KAZA.pos.z)>60){KAZA.st='run';KAZA.t=0;newsAdd('kaza','Yayaya çarpıp kaçtı','Yayaya çarpan sürücü olay yerinden kaçtı. Polis ekipleri sürücüyü arıyor.');bigMsg('EZİP KAÇTIN','Bu bir suç! Polis seni arıyor',2600);if(SET.police)polWant(2,'Ezip kaçtın');sfx('beep');P.visible=false;}
+  if(KAZA.st==='run'){A.visible=false;KAZA.M.forEach(m=>m.visible=false);KAZA.C.visible=false;if(T>3&&(!SET.police||!POL.wanted)){pop('Polisi atlattın','gold');newsAdd('polis','Kaçan sürücü bulunamadı','Yayaya çarpıp kaçan sürücü polisin takibinden kurtuldu. Arama çalışmaları sürüyor.');accClear();}else if(T>90)accClear();return;}
   // police and ambulance drive in
   const arr=KAZA.st!=='arrest'&&KAZA.st!=='leave',pArr=arr&&accVeh(P,KAZA.polFrom,KAZA.polTo,15,dt),aArr=arr&&accVeh(A,KAZA.ambFrom,KAZA.ambTo,16,dt);
   if(aArr&&!KAZA.M[0].visible){KAZA.M.forEach((m,k)=>{m.visible=true;m.position.set(A.position.x+(k?-1.2:1.2),0,A.position.z+(k?1.4:-1.4));});KAZA.medT=0;}
@@ -3873,8 +3894,8 @@ function accTick(dt){accRecord();if(POL.crimeT&&!POL.clip&&performance.now()-POL
         if(S.cargo){const f=Math.min(CAREER.money,fine);CAREER.money-=f;saveCareer();}else S.score=Math.max(0,S.score-600);accSay('pol','Yayaya '+KAZA.kmh+' kilometre hızla çarptınız. Trafik cezanız '+nf(fine)+' lira.');bigMsg('CEZA',nf(fine)+' ₺ · '+KAZA.kmh+' km/s',2600);}}],
       [18,()=>{KAZA.st='treat';KAZA.t=0;}]];
     while(KAZA.line<L.length&&KAZA.t>=L[KAZA.line][0]){if(KAZA.line===2&&!KAZA.stmt){if(KAZA.t<40)break;$('ifade').hidden=true;KAZA.stmt=true;}L[KAZA.line][1]();KAZA.line++;}if(KAZA.cctv)KAZA.C.rotation.y+=0;}
-  if(KAZA.st==='treat'&&(KAZA.medT||0)>8){if(KAZA.live){accSay('med','Yaya kurtuldu! Hastaneye götürüyoruz. İsterseniz siz de gelin.');KAZA.st='leave';KAZA.t=0;HOSP.patient=true;setTimeout(()=>{if(KAZA.hosp)say('Hastaneye gitmek için “Hey Tepetaklak, beni hastaneye götür” de.');},4500);}
-    else{KAZA.deaths++;accSay('med','Maalesef yayayı kurtaramadık.');KAZA.st=KAZA.ap?'apdeath':'arrest';KAZA.t=0;}}
+  if(KAZA.st==='treat'&&(KAZA.medT||0)>8){if(KAZA.live){newsAdd('saglik','Yaralı yaya hastaneye kaldırıldı','Sağlık ekipleri yayaya olay yerinde ilk müdahaleyi yaptı. Yayanın hayati tehlikesi bulunmuyor.');accSay('med','Yaya kurtuldu! Hastaneye götürüyoruz. İsterseniz siz de gelin.');KAZA.st='leave';KAZA.t=0;HOSP.patient=true;setTimeout(()=>{if(KAZA.hosp)say('Hastaneye gitmek için “Hey Tepetaklak, beni hastaneye götür” de.');},4500);}
+    else{KAZA.deaths++;newsAdd('kaza','Kazada yaya hayatını kaybetti','Ağır yaralanan yaya tüm müdahalelere rağmen kurtarılamadı. Sürücü hakkında soruşturma başlatıldı.');accSay('med','Maalesef yayayı kurtaramadık.');KAZA.st=KAZA.ap?'apdeath':'arrest';KAZA.t=0;}}
   if(KAZA.st==='apdeath'&&KAZA.t>4){accSay('pol','Mobese kaydı otopilotu gösteriyor. İfadeniz alındı, tutuklama yok. Başınız sağ olsun.');KAZA.st='leave';KAZA.t=0;}
   if(KAZA.st==='leave'){if(ped&&KAZA.t>1.5){ped.g.visible=false;ACCB.stretcher.visible=false;}KAZA.M.forEach(m=>{m.scale.y=1;accWalk(m,A.position,dt,2.2);});
     if(KAZA.t>3){KAZA.M.forEach(m=>m.visible=false);accVeh(A,A.position,KAZA.ambFrom,16,dt);accVeh(P,P.position,KAZA.polFrom,15,dt);KAZA.C.visible=false;}if(KAZA.t>14)accClear();return;}
@@ -3883,11 +3904,11 @@ function accTick(dt){accRecord();if(POL.crimeT&&!POL.clip&&performance.now()-POL
 // caught by the police while wanted for a serious crime: handcuffs, the station, an interrogation with the CCTV of the crime
 const CRIMEQ=['Komiser: Polisten neden kaçtınız?','Komiser: Mobese kaydında gördüğümüz araç sizin mi?','Komiser: Söylemek istediğiniz bir şey var mı?'];
 function polArrest(){const c=car,why=POL.reason||'Ağır suç';c.v=0;c.vel.set(0,0,0);const cr={clip:POL.clip,t:POL.crimeT,pos:POL.crimePos&&POL.crimePos.clone(),why};polClear();if(AP.on)apStop();
-  bigMsg('YAKALANDIN','Ağır suç: '+why+' · karakola götürülüyorsun',2800);sfx('crash');
+  bigMsg('YAKALANDIN','Ağır suç: '+why+' · karakola götürülüyorsun',2800);newsAdd('tutuklama','Polis kovalamacası yakalamayla bitti','Ağır suçla aranan sürücü ('+why+') polis kovalamacasının ardından yakalandı. Mobese kayıtları inceleniyor.');sfx('crash');
   const fx=Math.cos(c.yaw),fz=Math.sin(c.yaw);KAZA.P.position.set(c.pos.x-fx*8,0,c.pos.z-fz*8);KAZA.P.rotation.y=-c.yaw;KAZA.P.visible=true;KAZA.C.visible=true;KAZA.C.position.set(c.pos.x-fx*5,0,c.pos.z-fz*5);
   Object.assign(KAZA,{st:'arrest',t:0,ped:null,ap:false,crime:cr,arrestWhy:'Ağır suç nedeniyle gözaltındasınız: '+why+'.',jailNext:false,inside:false,lock:false,toKara:false,atKara:false,fadeA:false});KAZA.pos.copy(c.pos);}
 function accArrest(dt){if(KAZA.inside)return;const T=KAZA.t,me=accMe(),P=KAZA.P;
-  if(!KAZA.lock){KAZA.lock=true;if(!FOOT.on){const c=car,rx=-Math.sin(c.yaw),rz=Math.cos(c.yaw);FOOT.pos.set(c.pos.x-rx*1.8,0,c.pos.z-rz*1.8);FOOT.yaw=c.yaw;FOOT.cam=c.yaw;FOOT.on=true;FOOT.g.visible=true;}CB.wpn&&cbEquip(null);accSay('pol',(KAZA.arrestWhy||'Ölümlü kaza nedeniyle sizi gözaltına alıyoruz.')+' Ellerinizi arkaya koyun.');}
+  if(!KAZA.lock){KAZA.lock=true;if(!FOOT.on){const c=car,rx=-Math.sin(c.yaw),rz=Math.cos(c.yaw);FOOT.pos.set(c.pos.x-rx*1.8,0,c.pos.z-rz*1.8);FOOT.yaw=c.yaw;FOOT.cam=c.yaw;FOOT.on=true;FOOT.g.visible=true;}CB.wpn&&cbEquip(null);accSay('pol',(KAZA.arrestWhy||'Ölümlü kaza nedeniyle sizi gözaltına alıyoruz.')+' Ellerinizi arkaya koyun.');newsAdd('tutuklama','Sürücü gözaltına alındı',(KAZA.arrestWhy||'Ölümlü trafik kazasına karışan sürücü gözaltına alındı.')+' Sürücü kelepçelenerek karakola götürüldü.');}
   const a=FOOT.g.userData.arms;a[0].rotation.z=a[1].rotation.z=-.55;a[0].rotation.x=.35;a[1].rotation.x=-.35;
   if(T>3&&T<3.1)bigMsg('KELEPÇE TAKILDI','',1500);
   if(T>3&&T<7){accWalk(KAZA.C,new V3(FOOT.pos.x-1,0,FOOT.pos.z),dt,1.6);accWalk({position:FOOT.pos,rotation:{set(){}},userData:{arms:[{rotation:{}},{rotation:{}}]}},P.position,dt,1.3);FOOT.g.position.copy(FOOT.pos);}
@@ -3898,7 +3919,7 @@ function accArrest(dt){if(KAZA.inside)return;const T=KAZA.t,me=accMe(),P=KAZA.P;
     const c=car;c.pos.x=K.cx+12;c.pos.z=road-1.9;c.yaw=0;c.v=0;c.vel.set(0,0,0);
     KAZA.R.forEach((r,k)=>{r.visible=true;r.position.set(K.cx-5+k*3.2,0,road-7.5-(k%2)*1.4);r.rotation.y=Math.PI/2;});
     window.__camOverride=(Pp,L,U)=>{if(KAZA.st!=='arrest')return 0;const q=P.position;const K2=KAZA.kara;Pp.set(K2.K.cx+16,5,K2.road+6);L.set(K2.K.cx-6,2,K2.road-10);U.set(0,1,0);return 6;};snapCam=true;$('fade').style.opacity='0';accSay('pol','Karakola gidiyoruz.',false);}
-  if(KAZA.toKara&&!KAZA.atKara){const K=KAZA.kara;FOOT.pos.set(P.position.x,0,P.position.z-1.6);if(accVeh(P,P.position,new V3(K.K.cx-2,0,K.road-1.9),13,dt)){KAZA.atKara=true;KAZA.hideMe=false;KAZA.kT=0;KAZA.q=-1;snapCam=true;FOOT.pos.set(P.position.x+.5,0,P.position.z-1.6);FOOT.g.visible=true;KAZA.C.visible=true;KAZA.C.position.set(P.position.x-1,0,P.position.z-1.6);}}
+  if(KAZA.toKara&&!KAZA.atKara){const K=KAZA.kara;FOOT.pos.set(P.position.x,0,P.position.z-1.6);if(accVeh(P,P.position,new V3(K.K.cx-2,0,K.road-1.9),13,dt)){newsAdd('basin','Karakol önünde basın bekleyişi','Gözaltındaki sürücü karakola getirilirken muhabirler “Neden yaptınız?” diye sordu.');KAZA.atKara=true;KAZA.hideMe=false;KAZA.kT=0;KAZA.q=-1;snapCam=true;FOOT.pos.set(P.position.x+.5,0,P.position.z-1.6);FOOT.g.visible=true;KAZA.C.visible=true;KAZA.C.position.set(P.position.x-1,0,P.position.z-1.6);}}
   if(KAZA.atKara){KAZA.kT+=dt;const K=KAZA.kara,Qs=KAZA.crime?['Polisten neden kaçtınız?','Pişman mısınız?','Bir açıklama yapacak mısınız?','Avukatınız geliyor mu?']:['Neden yaptınız?','Bilerek mi çarptınız?','Ailesine ne söyleyeceksiniz?','Hız sınırını aşmış mıydınız?'];
     window.__camOverride=(Pp,L,U)=>{const q=FOOT.pos;Pp.set(q.x+7,2.8,q.z+6);L.set(q.x-1,1.6,q.z-2);U.set(0,1,0);return 4;};
     const goal=new V3(K.door.x,0,K.door.z-1),walked=accWalk({position:FOOT.pos,rotation:FOOT.g.rotation,userData:{arms:[{rotation:{}},{rotation:{}}]}},goal,dt,.9);FOOT.g.position.copy(FOOT.pos);FOOT.g.rotation.x=0;accWalk(KAZA.C,new V3(FOOT.pos.x-.9,0,FOOT.pos.z+.6),dt,1);
@@ -3910,14 +3931,14 @@ function ifadeStart(qs,title,done){KAZA.ifq=qs||IFQ;KAZA.ifDone=done||accRelease
 function ifadeAsk(){const q=KAZA.ifq[KAZA.qi];$('ifQ').textContent=q;$('ifIn').value='';$('ifLog').textContent=KAZA.ans.length?'Son cevabın: “'+KAZA.ans[KAZA.ans.length-1]+'”':'';accSay(/^Polis/.test(q)?'pol':'kom',q.replace(/^[^:]+: /,''));}
 function ifadeReply(a){const n=nrm(a);if(/bilerek degil|kasten degil|istemeden|bilmeden|kaza/.test(n))return 'Kasıt olmadığını tutanağa geçiriyorum.';if(/gormedim|fark etmedim|birden/.test(n))return 'Görüş açısını mobese kaydıyla karşılaştıracağız.';
   if(/\d/.test(n)||/hiz/.test(n))return 'Hız beyanınız kayda geçti.';if(/uzgun|ozur|pisman|aile/.test(n))return 'Pişmanlığınızı not ettim. Ailesine iletilecek.';if(n.length<4)return 'Cevap vermek istemediğinizi not ediyorum.';return 'Anlaşıldı, tutanağa geçiyorum.';}
-function jailStart(msg){KAZA.ifq=null;$('ifade').hidden=true;bigMsg('TUTUKLANDIN','1 dakika nezarette kalacaksın',2600);sfx('beep');
+function jailStart(msg){newsAdd('tutuklama','Sürücü tutuklandı',/Rüşvet/.test(msg)?'İfade sırasında polise rüşvet teklif eden sürücü tutuklanarak nezarete konuldu.':'İfadesinde rüşvet teklif edip hakaret eden sürücü tutuklandı.');KAZA.ifq=null;$('ifade').hidden=true;bigMsg('TUTUKLANDIN','1 dakika nezarette kalacaksın',2600);sfx('beep');
   if(INT.on&&INT.kind==='kara'){accSay('kom',msg);INT.mode='jail';INT.t=0;}else{KAZA.jailNext=true;KAZA.arrestWhy=msg;KAZA.stmt=true;KAZA.st='arrest';KAZA.t=0;KAZA.cctv=false;$('cctv').hidden=true;}}
 function ifadeBribe(){if(!KAZA.ifq)return;jailStart('Rüşvet teklif etmek suçtur! Tutuklandınız.');}
-function ifadeAnswer(a){if(!KAZA.ifq)return;a=String(a||'').trim().slice(0,240)||'(sessiz kaldı)';
+function ifadeAnswer(a){if(!KAZA.ifq)return;a=String(a||'').trim().slice(0,240)||'(sessiz kaldı)';if(KAZA.qi===0)newsAdd('ifade','Sürücünün ifadesi ortaya çıktı','Sürücü '+(KAZA.ifq===IFQ||KAZA.ifq===CRIMEQ?'karakolda komisere':'olay yerinde polise')+' şunları söyledi: “'+a.slice(0,160)+'”');
   if(/rusvet|para vere|para veri|parasini vere|aramizda kals|kapatal|gormezden gel|sus payi|salak|aptal|gerizekal|mal misin|siktir|amk|pic/.test(nrm(a))){jailStart('Bu sözler tutanağa geçti: rüşvet teklifi ve hakaret suçtur. Tutuklandınız.');return;}KAZA.ans.push(a);const r=ifadeReply(a);accSay(KAZA.ifq===IFQ?'kom':'pol',r);KAZA.qi++;if(KAZA.qi<KAZA.ifq.length)setTimeout(ifadeAsk,2400);else setTimeout(()=>{$('ifade').hidden=true;KAZA.ifDone();},2600);}
 function ifadeVoice(){if(!ASK.SR){$('ifLog').textContent='Bu tarayıcı sesi tanımıyor, yazarak cevap ver.';return;}try{const r=new ASK.SR();r.lang='tr-TR';r.interimResults=false;$('ifLog').textContent='Dinliyorum… konuş';
   r.onresult=e=>{const t=e.results[0][0].transcript;$('ifIn').value=t;ifadeAnswer(t);};r.onerror=()=>{$('ifLog').textContent='Duyamadım, tekrar dene ya da yaz.';};r.start();}catch(_){$('ifLog').textContent='Mikrofon açılamadı, yazarak cevap ver.';}}
-function accRelease(msg){$('ifade').hidden=true;KAZA.cctv=false;$('cctv').hidden=true;KAZA.crime=null;$('jailUi').hidden=true;accSay('kom',typeof msg==='string'?msg:'İfadeniz alındı. Adli kontrol şartıyla serbestsiniz. Aracınız karakolun önünde.');const K=KAZA.kara;
+function accRelease(msg){newsAdd('polis','Sürücü serbest bırakıldı',typeof msg==='string'&&/Ceza/.test(msg)?'Nezarette kalan sürücü cezasını tamamlayıp serbest bırakıldı.':'İfadesi alınan sürücü adli kontrol şartıyla serbest bırakıldı.');$('ifade').hidden=true;KAZA.cctv=false;$('cctv').hidden=true;KAZA.crime=null;$('jailUi').hidden=true;accSay('kom',typeof msg==='string'?msg:'İfadeniz alındı. Adli kontrol şartıyla serbestsiniz. Aracınız karakolun önünde.');const K=KAZA.kara;
   KAZA.hideMe=false;if(INT.on)intExit();else if(K){FOOT.pos.set(K.door.x+1.5,0,K.road-8.5);FOOT.g.visible=true;}const a=FOOT.g.userData.arms;a[0].rotation.x=a[1].rotation.x=0;
   bigMsg('SERBESTSİN','Adli kontrol · aracın karakolun önünde',2600);snapCam=true;KAZA.fadeA=KAZA.toKara=KAZA.atKara=KAZA.inside=false;KAZA.kara=null;accClear();}
 /* ================= INTERIORS: hospital rooms and the police station (cells + interrogation room), built high above their buildings ================= */
@@ -4003,6 +4024,7 @@ function injTick(dt){if(INJ.st==='off'){if(FOOT.on&&!FOOT.inTaxi&&!INT.on&&KAZA.
   const pArr=accVeh(INJ.P,INJ.polFrom,INJ.polTo,15,dt),aArr=accVeh(INJ.A,INJ.ambFrom,INJ.ambTo,16,dt);
   if(pArr&&!INJ.C.visible){INJ.C.visible=true;INJ.C.position.set(INJ.P.position.x,0,INJ.P.position.z+1.5);}
   if(INJ.C.visible&&INJ.st==='wait'){if(accWalk(INJ.C,new V3(INJ.D.position.x-1.2,0,INJ.D.position.z),dt,1.8)){INJ.st='verdict';INJ.vT=0;
+    newsAdd(INJ.both?'kaza':'kaza',INJ.both?'İki araç çarpıştı':'Yayaya araç çarptı',INJ.both?'Şehir içinde iki araç çarpıştı. İki sürücü de hastaneye kaldırıldı.':'Bir araç '+INJ.kmh+' km/s hızla yayaya çarptı. Yaralı yaya hastaneye kaldırıldı.'+(INJ.fault?' Kusurlu sürücü gözaltına alındı.':' Sürücünün kusuru bulunmadı.'));
     if(INJ.both)accSay('pol','İki tarafın da ifadesini aldık. Yaralılar hastaneye kaldırılıyor.');else if(INJ.fault)accSay('pol','Sürücü '+INJ.kmh+' kilometreyle çarpmış ve kusurlu. Gözaltına alındı.');else accSay('pol','Mobese kaydına göre sürücünün kusuru yok, yaya aniden yola çıkmış. Sürücü serbest.');}}
   if(INJ.st==='verdict'){INJ.vT+=dt;if(INJ.fault&&!INJ.both){const a=INJ.D.userData.arms;a[0].rotation.z=a[1].rotation.z=-.55;if(INJ.vT>2){accWalk(INJ.D,INJ.P.position,dt,1.2);if(INJ.D.position.distanceTo(INJ.P.position)<2)INJ.D.visible=false;}}}
   if(aArr&&!INJ.M[0].visible){INJ.M.forEach((m,k)=>{m.visible=true;m.position.set(INJ.A.position.x+(k?-1.2:1.2),0,INJ.A.position.z);});}
@@ -4332,7 +4354,7 @@ function osOpen(from){if(S.mode!=='serbest'||S.menuDemo){pop('Araç ekranı serb
   sfx('chime');osDraw();}
 function osClose(){const el=$('carOS');OS.open=false;el.hidden=true;if(OS.app==='yt'||OS.app==='sp'){}}
 function osApp(a){OS.app=a;document.querySelectorAll('#osDock button[data-a]').forEach(b=>b.classList.toggle('on',b.dataset.a===a));
-  for(const id of ['osHome','osSp','osYt'])$(id).hidden=true;
+  for(const id of ['osHome','osSp','osYt','osNews'])$(id).hidden=true;if(a==='news'){$('osNews').hidden=false;newsRender($('osNewsList'));}
   if(a==='home'){$('osHome').hidden=false;osDraw();}
   if(a==='sp'){$('osSp').hidden=false;if(!$('osSpF').src)osSpot(OS_SP[0][1],'playlist');}
   if(a==='yt'){$('osYt').hidden=false;$('osYtF').hidden=!$('osYtF').src;$('osYtPh').hidden=!!$('osYtF').src;}}
@@ -4441,7 +4463,7 @@ function say(text){askShow(text,'tesla');try{if(!SET.mute&&window.speechSynthesi
 function askShow(text,who){const b=$('askBox');b.hidden=false;$('askWho').textContent=who==='me'?'Sen':who==='listen'?'Hey Tepetaklak':who==='fisher'?'Balıkçı abi':who==='pol'?'Polis memuru':who==='med'?'Sağlık görevlisi':who==='press'?'Muhabir':who==='kom'?'Komiser':who==='drv'?'Sürücü':who==='pat'?'Hasta':'Tepetaklak';$('askTxt').textContent=text;b.className=who;clearTimeout(askShow.t);askShow.t=setTimeout(()=>{if(!ASK.busy&&$('askChips').hidden&&document.activeElement!==$('askIn'))b.hidden=true;},5200);if(!$('askChips').hidden){clearTimeout(askShow.t2);askShow.t2=setTimeout(()=>{if(!ASK.busy){askChips(false);b.hidden=true;}},15000);}}
 // speech: a tap on the phone grants the mic only when the finger lifts, so listening starts on pointerup/click
 const nrm=s=>s.toLocaleLowerCase('tr-TR').replace(/[çğıöşüâî]/g,c=>({ç:'c',ğ:'g',ı:'i',ö:'o',ş:'s',ü:'u',â:'a',î:'i'})[c]);
-const ASK_KEYS=/hastane|karakol|kale|cami|harput|kaçakçı|silah|taret|lazer|vur|götür|git|gel|al|park|garaj|eve|evim|taksi|kilit|korna|far|dur|asansör|tünel|teslimat|sunum|tanıt|arkadaş|yemek|restoran|lokanta|acık|kofte|köfte|ayran|lavas|lavaş|doner|döner|kebap|kafe|kahve|pide|simit|pizza|market|tatli|tatlı|balik|balık/;
+const ASK_KEYS=/haber|hastane|karakol|kale|cami|harput|kaçakçı|silah|taret|lazer|vur|götür|git|gel|al|park|garaj|eve|evim|taksi|kilit|korna|far|dur|asansör|tünel|teslimat|sunum|tanıt|arkadaş|yemek|restoran|lokanta|acık|kofte|köfte|ayran|lavas|lavaş|doner|döner|kebap|kafe|kahve|pide|simit|pizza|market|tatli|tatlı|balik|balık/;
 function askClean(t){return String(t||'').replace(/^\s*(hey|hay|hei|ey|eyy|hi|hello)?\s*,?\s*(tepe\s*taklak|tepetaklak|tepe\s*takla|tepetakla|tepe\s*tak\s*lak|tesla|teslam|teslâ|tesle|desla)\s*[,.!]?\s*/i,'').trim();}
 function askPick(alts){let best=alts[0]||'',bs=-1;for(const a of alts){const t=askClean(a),lo=t.toLocaleLowerCase('tr-TR');let sc=(lo.match(new RegExp(ASK_KEYS.source,'g'))||[]).length*2+(ilFind(lo)?3:0);if(sc>bs){bs=sc;best=t;}}return best;}
 function askChips(on){$('askChips').hidden=!on;}
@@ -4484,6 +4506,7 @@ function askCommand(raw){const t=raw.toLocaleLowerCase('tr-TR'),c=car,I=CITY.ci(
   if(/\b(dur|durdur|iptal)\b|otopilotu kapat/.test(t)){CB.follow=null;TAPP.summon=false;TAPP.after=null;apStop();say('Tamam, kontrol sende.');return;}
   if(/sunum|tanıt|kendini anlat/.test(t)&&!/^\s*$/.test(t)){tourStart();return;}
   if(/kaçakçı|kacakci|silah al|silahçı/.test(t)){go(smugDest(),'kaçakçıya');return;}
+  if(/haber/.test(t)){newsOpen(true);const n=NEWS.list.filter(x=>x.day===new Date().toDateString()).length;say(n?'Bugün '+n+' haber var. İşte son haberler.':'Bugün henüz haber yok, sakin bir gün.');return;}
   if(/hastane/.test(t)){go(accDest('hosp','Hastane'),'hastaneye');return;}
   if(/karakol/.test(t)){go(accDest('kara','Karakol'),'karakola');return;}
   if(/taret/.test(t)||/ateşi kes/.test(t)){if(/kapat|indir|kapa|kes/.test(t)){cbTurret(false);say('Taret kapandı.');}else{cbTurret(true);if(CB.turret)say('Taret açıldı. Hedefleri ben seçerim.');}return;}
@@ -4582,6 +4605,7 @@ function skyTick(dt){if(TUN.on)return;const on=S.mode==='serbest'&&!S.menuDemo;c
 const KEYMAP={KeyJ:'fire',KeyW:'gas',ArrowUp:'gas',KeyS:'brake',ArrowDown:'brake',Space:'lift',ShiftLeft:'boost',ShiftRight:'boost',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right',KeyQ:'yawL',KeyE:'yawR',KeyX:'retro'};
 addEventListener('keydown',e=>{
   if(!$('shop').hidden){if(e.code==='Escape'||e.code==='KeyB')shopOpen(false);return;}
+  if(!$('newsBox').hidden){if(e.code==='Escape')newsOpen(false);return;}
   if(S.ui!=='play'&&S.ui!=='replay'){if(e.code==='Escape'&&(S.ui==='how'||S.ui==='settings'))closeOverlay();if(e.code==='Escape'&&S.ui==='garage')closeGarage();if(e.code==='Escape'&&S.ui==='map')closeOverlay();if(e.code==='Escape'&&S.ui==='online')$('onBack').click();if(e.code==='Enter'&&S.ui==='result'){e.preventDefault();startMode(S.mode);}return;}
   const k=KEYMAP[e.code];if(k){keys[k]=1;e.preventDefault();if(k==='gas'&&S.auto)takeControl();}
   if(e.repeat)return;
@@ -4684,7 +4708,7 @@ requestAnimationFrame(frame);
 
 {$('ifGo').addEventListener('click',()=>ifadeAnswer($('ifIn').value));$('ifMic').addEventListener('click',ifadeVoice);$('ifIn').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')ifadeAnswer($('ifIn').value);});banShow();}
 
-{$('intAct').addEventListener('click',intGetWell);$('osSpLogin').addEventListener('click',()=>window.open('https://accounts.spotify.com/login','_blank'));$('ifBribe').addEventListener('click',ifadeBribe);$('hospNow').addEventListener('click',()=>{if(INT.on&&INT.mode==='bed'){CB.hp=100;pop('Doktor: Tamamen iyileştin!','good');}});}
+{$('intAct').addEventListener('click',intGetWell);$('taNews').addEventListener('click',()=>{tappOpen(false);newsOpen(true);});$('newsClose').addEventListener('click',()=>newsOpen(false));$('osSpLogin').addEventListener('click',()=>window.open('https://accounts.spotify.com/login','_blank'));$('ifBribe').addEventListener('click',ifadeBribe);$('hospNow').addEventListener('click',()=>{if(INT.on&&INT.mode==='bed'){CB.hp=100;pop('Doktor: Tamamen iyileştin!','good');}});}
 
 {const f=$('osYtF');document.body.appendChild(f);}
 </script>
