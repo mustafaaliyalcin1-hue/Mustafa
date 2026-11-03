@@ -4753,7 +4753,7 @@ function bldEnter(kind,r){const B=BLD[kind];document.body.classList.add('inside'
   if(kind==='rest'){const items=MENUS[r.kind]||MENUS.köfte;B.menu(r.name,r.col,items.map(i=>i[0]+' '+i[1]+'₺').join('  ·  '));B.plate.visible=false;}else B.sign(r.name,r.col,kind==='giyim'?'Desenli tişörtler · fotoğraflı baskı · pantolon':'Saç · sakal · bıyık · yüz tarama');
   FOOT.pos.copy(intWorld(B.entry));FOOT.yaw=FOOT.cam=-Math.PI/2;FOOT.g.rotation.set(0,0,0);FOOT.g.position.copy(FOOT.pos);snapCam=true;for(const k in INTP)INTP[k].visible=false;
   bigMsg(r.name.toLocaleUpperCase('tr-TR'),kind==='rest'?'Hoş geldin! Kasaya yürü, sipariş ver 😋':kind==='giyim'?'Aynaya yürü, kıyafetini seç 👕':'Koltuğa yürü, saçını yaptır ✂',2400);sfx('chime');}
-function bldExit(){const kind=INT.kind,B=BLD[kind],r=INT.shop;document.body.classList.remove('inside');INT.on=false;B.g.visible=false;$('bldAct').hidden=true;lookClose(true);$('menuBox').hidden=true;
+function bldExit(){const kind=INT.kind,B=BLD[kind],r=INT.shop;document.body.classList.remove('inside');INT.on=false;B.g.visible=false;$('bldAct').hidden=true;lookClose(true);$('menuBox').hidden=true;$('eatUi').hidden=true;if(BLD.rest)BLD.rest.plate.visible=false;
   const tx=Math.abs(r.nz),tz=Math.abs(r.nx);FOOT.pos.set(r.door.x+tx*2.8,0,r.door.z+tz*2.8);FOOT.yaw=FOOT.cam=Math.atan2(-r.nz,-r.nx);FOOT.g.rotation.set(0,0,0);FOOT.g.position.copy(FOOT.pos);FOOT.door=r.name;FOOT.g.visible=true;snapCam=true;}
 // per-frame inside a shop: the action spot (counter, mirror, chair), eating and barber seat
 function bldTick(dt){const B=BLD[INT.kind],a=B.act,w=intWorld(new V3(a.x,0,a.z)),near=INT.mode==='walk'&&!LOOKUI.on&&$('menuBox').hidden&&Math.hypot(FOOT.pos.x-w.x,FOOT.pos.z-w.z)<a.r;

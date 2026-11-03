@@ -13,7 +13,7 @@ const PAGE='http://localhost:8790/cap2.html',W=1280,H=720,OUT=__dirname+'/../pub
   await p.evaluate(()=>{__T.bldEnter('rest',__T.REST.list[0]);});await ff(2);
   await rec('restoran',60,`i=>{const F=__T.FOOT,o=__T.INT.o;F.pos.z=o.z+5.4-i*.03;}`);
   await rec('menu',35,`i=>{if(i===3)__T.bldAct();}`);
-  await rec('yemek',80,`i=>{if(i===0){const r=__T.INT.shop;__T.menuPick(__T.MENUS[r.kind][0]);}}`,2);
+  await rec('yemek',80,`i=>{if(i===0){const r=__T.INT.shop;__T.menuPick(__T.MENUS[r.kind][0]);}}`,3);
   await p.evaluate(()=>{__T.FOOT.pos.z=__T.INT.o.z+7;});await ff(5);
   await p.evaluate(()=>{const r=__T.storeIn(-30,30,-30,30).find(q=>q.kind==='giyim');__T.bldEnter('giyim',r);const w=__T.INT.o;__T.FOOT.pos.set(w.x,__T.INT.Y,w.z-4.6);});await ff(3);
   const mk=`(()=>{const c=document.createElement('canvas');c.width=c.height=200;const g=c.getContext('2d');const gr=g.createLinearGradient(0,0,200,200);gr.addColorStop(0,'#ff5a1f');gr.addColorStop(1,'#ffd166');g.fillStyle=gr;g.fillRect(0,0,200,200);g.fillStyle='#111';g.font='900 64px sans-serif';g.textAlign='center';g.fillText('TEPE',100,92);g.fillText('TAKLAK',100,160);return c.toDataURL();})()`;
