@@ -1,0 +1,28 @@
+// Restoran içi + yemek, açlık/can barı, giyim mağazası + baskılı tişört, berber, hastalık + serum.
+const {chromium}=require(require('child_process').execSync('npm root -g').toString().trim()+'/playwright');const fs=require('fs');
+const PAGE='http://localhost:8790/cap2.html',W=1280,H=720,OUT=__dirname+'/../public/guncelleme17/';
+(async()=>{fs.mkdirSync(OUT,{recursive:true});const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--disable-background-timer-throttling']});
+  const p=await b.newPage({viewport:{width:W,height:H}});const errs=[];p.on('pageerror',e=>errs.push(e.message));
+  await p.addInitScript(()=>{let T=0;const cbs=[];performance.now=()=>T;window.requestAnimationFrame=cb=>{cbs.push(cb);return cbs.length;};window.__tick=ms=>{T+=ms;const l=cbs.splice(0);for(const cb of l)try{cb(T);}catch(e){console.error(e);}};try{localStorage.clear();}catch(_){}});
+  await p.goto(PAGE,{waitUntil:'domcontentloaded',timeout:120000});await p.waitForFunction(()=>window.__tepeReady,null,{timeout:120000});
+  const rec=async(name,n,each,stride=1)=>{fs.rmSync(OUT+name,{recursive:true,force:true});fs.mkdirSync(OUT+name,{recursive:true});for(let i=0;i<n;i++){for(let s=0;s<stride-1;s++)await p.evaluate(`(${each||'()=>{}'})(${i});window.__noRender=true;__tick(1000/30)`);await p.evaluate(`(${each||'()=>{}'})(${i});window.__noRender=false;__tick(1000/30)`);await p.screenshot({path:OUT+name+'/'+String(i).padStart(4,'0')+'.jpg',type:'jpeg',quality:88});}console.log(name,n);};
+  const ff=async n=>{for(let i=0;i<n;i++)await p.evaluate('window.__noRender=true;__tick(1000/30)');};
+  await p.evaluate(()=>{window.__noAO=true;__T.SET.hide=false;__T.SET.ultra=true;__T.SET.mute=true;__T.SET.police=0;__T.applySet();__T.startMode('serbest');__T.NACC.next=1e9;__T.LIFE.hun=22;});await ff(30);
+  await p.evaluate(()=>{__T.car.v=0;__T.footToggle();});await ff(15);
+  await rec('hud',45,`i=>{}`);
+  await p.evaluate(()=>{__T.bldEnter('rest',__T.REST.list[0]);});await ff(2);
+  await rec('restoran',60,`i=>{const F=__T.FOOT,o=__T.INT.o;F.pos.z=o.z+5.4-i*.03;}`);
+  await rec('menu',35,`i=>{if(i===3)__T.bldAct();}`);
+  await rec('yemek',80,`i=>{if(i===0){const r=__T.INT.shop;__T.menuPick(__T.MENUS[r.kind][0]);}}`,2);
+  await p.evaluate(()=>{__T.FOOT.pos.z=__T.INT.o.z+7;});await ff(5);
+  await p.evaluate(()=>{const r=__T.storeIn(-30,30,-30,30).find(q=>q.kind==='giyim');__T.bldEnter('giyim',r);const w=__T.INT.o;__T.FOOT.pos.set(w.x,__T.INT.Y,w.z-4.6);});await ff(3);
+  const mk=`(()=>{const c=document.createElement('canvas');c.width=c.height=200;const g=c.getContext('2d');const gr=g.createLinearGradient(0,0,200,200);gr.addColorStop(0,'#ff5a1f');gr.addColorStop(1,'#ffd166');g.fillStyle=gr;g.fillRect(0,0,200,200);g.fillStyle='#111';g.font='900 64px sans-serif';g.textAlign='center';g.fillText('TEPE',100,92);g.fillText('TAKLAK',100,160);return c.toDataURL();})()`;
+  await rec('giyim',110,`i=>{if(i===2)__T.bldAct();const P=['duz','cizgi','ekose','kamu','cicek','batik','yildiz'];if(i>5&&i<75&&i%10===0)__T.lookSet('pat',P[(i/10)%P.length]);if(i===80){__T.lookSet('pat','duz');__T.lookSet('c1',0x111111);__T.lookSet('print',${mk});}}`);
+  await p.evaluate(()=>{__T.lookClose(true);__T.FOOT.pos.z=__T.INT.o.z+7;});await ff(5);
+  await p.evaluate(()=>{const r=__T.storeIn(-30,30,-30,30).find(q=>q.kind==='berber');__T.bldEnter('berber',r);const w=__T.INT.o;__T.FOOT.pos.set(w.x,__T.INT.Y,w.z-3.4);});await ff(3);
+  await rec('berber',90,`i=>{if(i===2)__T.bldAct();const H=['kisa','yan','kivir','mohi','uzun','topuz'];if(i>8&&i<70&&i%12===0)__T.lookSet('hair',H[(i/12)%H.length]);if(i===72){__T.lookSet('hair','yan');__T.lookSet('beard','sakal');}}`);
+  await p.evaluate(()=>{__T.lookClose(true);__T.FOOT.pos.z=__T.INT.o.z+7;});await ff(5);
+  await rec('hasta',45,`i=>{if(i===2)__T.lifeSick();}`);
+  await p.evaluate(()=>{__T.intEnter('hosp','walk');const w=__T.INT.o;__T.FOOT.pos.set(w.x+9,__T.INT.Y,w.z+7.6);});await ff(3);
+  await rec('serum',80,`i=>{if(i===3)__T.bldAct();}`,4);
+  console.log('bitti',errs.slice(0,3));await b.close();})().catch(e=>{console.error('FAIL',e.message);process.exit(1);});
