@@ -365,6 +365,7 @@ body.newstv #hud,body.newstv #touch,body.newstv #osYtF{display:none!important}
 #life b{display:block;height:100%;width:100%;background:linear-gradient(90deg,#e3263b,#ff5a6e);transition:width .3s}#life .lb:nth-child(2) b{background:linear-gradient(90deg,#f4a261,#ffd166)}#life b.low{animation:lowp .8s ease-in-out infinite}@keyframes lowp{50%{opacity:.35}}
 #life em{font-style:normal;font-variant-numeric:tabular-nums;font-weight:700;font-size:12px;color:#d9dde3;text-align:right}#lfSick{font-size:12.5px;font-weight:800;color:#9be27a}
 body.lifeon #mini{top:calc(env(safe-area-inset-top,0px) + 150px)}body.touch.lifeon #mini{top:calc(env(safe-area-inset-top,0px) + 140px)}body.touch #life{width:150px}
+#enterBtn{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 170px);pointer-events:auto;min-height:54px;padding:0 22px;border:0;border-radius:6px;background:#e36414;color:#fff;font:inherit;font-weight:900;letter-spacing:.04em;cursor:pointer;touch-action:manipulation;z-index:6}
 #bldAct{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 170px);pointer-events:auto;min-height:54px;padding:0 24px;border:0;border-radius:6px;background:#2a9d8f;color:#fff;font:inherit;font-weight:900;letter-spacing:.06em;cursor:pointer;touch-action:manipulation;z-index:6}
 #eatUi,#treatUi{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 100px);background:rgba(8,10,14,.86);border:1px solid var(--line);border-radius:6px;padding:10px 14px;display:grid;grid-template-columns:1fr auto;gap:6px 14px;min-width:260px;font-weight:700}
 #eatUi i,#treatUi i{grid-column:1/-1;display:block;height:8px;background:rgba(255,255,255,.14);border-radius:4px;overflow:hidden}#eatBar,#treatBar{display:block;height:100%;width:0;background:#5fd38a}#treatT{font-variant-numeric:tabular-nums;color:#9be27a}#eatUi span{color:#a9b1bc;font-weight:500}
@@ -429,7 +430,7 @@ body.lifeon #mini{top:calc(env(safe-area-inset-top,0px) + 150px)}body.touch.life
   <button type="button" id="intAct" hidden>GEÇMİŞ OLSUN</button>
   <div id="jailUi" hidden><b>NEZARETTESİN</b><span>Tutuklandın · çıkmana</span><span id="jailT">1:00</span></div>
   <div id="callBox" hidden><b id="callT">📞 İHBAR</b><span id="callD">0 m</span><button type="button" id="callGo">Git</button><button type="button" id="callNo">Reddet</button></div>
-  <button type="button" id="jobAct" hidden>MÜDAHALE ET</button><button type="button" id="bldAct" hidden>SİPARİŞ VER</button>
+  <button type="button" id="jobAct" hidden>MÜDAHALE ET</button><button type="button" id="bldAct" hidden>SİPARİŞ VER</button><button type="button" id="enterBtn" hidden>İÇERİ GİR</button>
   <div id="eatUi" hidden><b id="eatT">Yemek</b><span>Afiyet olsun 😋</span><i><b id="eatBar"></b></i></div>
   <div id="treatUi" hidden><b id="treatK">💧 Serum takılı</b><span id="treatT">1:00</span><i><b id="treatBar"></b></i></div><div id="jobProg" hidden><i id="jobProgI"></i></div>
   <div id="wanted" hidden><span id="wStars">★☆☆</span><b id="wTxt">Polis peşinde</b></div>
@@ -4646,7 +4647,7 @@ function footToggle(){const c=car;if(PASS.id){passLeave();return;}if(FOOT.sit){f
     if(S.camMode===3)setCamMode(0);pop('Arabadan indin · koşmak için Shift / KOŞ · binmek için Enter','gold');FOOT.run=false;sfx('chime');}
   else{if(Math.hypot(FOOT.pos.x-c.pos.x,FOOT.pos.z-c.pos.z)>4.5){pop('Arabaya yaklaş');return;}FOOT.sit=null;FOOT.on=false;FOOT.g.visible=false;pop('Arabaya bindin');sfx('chime');tAfterBoard();}
   $('tbFoot').classList.toggle('on',FOOT.on);$('tbRun').hidden=!FOOT.on;$('tbRun').classList.remove('on');}
-function footTick(dt){if(!FOOT.on)return;if(FOOT.inTaxi)return;if(INT.on||INJ.st!=='off')return;
+function footTick(dt){if(!FOOT.on){enterCar();return;}if(FOOT.inTaxi)return;if(INT.on||INJ.st!=='off')return;
   if(FOOT.sit){const kk=n=>keys[n]||touchK[n]||padK[n];if(kk('gas')||kk('brake')||kk('left')||kk('right')||(PAD.on&&Math.hypot(PAD.lx,PAD.ly)>.3))footStand();else{FOOT.g.position.set(FOOT.pos.x,.3-.44,FOOT.pos.z);FOOT.g.rotation.set(0,-FOOT.yaw,0);const a=FOOT.g.userData.arms;a[0].rotation.z=a[1].rotation.z=.3;heroLegs(FOOT.g,0,true);FOOT.cam+=((FOOT.yaw-FOOT.cam+Math.PI*3)%TAU-Math.PI)*Math.min(1,dt*2);return;}}if(S.mode!=='serbest'||S.menuDemo){FOOT.on=false;FOOT.g.visible=false;return;}
   const k=n=>keys[n]||touchK[n]||padK[n],running=FOOT.run||k('boost'),run=running?2.9:1;let fwd=(k('gas')?1:0)-(k('brake')?1:0),turn=(k('right')?1:0)-(k('left')?1:0);
   if(PAD.on){if(Math.abs(PAD.ly)>.15)fwd=-PAD.ly;if(Math.abs(PAD.lx)>.15)turn=PAD.lx;}
@@ -4660,8 +4661,18 @@ function footTick(dt){if(!FOOT.on)return;if(FOOT.inTaxi)return;if(INT.on||INJ.st
   const a=g.userData.arms,sw=mv?Math.sin(t*9*run)*.6:0;a[0].rotation.z=sw;a[1].rotation.z=-sw;heroLegs(g,sw);
   FOOT.cam+=((FOOT.yaw-FOOT.cam+Math.PI*3)%TAU-Math.PI)*Math.min(1,dt*4);
   // walking into a restaurant door
-  let near=null;for(const r of REST.list.concat(STORE.list)){if(Math.hypot(r.door.x-FOOT.pos.x,r.door.z-FOOT.pos.z)<2.2){near=r;break;}}
-  if(near&&FOOT.door!==near.name){FOOT.door=near.name;if(!TOUR.on&&KAZA.st==='off'&&INJ.st==='off'&&!CB.dead&&!cbArmed())bldEnter(near.store?near.kind:'rest',near);else{bigMsg(near.name.toLocaleUpperCase('tr-TR'),'Hoş geldin! 😋',1800);sfx('chime');}}else if(!near)FOOT.door=null;}
+  // the whole shop front counts as the door (the drawn door sits 2 m to one side); within a few metres an ENTER button shows
+  let near=null,close=null,cd=1e9;for(const r of REST.list.concat(STORE.list)){const dx=FOOT.pos.x-r.door.x,dz=FOOT.pos.z-r.door.z,nd=-(dx*r.nx+dz*r.nz),td=Math.abs(dx*r.nz-dz*r.nx);
+    if(td<3.8&&nd>-1&&nd<1.6){near=r;break;}if(td<4.5&&nd>-1&&nd<7&&nd<cd){cd=nd;close=r;}}
+  const ok=!TOUR.on&&KAZA.st==='off'&&INJ.st==='off'&&!CB.dead&&!cbArmed();
+  if(near&&FOOT.door!==near.name){FOOT.door=near.name;if(ok)bldEnter(near.store?near.kind:'rest',near);else{bigMsg(near.name.toLocaleUpperCase('tr-TR'),'Hoş geldin! 😋',1800);sfx('chime');}}else if(!near)FOOT.door=null;
+  const eb=!INT.on&&ok&&close&&!near?close:null;if(eb!==ENTER.r){ENTER.r=eb;$('enterBtn').hidden=!eb;if(eb)$('enterBtn').textContent=(eb.store?(eb.kind==='giyim'?'👕 ':'✂ '):'🍽 ')+eb.name+' · İÇERİ GİR'+(isTouch?'':' (E)');}}
+const ENTER={r:null,t:0};
+// in the car: stopped next to a shop front, the same button gets you out and inside
+function enterCar(){ENTER.t-=1/60;if(ENTER.t>0)return;ENTER.t=.25;const c=car;let best=null;
+  if(S.mode==='serbest'&&!S.menuDemo&&!TUN.on&&!INT.on&&c.state==='free'&&Math.abs(c.v)<1.5&&!AP.on&&KAZA.st==='off'&&INJ.st==='off')for(const r of REST.list.concat(STORE.list)){if(Math.hypot(c.pos.x-r.door.x,c.pos.z-r.door.z)<14){best=r;break;}}
+  if(best!==ENTER.r){ENTER.r=best;$('enterBtn').hidden=!best;if(best)$('enterBtn').textContent=(best.store?(best.kind==='giyim'?'👕 ':'✂ '):'🍽 ')+best.name+' · İÇERİ GİR'+(isTouch?'':' (E)');}}
+function enterGo(){const r=ENTER.r;if(!r||INT.on)return;if(!FOOT.on){footToggle();if(!FOOT.on)return;}ENTER.r=null;$('enterBtn').hidden=true;FOOT.door=r.name;bldEnter(r.store?r.kind:'rest',r);}
 function footTarget(dPos,dLook,dUp){if(PASS.id){const k=passTarget(dPos,dLook,dUp);if(k)return k;}const p=FOOT.pos,fx=Math.cos(FOOT.cam),fz=Math.sin(FOOT.cam);
   if(LOOKUI.on){const f2=Math.cos(FOOT.yaw),z2=Math.sin(FOOT.yaw),rx=-z2,rz=f2;dUp.set(0,1,0);dPos.set(p.x+f2*2.6-rx*.8,p.y+1.5,p.z+z2*2.6-rz*.8);dLook.set(p.x-rx*.7,p.y+1.15,p.z-rz*.7);return 10;}
   if(INT.on&&INT.mode==='eat'){dUp.set(0,1,0);dPos.set(p.x-fx*2.3,p.y+2.5,p.z-fz*2.3);dLook.set(p.x+fx*.9,p.y+.7,p.z+fz*.9);return 8;}
@@ -4815,7 +4826,7 @@ const BLD=(()=>{const mats={},mt=(c,r=.8,o)=>{const k=c+':'+r+(o?JSON.stringify(
   const make={rest,giyim,berber},cache={};
   return new Proxy({},{has:(_,k)=>k in make,get:(_,k)=>k in make?(cache[k]||(cache[k]=make[k]())):undefined,ownKeys:()=>Object.keys(cache),getOwnPropertyDescriptor:(_,k)=>k in cache?{enumerable:true,configurable:true,value:cache[k]}:undefined});})();
 const isBld=k=>k==='rest'||k==='giyim'||k==='berber';
-function bldEnter(kind,r){const B=BLD[kind];document.body.classList.add('inside');if(CB.wpn)cbEquip(null);if(AP.on)apStop();
+function bldEnter(kind,r){ENTER.r=null;$('enterBtn').hidden=true;const B=BLD[kind];document.body.classList.add('inside');if(CB.wpn)cbEquip(null);if(AP.on)apStop();
   Object.assign(INT,{on:true,kind,mode:'walk',t:0,asked:false,shop:r});INT.o.set(r.door.x,0,r.door.z);B.g.position.set(INT.o.x,INT.Y,INT.o.z);B.g.visible=true;
   INT.walls=B.W.map(b=>({x0:INT.o.x+b.x0-.3,x1:INT.o.x+b.x1+.3,z0:INT.o.z+b.z0-.3,z1:INT.o.z+b.z1+.3}));
   if(kind==='rest'){const items=MENUS[r.kind]||MENUS.köfte;B.menu(r.name,r.col,items.map(i=>i[0]+' '+i[1]+'₺').join('  ·  '));B.plate.visible=false;}else B.sign(r.name,r.col,kind==='giyim'?'Desenli tişörtler · fotoğraflı baskı · pantolon':'Saç · sakal · bıyık · yüz tarama');
@@ -5081,7 +5092,7 @@ addEventListener('keydown',e=>{
   if(S.ui!=='play'&&S.ui!=='replay'){if(e.code==='Escape'&&(S.ui==='how'||S.ui==='settings'))closeOverlay();if(e.code==='Escape'&&S.ui==='garage')closeGarage();if(e.code==='Escape'&&S.ui==='map')closeOverlay();if(e.code==='Escape'&&S.ui==='online')$('onBack').click();if(e.code==='Enter'&&S.ui==='result'){e.preventDefault();startMode(S.mode);}return;}
   const k=KEYMAP[e.code];if(k){keys[k]=1;e.preventDefault();if(k==='gas'&&S.auto)takeControl();}
   if(e.repeat)return;
-  if(e.code==='KeyE'&&INT.on)intGetWell();if(e.code==='KeyE'&&!$('jobAct').hidden)jobAct();if(e.code==='KeyE'&&!$('bldAct').hidden&&!LOOKUI.on)bldAct();
+  if(e.code==='KeyE'&&INT.on)intGetWell();if(e.code==='KeyE'&&!$('jobAct').hidden)jobAct();if(e.code==='KeyE'&&!$('bldAct').hidden&&!LOOKUI.on)bldAct();if(e.code==='KeyE'&&!$('enterBtn').hidden)enterGo();
   if(LOOKUI.on){if(e.code==='Escape')lookClose();return;}if(!$('menuBox').hidden){if(e.code==='Escape')$('menuBox').hidden=true;return;}if(!$('faceBox').hidden){if(e.code==='Escape')faceStop();return;}
   if(!$('jobBox').hidden){if(e.code==='Escape')$('jobBox').hidden=true;return;}
   if(S.mode==='serbest'){const dg=/^Digit([0-5])$/.exec(e.code);if(dg&&FOOT.on){const n=+dg[1];cbEquip(n&&CB.own.has(WKEYS[n-1])?WKEYS[n-1]:null);if(n&&!CB.own.has(WKEYS[n-1]))pop(WPN[WKEYS[n-1]].name+' sende yok · kaçakçıdan al');}
@@ -5182,7 +5193,7 @@ requestAnimationFrame(frame);
 
 {$('ifGo').addEventListener('click',()=>ifadeAnswer($('ifIn').value));$('ifMic').addEventListener('click',ifadeVoice);$('ifIn').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')ifadeAnswer($('ifIn').value);});banShow();}
 
-{$('intAct').addEventListener('click',intGetWell);$('bldAct').addEventListener('click',bldAct);$('menuClose').addEventListener('click',()=>$('menuBox').hidden=true);$('lookDone').addEventListener('click',()=>lookClose());$('bLook').addEventListener('click',()=>lookOpen('yuz'));document.querySelectorAll('#lookTabs [data-t]').forEach(b=>b.addEventListener('click',()=>{LOOKUI.tab=b.dataset.t;lookDraw();}));$('printIn').addEventListener('change',e=>imgFile(e.target.files[0],320,u=>{lookSet('print',u);e.target.value='';}));$('faceIn').addEventListener('change',e=>imgFile(e.target.files[0],320,(u,c)=>{skinFrom(c);lookSet('face',u);e.target.value='';faceStop();bigMsg('YÜZÜN EKLENDİ 📸','Karakterin artık senin yüzünle',2400);}));$('faceGo').addEventListener('click',faceShot);$('faceUp').addEventListener('click',()=>$('faceIn').click());$('faceClose').addEventListener('click',faceStop);$('bJob').addEventListener('click',()=>{$('jobBox').hidden=false;releaseAll();});$('jobClose').addEventListener('click',()=>$('jobBox').hidden=true);document.querySelectorAll('#jobBox [data-j]').forEach(b=>b.addEventListener('click',()=>jobSet(b.dataset.j)));$('callGo').addEventListener('click',naccGo);$('callNo').addEventListener('click',()=>{$('callBox').hidden=true;NACC.called=false;});$('jobAct').addEventListener('click',jobAct);$('bJob').textContent='Meslek: '+(PROF.job==='sivil'?'Sivil':PROF.job==='polis'?'Polis':'112');$('ntClose').addEventListener('click',newsStop);$('taNews').addEventListener('click',()=>{tappOpen(false);newsOpen(true);});$('newsClose').addEventListener('click',()=>newsOpen(false));$('osSpLogin').addEventListener('click',()=>window.open('https://accounts.spotify.com/login','_blank'));$('ifBribe').addEventListener('click',ifadeBribe);$('hospNow').addEventListener('click',()=>{if(INT.on&&INT.mode==='bed'){CB.hp=100;pop('Doktor: Tamamen iyileştin!','good');}});}
+{$('intAct').addEventListener('click',intGetWell);$('bldAct').addEventListener('click',bldAct);$('enterBtn').addEventListener('click',enterGo);$('menuClose').addEventListener('click',()=>$('menuBox').hidden=true);$('lookDone').addEventListener('click',()=>lookClose());$('bLook').addEventListener('click',()=>lookOpen('yuz'));document.querySelectorAll('#lookTabs [data-t]').forEach(b=>b.addEventListener('click',()=>{LOOKUI.tab=b.dataset.t;lookDraw();}));$('printIn').addEventListener('change',e=>imgFile(e.target.files[0],320,u=>{lookSet('print',u);e.target.value='';}));$('faceIn').addEventListener('change',e=>imgFile(e.target.files[0],320,(u,c)=>{skinFrom(c);lookSet('face',u);e.target.value='';faceStop();bigMsg('YÜZÜN EKLENDİ 📸','Karakterin artık senin yüzünle',2400);}));$('faceGo').addEventListener('click',faceShot);$('faceUp').addEventListener('click',()=>$('faceIn').click());$('faceClose').addEventListener('click',faceStop);$('bJob').addEventListener('click',()=>{$('jobBox').hidden=false;releaseAll();});$('jobClose').addEventListener('click',()=>$('jobBox').hidden=true);document.querySelectorAll('#jobBox [data-j]').forEach(b=>b.addEventListener('click',()=>jobSet(b.dataset.j)));$('callGo').addEventListener('click',naccGo);$('callNo').addEventListener('click',()=>{$('callBox').hidden=true;NACC.called=false;});$('jobAct').addEventListener('click',jobAct);$('bJob').textContent='Meslek: '+(PROF.job==='sivil'?'Sivil':PROF.job==='polis'?'Polis':'112');$('ntClose').addEventListener('click',newsStop);$('taNews').addEventListener('click',()=>{tappOpen(false);newsOpen(true);});$('newsClose').addEventListener('click',()=>newsOpen(false));$('osSpLogin').addEventListener('click',()=>window.open('https://accounts.spotify.com/login','_blank'));$('ifBribe').addEventListener('click',ifadeBribe);$('hospNow').addEventListener('click',()=>{if(INT.on&&INT.mode==='bed'){CB.hp=100;pop('Doktor: Tamamen iyileştin!','good');}});}
 
 {const f=$('osYtF');document.body.appendChild(f);}
 </script>
