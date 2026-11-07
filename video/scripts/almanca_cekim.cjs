@@ -1,4 +1,4 @@
-// Türkçe tanıtım (1920x1080) için oyundan sahne sahne çekim (dosya adı ilk plandan kaldı). Kullanım: node almanca_cekim.cjs a|b|c
+// Türkçe tanıtım (1920x1080) için oyundan sahne sahne çekim (dosya adı ilk plandan kaldı). Kullanım: node almanca_cekim.cjs a|b|c|d (d: kıyafet sahnesini yeniden çeker)
 // a: drone, rampa, polis, şehir, kale, taret · b: yürüme, restoran, kıyafet, berber, hastane, 112 görevi, haber · c: havalimanı, kabin, uçuş
 const {chromium}=require(require('child_process').execSync('npm root -g').toString().trim()+'/playwright');const fs=require('fs');
 const PAGE='http://localhost:8790/cap2.html',W=1920,H=1080,OUT=__dirname+'/../public/almanca/',which=process.argv[2];
@@ -63,7 +63,7 @@ const PAGE='http://localhost:8790/cap2.html',W=1920,H=1080,OUT=__dirname+'/../pu
       if(i===55){const r=__T.INT.shop;__T.menuPick(__T.MENUS[r.kind][0]);__T.BLDS.eat.dur=3.2;}}`);
     await ff(20);await p.evaluate(()=>{__T.FOOT.pos.z=__T.INT.o.z+7;});await ff(5);
     // clothes shop: patterns change on the character, then a printed photo
-    await p.evaluate(()=>{const r=__T.storeIn(-30,30,-30,30).find(q=>q.kind==='giyim');__T.bldEnter('giyim',r);const w=__T.INT.o;__T.FOOT.pos.set(w.x,__T.INT.Y,w.z-4.6);__T.FOOT.yaw=-Math.PI/2;__T.lookOpen('tisort');
+    await p.evaluate(()=>{const r=__T.storeIn(-30,30,-30,30).find(q=>q.kind==='giyim');__T.bldEnter('giyim',r);const w=__T.INT.o;__T.FOOT.pos.set(w.x,__T.INT.Y,w.z-2.6);__T.FOOT.yaw=-Math.PI/2;__T.lookOpen('tisort');
       window.__camOverride=(P,L,U)=>{const F=__T.FOOT.pos,y=__T.FOOT.yaw,fx=Math.cos(y),fz=Math.sin(y);P.set(F.x+fx*2.7,F.y+1.45,F.z+fz*2.7);L.set(F.x,F.y+1.15,F.z);U.set(0,1,0);return 99;};});await ff(5);
     const mk=`(()=>{const c=document.createElement('canvas');c.width=c.height=240;const g=c.getContext('2d');const gr=g.createLinearGradient(0,0,240,240);gr.addColorStop(0,'#ff3b4e');gr.addColorStop(1,'#ffd34d');g.fillStyle=gr;g.fillRect(0,0,240,240);g.fillStyle='#111';g.font='900 70px sans-serif';g.textAlign='center';g.fillText('TEPE',120,110);g.fillText('TAKLAK',120,185);return c.toDataURL();})()`;
     await rec('mode',150,`i=>{const P=[['cizgi',0x1d3557,0xf1faee],['ekose',0xe63946,0x111111],['kamu',0x3a5a40,0x8d99ae],['cicek',0x7b2cbf,0xffd60a],['batik',0x06d6a0,0xff70a6],['yildiz',0x111111,0xffd60a],['forma',0xffd60a,0x1d3557]];
@@ -96,5 +96,16 @@ const PAGE='http://localhost:8790/cap2.html',W=1920,H=1080,OUT=__dirname+'/../pu
     await p.evaluate(()=>{window.__camOverride=null;__T.airGo(__T.IL.by(7));});await ff(30);
     await rec('kabin',70,`i=>{}`);
     await ff(85);await rec('ucus',110,`i=>{}`);
+  }
+  if(which==='d'){
+    await start({veh:'kartal',paint:0xff5a1f});await ff(30);
+    await p.evaluate(()=>{const L=__T.LOOK;Object.assign(L,{pat:'ekose',c1:0xe63946,c2:0x111111,pants:0x1b263b,hair:'yan',hairC:0x2b1d14,beard:'yok'});__T.heroApply();__T.car.v=0;__T.footToggle();});await ff(10);
+    // clothes shop: patterns change on the character, then a printed photo
+    await p.evaluate(()=>{const r=__T.storeIn(-30,30,-30,30).find(q=>q.kind==='giyim');__T.bldEnter('giyim',r);const w=__T.INT.o;__T.FOOT.pos.set(w.x,__T.INT.Y,w.z-2.6);__T.FOOT.yaw=-Math.PI/2;__T.lookOpen('tisort');
+      window.__camOverride=(P,L,U)=>{const F=__T.FOOT.pos,y=__T.FOOT.yaw,fx=Math.cos(y),fz=Math.sin(y);P.set(F.x+fx*2.7,F.y+1.45,F.z+fz*2.7);L.set(F.x,F.y+1.15,F.z);U.set(0,1,0);return 99;};});await ff(5);
+    const mk=`(()=>{const c=document.createElement('canvas');c.width=c.height=240;const g=c.getContext('2d');const gr=g.createLinearGradient(0,0,240,240);gr.addColorStop(0,'#ff3b4e');gr.addColorStop(1,'#ffd34d');g.fillStyle=gr;g.fillRect(0,0,240,240);g.fillStyle='#111';g.font='900 70px sans-serif';g.textAlign='center';g.fillText('TEPE',120,110);g.fillText('TAKLAK',120,185);return c.toDataURL();})()`;
+    await rec('mode',150,`i=>{const P=[['cizgi',0x1d3557,0xf1faee],['ekose',0xe63946,0x111111],['kamu',0x3a5a40,0x8d99ae],['cicek',0x7b2cbf,0xffd60a],['batik',0x06d6a0,0xff70a6],['yildiz',0x111111,0xffd60a],['forma',0xffd60a,0x1d3557]];
+      if(i<105&&i%15===0){const q=P[(i/15)%P.length];__T.lookSet('c1',q[1]);__T.lookSet('c2',q[2]);__T.lookSet('pat',q[0]);}if(i===108){__T.lookSet('pat','duz');__T.lookSet('c1',0x111111);__T.lookSet('print',${mk});}}`);
+    await p.evaluate(()=>{__T.lookClose(true);window.__camOverride=null;__T.FOOT.pos.z=__T.INT.o.z+7;});await ff(5);
   }
   console.log('bitti',which,errs.slice(0,5));await b.close();})().catch(e=>{console.error('FAIL',which,e.message);process.exit(1);});

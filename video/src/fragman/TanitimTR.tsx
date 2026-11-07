@@ -125,11 +125,15 @@ export const TanitimTR: React.FC = () => {
       </Sequence>
       <Frame />
       <Sequence from={0} durationInFrames={at(2)}><Intro /></Sequence>
-      {SC.filter((s) => s.title).map((s, i) => (
-        <Sequence key={"t" + i} from={s.from + 4} durationInFrames={s.to - s.from - 4}>
-          <Feature n={s.n!} title={s.title!} sub={s.sub!} color={s.color!} dur={s.to - s.from - 4} />
-        </Sequence>
-      ))}
+      {SC.filter((s) => s.title).map((s, i) => {
+        // Ara yazının ("ŞİMDİ NE?", "GERÇEK HAYAT") olduğu sahnelerde başlık ara yazı bitince gelsin.
+        const d = s.from === at(10) || s.from === at(20) ? 58 : 4;
+        return (
+          <Sequence key={"t" + i} from={s.from + d} durationInFrames={s.to - s.from - d}>
+            <Feature n={s.n!} title={s.title!} sub={s.sub!} color={s.color!} dur={s.to - s.from - d} />
+          </Sequence>
+        );
+      })}
       <Sequence from={at(10) + 4} durationInFrames={52}><Break text="ŞİMDİ NE?" color="#ffd34d" dur={52} /></Sequence>
       <Sequence from={at(20) + 4} durationInFrames={52}><Break text="GERÇEK HAYAT" color="#5fd38a" dur={52} /></Sequence>
       <Sequence from={at(36)} durationInFrames={TR_LEN - at(36)}><EndCard /></Sequence>
