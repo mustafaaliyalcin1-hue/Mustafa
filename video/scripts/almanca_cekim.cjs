@@ -1,5 +1,5 @@
-// Almanca tanıtım (1920x1080) için oyundan sahne sahne çekim. Kullanım: node almanca_cekim.cjs a|b
-// a: drone, rampa, polis, şehir, kale, taret · b: yürüme, restoran, kıyafet, berber, hastane, 112 görevi, haber
+// Türkçe tanıtım (1920x1080) için oyundan sahne sahne çekim (dosya adı ilk plandan kaldı). Kullanım: node almanca_cekim.cjs a|b|c
+// a: drone, rampa, polis, şehir, kale, taret · b: yürüme, restoran, kıyafet, berber, hastane, 112 görevi, haber · c: havalimanı, kabin, uçuş
 const {chromium}=require(require('child_process').execSync('npm root -g').toString().trim()+'/playwright');const fs=require('fs');
 const PAGE='http://localhost:8790/cap2.html',W=1920,H=1080,OUT=__dirname+'/../public/almanca/',which=process.argv[2];
 (async()=>{fs.mkdirSync(OUT,{recursive:true});const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--disable-background-timer-throttling']});
@@ -87,5 +87,14 @@ const PAGE='http://localhost:8790/cap2.html',W=1920,H=1080,OUT=__dirname+'/../pu
     // news: live broadcast from the crash scene with the CCTV camera (news UI stays on)
     await ui(true);await p.evaluate(()=>{const it=__T.NEWS.list.find(n=>n.live)||__T.NEWS.list[0];__T.newsPlay(it);});
     await rec('news',150,`i=>{}`);await ui(false);
+  }
+  if(which==='c'){
+    await start({veh:'voltra',paint:0xa50f1d});await ff(10);
+    await p.evaluate(()=>{const s=__T.airSpot(),c=__T.car;c.pos.set(s.cx-6,0,__T.CITY.nz(s.j+1)+1.9);c.yaw=0;c.v=0;c.vel.set(0,0,0);
+      window.__camOverride=(P,L,U)=>{const s=__T.airSpot(),f=window.__f||0,a=.35+f*.006,r=46-f*.08;P.set(s.cx+8+Math.cos(a)*r,9+f*.04,s.cz+10+Math.sin(a)*r);L.set(s.cx+6,2.5,s.cz+8);U.set(0,1,0);return 99;};});await ff(30);
+    await rec('hava',80,`i=>{window.__f=i;}`);
+    await p.evaluate(()=>{window.__camOverride=null;__T.airGo(__T.IL.by(7));});await ff(30);
+    await rec('kabin',70,`i=>{}`);
+    await ff(85);await rec('ucus',110,`i=>{}`);
   }
   console.log('bitti',which,errs.slice(0,5));await b.close();})().catch(e=>{console.error('FAIL',which,e.message);process.exit(1);});
