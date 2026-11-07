@@ -28,6 +28,8 @@ const SC: S[] = [
   { shot: "burg", from: D3 + 670, to: at(36), n: "15", title: "81 İL, GERÇEK YERLER", sub: "Elazığ'da Harput Kalesi", color: "#ffd34d" },
 ];
 export const TR_LEN = at(38.4);
+// Her sahnede gerçekten çekilmiş kare sayısı (fazlası istenirse son kare tutulur).
+const NF: Record<string, number> = { flug: 280, rampe: 170, polizei: 168, stadt: 112, burg: 130, turm: 170, fuss: 112, restaurant: 150, mode: 150, friseur: 150, klinik: 112, einsatz: 170, news: 150, hava: 80, kabin: 70, ucus: 110 };
 
 // lower third: number, big title with accent bar, subtitle
 const Feature: React.FC<{ n: string; title: string; sub: string; color: string; dur: number }> = ({ n, title, sub, color, dur }) => {
@@ -117,7 +119,7 @@ export const TanitimTR: React.FC = () => {
     <AbsoluteFill style={{ backgroundColor: "#000" }}>
       {SC.map((s, i) => (
         <Sequence key={i} from={s.from} durationInFrames={s.to - s.from}>
-          <Clip dir="almanca" shot={s.shot} start={s.start || 0} count={(s.start || 0) + (s.to - s.from)} punch={s.punch !== false} />
+          <Clip dir="almanca" shot={s.shot} start={s.start || 0} count={Math.min(NF[s.shot], (s.start || 0) + (s.to - s.from))} punch={s.punch !== false} />
         </Sequence>
       ))}
       <Sequence from={at(36)} durationInFrames={TR_LEN - at(36)}>
