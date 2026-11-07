@@ -218,6 +218,9 @@ body.tplay #guide{top:calc(env(safe-area-inset-top,0px) + 80px)}
 .osmain iframe{flex:1;width:100%;border:0;border-radius:12px;background:#000}
 @media (max-height:520px){.ospanel{height:96vh}#osDock{width:74px}#osDock button{min-height:46px;font-size:18px}.osgrid{grid-template-columns:repeat(6,1fr)}.osgrid button{min-height:34px;font-size:11px}}
 #fadeBlk{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:30}
+#airBtn{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 236px);pointer-events:auto;min-height:56px;padding:0 24px;border:1px solid #d4af37;border-radius:6px;background:linear-gradient(135deg,#0f2a52,#1d4ed8);color:#fff;font:inherit;font-weight:900;letter-spacing:.05em;cursor:pointer;touch-action:manipulation;z-index:6;box-shadow:0 6px 24px rgba(29,78,216,.45)}
+#airHud{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 64px);width:min(560px,88vw);background:rgba(8,12,18,.85);border:1px solid rgba(212,175,55,.7);border-radius:14px;padding:10px 14px;display:flex;flex-direction:column;gap:6px;font-size:14px;z-index:6}body.flying .tl,body.flying #mini,body.flying #guide,body.flying #tele,body.flying #life,body.flying #cbHud{display:none!important}
+#airHud .tt{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#f3d77a;font-weight:800}#airHud .tb2{height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden}#airBar{display:block;height:100%;width:0;background:linear-gradient(90deg,#d4af37,#fff1c1)}#airList{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;overflow:auto;max-height:56vh}
 #tunHud{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 64px);width:min(520px,88vw);background:rgba(8,12,18,.85);border:1px solid rgba(95,196,255,.5);border-radius:14px;padding:10px 14px;display:flex;flex-direction:column;gap:6px;font-size:14px;z-index:6}
 #tunHud[hidden]{display:none}#tunHud .tt{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#7fd6ff}#tunHud .tt b{font-size:16px;letter-spacing:0;color:#fff}
 #tunHud .tb2{height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden}#tunBar{display:block;height:100%;width:0;background:linear-gradient(90deg,#3e8bff,#7fd6ff)}
@@ -418,6 +421,7 @@ body.lifeon #mini{top:calc(env(safe-area-inset-top,0px) + 150px)}body.touch.life
   <div id="pops"></div>
   <canvas id="navHud" width="640" height="400" hidden aria-label="Otopilot haritası"></canvas>
   <div id="fadeBlk"></div>
+  <div id="airHud" hidden><div class="tt"><span>✈ Tepetaklak Air · lüks jet · birinci sınıf</span><b id="airEta">0:00</b></div><div id="airTxt"></div><div class="tb2"><i id="airBar"></i></div></div>
   <div id="tunHud" hidden><div class="tt"><span>🚇 Yeraltı tüneli · otopilot</span><b id="tunEta">0:00</b></div><div id="tunTxt"></div><div class="tb2"><i id="tunBar"></i></div></div>
 
   <div id="apTag" hidden><span class="dot"></span><span id="apTxt">Otopilot</span><button type="button" id="apTagStop">Durdur</button></div>
@@ -431,7 +435,7 @@ body.lifeon #mini{top:calc(env(safe-area-inset-top,0px) + 150px)}body.touch.life
   <button type="button" id="intAct" hidden>GEÇMİŞ OLSUN</button>
   <div id="jailUi" hidden><b>NEZARETTESİN</b><span>Tutuklandın · çıkmana</span><span id="jailT">1:00</span></div>
   <div id="callBox" hidden><b id="callT">📞 İHBAR</b><span id="callD">0 m</span><button type="button" id="callGo">Git</button><button type="button" id="callNo">Reddet</button></div>
-  <button type="button" id="jobAct" hidden>MÜDAHALE ET</button><button type="button" id="bldAct" hidden>SİPARİŞ VER</button><button type="button" id="enterBtn" hidden>İÇERİ GİR</button>
+  <button type="button" id="jobAct" hidden>MÜDAHALE ET</button><button type="button" id="bldAct" hidden>SİPARİŞ VER</button><button type="button" id="airBtn" hidden>✈ UÇAĞA BİN</button><button type="button" id="enterBtn" hidden>İÇERİ GİR</button>
   <div id="eatUi" hidden><b id="eatT">Yemek</b><span>Afiyet olsun 😋</span><i><b id="eatBar"></b></i></div>
   <div id="treatUi" hidden><b id="treatK">💧 Serum takılı</b><span id="treatT">1:00</span><i><b id="treatBar"></b></i><button type="button" id="treatNow">HEMEN İYİLEŞ</button></div><div id="jobProg" hidden><i id="jobProgI"></i></div>
   <div id="wanted" hidden><span id="wStars">★☆☆</span><b id="wTxt">Polis peşinde</b></div>
@@ -602,6 +606,13 @@ body.lifeon #mini{top:calc(env(safe-area-inset-top,0px) + 150px)}body.touch.life
   </div>
 </div>
 
+<div id="airPick" class="overlay center" hidden>
+  <div class="card tuncard">
+    <div class="ghead"><div><h3>✈ Nereye uçalım?</h3><p class="cs">Tepetaklak Air · deri koltuklar, şampanya, 11.000 metrede bulutların üstü. Araban kargoda seninle gelir.</p></div><button class="btn" type="button" id="airClose">Vazgeç</button></div>
+    <input id="airQ" type="search" placeholder="İl ara: Antalya, Van, 35…" autocomplete="off" aria-label="İl ara">
+    <div id="airList"></div>
+  </div>
+</div>
 <div id="tunPick" class="overlay center" hidden>
   <div class="card tuncard">
     <div class="ghead"><div><h3>Nereye gidelim?</h3><p class="cs">Yeraltı tünelindesin, otopilot sürüyor.</p></div><button class="btn" type="button" id="tunAsk"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3z"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>Hey Tepetaklak</button></div>
@@ -1533,7 +1544,7 @@ function drawMinimap(){const x=$('mini').getContext('2d'),m=.7,cx=FOOT.on?FOOT.p
     if(!v){const [u,q]=P(CITY.nx(i)+35+po-6.5,CITY.nz(j)-7);x.fillRect(u,q,13*m,14*m);}else{const [u,q]=P(CITY.nx(i)-7,CITY.nz(j)+35+po-6.5);x.fillRect(u,q,14*m,13*m);}}}
   x.fillStyle='#14161a';for(const a of TRAF.cars){const [u,v]=P(a.x,a.z);x.fillRect(u-2.5,v-2.5,5,5);}
   const blink=Math.floor(performance.now()/140)%2;for(const pc of POL.cars){const [u,v]=P(pc.x,pc.z);x.fillStyle=blink?'#ff2035':'#2f7bff';x.beginPath();x.arc(u,v,5,0,TAU);x.fill();}
-  cargoMinimap(x,P);heliMinimap(x,P);netMinimap(x,P);jobMinimap(x,P);storeMinimap(x,P);{const [hu,hv]=P(teslaHome().x,teslaHome().z);x.font='18px system-ui';x.textAlign='center';x.textBaseline='middle';x.fillText('🏠',hu,hv);}
+  cargoMinimap(x,P);heliMinimap(x,P);netMinimap(x,P);jobMinimap(x,P);storeMinimap(x,P);airMinimap(x,P);{const [hu,hv]=P(teslaHome().x,teslaHome().z);x.font='18px system-ui';x.textAlign='center';x.textBaseline='middle';x.fillText('🏠',hu,hv);}
   if(TAXI.st!=='off'){const [tu,tv]=P(TAXI.pos.x,TAXI.pos.z);x.fillStyle='#ffd21f';x.strokeStyle='#111';x.lineWidth=2;x.fillRect(clamp(tu,8,292)-6,clamp(tv,8,292)-4,12,8);x.strokeRect(clamp(tu,8,292)-6,clamp(tv,8,292)-4,12,8);}
   if(FOOT.on&&!FOOT.inTaxi){x.fillStyle='rgba(62,139,255,.35)';x.beginPath();x.arc(150,150,13,0,TAU);x.fill();x.fillStyle='#3e8bff';x.strokeStyle='#fff';x.lineWidth=2;x.beginPath();x.arc(150,150,6,0,TAU);x.fill();x.stroke();}
   {const [au,av]=P(car.pos.x,car.pos.z);x.save();x.translate(clamp(au,10,290),clamp(av,10,290));}x.rotate(car.yaw);x.fillStyle='#e3263b';x.strokeStyle='#fff';x.lineWidth=2;x.beginPath();x.moveTo(11,0);x.lineTo(-7,7);x.lineTo(-3,0);x.lineTo(-7,-7);x.closePath();x.fill();x.stroke();x.restore();}
@@ -2539,7 +2550,7 @@ function endReplay(){S.replay=null;S.phase='done';showUI('result');}
 
 /* ================= CAMERA ================= */
 const cam={pos:new V3(-70,4,14),look:new V3(),up:new V3(0,1,0),orbY:0,orbP:0,zoom:1};let snapCam=true;
-function camTarget(dPos,dLook,dUp){if(window.__camOverride){const k=window.__camOverride(dPos,dLook,dUp);if(k)return k;}
+function camTarget(dPos,dLook,dUp){{const A=window.__AIR;if(A&&A.on){const k=A.cam(dPos,dLook,dUp);if(k)return k;}}if(window.__camOverride){const k=window.__camOverride(dPos,dLook,dUp);if(k)return k;}
   if(FOOT.on&&S.phase!=='replay')return footTarget(dPos,dLook,dUp);
   if(S.camMode===3&&S.phase!=='replay'&&!S.menuDemo)return driverTarget(dPos,dLook,dUp);
   const c=car,p=c.pos,z=cam.zoom*(SET.far?1.45:1);
@@ -2676,7 +2687,7 @@ function frame(now){
     ghostTick();
   }
   if(bigT>0){bigT-=dt;if(bigT<=0){$('bigT').textContent='';$('bigS').textContent='';}}
-  netTick(dt,simDt);if(!TUN.on){gateUpdate(dt);cargoTick(simDt,dt);peopleTick(simDt,dt);heliTick(simDt,dt);}elevTick(dt);tappTick(dt);taxiStep(simDt);shoreTick(dt);osTick(dt);tourTick(simDt);tunRender();tunPad();CITY.boatTick(dt,car.pos.x);pedTick(simDt,dt);skyTick(simDt);restTick(dt);landTick();passTick();footTick(simDt);cbTick(simDt,dt);accTick(simDt);intTick(simDt);injTick(simDt);naccTick(simDt);lifeTick(simDt);gfxTick();
+  netTick(dt,simDt);if(!TUN.on){gateUpdate(dt);cargoTick(simDt,dt);peopleTick(simDt,dt);heliTick(simDt,dt);}elevTick(dt);tappTick(dt);taxiStep(simDt);shoreTick(dt);osTick(dt);tourTick(simDt);tunRender();tunPad();CITY.boatTick(dt,car.pos.x);pedTick(simDt,dt);skyTick(simDt);restTick(dt);landTick();passTick();footTick(simDt);cbTick(simDt,dt);accTick(simDt);intTick(simDt);injTick(simDt);naccTick(simDt);lifeTick(simDt);airTick(simDt);gfxTick();
   if(S.mode==='serbest'&&!S.menuDemo&&!TUN.on){CITY.update(FOOT.on?FOOT.pos.x:car.pos.x,FOOT.on?FOOT.pos.z:car.pos.z);trafficRender();polRender(now/1000);drawMinimap();ilLabel();if(S.free.recDirty&&Math.random()<.02){store.set('rec',REC);updateRecords();S.free.recDirty=false;}}
   poseCar(simDt);updateCamera(dt);cockpitPose();apHud();tickParticles(paused?0:dt*(S.slow?.3:1));
   hud();audioTick(!paused&&(S.phase==='play'||S.phase==='ended'||S.phase==='count'));
@@ -3727,7 +3738,7 @@ function trDat(n){const w=n.split(' '),last=w[w.length-1].toLocaleLowerCase('tr-
 for(const [pl,id,name,key,type,o] of LMDEF){(LANDM.defs[pl]=LANDM.defs[pl]||[]).push({id,name,dat:trDat(name),key:new RegExp(key),near:LANDM.defs[pl].length?[-3,-1]:[2,1],build:()=>LMK2[type](o),plate:pl});}
 function landSpots(){const k=IL.cur+':'+CITY.seed;if(LANDM.key===k)return LANDM.spots;LANDM.key=k;LANDM.map.clear();LANDM.spots=[];
   const C=CITY,used=new Set(),wat=C.style().wat,ok=(i,j)=>!used.has(i+','+j)&&!C.isHwy(i,j)&&!C.isRamp(i,j)&&!(wat&&(j===6||j===7||j===5||j===8))&&!(i===0&&j===3)&&!(C.m4(i)===3&&C.m4(j)===3)&&!(i===1&&j===3);
-  LANDM.sp={};for(const [id,near,bx,oz] of [['smug',SMUG_AT,SMUG.boxes,0],['hosp',[-3,3],ACCB.hospBoxes,24],['kara',[5,1],ACCB.karaBoxes,26]]){let at=null;for(let r=0;r<6&&!at;r++)for(let di=-r;di<=r&&!at;di++)for(let dj=-r;dj<=r&&!at;dj++){if(Math.max(Math.abs(di),Math.abs(dj))!==r)continue;const i=near[0]+di,j=near[1]+dj;if(ok(i,j))at=[i,j];}
+  LANDM.sp={};for(const [id,near,bx,oz] of [['smug',SMUG_AT,SMUG.boxes,0],['hosp',[-3,3],ACCB.hospBoxes,24],['kara',[5,1],ACCB.karaBoxes,26],['hava',[-1,-2],[{x0:-26,x1:-8,z0:-24,z1:-6,h:9},{x0:-25.5,x1:-20.5,z0:9.5,z1:14.5,h:23},{x0:-6,x1:20.5,z0:8.6,z1:11.4,h:4}],0]]){let at=null;for(let r=0;r<6&&!at;r++)for(let di=-r;di<=r&&!at;di++)for(let dj=-r;dj<=r&&!at;dj++){if(Math.max(Math.abs(di),Math.abs(dj))!==r)continue;const i=near[0]+di,j=near[1]+dj;if(ok(i,j))at=[i,j];}
     if(at){used.add(at[0]+','+at[1]);const cx=C.nx(at[0])+C.B/2,cz=C.nz(at[1])+C.B/2,sm={d:{id},i:at[0],j:at[1],cx,cz,boxes:bx.map(b=>({x0:cx+b.x0,x1:cx+b.x1,z0:cz+oz+b.z0,z1:cz+oz+b.z1,h:b.h}))};LANDM.sp[id]=sm;LANDM.map.set(at[0]+','+at[1],sm);}}
   LANDM.smug=LANDM.sp.smug||null;
   for(const d of LANDM.defs[IL.cur]||[]){let at=null;for(let r=0;r<6&&!at;r++)for(let di=-r;di<=r&&!at;di++)for(let dj=-r;dj<=r&&!at;dj++){if(Math.max(Math.abs(di),Math.abs(dj))!==r)continue;const i=d.near[0]+di,j=d.near[1]+dj;if(ok(i,j))at=[i,j];}
@@ -4328,7 +4339,7 @@ function tunExit(){const c=car,il=TUN.to;ilApply(il.plate,ilSeed(il.plate));
   c.pos.set(e0.x,-9,e0.z);c.yaw=e0.yaw;c.vel.set(0,0,0);c.v=0;c.state='free';c.steer=0;basisQuat(c.q,_va.set(Math.cos(c.yaw),0,Math.sin(c.yaw)),AY);cam.head=c.yaw;snapCam=true;
   CITY.update(c.pos.x,c.pos.z);trafficReset();polClear();if(S.cargo)cargoReset();for(const s of SKYT){s.on=false;}REST.t=0;ELEV.t=0;
   TUN.ph='up';TUN.t=0;fade(0,900);}
-function tunStep(h){const c=car,T=TUN;T.t+=h;
+function tunStep(h){const c=car,T=TUN;if(T.ph==='air')return;T.t+=h;
   if(T.ph==='down'){const k=Math.min(1,T.t/3.2),y=-12*k*k;c.pos.y=y;T.pad.plat.position.y=y;if(T.t>2.4&&!T.fd){T.fd=1;fade(1,700);}if(T.t>=3.2){T.fd=0;T.pad.plat.position.y=0;tunStart();}c.v=0;return;}
   if(T.ph==='up'){const k=Math.min(1,T.t/3),y=-9*(1-k)*(1-k);c.pos.y=y;T.pad.plat.position.y=y;
     if(T.t>=3){c.pos.y=0;T.pad.plat.position.y=0;T.on=false;T.ph='';ELEV.rideP=null;ELEV.armed=false;const il=ilCur();bigMsg(il.name.toLocaleUpperCase('tr-TR'),il.plate+' · '+il.region+' bölgesi · hoş geldin!',3200);say(il.name+' iline hoş geldin.');sfx('chime');
@@ -4932,14 +4943,142 @@ function gfxTick(){GRADE.uniforms.time.value=performance.now()/1000%1000;GRADE.u
   const big=SET.ultra&&!LOW&&!isTouch?4096:isTouch?1024:2048;if(key.shadow.mapSize.x!==big){key.shadow.mapSize.set(big,big);if(key.shadow.map){key.shadow.map.dispose();key.shadow.map=null;}}}
 
 heroApply();
+/* ================= AIRPORT + LUXURY JET: board at the city airport and fly to any of the 81 provinces ================= */
+function mkJet(parked){const g=new THREE.Group(),P=(c,o)=>new THREE.MeshPhysicalMaterial(Object.assign({color:c,roughness:.22,metalness:.35,clearcoat:1,clearcoatRoughness:.05},o||{}));
+  const white=P(0xf7f8fa),gold=new THREE.MeshStandardMaterial({color:0xd4af37,metalness:1,roughness:.22}),dark=new THREE.MeshStandardMaterial({color:0x0c1016,metalness:.6,roughness:.15}),grey=P(0xb9c0c8,{metalness:.8,roughness:.3});
+  const add=(geo,m,x,y,z,rx=0,ry=0,rz=0)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);o.rotation.set(rx,ry,rz);o.castShadow=true;g.add(o);return o;};
+  // fuselage along +x (nose), slim tail cone
+  add(new THREE.CylinderGeometry(1.35,1.35,15,40,1,true),white,1,2.2,0,0,0,Math.PI/2);
+  const nose=add(new THREE.SphereGeometry(1.35,40,20,0,TAU,0,Math.PI/2),white,8.5,2.2,0,0,0,-Math.PI/2);nose.scale.set(1,2.3,1);
+  add(new THREE.CylinderGeometry(.35,1.35,7,40,1,true),white,-10,2.45,0,0,0,Math.PI/2).scale.set(1,1,1);
+  add(new THREE.SphereGeometry(.35,16,10),white,-13.5,2.7,0);
+  // cockpit glass, gold cheat line, window row
+  const wind=add(new THREE.SphereGeometry(1.2,30,14,-.9,1.8,.95,.5),dark,9.2,2.55,0,0,0,-Math.PI/2);wind.scale.set(1,2.2,1);
+  for(const s of [-1,1]){add(new THREE.BoxGeometry(22,.16,.04),gold,-1,1.75,s*1.33);add(new THREE.BoxGeometry(22,.05,.04),gold,-1,1.55,s*1.32);
+    for(let k=0;k<8;k++){const w=add(new THREE.CapsuleGeometry(.16,.22,4,10),dark,6-k*1.55,2.55,s*1.33);w.scale.set(1,1,.25);}
+    const door=add(new THREE.BoxGeometry(.95,1.9,.04),new THREE.MeshStandardMaterial({color:0xe9ecef,roughness:.3,metalness:.4}),7.2,2.05,s*1.34);door.visible=s>0;}
+  // livery: name on both sides
+  const lt=canvasTex(512,96,(x,W,H)=>{x.clearRect(0,0,W,H);x.font='800 58px system-ui,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillStyle='#b8902a';x.fillText('TEPETAKLAK AIR',W/2,H/2);});
+  for(const s of [-1,1]){const m=new THREE.Mesh(new THREE.PlaneGeometry(6.2,1.16),new THREE.MeshBasicMaterial({map:lt,transparent:true}));m.position.set(-.6,3.05,s*1.36);m.rotation.y=s>0?0:Math.PI;g.add(m);}
+  // swept wings with winglets
+  for(const s of [-1,1]){const sh=new THREE.Shape();sh.moveTo(0,0);sh.lineTo(-3.4,8.2);sh.lineTo(-4.9,8.2);sh.lineTo(-4.4,0);sh.lineTo(0,0);
+    const wg=new THREE.ExtrudeGeometry(sh,{depth:.22,bevelEnabled:true,bevelThickness:.06,bevelSize:.06,bevelSegments:2});wg.rotateX(Math.PI/2);if(s<0)wg.scale(1,1,-1);
+    const w=add(wg,white,2,1.45,s*1.1);w.rotation.x=s*.04;const tip=add(new THREE.BoxGeometry(.9,1.15,.07),white,-1.75,2.0,s*9.3,0,0,-.4);add(new THREE.BoxGeometry(.9,.08,.08),gold,-1.75,1.45,s*9.3,0,0,-.4);}
+  // T-tail
+  {const sh=new THREE.Shape();sh.moveTo(0,0);sh.lineTo(-2.4,4.6);sh.lineTo(-4.2,4.6);sh.lineTo(-3.8,0);sh.lineTo(0,0);const fg=new THREE.ExtrudeGeometry(sh,{depth:.2,bevelEnabled:false});add(fg,white,-9.6,3.1,-.1);
+    add(new THREE.BoxGeometry(2.1,.14,7.4),white,-13.2,7.7,0,0,0,0);add(new THREE.BoxGeometry(1.6,.5,.24),gold,-12.4,7.4,0);}
+  // rear engines on pylons
+  for(const s of [-1,1]){add(new THREE.CylinderGeometry(.78,.66,4,28),grey,-7.2,3.15,s*2.35,0,0,Math.PI/2);add(new THREE.CircleGeometry(.62,24),dark,-5.18,3.15,s*2.35,0,Math.PI/2,0);add(new THREE.BoxGeometry(1.8,.22,1),white,-7.2,3.05,s*1.6);
+    add(new THREE.TorusGeometry(.72,.06,8,28),gold,-5.2,3.15,s*2.35,0,Math.PI/2,0);}
+  // landing gear (parked only)
+  const gear=new THREE.Group();g.add(gear);const wm=new THREE.MeshStandardMaterial({color:0x111111,roughness:.8});
+  for(const [x,z] of [[7,0],[-1.5,1.6],[-1.5,-1.6]]){const st=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,1.4,8),grey);st.position.set(x,.85,z);gear.add(st);for(const dz of [-.18,.18]){const wh=new THREE.Mesh(new THREE.CylinderGeometry(.34,.34,.22,16),wm);wh.rotation.x=Math.PI/2;wh.position.set(x,.34,z+dz);wh.castShadow=true;gear.add(wh);}}
+  gear.visible=!!parked;
+  if(parked){// stairs to the open door
+    const st=new THREE.Group();const sm=new THREE.MeshStandardMaterial({color:0xe9ecef,metalness:.6,roughness:.3});for(let k=0;k<8;k++){const b=new THREE.Mesh(new THREE.BoxGeometry(.9,.12,.32),sm);b.position.set(7.2,.12+k*.22,2.1+(7-k)*.28);b.castShadow=true;st.add(b);}
+    const carpet=new THREE.Mesh(new THREE.BoxGeometry(.8,.02,4.6),new THREE.MeshStandardMaterial({color:0x9d0208,roughness:.9}));carpet.position.set(7.2,.02,6.2);st.add(carpet);g.add(st);}
+  return g;}
+// the cabin: cream leather club seats, walnut table with gold trim, champagne, oval windows, ceiling light, flight-map screen
+function mkCabin(){const g=new THREE.Group(),M=(c,r=.6,o)=>new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:r},o||{}));
+  const leather=M(0xeadcc3,.55),gold=M(0xd4af37,.22,{metalness:1}),wood=new THREE.MeshPhysicalMaterial({color:0x5a3218,roughness:.25,clearcoat:1,clearcoatRoughness:.08}),carpet=M(0x1b2a44,.95);
+  const add=(geo,m,x,y,z)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);g.add(o);return o;};
+  const shell=add(new THREE.CylinderGeometry(1.45,1.45,9,40,1,true),M(0xf4ede0,.7,{side:THREE.BackSide}),0,1.1,0);shell.rotation.z=Math.PI/2;
+  add(new THREE.BoxGeometry(9,.1,2.3),carpet,0,-.05,0);for(const s of [-1,1])add(new THREE.BoxGeometry(9,.32,.05),wood,0,.16,s*1.12);
+  add(new THREE.BoxGeometry(9,.04,.16),M(0xfff1d6,.4,{emissive:0xffd9a0,emissiveIntensity:1.4}),0,2.5,0);
+  for(const s of [-1,1])add(new THREE.BoxGeometry(9,.04,.04),gold,0,2.02,s*1.2);
+  const sky=canvasTex(64,128,(x,W,H)=>{const gr=x.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#5d9be0');gr.addColorStop(.6,'#bfe0ff');gr.addColorStop(.75,'#ffffff');gr.addColorStop(1,'#e7eef6');x.fillStyle=gr;x.fillRect(0,0,W,H);});
+  for(let k=0;k<6;k++)for(const s of [-1,1]){const w=add(new THREE.CircleGeometry(.2,24),new THREE.MeshBasicMaterial({map:sky}),-3.4+k*1.4,1.35,s*1.33);w.scale.set(1,1.45,1);w.rotation.y=s>0?Math.PI:0;
+    const r=add(new THREE.TorusGeometry(.21,.025,8,24),gold,-3.4+k*1.4,1.35,s*1.32);r.scale.set(1,1.45,1);}
+  const seat=(x,z,face)=>{const s=new THREE.Group();s.position.set(x,0,z);s.rotation.y=face>0?0:Math.PI;g.add(s);
+    const p=(geo,m,px,py,pz)=>{const o=new THREE.Mesh(geo,m);o.position.set(px,py,pz);s.add(o);return o;};
+    p(new RoundedBoxGeometry(.72,.38,.66,3,.06),leather,0,.19,0);p(new RoundedBoxGeometry(.64,.12,.58,3,.05),leather,.02,.44,0);p(new RoundedBoxGeometry(.18,.82,.64,3,.07),leather,-.33,.8,0);
+    p(new RoundedBoxGeometry(.2,.2,.62,3,.07),leather,-.3,1.25,0);for(const q of [-1,1]){p(new RoundedBoxGeometry(.66,.1,.12,2,.04),leather,0,.62,q*.33);p(new THREE.BoxGeometry(.66,.02,.13),gold,0,.68,q*.33);}return s;};
+  seat(-1.25,-.55,1);seat(1.25,-.55,-1);seat(-1.25,.6,1);seat(1.25,.6,-1);
+  add(new RoundedBoxGeometry(1.1,.06,.85,3,.03),wood,0,.72,-.55);add(new THREE.CylinderGeometry(.06,.1,.7,12),gold,0,.36,-.55);add(new THREE.TorusGeometry(.47,.015,6,40),gold,0,.75,-.55).rotation.x=Math.PI/2;
+  for(const [x,z] of [[-.2,-.7],[.22,-.42]]){add(new THREE.CylinderGeometry(.035,.02,.2,12),new THREE.MeshPhysicalMaterial({color:0xffffff,transmission:.9,roughness:.05,transparent:true,opacity:.5}),x,.86,z);add(new THREE.CylinderGeometry(.03,.02,.12,10),M(0xf5d76e,.2,{emissive:0x6b5212,emissiveIntensity:.4}),x,.84,z);}
+  add(new THREE.CylinderGeometry(.09,.07,.28,14),M(0x0b3d2e,.2,{metalness:.3}),.05,.89,-.62);add(new THREE.CylinderGeometry(.04,.04,.1,10),gold,.05,1.06,-.62);
+  // bulkhead with the flight map screen
+  add(new THREE.BoxGeometry(.12,2.3,2.5),wood,4.4,1.1,0);add(new THREE.BoxGeometry(.12,3,3),wood,-4.45,1.1,0);add(new THREE.BoxGeometry(.06,1.9,.8),M(0xeadcc3,.5),-4.38,.95,0);add(new THREE.BoxGeometry(.04,1.95,.85),gold,-4.4,.95,0);add(new THREE.BoxGeometry(9,.05,3),M(0xf4ede0,.7),0,2.6,0);const mc=document.createElement('canvas');mc.width=512;mc.height=288;const mt=new THREE.CanvasTexture(mc);mt.colorSpace=THREE.SRGBColorSpace;
+  const scr=add(new THREE.PlaneGeometry(1.5,.84),new THREE.MeshBasicMaterial({map:mt}),4.33,1.45,0);scr.rotation.y=-Math.PI/2;add(new THREE.BoxGeometry(.04,.92,1.58),gold,4.35,1.45,0);
+  const lamp=new THREE.PointLight(0xffe2b0,22,9,1.4);lamp.position.set(0,2.15,0);g.add(lamp);const lamp2=new THREE.PointLight(0xfff4e0,14,7,1.5);lamp2.position.set(1.6,1.9,.3);g.add(lamp2);const lamp3=new THREE.PointLight(0xffd9a0,10,6,1.5);lamp3.position.set(-2.4,1.8,0);g.add(lamp3);
+  const stew=buildPerson(0xb3001b,0x14213d,0xf1c27d,{hair:0x2b1d14,cap:0xb3001b});g.add(stew);stew.position.set(2.6,0,.2);stew.rotation.y=Math.PI;stew.scale.setScalar(.95);stew.visible=true;
+  g.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;}});
+  return {g,map:{c:mc,t:mt},stew};}
+const AIR=(()=>{const park=new THREE.Group();park.visible=false;scene.add(park);
+  // terminal (glass curtain wall), control tower, apron with markings, parked jet, sign
+  const glass=new THREE.MeshPhysicalMaterial({color:0x8fb3cf,metalness:.9,roughness:.05,envMapIntensity:1.3}),steel=new THREE.MeshStandardMaterial({color:0xdfe3e8,metalness:.6,roughness:.35}),con=new THREE.MeshStandardMaterial({color:0xcfd4da,roughness:.8});
+  const box=(w,h,d,m,x,y,z)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;park.add(o);return o;};
+  box(18,8.6,18,glass,-17,4.3,-15);box(19.5,.6,19.5,steel,-17,8.9,-15);for(let k=0;k<7;k++)box(.25,8.6,.25,steel,-25.9+k*2.95,4.3,-6);
+  box(3.4,2.8,.2,new THREE.MeshStandardMaterial({color:0x111418,metalness:.5,roughness:.2}),-17,1.4,-5.95);
+  const tw=new THREE.Mesh(new THREE.CylinderGeometry(1.6,2.2,20,20),con);tw.position.set(-23,10,12);tw.castShadow=true;park.add(tw);const cab=new THREE.Mesh(new THREE.CylinderGeometry(3.4,2.6,3.2,12),glass);cab.position.set(-23,21.6,12);park.add(cab);
+  const ap=canvasTex(512,512,(x,W,H)=>{x.fillStyle='#4a4e55';x.fillRect(0,0,W,H);for(let k=0;k<4000;k++){const v=64+Math.random()*24|0;x.fillStyle=`rgb(${v},${v},${v+3})`;x.fillRect(Math.random()*W,Math.random()*H,2,2);}
+    x.strokeStyle='#f2c230';x.lineWidth=6;x.beginPath();x.moveTo(40,330);x.lineTo(500,330);x.stroke();x.beginPath();x.arc(330,330,60,0,TAU);x.stroke();x.fillStyle='#f2c230';x.font='900 46px system-ui';x.fillText('TT-01',380,420);});
+  const apron=new THREE.Mesh(new THREE.PlaneGeometry(54,54),new THREE.MeshStandardMaterial({map:ap,roughness:.8}));apron.rotation.x=-Math.PI/2;apron.position.y=.025;apron.receiveShadow=true;park.add(apron);
+  const jet=mkJet(true);jet.position.set(8,0,10);park.add(jet);
+  const sign=nameSprite('✈ HAVALİMANI',0x1d4ed8);sign.scale.multiplyScalar(5);sign.position.set(-17,13,-6);park.add(sign);
+  // the flight world: sky gradient, cloud sea, the flying jet and the cabin
+  const fly=new THREE.Group();fly.visible=false;scene.add(fly);const fjet=mkJet(false);fly.add(fjet);const cabin=mkCabin();cabin.g.position.set(0,0,600);fly.add(cabin.g);
+  const clouds=[];const cm=new THREE.SpriteMaterial({map:puffTex,color:0xffffff,transparent:true,depthWrite:false,fog:true});
+  for(let k=0;k<170;k++){const s=new THREE.Sprite(cm);const sc=50+Math.random()*120;s.scale.set(sc,sc*.45,1);s.position.set((Math.random()-.5)*1600,-40-Math.random()*60+(k<20?120+Math.random()*80:0),(Math.random()-.5)*1600);fly.add(s);clouds.push(s);}
+  const sun=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:0xfff1c9,transparent:true,depthWrite:false,fog:false}));sun.scale.set(420,420,1);sun.position.set(900,260,-500);fly.add(sun);
+  const bg=canvasTex(8,256,(x,W,H)=>{const gr=x.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#1f4f8f');gr.addColorStop(.45,'#6fa8e6');gr.addColorStop(.62,'#cfe4fa');gr.addColorStop(.72,'#ffe8c4');gr.addColorStop(1,'#f4f1ea');x.fillStyle=gr;x.fillRect(0,0,W,H);});
+  return {park,jet,fly,fjet,cabin,clouds,bg,on:false,ph:'',t:0,dur:0,to:null,km:0,want:undefined,shot:-1,prev:null,hold:new V3(),sel:0,near:false};})();
+const AIRY=2500;
+function airSpot(){return accSpot('hava');}
+function airNear(){const s=airSpot();if(!s)return false;const p=FOOT.on?FOOT.pos:car.pos;return Math.hypot(p.x-s.cx,p.z-s.cz)<(FOOT.on?34:46);}
+function airOpen(){if(AIR.on)return;AIR.on=true;AIR.ph='pick';releaseAll();$('airPick').hidden=false;$('airQ').value='';airPickList();AIR.sel=0;$('airBtn').hidden=true;say('Tepetaklak Air\'e hoş geldin. Hangi ile uçmak istersin?');setTimeout(()=>{if(!isTouch)$('airQ').focus();},50);}
+function airPickList(){const q=$('airQ').value.toLocaleLowerCase('tr-TR').trim(),box=$('airList'),here=ilCur();box.textContent='';
+  const L=IL.list.filter(il=>il.plate!==IL.cur&&(!q||il.low.includes(q)||String(il.plate)===q));
+  for(const il of L){const b=document.createElement('button');b.type='button';b.className='ilb'+(il.tier==='mega'||il.tier==='big'?' big':'');b.innerHTML=`<b>${String(il.plate).padStart(2,'0')}</b><span>${il.name}</span><small>${ilKm(here,il)} km · ${Math.max(1,Math.round(ilKm(here,il)/800*60))} dk</small>`;b.addEventListener('click',()=>airGo(il));box.appendChild(b);}}
+function airCancel(){$('airPick').hidden=true;if(AIR.ph==='pick'){AIR.on=false;AIR.ph='';}}
+function airGo(il){if(!il||il.plate===IL.cur){say('Zaten '+ilCur().name+' ilindeyiz.');return;}$('airPick').hidden=true;AIR.on=true;AIR.to=il;AIR.km=ilKm(ilCur(),il);AIR.dur=clamp(10+AIR.km/70,12,24);AIR.t=0;AIR.ph='board';AIR.want=undefined;
+  if(AP.on)apStop();CB.follow=null;if(CB.wpn)cbEquip(null);const c=car;c.v=0;c.vel.set(0,0,0);TUN.on=true;TUN.ph='air';fade(1,700);sfx('chime');say('Lüks jetimize hoş geldin. '+il.name+' uçuşumuz yaklaşık '+Math.max(1,Math.round(AIR.km/800*60))+' dakika sürecek.');}
+function airWorld(on){const F=AIR.fly;if(on){document.body.classList.add('flying');AIR.prev={bg:scene.background,fog:scene.fog,sky:SKYO.sky.visible};scene.background=AIR.bg;scene.fog=new THREE.Fog(0xdfe9f4,260,1500);SKYO.sky.visible=false;CITY.group.visible=false;F.position.set(car.pos.x,AIRY,car.pos.z);F.visible=true;AIR.park.visible=false;}
+  else{document.body.classList.remove('flying');const p=AIR.prev;if(p){scene.background=p.bg;scene.fog=p.fog;SKYO.sky.visible=p.sky;}CITY.group.visible=true;F.visible=false;}}
+// where the camera looks during the trip
+AIR.cam=(P,L,U)=>{if(!AIR.on||(AIR.ph!=='cabin'&&AIR.ph!=='fly'))return 0;const F=AIR.fly.position;U.set(0,1,0);
+  if(AIR.ph==='cabin'){const c=AIR.cabin.g.position,t=AIR.t;P.set(F.x+c.x+.75-t*.04,F.y+c.y+1.72,F.z+c.z+.42);L.set(F.x+c.x-1.25,F.y+c.y+.95,F.z+c.z-.6);return 99;}
+  const j=AIR.fjet.position,q=new V3(F.x+j.x,F.y+j.y+2,F.z+j.z),k=AIR.shot,u=AIR.st;
+  if(k===0){P.set(q.x-8+u*.9,q.y+2.5,q.z+27);L.set(q.x+3,q.y,q.z);}else if(k===1){P.set(q.x-38,q.y+9,q.z+7-u*.6);L.set(q.x+12,q.y,q.z);}else if(k===2){P.set(q.x+32-u*.7,q.y-3,q.z-18);L.set(q.x,q.y+.5,q.z);}else{P.set(q.x+4,q.y+16,q.z+30);L.set(q.x-2,q.y,q.z);}return 99;};
+function airTick(dt){const s=S.mode==='serbest'&&!S.menuDemo?airSpot():null,vp=viewPos();
+  // parked airport shows when nearby
+  const show=!!s&&!AIR.fly.visible&&Math.hypot(s.cx-vp.x,s.cz-vp.z)<CITY.R*CITY.B+80;AIR.park.visible=show;if(show)AIR.park.position.set(s.cx,0,s.cz);
+  if(!AIR.on){const near=show&&!TUN.on&&!INT.on&&KAZA.st==='off'&&INJ.st==='off'&&airNear()&&(FOOT.on||Math.abs(car.v)<2);if(near!==AIR.near){AIR.near=near;$('airBtn').hidden=!near;if(near){$('airBtn').textContent='✈ HAVALİMANI · UÇAĞA BİN'+(isTouch?'':' (E)');pop('Havalimanı · lüks jetle 81 ile uç','gold');}}
+    if(AIR.want!==undefined&&airNear()&&Math.abs(car.v)<3&&!AP.on){const w=AIR.want;AIR.want=undefined;if(w)airGo(w);else airOpen();}return;}
+  if(AIR.ph==='pick')return;
+  const c=car;c.v=0;c.vel.set(0,0,0);AIR.t+=dt;
+  if(AIR.ph==='board'&&AIR.t>=.9){airWorld(true);AIR.ph='cabin';AIR.t=0;snapCam=true;fade(0,600);if(FOOT.on){FOOT.on=false;$('tbFoot').classList.remove('on');$('tbRun').hidden=true;}FOOT.g.visible=true;$('airHud').hidden=false;
+    setTimeout(()=>{if(AIR.ph==='cabin')askShow('Hoş geldiniz efendim. Kemerinizi takın, şampanyanız masada. İyi uçuşlar!','stew');},700);}
+  const F=AIR.fly.position,tt=performance.now()/1000;
+  if(AIR.ph==='cabin'){const cg=AIR.cabin.g.position,w=new V3(F.x+cg.x-1.25,F.y+cg.y+.12,F.z+cg.z-.55);FOOT.g.position.copy(w);FOOT.g.rotation.set(0,0,0);heroLegs(FOOT.g,0,true);const a=FOOT.g.userData.arms;if(a){a[0].rotation.z=.9;a[1].rotation.z=.35;}
+    AIR.cabin.stew.userData.arms[0].rotation.z=Math.sin(tt*2)*.15+.4;if(AIR.t>=5){AIR.ph='fly';AIR.t=0;AIR.shot=-1;FOOT.g.visible=false;}}
+  if(AIR.ph==='fly'){const sh=Math.floor(AIR.t/4)%4;if(sh!==AIR.shot){AIR.shot=sh;AIR.st=0;snapCam=true;}AIR.st+=dt;
+    const j=AIR.fjet;j.position.set(0,Math.sin(tt*.8)*.6,0);j.rotation.set(Math.sin(tt*.5)*.04,0,Math.sin(tt*.7)*.02);
+    for(const cl of AIR.clouds){cl.position.x-=dt*85;if(cl.position.x<-800)cl.position.x+=1600;}
+    if(AIR.t>=AIR.dur-1&&!AIR.fd){AIR.fd=1;fade(1,800);}if(AIR.t>=AIR.dur){AIR.fd=0;airLand();return;}}
+  // HUD + the flight map on the cabin screen
+  const k=AIR.ph==='fly'?Math.min(1,AIR.t/AIR.dur):0,left=AIR.ph==='fly'?Math.max(0,AIR.dur-AIR.t):AIR.dur;
+  $('airTxt').textContent=`${ilCur().name} → ${AIR.to.name} · ${Math.round(AIR.km*(1-k))} km kaldı · ${AIR.ph==='fly'?Math.round(780+Math.sin(tt)*12):0} km/s · 11.000 m`;$('airBar').style.width=(k*100).toFixed(1)+'%';$('airEta').textContent='0:'+String(Math.ceil(left)).padStart(2,'0');
+  const m=AIR.cabin.map,x=m.c.getContext('2d');x.fillStyle='#0b1a2e';x.fillRect(0,0,512,288);x.strokeStyle='#244a74';x.lineWidth=1;for(let i=0;i<512;i+=32){x.beginPath();x.moveTo(i,0);x.lineTo(i,288);x.stroke();}for(let i=0;i<288;i+=32){x.beginPath();x.moveTo(0,i);x.lineTo(512,i);x.stroke();}
+  const a0=[70,190],a1=[440,90];x.strokeStyle='#ffd34d';x.setLineDash([8,8]);x.lineWidth=4;x.beginPath();x.moveTo(...a0);x.quadraticCurveTo(256,40,...a1);x.stroke();x.setLineDash([]);
+  const pt=(t)=>[(1-t)*(1-t)*a0[0]+2*(1-t)*t*256+t*t*a1[0],(1-t)*(1-t)*a0[1]+2*(1-t)*t*40+t*t*a1[1]],[px,py]=pt(k);x.fillStyle='#fff';x.font='28px system-ui';x.fillText('✈',px-14,py+10);
+  x.font='700 22px system-ui';x.fillStyle='#cfe6ff';x.fillText(ilCur().name,a0[0]-30,a0[1]+34);x.fillText(AIR.to.name,a1[0]-50,a1[1]+34);x.fillStyle='#ffd34d';x.fillText('TEPETAKLAK AIR · '+Math.round(AIR.km*(1-k))+' km',20,270);m.t.needsUpdate=true;}
+function airLand(){const c=car,il=AIR.to;airWorld(false);ilApply(il.plate,ilSeed(il.plate));const s=airSpot();
+  if(s){c.pos.set(s.cx-6,0,CITY.nz(s.j+1)+1.9);}else c.pos.set(CITY.start.x,0,CITY.start.z);c.yaw=0;c.vel.set(0,0,0);c.v=0;c.state='free';c.steer=0;basisQuat(c.q,_va.set(1,0,0),AY);cam.head=0;snapCam=true;
+  CITY.update(c.pos.x,c.pos.z);trafficReset();polClear();if(S.cargo)cargoReset();for(const q of SKYT){q.on=false;}REST.t=0;
+  FOOT.g.visible=false;AIR.on=false;AIR.ph='';TUN.on=false;TUN.ph='';$('airHud').hidden=true;fade(0,900);
+  bigMsg(il.name.toLocaleUpperCase('tr-TR')+' ✈',il.plate+' · '+il.region+' bölgesi · iyi tatiller!',3400);say(il.name+' iline indik. Araban da kargo bölümünden çıktı, iyi gezmeler!');sfx('chime');}
+function airMinimap(x,P){const s=airSpot();if(!s)return;const [u,v]=P(s.cx,s.cz);if(u<6||u>294||v<6||v>294)return;x.font='18px system-ui';x.textAlign='center';x.textBaseline='middle';x.fillText('✈',u,v);}
+
+window.__AIR=AIR;
 /* ================= "HEY TESLA" VOICE ASSISTANT ================= */
 const ASK=(()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;return {SR,rec:null,busy:false,wake:false,await:0};})();
 function blip(up=true){if(!AU.ctx||SET.mute)return;const c=AU.ctx,t=c.currentTime,o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.setValueAtTime(up?880:1320,t);o.frequency.exponentialRampToValueAtTime(up?1500:700,t+.14);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.25,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.2);o.connect(g);g.connect(AU.m||c.destination);o.start(t);o.stop(t+.22);}
 function say(text){askShow(text,'tesla');try{if(!SET.mute&&window.speechSynthesis){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='tr-TR';u.rate=1.05;const v=speechSynthesis.getVoices().find(v=>/^tr/i.test(v.lang));if(v)u.voice=v;speechSynthesis.speak(u);}}catch(_){}}
-function askShow(text,who){const b=$('askBox');b.hidden=false;$('askWho').textContent=who==='me'?'Sen':who==='listen'?'Hey Tepetaklak':who==='fisher'?'Balıkçı abi':who==='pol'?'Polis memuru':who==='med'?'Sağlık görevlisi':who==='press'?'Muhabir':who==='kom'?'Komiser':who==='drv'?'Sürücü':who==='pat'?'Hasta':'Tepetaklak';$('askTxt').textContent=text;b.className=who;clearTimeout(askShow.t);askShow.t=setTimeout(()=>{if(!ASK.busy&&$('askChips').hidden&&document.activeElement!==$('askIn'))b.hidden=true;},5200);if(!$('askChips').hidden){clearTimeout(askShow.t2);askShow.t2=setTimeout(()=>{if(!ASK.busy){askChips(false);b.hidden=true;}},15000);}}
+function askShow(text,who){const b=$('askBox');b.hidden=false;$('askWho').textContent=who==='me'?'Sen':who==='listen'?'Hey Tepetaklak':who==='fisher'?'Balıkçı abi':who==='pol'?'Polis memuru':who==='med'?'Sağlık görevlisi':who==='press'?'Muhabir':who==='kom'?'Komiser':who==='drv'?'Sürücü':who==='pat'?'Hasta':who==='stew'?'Kabin memuru':'Tepetaklak';$('askTxt').textContent=text;b.className=who;clearTimeout(askShow.t);askShow.t=setTimeout(()=>{if(!ASK.busy&&$('askChips').hidden&&document.activeElement!==$('askIn'))b.hidden=true;},5200);if(!$('askChips').hidden){clearTimeout(askShow.t2);askShow.t2=setTimeout(()=>{if(!ASK.busy){askChips(false);b.hidden=true;}},15000);}}
 // speech: a tap on the phone grants the mic only when the finger lifts, so listening starts on pointerup/click
 const nrm=s=>s.toLocaleLowerCase('tr-TR').replace(/[çğıöşüâî]/g,c=>({ç:'c',ğ:'g',ı:'i',ö:'o',ş:'s',ü:'u',â:'a',î:'i'})[c]);
-const ASK_KEYS=/kıyafet|giyim|mağaza|tişört|berber|traş|tıraş|yüz|ekran|şarkı|video|aç|çal|polis|sağlık|ihbar|meslek|haber|hastane|karakol|kale|cami|harput|kaçakçı|silah|taret|lazer|vur|götür|git|gel|al|park|garaj|eve|evim|taksi|kilit|korna|far|dur|asansör|tünel|teslimat|sunum|tanıt|arkadaş|yemek|restoran|lokanta|acık|kofte|köfte|ayran|lavas|lavaş|doner|döner|kebap|kafe|kahve|pide|simit|pizza|market|tatli|tatlı|balik|balık/;
+const ASK_KEYS=/havaalan|havaliman|uçak|jet|kıyafet|giyim|mağaza|tişört|berber|traş|tıraş|yüz|ekran|şarkı|video|aç|çal|polis|sağlık|ihbar|meslek|haber|hastane|karakol|kale|cami|harput|kaçakçı|silah|taret|lazer|vur|götür|git|gel|al|park|garaj|eve|evim|taksi|kilit|korna|far|dur|asansör|tünel|teslimat|sunum|tanıt|arkadaş|yemek|restoran|lokanta|acık|kofte|köfte|ayran|lavas|lavaş|doner|döner|kebap|kafe|kahve|pide|simit|pizza|market|tatli|tatlı|balik|balık/;
 function askClean(t){return String(t||'').replace(/^\s*(hey|hay|hei|ey|eyy|hi|hello)?\s*,?\s*(tepe\s*taklak|tepetaklak|tepe\s*takla|tepetakla|tepe\s*tak\s*lak|tesla|teslam|teslâ|tesle|desla)\s*[,.!]?\s*/i,'').trim();}
 function askPick(alts){let best=alts[0]||'',bs=-1;for(const a of alts){const t=askClean(a),lo=t.toLocaleLowerCase('tr-TR');let sc=(lo.match(new RegExp(ASK_KEYS.source,'g'))||[]).length*2+(ilFind(lo)?3:0);if(sc>bs){bs=sc;best=t;}}return best;}
 function askChips(on){$('askChips').hidden=!on;}
@@ -4974,11 +5113,13 @@ function tunAfterRun(a){const c=car,I=CITY.ci(c.pos.x),J=CITY.cj(c.pos.z);
   if(a.food){let best=null,bd=1e9;for(const r of restIn(I-8,I+8,J-8,J+8))if((a.food==='any'&&r.kind!=='market')||r.kind===a.food){const d=Math.hypot(r.x-c.pos.x,r.z-c.pos.z);if(d<bd){bd=d;best=r;}}
     if(!best){say('Burada yakında '+(a.food==='any'?'lokanta':a.food)+' bulamadım.');return;}apStart('road',false,apDestFromPoint(best.x,best.z));if(AP.on)say('Şimdi '+(a.food==='any'?'en yakın lokantaya':'en yakın '+DAT[a.food])+' gidiyoruz: '+best.name+'.');}}
 function askCommand(raw){const t=raw.toLocaleLowerCase('tr-TR'),c=car,I=CITY.ci(c.pos.x),J=CITY.cj(c.pos.z);
+  if(TUN.on&&TUN.ph==='air'){say('Uçuştayız, koltuğuna yaslan ve keyfini çıkar.');return;}if(AIR.on&&AIR.ph==='pick'){const il=ilFind(t);if(il)airGo(il);else say('Hangi ile uçalım? Mesela “Antalya”.');return;}
   if(TUN.on){const il=ilFind(t);if(TUN.ph==='pick'&&il)tunGo(il);else say(TUN.ph==='pick'?'Hangi ile gidelim? Mesela “Ankara”.':'Tüneldeyiz, otopilot sürüyor.');return;}
   const mode=/uçarak|uç\b|havadan/.test(t)?'fly':/yoldan|sürerek/.test(t)?'road':MAPV.mode;
   if(/hızlı/.test(t))AP.spd=2;if(/aşırı|çok hızlı|en hızlı/.test(t))AP.spd=3;if(/yavaş/.test(t))AP.spd=0;
   const taxiW=/taksi/.test(t);
   const go=(dest,label)=>{if(!dest){say('Oraya giden bir yol bulamadım.');return;}if(FOOT.inTaxi){taxiGo(dest,label);return;}if(FOOT.on&&(TAXI.st==='come'||TAXI.st==='wait')){TAXI.pending={dest,label};say('Tamam, taksi seni '+label+' götürecek.');return;}if(FOOT.on&&taxiW){taxiCall({dest,label});return;}if(FOOT.on){if(tSummon({mode,dest,label}))say('Tamam, önce seni almaya geliyorum, sonra '+label+' gideriz.');return;}if(AP.on)apStop();apStart(mode,false,dest);if(AP.on){say('Tamam, '+label+(mode==='fly'?' uçarak':'')+' gidiyoruz.');blip(false);}};
+  if(/(havaalan|havaliman|uçak|uçağa|uçakla|jetle)/.test(t)){const il=ilFind(t);if(airNear()){if(il)airGo(il);else airOpen();return;}AIR.want=il||null;go(accDest('hava','Havalimanı'),'havalimanına'+(il?', oradan '+il.name+' uçuşu':''));return;}
   if(/\b(dur|durdur|iptal)\b|otopilotu kapat/.test(t)){CB.follow=null;TAPP.summon=false;TAPP.after=null;apStop();say('Tamam, kontrol sende.');return;}
   if(/sunum|tanıt|kendini anlat/.test(t)&&!/^\s*$/.test(t)){tourStart();return;}
   if(/kaçakçı|kacakci|silah al|silahçı/.test(t)){go(smugDest(),'kaçakçıya');return;}
@@ -5093,7 +5234,7 @@ addEventListener('keydown',e=>{
   if(S.ui!=='play'&&S.ui!=='replay'){if(e.code==='Escape'&&(S.ui==='how'||S.ui==='settings'))closeOverlay();if(e.code==='Escape'&&S.ui==='garage')closeGarage();if(e.code==='Escape'&&S.ui==='map')closeOverlay();if(e.code==='Escape'&&S.ui==='online')$('onBack').click();if(e.code==='Enter'&&S.ui==='result'){e.preventDefault();startMode(S.mode);}return;}
   const k=KEYMAP[e.code];if(k){keys[k]=1;e.preventDefault();if(k==='gas'&&S.auto)takeControl();}
   if(e.repeat)return;
-  if(e.code==='KeyE'&&INT.on)intGetWell();if(e.code==='KeyE'&&!$('jobAct').hidden)jobAct();if(e.code==='KeyE'&&!$('bldAct').hidden&&!LOOKUI.on)bldAct();if(e.code==='KeyE'&&!$('enterBtn').hidden)enterGo();
+  if(e.code==='KeyE'&&INT.on)intGetWell();if(e.code==='KeyE'&&!$('jobAct').hidden)jobAct();if(e.code==='KeyE'&&!$('bldAct').hidden&&!LOOKUI.on)bldAct();if(e.code==='KeyE'&&!$('enterBtn').hidden)enterGo();if(e.code==='KeyE'&&!$('airBtn').hidden)airOpen();if(!$('airPick').hidden){if(e.code==='Escape')airCancel();return;}
   if(LOOKUI.on){if(e.code==='Escape')lookClose();return;}if(!$('menuBox').hidden){if(e.code==='Escape')$('menuBox').hidden=true;return;}if(!$('faceBox').hidden){if(e.code==='Escape')faceStop();return;}
   if(!$('jobBox').hidden){if(e.code==='Escape')$('jobBox').hidden=true;return;}
   if(S.mode==='serbest'){const dg=/^Digit([0-5])$/.exec(e.code);if(dg&&FOOT.on){const n=+dg[1];cbEquip(n&&CB.own.has(WKEYS[n-1])?WKEYS[n-1]:null);if(n&&!CB.own.has(WKEYS[n-1]))pop(WPN[WKEYS[n-1]].name+' sende yok · kaçakçıdan al');}
@@ -5194,7 +5335,7 @@ requestAnimationFrame(frame);
 
 {$('ifGo').addEventListener('click',()=>ifadeAnswer($('ifIn').value));$('ifMic').addEventListener('click',ifadeVoice);$('ifIn').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')ifadeAnswer($('ifIn').value);});banShow();}
 
-{$('intAct').addEventListener('click',intGetWell);$('bldAct').addEventListener('click',bldAct);$('enterBtn').addEventListener('click',enterGo);$('treatNow').addEventListener('click',()=>{if(INT.mode==='serum')TREAT.t=TREAT.dur||60;});$('menuClose').addEventListener('click',()=>$('menuBox').hidden=true);$('lookDone').addEventListener('click',()=>lookClose());$('bLook').addEventListener('click',()=>lookOpen('yuz'));document.querySelectorAll('#lookTabs [data-t]').forEach(b=>b.addEventListener('click',()=>{LOOKUI.tab=b.dataset.t;lookDraw();}));$('printIn').addEventListener('change',e=>imgFile(e.target.files[0],320,u=>{lookSet('print',u);e.target.value='';}));$('faceIn').addEventListener('change',e=>imgFile(e.target.files[0],320,(u,c)=>{skinFrom(c);lookSet('face',u);e.target.value='';faceStop();bigMsg('YÜZÜN EKLENDİ 📸','Karakterin artık senin yüzünle',2400);}));$('faceGo').addEventListener('click',faceShot);$('faceUp').addEventListener('click',()=>$('faceIn').click());$('faceClose').addEventListener('click',faceStop);$('bJob').addEventListener('click',()=>{$('jobBox').hidden=false;releaseAll();});$('jobClose').addEventListener('click',()=>$('jobBox').hidden=true);document.querySelectorAll('#jobBox [data-j]').forEach(b=>b.addEventListener('click',()=>jobSet(b.dataset.j)));$('callGo').addEventListener('click',naccGo);$('callNo').addEventListener('click',()=>{$('callBox').hidden=true;NACC.called=false;});$('jobAct').addEventListener('click',jobAct);$('bJob').textContent='Meslek: '+(PROF.job==='sivil'?'Sivil':PROF.job==='polis'?'Polis':'112');$('ntClose').addEventListener('click',newsStop);$('taNews').addEventListener('click',()=>{tappOpen(false);newsOpen(true);});$('newsClose').addEventListener('click',()=>newsOpen(false));$('osSpLogin').addEventListener('click',()=>window.open('https://accounts.spotify.com/login','_blank'));$('ifBribe').addEventListener('click',ifadeBribe);$('hospNow').addEventListener('click',()=>{if(INT.on&&INT.mode==='bed'){CB.hp=100;pop('Doktor: Tamamen iyileştin!','good');}});}
+{$('intAct').addEventListener('click',intGetWell);$('bldAct').addEventListener('click',bldAct);$('airBtn').addEventListener('click',airOpen);$('airClose').addEventListener('click',airCancel);$('airQ').addEventListener('input',airPickList);$('airQ').addEventListener('keydown',e=>{if(e.key==='Enter'){const b=$('airList').firstChild;if(b)b.click();}if(e.key==='Escape')airCancel();});$('enterBtn').addEventListener('click',enterGo);$('treatNow').addEventListener('click',()=>{if(INT.mode==='serum')TREAT.t=TREAT.dur||60;});$('menuClose').addEventListener('click',()=>$('menuBox').hidden=true);$('lookDone').addEventListener('click',()=>lookClose());$('bLook').addEventListener('click',()=>lookOpen('yuz'));document.querySelectorAll('#lookTabs [data-t]').forEach(b=>b.addEventListener('click',()=>{LOOKUI.tab=b.dataset.t;lookDraw();}));$('printIn').addEventListener('change',e=>imgFile(e.target.files[0],320,u=>{lookSet('print',u);e.target.value='';}));$('faceIn').addEventListener('change',e=>imgFile(e.target.files[0],320,(u,c)=>{skinFrom(c);lookSet('face',u);e.target.value='';faceStop();bigMsg('YÜZÜN EKLENDİ 📸','Karakterin artık senin yüzünle',2400);}));$('faceGo').addEventListener('click',faceShot);$('faceUp').addEventListener('click',()=>$('faceIn').click());$('faceClose').addEventListener('click',faceStop);$('bJob').addEventListener('click',()=>{$('jobBox').hidden=false;releaseAll();});$('jobClose').addEventListener('click',()=>$('jobBox').hidden=true);document.querySelectorAll('#jobBox [data-j]').forEach(b=>b.addEventListener('click',()=>jobSet(b.dataset.j)));$('callGo').addEventListener('click',naccGo);$('callNo').addEventListener('click',()=>{$('callBox').hidden=true;NACC.called=false;});$('jobAct').addEventListener('click',jobAct);$('bJob').textContent='Meslek: '+(PROF.job==='sivil'?'Sivil':PROF.job==='polis'?'Polis':'112');$('ntClose').addEventListener('click',newsStop);$('taNews').addEventListener('click',()=>{tappOpen(false);newsOpen(true);});$('newsClose').addEventListener('click',()=>newsOpen(false));$('osSpLogin').addEventListener('click',()=>window.open('https://accounts.spotify.com/login','_blank'));$('ifBribe').addEventListener('click',ifadeBribe);$('hospNow').addEventListener('click',()=>{if(INT.on&&INT.mode==='bed'){CB.hp=100;pop('Doktor: Tamamen iyileştin!','good');}});}
 
 {const f=$('osYtF');document.body.appendChild(f);}
 </script>
