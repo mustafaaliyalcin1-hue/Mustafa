@@ -39,9 +39,8 @@ export default function App() {
   const [checks, setChecks] = useState<BootCheck[]>(() => [
     { label: 'YAPAY ZEKÂ ÇEKİRDEĞİ', ok: 'demo' },
     { label: 'İNTERNET', ok: navigator.onLine },
-    { label: 'HOME ASSISTANT', ok: 'demo' },
     { label: 'ROBOROCK', ok: 'demo' },
-    { label: 'TELEGRAM', ok: 'demo' },
+    { label: 'WHATSAPP', ok: 'demo' },
     { label: 'SES MODÜLÜ', ok: 'speechSynthesis' in window },
   ])
   // Backend bağlıysa gerçek servis durumlarını göster

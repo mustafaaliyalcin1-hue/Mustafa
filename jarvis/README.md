@@ -28,9 +28,9 @@ jarvis/
 | 2 | Claude API beyni + ses (ElevenLabs, barge-in) | ✅ (anahtar girilince canlı) · wake word ⏳ |
 | 3 | Araştırma, haber doğrulama, hava, haberler, spor, finans + animasyonları | 🟡 hava ve doğrulama animasyonları hazır |
 | 4 | Harita, çeviri, takvim, hatırlatıcı, görsel analiz, hafıza + animasyonları | 🟡 hafıza animasyonu hazır |
-| 5 | Home Assistant + akıllı ev + Matter | ⏳ |
-| 6 | Roborock oda bazlı kontrol | ⏳ |
-| 7 | Telegram ajanı + bildirimler + sabah brifingi | ⏳ |
+| 5 | Home Assistant + akıllı ev + Matter | ⏸ şimdilik ertelendi (kullanıcı kararı) |
+| 6 | Roborock oda bazlı kontrol — doğrudan Roborock hesabıyla, HA'sız; odalar otomatik çekilecek | ⏳ |
+| 7 | WhatsApp ajanı (Meta Cloud API) + bildirimler + sabah brifingi | ⏳ |
 | 8 | APK build + Firebase deploy | ⏳ |
 
 ## Çalıştırma (geliştirme)
