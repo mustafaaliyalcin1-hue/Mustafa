@@ -1,0 +1,28 @@
+{
+  "name": "jarvis-server",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "description": "J.A.R.V.I.S. backend: Claude ajanı, araçlar, ses, zamanlanmış görevler",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test src/*.test.ts src/**/*.test.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.6.0",
+    "@fastify/cors": "^11.4.1",
+    "dotenv": "^18.0.9",
+    "fastify": "^5.12.8",
+    "tsx": "^4.23.15",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2"
+  }
+}

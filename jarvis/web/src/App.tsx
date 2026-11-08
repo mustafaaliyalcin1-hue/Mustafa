@@ -4,7 +4,8 @@
  * → durum katmanları/altyazı → HUD widget'ları → sohbet çubuğu → çekmeceler/galeri
  */
 import { AnimatePresence } from 'framer-motion'
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
+import { backendConfigured, fetchHealth } from './core/backend'
 import './animations'
 import BootSequence, { type BootCheck } from './components/BootSequence'
 import ChatDock, { ask } from './components/ChatDock'
@@ -35,17 +36,25 @@ export default function App() {
     if (q) setTimeout(() => ask(q), booting ? 3800 : 300)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const checks: BootCheck[] = useMemo(
-    () => [
-      { label: 'YAPAY ZEKÂ ÇEKİRDEĞİ', ok: 'demo' },
-      { label: 'İNTERNET', ok: navigator.onLine },
-      { label: 'HOME ASSISTANT', ok: 'demo' },
-      { label: 'ROBOROCK', ok: 'demo' },
-      { label: 'TELEGRAM', ok: 'demo' },
-      { label: 'SES MODÜLÜ', ok: 'speechSynthesis' in window },
-    ],
-    [],
-  )
+  const [checks, setChecks] = useState<BootCheck[]>(() => [
+    { label: 'YAPAY ZEKÂ ÇEKİRDEĞİ', ok: 'demo' },
+    { label: 'İNTERNET', ok: navigator.onLine },
+    { label: 'HOME ASSISTANT', ok: 'demo' },
+    { label: 'ROBOROCK', ok: 'demo' },
+    { label: 'TELEGRAM', ok: 'demo' },
+    { label: 'SES MODÜLÜ', ok: 'speechSynthesis' in window },
+  ])
+  // Backend bağlıysa gerçek servis durumlarını göster
+  useEffect(() => {
+    if (!backendConfigured()) return
+    fetchHealth().then((h) =>
+      setChecks((c) =>
+        c.map((x) =>
+          x.label === 'YAPAY ZEKÂ ÇEKİRDEĞİ' ? { ...x, ok: !!h?.ai } : x.label === 'SES MODÜLÜ' && h?.tts ? { ...x, label: 'SES MODÜLÜ (ELEVENLABS)', ok: true } : x,
+        ),
+      ),
+    )
+  }, [])
   const bootDone = useCallback(() => {
     setBooting(false)
     setState('idle')

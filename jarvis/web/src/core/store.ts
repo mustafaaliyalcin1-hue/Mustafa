@@ -16,7 +16,7 @@ export interface JarvisStore {
   /** Konuşma altyazısı: tüm cümle + şu ana kadar okunan kelime sayısı */
   subtitle: { text: string; shown: number } | null
   messages: ChatMessage[]
-  settings: { sound: boolean; voice: boolean; perf: PerfMode }
+  settings: { sound: boolean; voice: boolean; perf: PerfMode; apiUrl: string; apiKey: string }
   /** auto modda tespit edilen gerçek seviye */
   lowPerf: boolean
   demo: boolean
@@ -35,7 +35,7 @@ let store: JarvisStore = {
   scene: null,
   subtitle: null,
   messages: [],
-  settings: { sound: true, voice: true, perf: 'auto', ...(saved || {}) },
+  settings: { sound: true, voice: true, perf: 'auto', apiUrl: import.meta.env.VITE_JARVIS_API_URL || '', apiKey: '', ...(saved || {}) },
   lowPerf: false,
   demo: true,
 }

@@ -5,6 +5,7 @@
 import { motion } from 'framer-motion'
 import { useRef, useState } from 'react'
 import { mockRespond } from '../demo/mockBrain'
+import { askBackend, backendConfigured, cancelBackend } from '../core/backend'
 import { closeScene, interrupt, play, setState } from '../core/player'
 import { sfx } from '../core/sfx'
 import { getStore, useJarvis } from '../core/store'
@@ -13,8 +14,10 @@ import { listenOnce, speechRecognitionSupported, startMicLevel, stopMicLevel } f
 export async function ask(text: string) {
   if (!text.trim()) return
   interrupt()
+  cancelBackend()
   closeScene()
-  play(mockRespond(text.trim()))
+  if (backendConfigured()) askBackend(text.trim())
+  else play(mockRespond(text.trim()))
 }
 
 export default function ChatDock({ onOpenGallery, onOpenSettings, onOpenLog }: { onOpenGallery: () => void; onOpenSettings: () => void; onOpenLog: () => void }) {
@@ -30,6 +33,7 @@ export default function ChatDock({ onOpenGallery, onOpenSettings, onOpenLog }: {
       return
     }
     interrupt() // barge-in: Jarvis sussun
+    cancelBackend()
     sfx('listen')
     setState('listening')
     startMicLevel()

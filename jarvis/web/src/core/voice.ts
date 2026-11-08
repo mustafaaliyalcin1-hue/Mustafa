@@ -6,14 +6,20 @@
  * - Mikrofon: getUserMedia + AnalyserNode ile seviye ölçümü (dinleme animasyonu sese tepki verir)
  * - Konuşma tanıma: Web Speech API (tr-TR).
  */
+import { fetchTTS } from './backend'
 import { audioLevel, getStore, setStore } from './store'
 
 let cancelSpeak: (() => void) | null = null
+let speakToken = 0
+let currentAudio: HTMLAudioElement | null = null
 
 /** Konuşmayı hemen kes (barge-in). */
 export function stopSpeaking() {
+  speakToken++
   cancelSpeak?.()
   cancelSpeak = null
+  currentAudio?.pause()
+  currentAudio = null
   if ('speechSynthesis' in window) window.speechSynthesis.cancel()
 }
 
@@ -24,9 +30,80 @@ function pickVoice(): SpeechSynthesisVoice | undefined {
   return tr.find((v) => /male|erkek|tolga|cem|ahmet/i.test(v.name)) || tr[0]
 }
 
-/** Metni seslendir; altyazı kelime kelime ilerler. Bitince resolve olur. */
-export function speak(text: string): Promise<void> {
+/** Metni seslendir: önce ElevenLabs (backend), olmazsa tarayıcı TTS'i. */
+export async function speak(text: string): Promise<void> {
   stopSpeaking()
+  const token = speakToken
+  if (getStore().settings.voice) {
+    const blob = await fetchTTS(text)
+    if (token !== speakToken) return // bu arada kesildi (barge-in)
+    if (blob) return speakAudio(text, blob)
+  }
+  return speakBrowser(text)
+}
+
+/** ElevenLabs MP3'ünü çal; gerçek ses seviyesini analiz et, altyazıyı süreye yay */
+function speakAudio(text: string, blob: Blob): Promise<void> {
+  const words = text.split(/\s+/).filter(Boolean)
+  setStore({ subtitle: { text, shown: 0 } })
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(blob)
+    const audio = new Audio(url)
+    currentAudio = audio
+    let raf = 0
+    let done = false
+    let an: AnalyserNode | null = null
+    try {
+      const c = new AudioContext()
+      const src = c.createMediaElementSource(audio)
+      an = c.createAnalyser()
+      an.fftSize = 256
+      src.connect(an)
+      an.connect(c.destination)
+    } catch {
+      an = null
+    }
+    const buf = new Uint8Array(256)
+    const loop = () => {
+      if (an) {
+        an.getByteTimeDomainData(buf)
+        let sum = 0
+        for (let i = 0; i < buf.length; i++) sum += ((buf[i] - 128) / 128) ** 2
+        audioLevel.voice = Math.min(1, Math.sqrt(sum / buf.length) * 5)
+      } else audioLevel.voice = 0.3 + Math.random() * 0.4
+      const d = audio.duration || words.length * 0.35
+      const shown = Math.min(words.length, Math.ceil((audio.currentTime / d) * words.length * 1.05))
+      setStore((s) => (s.subtitle?.shown !== shown ? { subtitle: { text, shown } } : {}))
+      raf = requestAnimationFrame(loop)
+    }
+    const finish = () => {
+      if (done) return
+      done = true
+      cancelAnimationFrame(raf)
+      audioLevel.voice = 0
+      URL.revokeObjectURL(url)
+      setStore({ subtitle: { text, shown: words.length } })
+      setTimeout(() => setStore((s) => (s.subtitle?.text === text ? { subtitle: null } : {})), 1800)
+      resolve()
+    }
+    cancelSpeak = () => {
+      audio.pause()
+      finish()
+    }
+    audio.onended = finish
+    audio.onerror = () => {
+      finish()
+    }
+    audio.play().then(loop, () => {
+      // Otomatik oynatma engellendiyse tarayıcı sesine düş
+      done = true
+      URL.revokeObjectURL(url)
+      speakBrowser(text).then(resolve)
+    })
+  })
+}
+
+function speakBrowser(text: string): Promise<void> {
   const words = text.split(/\s+/).filter(Boolean)
   setStore({ subtitle: { text, shown: 0 } })
 

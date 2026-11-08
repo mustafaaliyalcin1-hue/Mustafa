@@ -12,7 +12,11 @@ jarvis/
 │       ├── components/  ark reaktörü (3D), HUD, açılış, altyazı, sohbet çubuğu
 │       ├── demo/        demo beyni (backend olmadan sahte verilerle çalışır)
 │       └── pages/       animasyon galerisi
-├── server/              (2. aşama) Node.js backend: Claude ajanı, araçlar, HA, Telegram
+├── server/              Node.js (Fastify) backend: Claude ajanı, araçlar, ses, zamanlanmış görevler
+│   └── src/
+│       ├── agent.ts     ajan döngüsü (Claude + araçlar + web araması), SSE olayları
+│       ├── tools/       ARAÇ REGISTRY: her yetenek bir dosya (hava, hafıza, …)
+│       └── index.ts     HTTP uçları: /health, /api/chat, /api/tts, /cron/tick
 └── .env.example         tüm API anahtarlarının listesi
 ```
 
@@ -21,7 +25,7 @@ jarvis/
 | # | Aşama | Durum |
 |---|-------|-------|
 | 1 | Arayüz + temel durum animasyonları + animasyon registry (demo modu) | ✅ |
-| 2 | Claude API beyni + ses (ElevenLabs, wake word, barge-in) | ⏳ |
+| 2 | Claude API beyni + ses (ElevenLabs, barge-in) | ✅ (anahtar girilince canlı) · wake word ⏳ |
 | 3 | Araştırma, haber doğrulama, hava, haberler, spor, finans + animasyonları | 🟡 hava ve doğrulama animasyonları hazır |
 | 4 | Harita, çeviri, takvim, hatırlatıcı, görsel analiz, hafıza + animasyonları | 🟡 hafıza animasyonu hazır |
 | 5 | Home Assistant + akıllı ev + Matter | ⏳ |
@@ -77,6 +81,69 @@ Bilinmeyen bir sahne kimliği gelirse genel "İşlem yapılıyor" animasyonu oyn
 Ayarlar → Performans: Otomatik / Yüksek / Düşük. Otomatik modda zayıf cihazlar (≤4 çekirdek,
 düşük bellek, "hareketi azalt" tercihi) veya 40 FPS altına düşen cihazlarda partikül sayısı,
 çözünürlük ve bulanıklık efektleri otomatik azaltılır.
+
+## Backend'i ücretsiz yayınlama (Render)
+
+Mimari, ücretsiz katmana göre tasarlandı:
+
+| Parça | Servis | Ücret |
+|---|---|---|
+| Backend (Claude ajanı, araçlar) | **Render** Free Web Service | Ücretsiz, kart gerekmez |
+| Uyanık tutma + zamanlanmış görevler | **cron-job.org** | Ücretsiz |
+| Web arayüzü (link) | **Firebase Hosting** (8. aşama) | Ücretsiz |
+| Hafıza / hatırlatmalar | **Firebase Firestore** (4. aşama) | Ücretsiz kota |
+| Hava durumu | Open-Meteo | Ücretsiz, anahtarsız |
+
+> Render'ın ücretsiz sunucusu 15 dakika istek gelmezse uyur; uyandığında ilk istek ~1 dakika sürer.
+> Bunu önlemek için cron-job.org sunucuyu birkaç dakikada bir dürter. Bu çağrı aynı zamanda
+> hatırlatıcı ve sabah brifingi gibi zamanlanmış görevleri tetikler. Ayda 750 ücretsiz saat,
+> tek bir sunucunun 7/24 çalışmasına yeter.
+
+### Adım adım
+
+1. **Anthropic API anahtarı:** console.anthropic.com → Settings → API Keys → *Create Key*. Hesaba bakiye
+   eklemeniz gerekir (Claude API ücretlidir, kullandıkça ödenir; günlük kişisel kullanımda genelde aylık birkaç dolar).
+2. **Render hesabı:** render.com → GitHub ile giriş yapın (kart istemez).
+3. **New + → Blueprint** → bu depoyu seçin. Render, kök dizindeki `render.yaml` dosyasını okuyup
+   `jarvis-server` servisini oluşturur.
+4. İstenen gizli değerleri girin: `ANTHROPIC_API_KEY` (zorunlu), `ELEVENLABS_API_KEY` ve `ELEVENLABS_VOICE_ID`
+   (isteğe bağlı, yoksa telefonun kendi Türkçe sesi kullanılır). `JARVIS_APP_SECRET` otomatik üretilir.
+5. Dağıtım bitince servis adresinizi kopyalayın (ör. `https://jarvis-server-xxxx.onrender.com`) ve
+   tarayıcıda `/health` adresini açın: `"ai": true` görmelisiniz.
+6. Render panelinde **Environment** sekmesinden `JARVIS_APP_SECRET` değerini kopyalayın.
+7. **Jarvis uygulaması → ⚙ Ayarlar → Sunucu bağlantısı:** adresi ve anahtarı girip *Kaydet ve bağlan*.
+   Artık sorular gerçek beyne gider; açılış ekranında "YAPAY ZEKÂ ÇEKİRDEĞİ ✓" görünür.
+8. **cron-job.org** → ücretsiz hesap → *Create cronjob*:
+   - URL: `https://jarvis-server-xxxx.onrender.com/cron/tick`, istek tipi **POST**
+   - Sıklık: her 10 dakika
+   - *Advanced → Headers:* `x-jarvis-key: <JARVIS_APP_SECRET>`
+
+### ElevenLabs sesi (isteğe bağlı)
+elevenlabs.io → ücretsiz hesap (ayda ~10.000 karakter) → *Profile → API Keys*. *Voices → Voice Library*'de
+"British butler", "calm British male" gibi aramalarla bir ses seçip *Add to my voices* deyin; ses
+sayfasındaki **Voice ID**'yi kopyalayın. Türkçe için `eleven_multilingual_v2` modeli kullanılıyor.
+
+## Testler
+
+```bash
+cd jarvis/server && npm install && npm test   # ajan döngüsü (sahte Claude ile), hava aracı
+cd jarvis/web && npm run build                # tip kontrolü + derleme
+```
+
+## Yeni araç (yetenek) eklemek
+
+```ts
+// jarvis/server/src/tools/kur.ts
+import { z } from 'zod'
+import { defineTool } from './registry.ts'
+defineTool({
+  name: 'get_rate', description: 'Döviz kuru getir',
+  schema: z.object({ code: z.string() }),
+  async run({ code }) { const rate = 42.1; return { result: { rate }, scene: { scene: 'finance', data: { code, rate } } } },
+})
+```
+Sonra `tools/index.ts`'e `import './kur.ts'` ekleyin. Claude aracı ne zaman kullanacağına kendisi karar verir;
+`scene` alanı arayüzde ilgili animasyonu oynatır.
 
 ---
 Kurulum rehberinin geri kalanı (API anahtarları, Home Assistant token'ı, Roborock, Telegram botu,

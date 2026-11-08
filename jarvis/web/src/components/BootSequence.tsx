@@ -34,7 +34,7 @@ export default function BootSequence({ checks, onDone }: { checks: BootCheck[]; 
       timers.forEach(clearTimeout)
       window.removeEventListener('keydown', skip)
     }
-  }, [checks, onDone])
+  }, [checks.length, onDone]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <AnimatePresence>

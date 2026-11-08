@@ -1,5 +1,6 @@
 /** Ayarlar ve sohbet geçmişi çekmeceleri */
 import { AnimatePresence, motion } from 'framer-motion'
+import { useState } from 'react'
 import { setStore, useJarvis, type PerfMode } from '../core/store'
 
 function Drawer({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
@@ -53,9 +54,7 @@ export function SettingsDrawer({ open, onClose }: { open: boolean; onClose: () =
         </div>
         {settings.perf === 'auto' && <p className="mt-2 font-mono text-[11px] text-hud-cyan/60">Tespit edilen: {lowPerf ? 'zayıf cihaz → efektler azaltıldı' : 'güçlü cihaz → tüm efektler açık'}</p>}
       </div>
-      <div className="mt-4 font-mono text-[11px] leading-relaxed text-hud-cyan/60">
-        DEMO MODU · Beyin (Claude), ses (ElevenLabs), Home Assistant, Roborock ve Telegram bağlantıları sonraki aşamalarda eklenecek.
-      </div>
+      <ServerSettings />
     </Drawer>
   )
 }
@@ -76,5 +75,37 @@ export function LogDrawer({ open, onClose }: { open: boolean; onClose: () => voi
         ))}
       </div>
     </Drawer>
+  )
+}
+
+/** Sunucu (backend) bağlantısı: adres + uygulama anahtarı. Boşsa demo modu. */
+function ServerSettings() {
+  const settings = useJarvis((s) => s.settings)
+  const [url, setUrl] = useState(settings.apiUrl)
+  const [key, setKey] = useState(settings.apiKey)
+  const [status, setStatus] = useState<string>('')
+  const connected = !!(settings.apiUrl && settings.apiKey)
+
+  const save = async () => {
+    setStore((s) => ({ settings: { ...s.settings, apiUrl: url.trim(), apiKey: key.trim() } }))
+    if (!url.trim()) return setStatus('Demo moduna geçildi.')
+    setStatus('Bağlanılıyor…')
+    try {
+      const r = await fetch(url.trim().replace(/\/+$/, '') + '/health', { signal: AbortSignal.timeout(60000) })
+      const j = await r.json()
+      setStatus(`Bağlandı ✓ · Yapay zekâ: ${j.services.ai ? '✓' : '✗ (anahtar yok)'} · ElevenLabs: ${j.services.tts ? '✓' : '✗'}`)
+    } catch {
+      setStatus('Sunucuya ulaşılamadı. (Ücretsiz sunucu uykudaysa ilk açılış 1 dakika sürebilir.)')
+    }
+  }
+
+  return (
+    <div className="py-3">
+      <div className="mb-2 font-hud text-white/90">Sunucu bağlantısı</div>
+      <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://jarvis-xxxx.onrender.com" className="mb-2 w-full rounded-sm border border-hud-cyan/30 bg-black/30 px-3 py-2 font-mono text-xs text-white placeholder:text-hud-cyan/30 focus:border-hud-cyan focus:outline-none" />
+      <input value={key} onChange={(e) => setKey(e.target.value)} type="password" placeholder="Uygulama anahtarı (JARVIS_APP_SECRET)" className="mb-2 w-full rounded-sm border border-hud-cyan/30 bg-black/30 px-3 py-2 font-mono text-xs text-white placeholder:text-hud-cyan/30 focus:border-hud-cyan focus:outline-none" />
+      <button onClick={save} className="hud-btn w-full">Kaydet ve bağlan</button>
+      <p className="mt-2 font-mono text-[11px] leading-relaxed text-hud-cyan/60">{status || (connected ? 'Gerçek beyin (Claude) kullanılıyor.' : 'DEMO MODU · Sunucu adresi girilmedi; sahte verilerle çalışıyor.')}</p>
+    </div>
   )
 }
