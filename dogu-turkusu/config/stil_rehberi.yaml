@@ -1,0 +1,56 @@
+# Yanık Ezgiler — stil rehberi (prompt/söz üretici bunu okur)
+
+kanal:
+  ad: "Yanık Ezgiler"
+  youtube: "@Yanikezgiler"
+  instagram: "yanikezgiler"
+  paylasim_saati: "18:00"        # Europe/Istanbul (Metricool en iyi saat verisi + gurbetçi kitle)
+  saat_dilimi: "Europe/Istanbul"
+
+genel:
+  hedef_kitle: "Doğu türküleri, Zazaca/Kürtçe ezgiler ve arabesk seven dinleyiciler"
+  enstrumanlar: [bağlama, davul-zurna, kaval, darbuka, kanun, yaylı orkestra, modern derin bas]
+  makamlar: [hicaz, uşşak, kürdi]
+  vokal: "derin, kısık, yanık erkek vokal; Doğu tarzı gırtlak süslemeleri; bazen 'of aman yar' uzun hava girişi"
+  temalar: [gurbet, özlem, kara sevda, kader, anne, köy, dağlar, Fırat, düğün/halay]
+  yapi: "giriş → kıta 1 → nakarat → kıta 2 → nakarat → sönerek biten final"
+  sure_sn: 120
+
+kesin_kurallar:
+  - "Gerçek sanatçı adı, gerçek/telifli şarkı sözü veya bilinen şarkı adı ASLA kullanılmaz."
+  - "Sözler %100 orijinal; history.json'daki başlık ve dizelere benzemez."
+  - "2 kıta + nakarat; her bölüm dörtlük; doğal, uyaklı Türkçe."
+  - "Gerçek kişi yüzü içeren görsel yok."
+
+# Gün sırası: gün_no % 3 → A, B, C
+alt_stiller:
+  A:
+    ad: "Klasik 80'ler arabesk"
+    bpm: 80
+    makam: kürdi
+    tarif: "dramatik yaylı orkestra, kanun süslemeleri, darbuka, titrek acılı erkek vokal"
+    temalar: [kara sevda, kader, gurbet şehri, gece]
+  B:
+    ad: "Doğu halay hiti"
+    bpm: 105
+    makam: uşşak
+    tarif: "serbest ritimli uzun hava girişi, ardından davul-zurna halay, el çırpma, erkek koro cevapları"
+    temalar: [düğün, halay, köy, sevinç, kavuşma]
+  C:
+    ad: "Modern gurbet türküsü"
+    bpm: 92
+    makam: hicaz
+    tarif: "bağlama ve kaval, modern derin bas, sinematik yaylılar, rüzgar sesi"
+    temalar: [gurbet, anne, Fırat, dağlar, özlem]
+
+referans_prompt: >
+  2 dakikalık Doğu Anadolu türküsü/arabesk şarkı yap. 98 BPM, hicaz makamı. Derin, kısık, yanık sesli
+  erkek vokal, Türkçe, Doğu tarzı gırtlak süslemeleriyle. Giriş: bağlama taksimi, rüzgar sesi, uzaktan
+  kaval. Kıta: bağlama, darbuka, hafif yaylılar. Nakarat: güçlü davul-zurna halayı, el çırpma, erkek koro
+  cevap versin. Final: zurna sussun, bağlama ve kaval kalsın, uzun bağlama notasıyla bitsin.
+
+hashtagler:
+  ortak: ["#türkü", "#arabesk", "#doğutürküleri", "#yanıkezgiler", "#aimüzik"]
+  A: ["#arabeskmüzik", "#damar", "#karasevda"]
+  B: ["#halay", "#düğün", "#davulzurna"]
+  C: ["#gurbet", "#bağlama", "#fırat"]
