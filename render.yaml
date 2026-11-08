@@ -36,3 +36,19 @@ services:
         sync: false
       - key: ALLOWED_ORIGINS
         sync: false
+
+  # J.A.R.V.I.S. arayüzü — ücretsiz statik site (HTTPS: mikrofon/sesli komut için gerekli)
+  - type: web
+    name: jarvis-app
+    runtime: static
+    rootDir: jarvis/web
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+    headers:
+      - path: /*
+        name: Permissions-Policy
+        value: microphone=(self), camera=(self)
