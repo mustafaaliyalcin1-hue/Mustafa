@@ -27,6 +27,16 @@ services:
       # Ücretsiz beyin: Google AI Studio anahtarı (aistudio.google.com → Get API key)
       - key: GEMINI_API_KEY
         sync: false
+      # Diğer ücretsiz beyinler — biri kotayı doldurunca otomatik sıradakine geçilir
+      - key: GROQ_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      # Kendi bilgisayarındaki yerel model (Ollama) — tünel adresi + /v1
+      - key: OLLAMA_URL
+        sync: false
+      - key: OLLAMA_MODEL
+        value: qwen3:8b
       # İsteğe bağlı ücretli beyin (Claude). İkisi de varsa Gemini kullanılır; AI_PROVIDER=claude ile değiştirilir.
       - key: ANTHROPIC_API_KEY
         sync: false

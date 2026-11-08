@@ -12,6 +12,16 @@ export const config = {
   geminiKey: env('GEMINI_API_KEY'),
   /** Ücretsiz katmanı olan Flash modeli; "-latest" takma adı Google güncelledikçe yeni sürüme geçer */
   geminiModel: env('GEMINI_MODEL', 'gemini-flash-latest'),
+  // Diğer ücretsiz beyinler (biri kotayı doldurunca sıradakine geçilir)
+  groqKey: env('GROQ_API_KEY'),
+  groqModel: env('GROQ_MODEL', 'openai/gpt-oss-120b'),
+  openrouterKey: env('OPENROUTER_API_KEY'),
+  openrouterModel: env('OPENROUTER_MODEL', 'openai/gpt-oss-20b:free'),
+  /** Yerel model: Ollama adresi (ör. http://localhost:11434/v1 ya da tünel adresi + /v1) */
+  ollamaUrl: env('OLLAMA_URL'),
+  ollamaModel: env('OLLAMA_MODEL', 'qwen3:8b'),
+  ollamaKey: env('OLLAMA_KEY'),
+  brainOrder: env('BRAIN_ORDER').split(',').map((s) => s.trim()).filter(Boolean),
   model: env('CLAUDE_MODEL', 'claude-sonnet-5-5'),
   /** low | medium | high — sesli asistan için hız/kalite dengesi */
   effort: env('CLAUDE_EFFORT', 'medium') as 'low' | 'medium' | 'high',
@@ -23,10 +33,12 @@ export const config = {
 }
 
 /** Hangi beyin? Varsayılan: Gemini anahtarı varsa Gemini (ücretsiz), yoksa Claude. AI_PROVIDER ile zorlanabilir. */
-export const provider: 'gemini' | 'claude' = (env('AI_PROVIDER') as 'gemini' | 'claude') || (config.geminiKey ? 'gemini' : 'claude')
+const hasFree = !!(config.geminiKey || config.groqKey || config.openrouterKey || config.ollamaUrl)
+/** Beyin: ücretsiz zincir ('free') ya da Claude. Ücretsiz bir beyin tanımlıysa varsayılan odur. */
+export const provider: 'free' | 'claude' = env('AI_PROVIDER') === 'claude' ? 'claude' : hasFree ? 'free' : 'claude'
 
 export const services = {
-  ai: provider === 'gemini' ? !!config.geminiKey : !!config.anthropicKey,
+  ai: provider === 'free' ? hasFree : !!config.anthropicKey,
   provider,
   tts: !!(config.elevenKey && config.elevenVoice),
 }

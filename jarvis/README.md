@@ -141,6 +141,34 @@ elevenlabs.io → ücretsiz hesap (ayda ~10.000 karakter) → *Profile → API K
 "British butler", "calm British male" gibi aramalarla bir ses seçip *Add to my voices* deyin; ses
 sayfasındaki **Voice ID**'yi kopyalayın. Türkçe için `eleven_multilingual_v2` modeli kullanılıyor.
 
+## Ücretsiz beyin zinciri (kota dolunca otomatik geçiş)
+
+Sunucu, anahtarı tanımlı ücretsiz beyinleri sırayla dener: **Gemini → Groq → OpenRouter → Ollama (yerel)**.
+Biri kotasını doldurursa (429) 10 dakika, yoğunsa 1 dakika dinlendirilir ve soru otomatik olarak
+sıradakine gider. `/health` adresinde hangi beyinlerin hazır olduğu görünür.
+
+| Beyin | Nereden | Not |
+|---|---|---|
+| Gemini | aistudio.google.com → Get API key | Google Arama dahil; kota düşük |
+| **Groq** | console.groq.com → API Keys → Create | Çok hızlı, kart istemez; model başına günlük sınır var |
+| OpenRouter | openrouter.ai → Keys | `:free` modeller; günde ~50 istek |
+| **Ollama (yerel)** | ollama.com | Kendi bilgisayarında, **sınırsız ve tamamen ücretsiz**; bilgisayar açık olmalı |
+
+Render → jarvis-server → Environment'a ilgili anahtarı eklemek yeterli (`GROQ_API_KEY`, `OPENROUTER_API_KEY`, `OLLAMA_URL`).
+Gemini dışındaki beyinlerde internet araması, Gemini kotası doluysa DuckDuckGo ile (anahtarsız) yapılır.
+
+### Yerel model (Ollama) kurulumu
+Gerekenler: Windows/Mac/Linux bir bilgisayar, en az 16 GB RAM (8 GB'ta `qwen3:4b` kullanın).
+1. ollama.com'dan Ollama'yı kurun.
+2. Terminal / PowerShell: `ollama pull qwen3:8b`
+3. Render'daki sunucunun bilgisayarınıza ulaşabilmesi için ücretsiz Cloudflare tüneli:
+   cloudflared'i kurun (developers.cloudflare.com → cloudflared indir) ve çalıştırın:
+   `cloudflared tunnel --url http://localhost:11434 --http-host-header localhost:11434`
+   Çıktıdaki `https://….trycloudflare.com` adresinin sonuna `/v1` ekleyip Render'da `OLLAMA_URL` yapın.
+   (Bu hızlı tünelin adresi her çalıştırmada değişir; kalıcı adres için ücretsiz Cloudflare hesabıyla adlandırılmış tünel kurulabilir.)
+4. Yalnızca yerel modeli kullanmak için `BRAIN_ORDER=ollama` yapın.
+> Tünel adresini bilen herkes modelinizi kullanabilir; adresi paylaşmayın.
+
 ## Testler
 
 ```bash

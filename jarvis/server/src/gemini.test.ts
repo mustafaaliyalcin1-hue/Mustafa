@@ -8,6 +8,18 @@ import assert from 'node:assert/strict'
 import http from 'node:http'
 import { test } from 'node:test'
 
+// Ayarlar modül yüklenirken okunur → anahtar, ilk importtan önce tanımlı olmalı
+process.env.GEMINI_API_KEY = 'test'
+
+/** Eski olay biçimini koruyan yardımcı: durum + sahneler + seslendirme */
+async function runTurn(mod: { runGeminiTurn: typeof import('./gemini.ts').runGeminiTurn }, text: string) {
+  const events: { type: string; scene?: string; text?: string }[] = [{ type: 'state' }]
+  const reply = await mod.runGeminiTurn([], text, (e) => events.push(e as never))
+  const { toSpeech } = await import('./agent.ts')
+  events.push({ type: 'say', text: toSpeech(reply) })
+  return events
+}
+
 test('gemini: araç zinciri → sahneler → seslendirme', async () => {
   const reqs: { url: string; body: any }[] = [] // eslint-disable-line @typescript-eslint/no-explicit-any
   const fake = http.createServer((req, res) => {
@@ -43,9 +55,7 @@ test('gemini: araç zinciri → sahneler → seslendirme', async () => {
   }) as typeof fetch
 
   try {
-    const { runGeminiAgent } = await import('./gemini.ts')
-    const events: { type: string; scene?: string; text?: string }[] = []
-    await runGeminiAgent('g1', 'Ankara hava nasıl, yarın kar yağar mı?', (e) => events.push(e as never))
+    const events = await runTurn(await import('./gemini.ts'), 'Ankara hava nasıl, yarın kar yağar mı?')
     assert.deepEqual(
       events.map((e) => e.type + (e.scene ? ':' + e.scene : '')),
       ['state', 'scene:generic', 'scene:weather', 'scene:research', 'say'], // generic = hava verisi alınıyor
@@ -101,8 +111,7 @@ test('gemini: model 404 verirse listelenip otomatik seçilir', async () => {
   process.env.GEMINI_BASE_URL = `http://127.0.0.1:${port}`
   const mod = await import('./gemini.ts?keşif=' + port)
   try {
-    const events: { type: string; text?: string }[] = []
-    await mod.runGeminiAgent('g2', 'selam', (e: never) => events.push(e))
+    const events = await runTurn(mod, 'selam')
     assert.equal(events.at(-1)!.text, 'Merhaba efendim.')
     assert.equal(mod.currentGeminiModel(), 'gemini-3.8-flash')
     assert.ok(seen.some((x) => x.startsWith('GET') && x.includes('/models')))
@@ -133,8 +142,7 @@ test('gemini: model aşırı yoğunsa (503) tekrar dener, sonra yedek modele ge�
   process.env.GEMINI_BASE_URL = `http://127.0.0.1:${port}`
   const mod = await import('./gemini.ts?yogun=' + port)
   try {
-    const events: { type: string; text?: string }[] = []
-    await mod.runGeminiAgent('g3', 'selam', (e: never) => events.push(e))
+    const events = await runTurn(mod, 'selam')
     assert.equal(events.at(-1)!.text, 'Yedek modelden merhaba.')
     assert.equal(seen.filter((x) => x.includes('gemini-flash-latest:generateContent')).length, 3) // 1 + 2 tekrar
     assert.ok(seen.some((x) => x.includes('gemini-flash-lite-latest:generateContent')))
@@ -165,8 +173,7 @@ test('gemini: düşünme ayarı reddedilirse (400) ayarsız devam eder', async (
   process.env.GEMINI_BASE_URL = `http://127.0.0.1:${port}`
   const mod = await import('./gemini.ts?dusunme=' + port)
   try {
-    const events: { text?: string }[] = []
-    await mod.runGeminiAgent('g4', 'selam', (e: never) => events.push(e))
+    const events = await runTurn(mod, 'selam')
     assert.equal(events.at(-1)!.text, 'Tamam efendim.')
     assert.ok(bodies[0].generationConfig.thinkingConfig.thinkingLevel === 'LOW')
     assert.equal(bodies.length, 2)

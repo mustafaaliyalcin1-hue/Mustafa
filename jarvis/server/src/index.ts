@@ -10,7 +10,8 @@ import cors from '@fastify/cors'
 import Fastify from 'fastify'
 import { describeError, resetConversation, runAgent } from './agent.ts'
 import { config, provider, services } from './config.ts'
-import { currentGeminiModel, describeGeminiError, warmUpGemini, resetGeminiConversation, runGeminiAgent } from './gemini.ts'
+import { AllBrainsBusy, brainStatus, resetFreeConversation, runFreeBrains } from './brains.ts'
+import { currentGeminiModel, describeGeminiError, warmUpGemini } from './gemini.ts'
 import type { JarvisEvent } from './events.ts'
 
 const app = Fastify({ logger: { level: 'info' } })
@@ -33,7 +34,7 @@ app.addHook('onRequest', async (req, reply) => {
   if (arr.length > 30) return reply.code(429).send({ error: 'Çok fazla istek, biraz bekleyin efendim' })
 })
 
-app.get('/health', async () => ({ ok: true, services, model: provider === 'gemini' ? currentGeminiModel() : config.model, time: new Date().toISOString() }))
+app.get('/health', async () => ({ ok: true, services, model: provider === 'free' ? currentGeminiModel() : config.model, brains: provider === 'free' ? brainStatus() : undefined, time: new Date().toISOString() }))
 
 app.post<{ Body: { text?: string; conversationId?: string } }>('/api/chat', async (req, reply) => {
   const text = (req.body?.text || '').toString().slice(0, 4000).trim()
@@ -55,15 +56,16 @@ app.post<{ Body: { text?: string; conversationId?: string } }>('/api/chat', asyn
   res.on('close', () => ac.abort())
 
   try {
-    if (!services.ai) throw new Error('Sunucuda yapay zekâ anahtarı yok (GEMINI_API_KEY veya ANTHROPIC_API_KEY).')
-    if (provider === 'gemini') await runGeminiAgent(conversationId, text, emit, ac.signal)
+    if (!services.ai) throw new Error('Sunucuda yapay zekâ anahtarı yok (GEMINI_API_KEY, GROQ_API_KEY, OLLAMA_URL veya ANTHROPIC_API_KEY).')
+    if (provider === 'free') await runFreeBrains(conversationId, text, emit, ac.signal)
     else await runAgent(conversationId, text, emit, ac.signal)
   } catch (err) {
     if (!ac.signal.aborted) {
       req.log.error(err)
       resetConversation(conversationId)
-      resetGeminiConversation(conversationId)
-      emit({ type: 'state', state: 'error', message: describeGeminiError(err) ?? describeError(err) })
+      resetFreeConversation(conversationId)
+      const msg = err instanceof AllBrainsBusy ? 'Ücretsiz yapay zekâ servislerinin hepsi şu an yoğun ya da kotası dolu. Biraz sonra tekrar deneyin.' : (describeGeminiError(err) ?? describeError(err))
+      emit({ type: 'state', state: 'error', message: msg })
       emit({ type: 'say', text: 'Üzgünüm efendim, bir sorun oluştu.' })
     }
   } finally {
@@ -97,6 +99,6 @@ app.post<{ Body: { text?: string } }>('/api/tts', async (req, reply) => {
 app.post('/cron/tick', async () => ({ ok: true, ran: [] as string[] }))
 
 app.listen({ port: config.port, host: '0.0.0.0' }).then(() => {
-  if (provider === 'gemini' && services.ai) warmUpGemini()
+  if (provider === 'free' && config.geminiKey) warmUpGemini()
   app.log.info(`J.A.R.V.I.S. çevrimiçi → :${config.port} · Beyin:${provider} ${services.ai ? '✓' : '✗'} · TTS:${services.tts ? '✓' : '✗'}`)
 })
