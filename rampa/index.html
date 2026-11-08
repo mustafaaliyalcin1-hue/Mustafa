@@ -5226,7 +5226,7 @@ function termAct(id){if(id==='ticket'){accSay('drv','Hoş geldiniz! Nereye uçma
 function termStash(){$('secBox').hidden=true;TERM.stash=new Set([...(TERM.stash||[]),...CB.own]);CB.own.clear();if(CB.wpn)cbEquip(null);cbSave();cbUi();pop('🔒 Silahların emanete alındı','gold');termScan();}
 // walk through the metal detector; the officer checks your ID against the wanted list
 function termScan(){if(TERM.busy)return;TERM.busy=true;const B=BLD.term;FOOT.pos.copy(intWorld(new V3(0,0,.2)));FOOT.yaw=FOOT.cam=-Math.PI/2;accSay('pol','Kimliğinizi ve biletinizi alayım. Kapıdan geçin lütfen.');
-  setTimeout(()=>{if(!INT.on||INT.kind!=='term'){TERM.busy=false;return;}FOOT.pos.copy(intWorld(new V3(0,0,-2.3)));FOOT.g.position.copy(FOOT.pos);snapCam=true;sfx('chime');
+  setTimeout(()=>{if(!INT.on||INT.kind!=='term'){TERM.busy=false;return;}FOOT.pos.copy(intWorld(new V3(0,0,-5.2)));FOOT.yaw=FOOT.cam=-Math.PI/2;FOOT.g.position.copy(FOOT.pos);snapCam=true;sfx('chime');
     if(recSeen('airport')){B.lamp.color.setHex(0xff3040);sfx('beep');accSay('pol','Bir dakika... Bu yüz aranan kişiler listesinde! Hakkınızda yakalama kararı var.');bigMsg('ARANIYORSUN','Havalimanı güvenliği seni tanıdı',2600);
       setTimeout(()=>{TERM.busy=false;TERM.ticket=null;bldExit();POL.reason='Aranan şahıs · havalimanı güvenliği ('+ilCur().name+')';polArrest();},2600);return;}
     TERM.busy=false;TERM.passed=true;INT.walls=INT.walls.filter(w=>!w.gate);B.lamp.color.setHex(0x2bd46a);
