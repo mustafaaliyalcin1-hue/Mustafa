@@ -4912,10 +4912,11 @@ const BLD=(()=>{const mats={},mt=(c,r=.8,o)=>{const k=c+':'+r+(o?JSON.stringify(
     box(g,1.1,1.05,4.8,0x6c757d,3,.52,-1);box(g,1,.04,4.8,0x1b1c1f,3,1.06,-1);box(g,1.1,.9,1.4,0x495057,3,1.5,-1);
     const of1=buildPerson(0x14213d,0x14213d,0xd9a066,{cap:0x14213d});of1.position.set(-1.7,0,-2.4);of1.rotation.y=-Math.PI/2;of1.visible=true;g.add(of1);
     const of2=buildPerson(0x14213d,0x14213d,0xf1c27d,{cap:0x14213d,hair:0x2b1d14});of2.position.set(4.4,0,.8);of2.rotation.y=Math.PI;of2.visible=true;g.add(of2);
-    const ssign=sign({g},'',0x14213d,3.4,-.7);ssign('🛂 GÜVENLİK KONTROLÜ',0x14213d,'Silahla geçilmez · kimlik kontrolü');const ss=g.children[g.children.length-1];ss.scale.setScalar(.7);ss.position.y=3.5;
+    const ssign=sign({g},'',0x14213d,3.4,-.7);ssign('🛂 GÜVENLİK KONTROLÜ',0x14213d,'Silahla geçilmez · kimlik kontrolü');const ss=g.children[g.children.length-1];ss.scale.setScalar(.55);ss.position.set(3,3.9,-.7);
     // departures board over the barrier
     const bc=document.createElement('canvas');bc.width=1024;bc.height=420;const bt=new THREE.CanvasTexture(bc);bt.colorSpace=THREE.SRGBColorSpace;
-    for(const x of [-10.5,10.5]){const b=new THREE.Mesh(new THREE.PlaneGeometry(6.6,2.7),new THREE.MeshBasicMaterial({map:bt}));b.position.set(x,3,-.9);g.add(b);const b2=b.clone();b2.position.z=-1.08;b2.rotation.y=Math.PI;g.add(b2);box(g,6.8,2.9,.12,0x8a929c,x,3,-.99);box(g,.12,1.6,.12,0x8a929c,x-2.6,5.2,-.99);box(g,.12,1.6,.12,0x8a929c,x+2.6,5.2,-.99);}
+    // boards hang on the side walls so they never come between the camera and you
+    for(const [x,z,ry] of [[-19.78,1.5,Math.PI/2],[19.78,1.5,-Math.PI/2],[19.78,-11,-Math.PI/2]]){const b=new THREE.Mesh(new THREE.PlaneGeometry(5.6,2.3),new THREE.MeshBasicMaterial({map:bt}));b.position.set(x,2.9,z);b.rotation.y=ry;g.add(b);box(g,.1,2.5,5.8,0x2b2f36,x+(x<0?-.06:.06),2.9,z);}
     const board=(mine)=>{const x=bc.getContext('2d');x.fillStyle='#0a0f18';x.fillRect(0,0,1024,420);x.fillStyle='#ffd34d';x.font='800 40px system-ui,sans-serif';x.textAlign='left';x.fillText('✈ KALKIŞLAR',24,52);x.fillStyle='#7f8a99';x.font='600 22px system-ui,sans-serif';
       x.fillText('SAAT',24,92);x.fillText('UÇUŞ',140,92);x.fillText('NEREYE',290,92);x.fillText('KAPI',700,92);x.fillText('DURUM',820,92);
       const L=IL.list,base=new Date(),rows=[];if(mine)rows.push({il:mine.il.name,code:'TT '+(100+mine.il.plate),gate:'A3',st:'BİNİŞ',hl:1});
