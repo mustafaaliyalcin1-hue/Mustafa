@@ -39,11 +39,18 @@ const norm = (s: string) =>
 export function parseScoreboard(j: any, league: string): Match[] {
   return (j.events || []).map((e: any) => {
     const c = e.competitions?.[0] || {}
+    // Takvim (schedule) uçlarında skor {value, displayValue} nesnesi, durum ise yarışma içinde olabilir
+    const status = e.status || c.status || {}
+    const scoreOf = (t: any) => {
+      const s = t.score && typeof t.score === 'object' ? (t.score.displayValue ?? t.score.value) : t.score
+      return s !== undefined && s !== null && s !== '' ? Number(s) : undefined
+    }
     const side = (h: string) => {
       const t = (c.competitors || []).find((x: any) => x.homeAway === h) || {}
-      return { name: t.team?.displayName || '?', short: t.team?.abbreviation || '', logo: t.team?.logo, score: t.score !== undefined && t.score !== '' ? Number(t.score) : undefined }
+      return { name: t.team?.displayName || t.team?.name || '?', short: t.team?.abbreviation || '', logo: t.team?.logo || t.team?.logos?.[0]?.href, score: scoreOf(t) }
     }
-    return { id: e.id, date: e.date, league, status: e.status?.type?.state || 'pre', detail: e.status?.type?.shortDetail || e.status?.type?.detail || '', home: side('home'), away: side('away') }
+    const state = status.type?.state || (status.type?.completed ? 'post' : 'pre')
+    return { id: e.id, date: e.date || c.date, league, status: state, detail: status.type?.shortDetail || status.type?.detail || '', home: side('home'), away: side('away') }
   })
 }
 
@@ -76,6 +83,21 @@ const TEAM_LEAGUE: Record<string, string> = {
   'bayern munich': 'ger.1', 'borussia dortmund': 'ger.1', juventus: 'ita.1', 'ac milan': 'ita.1', internazionale: 'ita.1', napoli: 'ita.1', 'paris saint-germain': 'fra.1',
 }
 
+/** Takımın ESPN takvimi: önce takım kimliği bulunur, sonra sonuçlar ve fikstür alınır */
+async function teamSchedule(code: string, key: string): Promise<Match[]> {
+  const base = `https://site.api.espn.com/apis/site/v2/sports/soccer/${code}`
+  const list = await getJson(`${base}/teams`)
+  const teams: { id: string; displayName: string }[] = (list.sports?.[0]?.leagues?.[0]?.teams || []).map((t: { team: { id: string; displayName: string } }) => t.team)
+  const t = teams.find((x) => norm(x.displayName).includes(key))
+  if (!t) throw new Error(`takım bulunamadı (${key})`)
+  const [past, next] = await Promise.all([getJson(`${base}/teams/${t.id}/schedule`).catch(() => ({})), getJson(`${base}/teams/${t.id}/schedule?fixture=true`).catch(() => ({}))])
+  const all = [...parseScoreboard(past, code), ...parseScoreboard(next, code)]
+  const now = Date.now()
+  // Takvimde durum bilgisi yoksa tarihe göre tahmin et
+  for (const m of all) if (!m.status || (m.status === 'pre' && m.home.score !== undefined && new Date(m.date).getTime() < now - 3 * 3600e3)) m.status = 'post'
+  return [...new Map(all.map((m) => [m.id, m])).values()].sort((a, b) => a.date.localeCompare(b.date))
+}
+
 export interface FootballData {
   focusTeam: string
   matches: Match[]
@@ -95,10 +117,20 @@ export async function fetchFootball(opts: { team?: string; league?: keyof typeof
   const own = Object.entries(TEAM_LEAGUE).find(([k]) => k.includes(key) || key.includes(k))?.[1]
   const codes = league ? [code] : [...new Set([own || code, 'uefa.champions', 'uefa.europa', 'uefa.europa.conf'])]
   const boards = await Promise.all(
-    codes.map((c) => getJson(`https://site.api.espn.com/apis/site/v2/sports/soccer/${c}/scoreboard?dates=${ymd(from)}-${ymd(to)}&limit=300`).then((j) => parseScoreboard(j, c)).catch(() => [] as Match[])),
+    codes.map((c) =>
+      getJson(`https://site.api.espn.com/apis/site/v2/sports/soccer/${c}/scoreboard?dates=${ymd(from)}-${ymd(to)}&limit=300`)
+        .then((j) => parseScoreboard(j, c))
+        .catch((e) => {
+          console.warn(`[futbol] ${c} skor tablosu alınamadı: ${(e as Error).message}`)
+          return [] as Match[]
+        }),
+    ),
   )
   let matches = [...new Map(boards.flat().map((m) => [m.id, m])).values()].sort((a, b) => a.date.localeCompare(b.date))
   if (team || !league) matches = matches.filter((m) => norm(m.home.name).includes(key) || norm(m.away.name).includes(key))
+  // Yedek: takımın kendi takvimi (geçmiş sonuçlar + gelecek fikstür)
+  if (!matches.length) matches = await teamSchedule(own || code, key).catch((e) => (console.warn(`[futbol] takvim yedeği başarısız: ${(e as Error).message}`), []))
+  if (!matches.length) throw new Error(`${focus} için maç verisi alınamadı`)
   for (const m of matches) {
     m.home.name = turkishTeam(m.home.name)
     m.away.name = turkishTeam(m.away.name)

@@ -104,3 +104,14 @@ test('get_news: kategori manşetleri sahneye gider', async () => {
     restore()
   }
 })
+
+test('ESPN takvim biçimi: skor nesnesi ve yarışma içi durum', () => {
+  const m = parseScoreboard({ events: [{ id: '9', date: '2026-11-01T17:00Z', competitions: [{ status: { type: { state: 'post', completed: true, shortDetail: 'FT' } }, competitors: [
+    { homeAway: 'home', team: { displayName: 'Fenerbahce', abbreviation: 'FEN', logos: [{ href: 'l.png' }] }, score: { value: 2, displayValue: '2' } },
+    { homeAway: 'away', team: { displayName: 'Galatasaray', abbreviation: 'GAL' }, score: { value: 0, displayValue: '0' } },
+  ] }] }] }, 'tur.1')
+  assert.equal(m[0].status, 'post')
+  assert.equal(m[0].home.score, 2)
+  assert.equal(m[0].away.score, 0)
+  assert.equal(m[0].home.logo, 'l.png')
+})
