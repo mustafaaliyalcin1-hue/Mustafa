@@ -1,5 +1,5 @@
 // Kapak üretici: Doğu Anadolu manzarası (dağlar, Fırat, köy, gün batımı, bağlama) — tamamen kodla çizilir, ücretsiz.
-// Kullanım: node kapak.cjs <cikti_klasoru> <baslik> <stil A|B|C> [alt_yazi]
+// Kullanım: node kapak.cjs <cikti_klasoru> <baslik> <stil A|B|C|K> [alt_yazi]
 // Çıktılar: arkaplan.png (1296x2304, zoom için), yazi.png (1080x1920 şeffaf), kapak.png (1080x1920 birleşik),
 //           arkaplan_yatay.png (4096x2304), yazi_yatay.png (1920x1080), kucuk_resim.png (1280x720, YouTube için)
 const { chromium } = require('playwright');
@@ -21,6 +21,8 @@ const PALETLER = {
   B: { gok: ['#3b1a0e', '#a63d1c', '#f08a2c', '#ffd27a'], gunes: '#fff1c2', dag: ['#9b4a2a', '#6e2f1d', '#431b12', '#200b07'], nehir: '#ffe2a0', yagmur: false, yildiz: 0 },
   // C: gurbet — kızıl gün batımı
   C: { gok: ['#140a1c', '#5a1730', '#c2412f', '#f39a3d'], gunes: '#ffd98a', dag: ['#6d2436', '#461629', '#280d1c', '#12060e'], nehir: '#ffc070', yagmur: false, yildiz: 0.5 },
+  // K: kış — soluk ay, mavi-gri dağlar, kar yağışı
+  K: { gok: ['#0b1220', '#1f2e48', '#4d6382', '#aab9cf'], gunes: '#eef2fb', dag: ['#7d8fab', '#55678a', '#2f3c55', '#121826'], nehir: '#dbe6f5', yagmur: false, kar: true, yildiz: 0.4 },
 };
 const P = PALETLER[stil] || PALETLER.C;
 
@@ -103,6 +105,13 @@ function manzaraSVG() {
     for (let i = 0; i < 380; i++) {
       const x = rnd() * W, y = rnd() * H, l = 30 + rnd() * 50;
       s += `<line x1="${x}" y1="${y}" x2="${x - l * 0.18}" y2="${y + l}" stroke="#d9d0ff" stroke-width="1.4" opacity="${(0.12 + rnd() * 0.25).toFixed(2)}"/>`;
+    }
+  }
+  // kar yağışı
+  if (P.kar) {
+    for (let i = 0; i < 520; i++) {
+      const x = rnd() * W, y = rnd() * H, r = 1.5 + rnd() * 4.5;
+      s += `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${r.toFixed(1)}" fill="#fff" opacity="${(0.35 + rnd() * 0.55).toFixed(2)}"/>`;
     }
   }
   // alt kararma (yazı okunsun)
