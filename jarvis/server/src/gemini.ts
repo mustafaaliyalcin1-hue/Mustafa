@@ -32,6 +32,11 @@ export function currentGeminiModel() {
 
 /** Model listesinden en uygun Flash modelini seç (saf fonksiyon; test edilir) */
 export function pickFlashModel(names: string[]): string | undefined {
+  return rankFlashModels(names)[0]
+}
+
+/** Uygun Flash modellerini iyiden kötüye sırala */
+export function rankFlashModels(names: string[]): string[] {
   const clean = names.map((n) => n.replace(/^models\//, ''))
   const bad = /(image|tts|audio|live|embedding|vision|learnlm|gemma|computer|robotics)/i
   // "-latest" takma adları her zaman en yeni sürümü gösterir
@@ -47,33 +52,77 @@ export function pickFlashModel(names: string[]): string | undefined {
   return clean
     .map((n) => [n, score(n)] as const)
     .filter(([, sc]) => sc >= 0)
-    .sort((a, b) => b[1] - a[1])[0]?.[0]
+    .sort((a, b) => b[1] - a[1])
+    .map(([n]) => n)
 }
 
-async function discoverModel() {
-  discovered = true
+/** Yoğunlukta denenecek yedek modeller (keşifte doldurulur) */
+let ranked: string[] = []
+
+async function listModels() {
   const names: string[] = []
   for await (const m of await ai().models.list()) {
     if (m.name && (!m.supportedActions || m.supportedActions.includes('generateContent'))) names.push(m.name)
   }
-  const pick = pickFlashModel(names)
+  ranked = rankFlashModels(names)
+  return names
+}
+
+async function discoverModel() {
+  discovered = true
+  const names = await listModels()
+  const pick = ranked[0]
   console.log(`[gemini] "${activeModel}" bulunamadı → seçilen model: ${pick ?? '(yok)'} · mevcut: ${names.slice(0, 30).join(', ')}`)
   if (!pick) throw new Error('Bu anahtarla kullanılabilen bir Gemini Flash modeli bulunamadı.')
   activeModel = pick
 }
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+/** Geçici sunucu hataları: aşırı yoğunluk (503), iç hata (500) */
+const transient = (e: unknown) => e instanceof ApiError && (e.status === 503 || e.status === 500)
+
 type GenParams = Omit<Parameters<GoogleGenAI['models']['generateContent']>[0], 'model'>
 
-/** generateContent + model bulunamazsa bir kez otomatik keşif ve tekrar deneme */
+/** Belirli modelde dene: geçici hatada (503/500) kısa beklemelerle 2 kez daha */
+async function tryModel(model: string, params: GenParams) {
+  for (let i = 0; ; i++) {
+    try {
+      return await ai().models.generateContent({ ...params, model })
+    } catch (e) {
+      if (!transient(e) || i >= 2 || params.config?.abortSignal?.aborted) throw e
+      await sleep(i === 0 ? 1200 : 3000)
+    }
+  }
+}
+
+/**
+ * generateContent, dayanıklı sürüm:
+ *  - model bulunamazsa (404) bir kez keşif yapıp en uygun modele geçer
+ *  - model aşırı yoğunsa (503) önce tekrar dener, sonra sıradaki ücretsiz modele geçer
+ */
 async function generate(params: GenParams) {
   try {
-    return await ai().models.generateContent({ ...params, model: activeModel })
+    return await tryModel(activeModel, params)
   } catch (e) {
     if (e instanceof ApiError && e.status === 404 && !discovered) {
       await discoverModel()
-      return ai().models.generateContent({ ...params, model: activeModel })
+      return tryModel(activeModel, params)
     }
-    throw e
+    if (!transient(e)) throw e
+    // Yedek modeller: listeyi gerekirse bir kez çek
+    if (!ranked.length) await listModels().catch(() => {})
+    let last = e
+    for (const alt of ranked.filter((m) => m !== activeModel).slice(0, 3)) {
+      try {
+        const r = await ai().models.generateContent({ ...params, model: alt })
+        console.log(`[gemini] ${activeModel} yoğun → bu istek ${alt} ile yanıtlandı`)
+        return r
+      } catch (e2) {
+        last = e2
+        if (!transient(e2) && !(e2 instanceof ApiError && e2.status === 404)) throw e2
+      }
+    }
+    throw last
   }
 }
 
@@ -217,5 +266,6 @@ export function describeGeminiError(err: unknown): string | null {
   if (err.status === 429) return 'Ücretsiz yapay zekâ kotası şimdilik doldu; biraz sonra (en geç yarın) tekrar deneyin.'
   if (err.status === 400 || err.status === 403) return 'Gemini API anahtarı geçersiz ya da yetkisiz.'
   if (err.status === 404) return 'Gemini modeli bulunamadı; sunucu kayıtlarına bakın.'
+  if (err.status === 503 || err.status === 500) return 'Google’ın ücretsiz yapay zekâ modelleri şu an çok yoğun. Bir dakika sonra tekrar deneyin.'
   return `Yapay zekâ servisi hatası (${err.status}).`
 }

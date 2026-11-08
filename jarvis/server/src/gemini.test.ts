@@ -111,3 +111,34 @@ test('gemini: model 404 verirse listelenip otomatik seçilir', async () => {
     fake.close()
   }
 })
+
+test('gemini: model aşırı yoğunsa (503) tekrar dener, sonra yedek modele geçer', async () => {
+  const seen: string[] = []
+  const fake = http.createServer((req, res) => {
+    let b = ''
+    req.on('data', (c) => (b += c))
+    req.on('end', () => {
+      seen.push(`${req.method} ${req.url}`)
+      res.setHeader('content-type', 'application/json')
+      if (req.method === 'GET' && req.url?.includes('/models')) return res.end(JSON.stringify({ models: [{ name: 'models/gemini-flash-latest', supportedActions: ['generateContent'] }, { name: 'models/gemini-flash-lite-latest', supportedActions: ['generateContent'] }] }))
+      if (req.url?.includes('gemini-flash-latest:')) {
+        res.statusCode = 503
+        return res.end(JSON.stringify({ error: { code: 503, message: 'The model is overloaded.', status: 'UNAVAILABLE' } }))
+      }
+      res.end(JSON.stringify({ candidates: [{ content: { role: 'model', parts: [{ text: 'Yedek modelden merhaba.' }] } }] }))
+    })
+  })
+  await new Promise<void>((r) => fake.listen(0, r))
+  const port = (fake.address() as { port: number }).port
+  process.env.GEMINI_BASE_URL = `http://127.0.0.1:${port}`
+  const mod = await import('./gemini.ts?yogun=' + port)
+  try {
+    const events: { type: string; text?: string }[] = []
+    await mod.runGeminiAgent('g3', 'selam', (e: never) => events.push(e))
+    assert.equal(events.at(-1)!.text, 'Yedek modelden merhaba.')
+    assert.equal(seen.filter((x) => x.includes('gemini-flash-latest:generateContent')).length, 3) // 1 + 2 tekrar
+    assert.ok(seen.some((x) => x.includes('gemini-flash-lite-latest:generateContent')))
+  } finally {
+    fake.close()
+  }
+})
