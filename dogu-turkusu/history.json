@@ -12,21 +12,27 @@
           "tip": "REEL",
           "saat": "2026-11-08T20:55+03:00",
           "metricool_id": 420939251,
-          "ai_isareti": true
+          "ai_isareti": true,
+          "link": "https://www.instagram.com/reel/DffV45QlRiE/",
+          "durum": "yayınlandı"
         },
         {
           "ag": "youtube",
           "tip": "short",
           "saat": "2026-11-08T20:55+03:00",
           "metricool_id": 420939287,
-          "ai_isareti": true
+          "ai_isareti": true,
+          "link": "https://www.youtube.com/shorts/SH20Li-eWMo",
+          "durum": "yayınlandı"
         },
         {
           "ag": "youtube",
           "tip": "video (16:9 tam sürüm)",
           "saat": "2026-11-08T21:00+03:00",
           "metricool_id": 420939336,
-          "ai_isareti": true
+          "ai_isareti": true,
+          "link": "https://www.youtube.com/watch?v=1XQYKHkR0C4",
+          "durum": "yayınlandı"
         }
       ]
     },
