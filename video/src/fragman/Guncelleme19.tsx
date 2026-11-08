@@ -9,7 +9,7 @@ type Seg = { shot: string; dur: number; titles: [number, string][] };
 const SEG: Seg[] = [
   { shot: "terminal", dur: 110, titles: [[0, "Havalimanına yürüyerek gir"], [60, "Kalkış panosu, bilet gişesi, yolcular"]] },
   { shot: "bilet", dur: 75, titles: [[0, "Biletini al: ekonomi ya da birinci sınıf"]] },
-  { shot: "guvenlik", dur: 100, titles: [[0, "Güvenlik kontrolü"], [40, "Silahlar emanete, kimlik kontrolü"]] },
+  { shot: "guvenlik", dur: 72, titles: [[0, "Güvenlik kontrolü"], [40, "Silahlar emanete, kimlik kontrolü"]] },
   { shot: "kafe", dur: 75, titles: [[0, "Kapıda bir kahve iç"]] },
   { shot: "kabin", dur: 90, titles: [[0, "Ekonomi sınıfı: 3+3 koltuk, dolu kabin"]] },
   { shot: "cevirme", dur: 150, titles: [[0, "Polis çevirmeleri"], [75, "Kılık değiştirdin: seni tanımadılar 😎"]] },
