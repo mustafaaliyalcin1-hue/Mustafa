@@ -25,8 +25,8 @@ jarvis/
 | # | Aşama | Durum |
 |---|-------|-------|
 | 1 | Arayüz + temel durum animasyonları + animasyon registry (demo modu) | ✅ |
-| 2 | Claude API beyni + ses (ElevenLabs, barge-in) | ✅ (anahtar girilince canlı) · wake word ⏳ |
-| 3 | Araştırma, haber doğrulama, hava, haberler, spor, finans + animasyonları | 🟡 hava ve doğrulama animasyonları hazır |
+| 2 | Claude API beyni + ses (barge-in, “Jarvis” eller serbest modu) | ✅ (anahtar girilince canlı) |
+| 3 | Araştırma, haber doğrulama, hava, haberler, spor, finans + animasyonları | ✅ |
 | 4 | Harita, çeviri, takvim, hatırlatıcı, görsel analiz, hafıza + animasyonları | 🟡 hafıza animasyonu hazır |
 | 5 | Home Assistant + akıllı ev + Matter | ⏸ şimdilik ertelendi (kullanıcı kararı) |
 | 6 | Roborock oda bazlı kontrol — doğrudan Roborock hesabıyla, HA'sız; odalar otomatik çekilecek | ⏳ |
@@ -46,7 +46,14 @@ Kullanışlı adres parametreleri:
 - `?galeri` → doğrudan animasyon galerisini aç
 - `?soru=bugün hava nasıl` → açılışta bu soruyu sor
 
-Demo modunda deneyebileceğiniz cümleler: *"bugün hava nasıl"*, *"yağmur yağacak mı"*,
+### Sesli komut
+- **🎙 düğmesi:** bas, konuş; Jarvis konuşuyorsa anında susar ve seni dinler.
+- **Eller serbest (J● düğmesi veya Ayarlar):** uygulama açıkken “Jarvis” demen yeter.
+  “Jarvis, hava nasıl?” gibi tek cümle de olur. Chrome / Android Chrome'da çalışır; mikrofon izni ister.
+  Ekran kapalıyken veya uygulama arka plandayken tarayıcılar mikrofonu kapattığı için çalışmaz.
+
+Demo modunda deneyebileceğiniz cümleler: *"Fenerbahçe maçı kaç bitti"*, *"dolar ve altın ne kadar"*,
+*"gündem manşetleri"*, *"elektrikli araba mı hibrit mi araştır"*, *"bugün hava nasıl"*, *"yağmur yağacak mı"*,
 *"köprüler ücretsiz haberi gerçek mi"*, *"kahve haberi doğru mu"*,
 *"Jarvis, kahvemi şekersiz içerim, unutma"*, *"selam"*.
 
@@ -93,6 +100,11 @@ Mimari, ücretsiz katmana göre tasarlandı:
 | Web arayüzü (link) | **Firebase Hosting** (8. aşama) | Ücretsiz |
 | Hafıza / hatırlatmalar | **Firebase Firestore** (4. aşama) | Ücretsiz kota |
 | Hava durumu | Open-Meteo | Ücretsiz, anahtarsız |
+| Haberler | Google News RSS | Ücretsiz, anahtarsız |
+| Futbol (Süper Lig, Avrupa) | ESPN açık veri uçları | Ücretsiz, anahtarsız |
+| Döviz / altın / kripto | Frankfurter (ECB) + CoinGecko | Ücretsiz, anahtarsız |
+| Sesli komut + “Jarvis” uyandırma | Tarayıcının Web Speech API'si | Ücretsiz |
+| **Yapay zekâ beyni** | **Claude API** | **Ücretli (kullandıkça):** sohbet başına ~1-2 kuruş, web araması 1.000 aramada 10 $ |
 
 > Render'ın ücretsiz sunucusu 15 dakika istek gelmezse uyur; uyandığında ilk istek ~1 dakika sürer.
 > Bunu önlemek için cron-job.org sunucuyu birkaç dakikada bir dürter. Bu çağrı aynı zamanda

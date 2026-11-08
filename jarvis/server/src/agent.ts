@@ -25,7 +25,11 @@ Kurallar:
 - Yanıtların sesli okunacak: kısa ve net konuş (genelde 1-3 cümle). Kullanıcı detay isterse uzat.
 - Markdown, madde işareti, tablo, emoji veya link yazma; düz konuşma dili kullan. Kaynak gerekiyorsa adını söyle ("Reuters'a göre...").
 - Emin olmadığın bir bilgiyi kesinmiş gibi söyleme. Güncel olabilecek her konuda (haber, skor, fiyat, olay) önce internette ara.
-- Hava durumu için get_weather aracını kullan. Kullanıcı kalıcı bir tercih veya "unutma" dediği bir bilgi verirse memory_save ile kaydet.
+- Hava durumu: get_weather. Haber manşetleri: get_news. Döviz/altın/kripto: get_market. Futbol (maç, skor, fikstür, puan durumu): get_football — kullanıcı Fenerbahçe taraftarı.
+- Haber doğrulama ("bu haber gerçek mi", link): önce web_search/web_fetch ile birden çok güvenilir kaynağa ve doğrulama sitelerine bak, sonra present_fact_check ile sonucu göster (DOĞRU / YALAN / YANILTICI / DOĞRULANAMADI), sonra kısaca gerekçeyi söyle.
+- Araştırma istekleri ("araştır", "detaylı araştır", karşılaştırma): web_search ile birden fazla kaynağa bak (detaylıysa en az 5), sonra present_research ile bulguları göster, sonra kısa sesli özet ver.
+- Bir veri aracı hata verirse web_search ile aynı bilgiyi bul.
+- Kullanıcı kalıcı bir tercih veya "unutma" dediği bir bilgi verirse memory_save ile kaydet.
 - Birden fazla adım gerekiyorsa araçları sırayla kullan (ör. önce hava durumuna bak, sonra öneride bulun).
 - Sayıları ve birimleri okunabilir yaz: "18 derece", "yüzde 60".`
 
@@ -93,12 +97,13 @@ export async function runAgent(conversationId: string, userText: string, emit: E
   emit({ type: 'state', state: 'thinking' })
 
   const tools: Anthropic.Beta.BetaToolUnion[] = [
-    { type: 'web_search_20260209', name: 'web_search', max_uses: 6, user_location: { type: 'approximate', country: 'TR', city: config.defaultCity, timezone: config.tz } },
+    { type: 'web_search_20260209', name: 'web_search', max_uses: 10, user_location: { type: 'approximate', country: 'TR', city: config.defaultCity, timezone: config.tz } },
     { type: 'web_fetch_20260209', name: 'web_fetch', max_uses: 4 },
     ...toolSpecs(),
   ]
 
   let jsonRetries = 0
+  const shown = new Set<string>()
   for (let step = 0; step < 12; step++) {
     if (signal?.aborted) return
     const stream = client.beta.messages.stream(
@@ -119,14 +124,14 @@ export async function runAgent(conversationId: string, userText: string, emit: E
       { signal },
     )
 
-    // Araç çağrısı başladığı anda bekleme animasyonunu göster
-    const shown = new Set<string>()
+    // Araç çağrısı başladığı anda bekleme animasyonunu göster (tur boyunca her araç için bir kez)
     stream.on('streamEvent', (ev) => {
       if (ev.type !== 'content_block_start') return
       const b = ev.content_block
       if (b.type === 'server_tool_use' && SERVER_TOOL_SCENES[b.name] && !shown.has(b.name)) {
         shown.add(b.name)
-        emit({ type: 'scene', scene: 'generic', data: { label: SERVER_TOOL_SCENES[b.name].label, steps: ['Kaynaklar aranıyor', 'Sayfalar okunuyor', 'Bilgiler karşılaştırılıyor'] }, hold: 600 })
+        // Araştırma sahnesi kaynaklar gelmeden "taranıyor" modunda açılır
+        emit({ type: 'scene', scene: 'research', data: { topic: SERVER_TOOL_SCENES[b.name].label, summary: '', sources: [] }, hold: 600 })
       } else if (b.type === 'tool_use') {
         const t = getTool(b.name)
         if (t?.pendingScene && !shown.has(b.name)) {

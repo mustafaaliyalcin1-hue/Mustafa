@@ -44,7 +44,7 @@ export default function Gallery({ onClose, onBoot }: { onClose: () => void; onBo
   const runScene = (id: string, data: unknown, say?: string) => {
     interrupt()
     onClose()
-    const ev: JarvisEvent[] = [{ type: 'state', state: 'thinking' }, { type: 'scene', scene: id, data, hold: id === 'factcheck' ? 6600 : 1800 }]
+    const ev: JarvisEvent[] = [{ type: 'state', state: 'thinking' }, { type: 'scene', scene: id, data, hold: id === 'factcheck' ? 6600 : id === 'research' && !(data as { sources?: unknown[] })?.sources?.length ? 6000 : 1800 }]
     if (say) ev.push({ type: 'say', text: say })
     ev.push({ type: 'end' })
     play(ev)
@@ -74,7 +74,7 @@ export default function Gallery({ onClose, onBoot }: { onClose: () => void; onBo
               .flatMap((s) => (s.demo?.length ? s.demo : [{ label: '', data: {} as unknown, say: undefined }]).map((d) => <Card key={s.id + d.label} label={s.title} sub={d.label} onClick={() => runScene(s.id, d.data, d.say)} />))}
           </Section>
         ))}
-        <p className="mt-6 font-mono text-[11px] text-hud-cyan/50">Yeni animasyonlar 3. ve 4. aşamada eklenecek: araştırma, haberler, spor, finans, harita, çeviri, hesaplama, zamanlayıcı, takvim, tarif, müzik/film, görsel analiz, mesaj, sabah brifingi, akıllı ev, Roborock.</p>
+        <p className="mt-6 font-mono text-[11px] text-hud-cyan/50">Sıradaki animasyonlar (4. aşama ve sonrası): harita, çeviri, hesaplama, zamanlayıcı, takvim, tarif, müzik/film, görsel analiz, mesaj, sabah brifingi, akıllı ev, Roborock.</p>
       </div>
     </motion.div>
   )

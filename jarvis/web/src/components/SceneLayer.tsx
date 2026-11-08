@@ -14,7 +14,7 @@ export default function SceneLayer() {
       {scene && C && (
         <motion.div key={scene.key} className="absolute inset-0 z-10 overflow-hidden" initial={{ opacity: 0, scale: 1.04 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97, filter: 'blur(6px)' }} transition={{ duration: 0.4 }}>
           <C data={scene.data as never} low={low} />
-          <button onClick={closeScene} className="absolute right-4 top-28 z-30 rounded border border-hud-cyan/40 bg-hud-bg/60 px-2 py-1 font-mono text-xs text-hud-cyan/80 hover:bg-hud-cyan/10 sm:top-32" aria-label="Sahneyi kapat">
+          <button onClick={closeScene} className="absolute bottom-[76px] right-3 z-30 rounded border border-hud-cyan/40 bg-hud-bg/70 px-2 py-1 font-mono text-xs text-hud-cyan/80 hover:bg-hud-cyan/10 sm:bottom-auto sm:right-4 sm:top-32" aria-label="Sahneyi kapat">
             ✕ KAPAT
           </button>
         </motion.div>

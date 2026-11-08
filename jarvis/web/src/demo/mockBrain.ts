@@ -25,7 +25,16 @@ export function mockRespond(text: string): JarvisEvent[] {
     if (d?.say) seq.push({ type: 'say', text: d.say })
   }
 
-  if (/hava|yağmur|sıcaklık|kar yağ|derece/.test(t)) {
+  if (/araştır|karşılaştır/.test(t)) {
+    seq.push({ type: 'scene', scene: 'research', data: { topic: '', summary: '', sources: [] }, hold: 1600 })
+    scene('research')
+  } else if (/maç|skor|fenerbahçe|fener|puan durumu|fikstür|lig/.test(t)) {
+    scene('sports', /canlı/.test(t) ? 'Canlı maç' : /sıradaki|ne zaman/.test(t) ? 'Sıradaki maç' : 'Fenerbahçe kazandı')
+  } else if (/dolar|euro|avro|altın|borsa|bitcoin|kripto|kur\b|döviz/.test(t)) {
+    scene('finance', /bitcoin|kripto/.test(t) ? 'Düşüş' : undefined)
+  } else if (/manşet|gündem|haberler|son dakika|ne oldu/.test(t)) {
+    scene('news')
+  } else if (/hava|yağmur|sıcaklık|kar yağ|derece/.test(t)) {
     const label = /yağmur/.test(t) ? 'Yağmurlu' : /kar/.test(t) ? 'Karlı' : /gece/.test(t) ? 'Gece' : /rüzgar|rüzgâr/.test(t) ? 'Rüzgârlı' : /bulut/.test(t) ? 'Bulutlu' : 'Güneşli'
     scene('weather', label)
   } else if (/gerçek mi|doğru mu|yalan mı|doğrula|teyit|haber/.test(t)) {

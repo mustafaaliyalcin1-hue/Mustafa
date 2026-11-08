@@ -16,10 +16,12 @@ export interface JarvisStore {
   /** Konuşma altyazısı: tüm cümle + şu ana kadar okunan kelime sayısı */
   subtitle: { text: string; shown: number } | null
   messages: ChatMessage[]
-  settings: { sound: boolean; voice: boolean; perf: PerfMode; apiUrl: string; apiKey: string }
+  settings: { sound: boolean; voice: boolean; perf: PerfMode; apiUrl: string; apiKey: string; handsFree: boolean }
   /** auto modda tespit edilen gerçek seviye */
   lowPerf: boolean
   demo: boolean
+  /** "Jarvis" uyandırma kelimesi dinleniyor mu */
+  wakeActive: boolean
 }
 
 const saved = (() => {
@@ -35,9 +37,10 @@ let store: JarvisStore = {
   scene: null,
   subtitle: null,
   messages: [],
-  settings: { sound: true, voice: true, perf: 'auto', apiUrl: import.meta.env.VITE_JARVIS_API_URL || '', apiKey: '', ...(saved || {}) },
+  settings: { sound: true, voice: true, perf: 'auto', apiUrl: import.meta.env.VITE_JARVIS_API_URL || '', apiKey: '', handsFree: false, ...(saved || {}) },
   lowPerf: false,
   demo: true,
+  wakeActive: false,
 }
 
 const listeners = new Set<() => void>()

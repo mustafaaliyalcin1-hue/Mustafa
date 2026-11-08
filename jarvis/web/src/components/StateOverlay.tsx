@@ -54,11 +54,12 @@ function DataStreams() {
 
 function Subtitle() {
   const sub = useJarvis((s) => s.subtitle)
+  const sceneOpen = useJarvis((s) => !!s.scene)
   if (!sub) return null
   const words = sub.text.split(/\s+/).filter(Boolean)
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-28 z-20 flex justify-center px-4 sm:bottom-32">
-      <p className="max-w-3xl text-center font-hud text-xl font-medium leading-snug text-white/95 drop-shadow-[0_0_8px_rgba(62,232,255,0.6)] sm:text-2xl">
+      <p className={`max-w-3xl text-center font-hud font-medium leading-snug text-white/95 drop-shadow-[0_0_8px_rgba(62,232,255,0.6)] ${sceneOpen ? "rounded-md bg-[#020814]/80 px-4 py-2 text-lg backdrop-blur-sm sm:text-xl" : "text-xl sm:text-2xl"}`}>
         {words.map((w, i) => (
           <motion.span
             key={i + w}

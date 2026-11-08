@@ -15,7 +15,8 @@ import SceneLayer from './components/SceneLayer'
 import StateOverlay from './components/StateOverlay'
 import { setState } from './core/player'
 import { startPerfMonitor } from './core/perf'
-import { isLowPerf, useJarvis } from './core/store'
+import { getStore, isLowPerf, useJarvis } from './core/store'
+import { startWake } from './core/assistant'
 import Gallery from './pages/Gallery'
 
 const ArcReactor = lazy(() => import('./components/ArcReactor'))
@@ -57,6 +58,7 @@ export default function App() {
   const bootDone = useCallback(() => {
     setBooting(false)
     setState('idle')
+    if (getStore().settings.handsFree) startWake()
   }, [])
   const reboot = () => {
     setState('booting')

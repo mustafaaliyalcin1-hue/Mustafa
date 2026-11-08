@@ -1,6 +1,7 @@
 /** Ayarlar ve sohbet geçmişi çekmeceleri */
 import { AnimatePresence, motion } from 'framer-motion'
 import { useState } from 'react'
+import { startWake, stopWake, wakeSupported } from '../core/assistant'
 import { setStore, useJarvis, type PerfMode } from '../core/store'
 
 function Drawer({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
@@ -43,6 +44,17 @@ export function SettingsDrawer({ open, onClose }: { open: boolean; onClose: () =
     <Drawer open={open} onClose={onClose} title="AYARLAR">
       <Toggle label="Arayüz ses efektleri" value={settings.sound} onChange={(v) => set({ sound: v })} />
       <Toggle label="Sesli yanıt (TTS)" value={settings.voice} onChange={(v) => set({ voice: v })} />
+      {wakeSupported() && (
+        <Toggle
+          label="Eller serbest: “Jarvis” deyince dinle"
+          value={settings.handsFree}
+          onChange={(v) => {
+            set({ handsFree: v })
+            if (v) startWake()
+            else stopWake()
+          }}
+        />
+      )}
       <div className="border-b border-hud-cyan/10 py-3">
         <div className="mb-2 font-hud text-white/90">Performans modu</div>
         <div className="flex gap-2">

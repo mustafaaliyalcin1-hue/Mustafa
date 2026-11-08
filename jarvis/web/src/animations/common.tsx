@@ -38,7 +38,7 @@ export function HudFrame({ children, className = '', color = '#3ee8ff' }: { chil
 /** Sahne başlığı (sol üst, daktilo hissi) */
 export function SceneTitle({ children, color = '#3ee8ff' }: { children: React.ReactNode; color?: string }) {
   return (
-    <motion.div className="absolute left-1/2 top-[104px] z-20 -translate-x-1/2 whitespace-nowrap font-mono text-[10px] tracking-[0.25em] sm:top-24 sm:text-xs sm:tracking-[0.5em]" style={{ color }} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+    <motion.div className="absolute left-1/2 top-[104px] z-20 max-w-[92vw] -translate-x-1/2 truncate whitespace-nowrap font-mono text-[10px] tracking-[0.25em] sm:top-24 sm:text-xs sm:tracking-[0.5em]" style={{ color }} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
       ▸ {children}
     </motion.div>
   )
