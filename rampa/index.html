@@ -4915,7 +4915,7 @@ const BLD=(()=>{const mats={},mt=(c,r=.8,o)=>{const k=c+':'+r+(o?JSON.stringify(
     const ssign=sign({g},'',0x14213d,3.4,-.7);ssign('🛂 GÜVENLİK KONTROLÜ',0x14213d,'Silahla geçilmez · kimlik kontrolü');const ss=g.children[g.children.length-1];ss.scale.setScalar(.7);ss.position.y=3.5;
     // departures board over the barrier
     const bc=document.createElement('canvas');bc.width=1024;bc.height=420;const bt=new THREE.CanvasTexture(bc);bt.colorSpace=THREE.SRGBColorSpace;
-    for(const x of [-10.5,10.5]){const b=new THREE.Mesh(new THREE.PlaneGeometry(6.6,2.7),new THREE.MeshBasicMaterial({map:bt}));b.position.set(x,3,-.9);g.add(b);box(g,6.8,2.9,.12,0x111418,x,3,-.98);}
+    for(const x of [-10.5,10.5]){const b=new THREE.Mesh(new THREE.PlaneGeometry(6.6,2.7),new THREE.MeshBasicMaterial({map:bt}));b.position.set(x,3,-.9);g.add(b);const b2=b.clone();b2.position.z=-1.08;b2.rotation.y=Math.PI;g.add(b2);box(g,6.8,2.9,.12,0x8a929c,x,3,-.99);box(g,.12,1.6,.12,0x8a929c,x-2.6,5.2,-.99);box(g,.12,1.6,.12,0x8a929c,x+2.6,5.2,-.99);}
     const board=(mine)=>{const x=bc.getContext('2d');x.fillStyle='#0a0f18';x.fillRect(0,0,1024,420);x.fillStyle='#ffd34d';x.font='800 40px system-ui,sans-serif';x.textAlign='left';x.fillText('✈ KALKIŞLAR',24,52);x.fillStyle='#7f8a99';x.font='600 22px system-ui,sans-serif';
       x.fillText('SAAT',24,92);x.fillText('UÇUŞ',140,92);x.fillText('NEREYE',290,92);x.fillText('KAPI',700,92);x.fillText('DURUM',820,92);
       const L=IL.list,base=new Date(),rows=[];if(mine)rows.push({il:mine.il.name,code:'TT '+(100+mine.il.plate),gate:'A3',st:'BİNİŞ',hl:1});
@@ -5212,6 +5212,7 @@ const AIRC={eko:{name:'Ekonomi',ic:'💺'},first:{name:'Birinci sınıf',ic:'�
 function airPrice(il,cls){const km=ilKm(ilCur(),il);return cls==='first'?Math.round((900+km*2.4)/10)*10:Math.round((120+km*.55)/10)*10;}
 function termEnter(pre){if(INT.on||(AIR.on&&AIR.ph!=='pick'))return;const s=airSpot();if(!s)return;if(!FOOT.on){footToggle();if(!FOOT.on)return;}
   if(AIR.on)airCancel();Object.assign(TERM.r,{name:ilCur().name+' Havalimanı',kind:'havakafe',col:0x1d4ed8,door:{x:s.cx-17,z:s.cz-5.6},nx:0,nz:1,term:true});TERM.pre=pre||null;TERM.passed=false;
+  if(pre&&!TERM.ticket)setTimeout(()=>{if(INT.on&&INT.kind==='term'&&!TERM.ticket){TERM.cls=AIR.wantCls||'eko';if(TERM.cls==='first'&&CAREER.money<airPrice(pre,'first'))TERM.cls='eko';termBuy(pre);}},1800);
   $('airBtn').hidden=true;AIR.near=false;bldEnter('term',TERM.r);const B=BLD.term;INT.walls.push({x0:INT.o.x+B.gate.x0,x1:INT.o.x+B.gate.x1,z0:INT.o.z+B.gate.z0,z1:INT.o.z+B.gate.z1,gate:true});B.board(TERM.ticket);B.lamp.color.setHex(0x2bd46a);
   setTimeout(()=>{if(INT.on&&INT.kind==='term')pop(TERM.ticket?'🎫 Biletin var · güvenlik kontrolüne yürü':TERM.pre?'🎫 Bilet gişesine yürü: '+TERM.pre.name:'🎫 Önce soldaki bilet gişesine yürü','gold');},2500);}
 function termLabel(id){if(id==='ticket')return TERM.ticket?'🎫 BİLETİN: '+TERM.ticket.il.name+' · '+AIRC[TERM.ticket.cls].name:'🎫 BİLET AL';if(id==='sec')return TERM.passed?'🛂 KONTROL TAMAM ✓':'🛂 GÜVENLİK KONTROLÜ';if(id==='cafe')return '☕ KAFE · SİPARİŞ VER';return '✈ UÇAĞA BİN · KAPI A3';}
@@ -5344,7 +5345,7 @@ function askCommand(raw){if(I18N.lang==='de')raw=deVoice(raw);const t=raw.toLoca
   if(/hızlı/.test(t))AP.spd=2;if(/aşırı|çok hızlı|en hızlı/.test(t))AP.spd=3;if(/yavaş/.test(t))AP.spd=0;
   const taxiW=/taksi/.test(t);
   const go=(dest,label)=>{if(!dest){say('Oraya giden bir yol bulamadım.');return;}if(FOOT.inTaxi){taxiGo(dest,label);return;}if(FOOT.on&&(TAXI.st==='come'||TAXI.st==='wait')){TAXI.pending={dest,label};say('Tamam, taksi seni '+label+' götürecek.');return;}if(FOOT.on&&taxiW){taxiCall({dest,label});return;}if(FOOT.on){if(tSummon({mode,dest,label}))say('Tamam, önce seni almaya geliyorum, sonra '+label+' gideriz.');return;}if(AP.on)apStop();apStart(mode,false,dest);if(AP.on){say('Tamam, '+label+(mode==='fly'?' uçarak':'')+' gidiyoruz.');blip(false);}};
-  if(/(havaalan|havaliman|uçak|uçağa|uçakla|jetle)/.test(t)){const il=ilFind(t);if(airNear()){termEnter(il||null);return;}AIR.want=il||null;go(accDest('hava','Havalimanı'),'havalimanına'+(il?', oradan '+il.name+' uçuşu':''));return;}
+  if(/(havaalan|havaliman|uçak|uçağa|uçakla|jetle)/.test(t)){const il=ilFind(t);AIR.wantCls=/(birinci|lüks|first|business)/.test(t)?'first':'eko';if(airNear()){termEnter(il||null);return;}AIR.want=il||null;go(accDest('hava','Havalimanı'),'havalimanına'+(il?', oradan '+il.name+' uçuşu':''));return;}
   if(/\b(dur|durdur|iptal)\b|otopilotu kapat/.test(t)){CB.follow=null;TAPP.summon=false;TAPP.after=null;apStop();say('Tamam, kontrol sende.');return;}
   if(/sunum|tanıt|kendini anlat/.test(t)&&!/^\s*$/.test(t)){tourStart();return;}
   if(/kaçakçı|kacakci|silah al|silahçı/.test(t)){go(smugDest(),'kaçakçıya');return;}
