@@ -1,0 +1,16 @@
+{
+  "sarkilar": [
+    {
+      "tarih": "2026-11-08",
+      "baslik": "Fırat'a Söyleyin",
+      "stil": "C",
+      "muzik": "Gemini uygulaması (Lyria 3.5, ücretsiz), kullanıcı üretti",
+      "sure_sn": 167,
+      "paylasimlar": [
+        {"ag": "instagram", "tip": "REEL", "saat": "2026-11-08T20:55+03:00", "metricool_id": 420939251, "ai_isareti": true},
+        {"ag": "youtube", "tip": "short", "saat": "2026-11-08T20:55+03:00", "metricool_id": 420939287, "ai_isareti": true},
+        {"ag": "youtube", "tip": "video (16:9 tam sürüm)", "saat": "2026-11-08T21:00+03:00", "metricool_id": 420939336, "ai_isareti": true}
+      ]
+    }
+  ]
+}

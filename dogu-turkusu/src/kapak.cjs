@@ -1,7 +1,7 @@
 // Kapak üretici: Doğu Anadolu manzarası (dağlar, Fırat, köy, gün batımı, bağlama) — tamamen kodla çizilir, ücretsiz.
 // Kullanım: node kapak.cjs <cikti_klasoru> <baslik> <stil A|B|C> [alt_yazi]
 // Çıktılar: arkaplan.png (1296x2304, zoom için), yazi.png (1080x1920 şeffaf), kapak.png (1080x1920 birleşik),
-//           kucuk_resim.png (1280x720, YouTube için)
+//           arkaplan_yatay.png (4096x2304), yazi_yatay.png (1920x1080), kucuk_resim.png (1280x720, YouTube için)
 const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
@@ -35,7 +35,7 @@ function dagYolu(W, taban, tepe, puruz, adim, vadi = null) {
   }
   return d + ` L${W} ${H} Z`;
 }
-const W = 1296, H = 2304;
+let W = 1296; const H = 2304;
 
 function manzaraSVG() {
   const ufuk = 1500;
@@ -139,8 +139,17 @@ function yaziHTML(w, h, olcek, arkaplan) {
   await p.setContent(yaziHTML(1080, 1920, 1, bg), { waitUntil: 'networkidle' });
   await p.screenshot({ path: path.join(outDir, 'kapak.png') });
 
+  // Yatay (16:9) sürüm: YouTube uzun video + küçük resim
+  W = 4096; seed = seed ^ 0x9e3779b9;
+  await p.setViewportSize({ width: W, height: H });
+  await p.setContent(`<html><body style="margin:0">${manzaraSVG()}</body></html>`);
+  await p.screenshot({ path: path.join(outDir, 'arkaplan_yatay.png') });
+  const bgY = fs.readFileSync(path.join(outDir, 'arkaplan_yatay.png')).toString('base64');
+  await p.setViewportSize({ width: 1920, height: 1080 });
+  await p.setContent(yaziHTML(1920, 1080, 0.72, null), { waitUntil: 'networkidle' });
+  await p.screenshot({ path: path.join(outDir, 'yazi_yatay.png'), omitBackground: true });
   await p.setViewportSize({ width: 1280, height: 720 });
-  await p.setContent(yaziHTML(1280, 720, 0.52, bg).replace('center/cover', 'center 58%/cover'), { waitUntil: 'networkidle' });
+  await p.setContent(yaziHTML(1280, 720, 0.6, bgY), { waitUntil: 'networkidle' });
   await p.screenshot({ path: path.join(outDir, 'kucuk_resim.png') });
   await b.close();
   console.log('kapak hazır:', outDir);
