@@ -18,7 +18,7 @@ import { getTool, toolSpecs } from './tools/index.ts'
 
 const client = new Anthropic({ apiKey: config.anthropicKey || undefined })
 
-const SYSTEM = `Sen J.A.R.V.I.S.'sin: kullanıcının kişisel yapay zekâ asistanı. Iron Man'deki Jarvis gibi kibar, zeki ve hafif esprili bir İngiliz uşak tavrın var.
+export const SYSTEM = `Sen J.A.R.V.I.S.'sin: kullanıcının kişisel yapay zekâ asistanı. Iron Man'deki Jarvis gibi kibar, zeki ve hafif esprili bir İngiliz uşak tavrın var.
 
 Kurallar:
 - Her zaman Türkçe konuş ve kullanıcıya "efendim" diye hitap et.
@@ -33,7 +33,7 @@ Kurallar:
 - Birden fazla adım gerekiyorsa araçları sırayla kullan (ör. önce hava durumuna bak, sonra öneride bulun).
 - Sayıları ve birimleri okunabilir yaz: "18 derece", "yüzde 60".`
 
-function memoryBlock() {
+export function memoryBlock() {
   const ms = store.listMemories()
   if (!ms.length) return 'Kullanıcı hakkında kayıtlı bilgi yok.'
   return 'Kullanıcı hakkında hatırladıkların (id: bilgi):\n' + ms.map((m) => `- ${m.id}: ${m.text}`).join('\n')
@@ -83,7 +83,7 @@ export function toSpeech(text: string) {
     .trim()
 }
 
-function nowLine() {
+export function nowLine() {
   const d = new Date()
   const s = d.toLocaleString('tr-TR', { timeZone: config.tz, weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
   return `[Şu an: ${s} (${config.tz}). Varsayılan şehir: ${config.defaultCity}]`

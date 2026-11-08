@@ -9,6 +9,9 @@ export const config = {
   /** Arayüzün çalıştığı adresler (CORS). Virgülle ayrılır; boşsa hepsine izin verilir. */
   allowedOrigins: env('ALLOWED_ORIGINS').split(',').map((s) => s.trim()).filter(Boolean),
   anthropicKey: env('ANTHROPIC_API_KEY'),
+  geminiKey: env('GEMINI_API_KEY'),
+  /** Ücretsiz katmanı olan Flash modeli; "-latest" takma adı Google güncelledikçe yeni sürüme geçer */
+  geminiModel: env('GEMINI_MODEL', 'gemini-flash-latest'),
   model: env('CLAUDE_MODEL', 'claude-sonnet-5-5'),
   /** low | medium | high — sesli asistan için hız/kalite dengesi */
   effort: env('CLAUDE_EFFORT', 'medium') as 'low' | 'medium' | 'high',
@@ -19,7 +22,11 @@ export const config = {
   dataDir: env('DATA_DIR', './data'),
 }
 
+/** Hangi beyin? Varsayılan: Gemini anahtarı varsa Gemini (ücretsiz), yoksa Claude. AI_PROVIDER ile zorlanabilir. */
+export const provider: 'gemini' | 'claude' = (env('AI_PROVIDER') as 'gemini' | 'claude') || (config.geminiKey ? 'gemini' : 'claude')
+
 export const services = {
-  ai: !!config.anthropicKey,
+  ai: provider === 'gemini' ? !!config.geminiKey : !!config.anthropicKey,
+  provider,
   tts: !!(config.elevenKey && config.elevenVoice),
 }

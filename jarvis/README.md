@@ -104,7 +104,8 @@ Mimari, ücretsiz katmana göre tasarlandı:
 | Futbol (Süper Lig, Avrupa) | ESPN açık veri uçları | Ücretsiz, anahtarsız |
 | Döviz / altın / kripto | Frankfurter (ECB) + CoinGecko | Ücretsiz, anahtarsız |
 | Sesli komut + “Jarvis” uyandırma | Tarayıcının Web Speech API'si | Ücretsiz |
-| **Yapay zekâ beyni** | **Claude API** | **Ücretli (kullandıkça):** sohbet başına ~1-2 kuruş, web araması 1.000 aramada 10 $ |
+| **Yapay zekâ beyni** | **Google Gemini** (ücretsiz katman, Google Arama dahil) | **Ücretsiz** — günlük istek sınırı var; kişisel kullanıma yeter |
+| (isteğe bağlı) daha güçlü beyin | Claude API | Ücretli, kullandıkça |
 
 > Render'ın ücretsiz sunucusu 15 dakika istek gelmezse uyur; uyandığında ilk istek ~1 dakika sürer.
 > Bunu önlemek için cron-job.org sunucuyu birkaç dakikada bir dürter. Bu çağrı aynı zamanda
@@ -113,12 +114,14 @@ Mimari, ücretsiz katmana göre tasarlandı:
 
 ### Adım adım
 
-1. **Anthropic API anahtarı:** console.anthropic.com → Settings → API Keys → *Create Key*. Hesaba bakiye
-   eklemeniz gerekir (Claude API ücretlidir, kullandıkça ödenir; günlük kişisel kullanımda genelde aylık birkaç dolar).
+1. **Ücretsiz Gemini anahtarı:** aistudio.google.com → Google hesabınla giriş → *Get API key* → *Create API key*.
+   Kart istemez. (Ücretsiz katmanda Google, gönderilen içerikleri ürünlerini geliştirmek için kullanabilir;
+   hassas bilgi paylaşmayın.)
+   *İsteğe bağlı:* Daha güçlü ve ücretli beyin için console.anthropic.com'dan Claude anahtarı.
 2. **Render hesabı:** render.com → GitHub ile giriş yapın (kart istemez).
 3. **New + → Blueprint** → bu depoyu seçin. Render, kök dizindeki `render.yaml` dosyasını okuyup
    `jarvis-server` servisini oluşturur.
-4. İstenen gizli değerleri girin: `ANTHROPIC_API_KEY` (zorunlu), `ELEVENLABS_API_KEY` ve `ELEVENLABS_VOICE_ID`
+4. İstenen gizli değerleri girin: `GEMINI_API_KEY` (zorunlu, ücretsiz), `ANTHROPIC_API_KEY` (boş bırakılabilir), `ELEVENLABS_API_KEY` ve `ELEVENLABS_VOICE_ID`
    (isteğe bağlı, yoksa telefonun kendi Türkçe sesi kullanılır). `JARVIS_APP_SECRET` otomatik üretilir.
 5. Dağıtım bitince servis adresinizi kopyalayın (ör. `https://jarvis-server-xxxx.onrender.com`) ve
    tarayıcıda `/health` adresini açın: `"ai": true` görmelisiniz.

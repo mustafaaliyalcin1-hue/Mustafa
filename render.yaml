@@ -24,6 +24,10 @@ services:
         value: İstanbul
       - key: JARVIS_APP_SECRET
         generateValue: true
+      # Ücretsiz beyin: Google AI Studio anahtarı (aistudio.google.com → Get API key)
+      - key: GEMINI_API_KEY
+        sync: false
+      # İsteğe bağlı ücretli beyin (Claude). İkisi de varsa Gemini kullanılır; AI_PROVIDER=claude ile değiştirilir.
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: ELEVENLABS_API_KEY

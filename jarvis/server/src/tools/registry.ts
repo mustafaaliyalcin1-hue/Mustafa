@@ -38,6 +38,10 @@ export function getTool(name: string) {
   return tools.get(name)
 }
 
+export function listTools() {
+  return [...tools.values()]
+}
+
 /** Claude API'ye gönderilecek araç tanımları (Zod şemasından JSON Schema üretilir). */
 export function toolSpecs(): Anthropic.Beta.BetaTool[] {
   return [...tools.values()].map((t) => ({
