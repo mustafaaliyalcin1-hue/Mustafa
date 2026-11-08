@@ -18,6 +18,65 @@ import { listTools, type ToolDef } from './tools/index.ts'
 let client: GoogleGenAI | null = null
 const ai = () => (client ??= new GoogleGenAI({ apiKey: config.geminiKey, ...(process.env.GEMINI_BASE_URL ? { httpOptions: { baseUrl: process.env.GEMINI_BASE_URL } } : {}) }))
 
+// ---------------------------------------------------------------- model seçimi
+/**
+ * Google model adlarını sık değiştiriyor. Ayarlanan model bulunamazsa (404),
+ * anahtarın erişebildiği modeller listelenir ve en yeni kararlı "Flash" modeli seçilir.
+ */
+let activeModel = config.geminiModel
+let discovered = false
+
+export function currentGeminiModel() {
+  return activeModel
+}
+
+/** Model listesinden en uygun Flash modelini seç (saf fonksiyon; test edilir) */
+export function pickFlashModel(names: string[]): string | undefined {
+  const clean = names.map((n) => n.replace(/^models\//, ''))
+  const bad = /(image|tts|audio|live|embedding|vision|learnlm|gemma|computer|robotics)/i
+  // "-latest" takma adları her zaman en yeni sürümü gösterir
+  const ver = (n: string) => (/-latest$/.test(n) ? 99 : Number(n.match(/gemini-(\d+(?:\.\d+)?)/)?.[1] || 0))
+  const score = (n: string) => {
+    if (!/^gemini-/.test(n) || !/flash/.test(n) || bad.test(n)) return -1
+    let sc = ver(n) * 100
+    if (/^gemini-[\d.]+-flash$/.test(n)) sc += 50 // kararlı, ana Flash
+    if (/lite/.test(n)) sc -= 30
+    if (/(preview|exp|\d{2}-\d{2}|\d{3,})/.test(n)) sc -= 20
+    return sc
+  }
+  return clean
+    .map((n) => [n, score(n)] as const)
+    .filter(([, sc]) => sc >= 0)
+    .sort((a, b) => b[1] - a[1])[0]?.[0]
+}
+
+async function discoverModel() {
+  discovered = true
+  const names: string[] = []
+  for await (const m of await ai().models.list()) {
+    if (m.name && (!m.supportedActions || m.supportedActions.includes('generateContent'))) names.push(m.name)
+  }
+  const pick = pickFlashModel(names)
+  console.log(`[gemini] "${activeModel}" bulunamadı → seçilen model: ${pick ?? '(yok)'} · mevcut: ${names.slice(0, 30).join(', ')}`)
+  if (!pick) throw new Error('Bu anahtarla kullanılabilen bir Gemini Flash modeli bulunamadı.')
+  activeModel = pick
+}
+
+type GenParams = Omit<Parameters<GoogleGenAI['models']['generateContent']>[0], 'model'>
+
+/** generateContent + model bulunamazsa bir kez otomatik keşif ve tekrar deneme */
+async function generate(params: GenParams) {
+  try {
+    return await ai().models.generateContent({ ...params, model: activeModel })
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 404 && !discovered) {
+      await discoverModel()
+      return ai().models.generateContent({ ...params, model: activeModel })
+    }
+    throw e
+  }
+}
+
 // ---------------------------------------------------------- Gemini'ye özel araçlar
 const PRIVATE_HOST = /^(localhost|127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.|0\.|\[?::1\]?$)/i
 
@@ -28,8 +87,7 @@ const webSearch: ToolDef<typeof searchSchema> = {
   schema: searchSchema,
   pendingScene: { scene: 'research', data: { topic: 'İNTERNETTE ARAŞTIRILIYOR', summary: '', sources: [] } },
   async run({ query }) {
-    const r = await ai().models.generateContent({
-      model: config.geminiModel,
+    const r = await generate({
       contents: `Şu konuda internette ara ve bulguları kaynaklarıyla birlikte Türkçe, olgusal ve kısa özetle: ${query}`,
       config: { tools: [{ googleSearch: {} }] },
     })
@@ -100,8 +158,7 @@ export async function runGeminiAgent(conversationId: string, userText: string, e
 
   for (let step = 0; step < 10; step++) {
     if (signal?.aborted) return
-    const r = await ai().models.generateContent({
-      model: config.geminiModel,
+    const r = await generate({
       contents,
       config: {
         systemInstruction: `${SYSTEM}\n\n${memoryBlock()}`,
@@ -158,6 +215,7 @@ export async function runGeminiAgent(conversationId: string, userText: string, e
 export function describeGeminiError(err: unknown): string | null {
   if (!(err instanceof ApiError)) return null
   if (err.status === 429) return 'Ücretsiz yapay zekâ kotası şimdilik doldu; biraz sonra (en geç yarın) tekrar deneyin.'
-  if (err.status === 400 || err.status === 403) return 'Gemini API anahtarı geçersiz ya da model bulunamadı.'
+  if (err.status === 400 || err.status === 403) return 'Gemini API anahtarı geçersiz ya da yetkisiz.'
+  if (err.status === 404) return 'Gemini modeli bulunamadı; sunucu kayıtlarına bakın.'
   return `Yapay zekâ servisi hatası (${err.status}).`
 }

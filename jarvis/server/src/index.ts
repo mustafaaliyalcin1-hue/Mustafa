@@ -10,7 +10,7 @@ import cors from '@fastify/cors'
 import Fastify from 'fastify'
 import { describeError, resetConversation, runAgent } from './agent.ts'
 import { config, provider, services } from './config.ts'
-import { describeGeminiError, resetGeminiConversation, runGeminiAgent } from './gemini.ts'
+import { currentGeminiModel, describeGeminiError, resetGeminiConversation, runGeminiAgent } from './gemini.ts'
 import type { JarvisEvent } from './events.ts'
 
 const app = Fastify({ logger: { level: 'info' } })
@@ -33,7 +33,7 @@ app.addHook('onRequest', async (req, reply) => {
   if (arr.length > 30) return reply.code(429).send({ error: 'Çok fazla istek, biraz bekleyin efendim' })
 })
 
-app.get('/health', async () => ({ ok: true, services, model: provider === 'gemini' ? config.geminiModel : config.model, time: new Date().toISOString() }))
+app.get('/health', async () => ({ ok: true, services, model: provider === 'gemini' ? currentGeminiModel() : config.model, time: new Date().toISOString() }))
 
 app.post<{ Body: { text?: string; conversationId?: string } }>('/api/chat', async (req, reply) => {
   const text = (req.body?.text || '').toString().slice(0, 4000).trim()

@@ -71,3 +71,43 @@ test('gemini: araç zinciri → sahneler → seslendirme', async () => {
     fake.close()
   }
 })
+
+test('gemini: en uygun Flash modeli seçilir', async () => {
+  const { pickFlashModel } = await import('./gemini.ts')
+  assert.equal(pickFlashModel(['models/gemini-2.5-flash', 'models/gemini-3.8-flash', 'models/gemini-3.8-flash-lite', 'models/gemini-3.8-pro', 'models/gemini-3.9-flash-preview-09-2026', 'models/gemini-3.8-flash-image', 'models/text-embedding-004']), 'gemini-3.8-flash')
+  assert.equal(pickFlashModel(['models/gemini-flash-lite-latest', 'models/gemini-2.0-flash-lite']), 'gemini-flash-lite-latest')
+  assert.equal(pickFlashModel(['models/gemini-3.8-pro']), undefined)
+})
+
+test('gemini: model 404 verirse listelenip otomatik seçilir', async () => {
+  const seen: string[] = []
+  const fake = http.createServer((req, res) => {
+    let b = ''
+    req.on('data', (c) => (b += c))
+    req.on('end', () => {
+      seen.push(`${req.method} ${req.url}`)
+      res.setHeader('content-type', 'application/json')
+      if (req.method === 'GET' && req.url?.includes('/models')) return res.end(JSON.stringify({ models: [{ name: 'models/gemini-3.8-flash', supportedActions: ['generateContent'] }, { name: 'models/gemini-3.8-flash-lite', supportedActions: ['generateContent'] }] }))
+      if (req.url?.includes('gemini-flash-latest')) {
+        res.statusCode = 404
+        return res.end(JSON.stringify({ error: { code: 404, message: 'models/gemini-flash-latest is not found', status: 'NOT_FOUND' } }))
+      }
+      res.end(JSON.stringify({ candidates: [{ content: { role: 'model', parts: [{ text: 'Merhaba efendim.' }] } }] }))
+    })
+  })
+  await new Promise<void>((r) => fake.listen(0, r))
+  const port = (fake.address() as { port: number }).port
+  // Ayrı modül örneği: yeni temel adresle taze istemci
+  process.env.GEMINI_BASE_URL = `http://127.0.0.1:${port}`
+  const mod = await import('./gemini.ts?keşif=' + port)
+  try {
+    const events: { type: string; text?: string }[] = []
+    await mod.runGeminiAgent('g2', 'selam', (e: never) => events.push(e))
+    assert.equal(events.at(-1)!.text, 'Merhaba efendim.')
+    assert.equal(mod.currentGeminiModel(), 'gemini-3.8-flash')
+    assert.ok(seen.some((x) => x.startsWith('GET') && x.includes('/models')))
+    assert.ok(seen.some((x) => x.includes('gemini-3.8-flash:generateContent')))
+  } finally {
+    fake.close()
+  }
+})
