@@ -74,6 +74,13 @@ function transcript(id: string) {
 
 export class AllBrainsBusy extends Error {}
 
+/** Komut çözücünün yanıtladığı turu da geçmişe yaz (yapay zekâ bağlamı kaçırmasın) */
+export function rememberTurn(conversationId: string, user: string, assistant: string) {
+  const c = transcript(conversationId)
+  c.turns.push({ role: 'user', text: user }, { role: 'assistant', text: assistant })
+  if (c.turns.length > 40) c.turns.splice(0, c.turns.length - 40)
+}
+
 export async function runFreeBrains(conversationId: string, text: string, emit: Emit, signal?: AbortSignal) {
   const convo = transcript(conversationId)
   const history = convo.turns.slice(-16)

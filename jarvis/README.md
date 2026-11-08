@@ -141,6 +141,26 @@ elevenlabs.io → ücretsiz hesap (ayda ~10.000 karakter) → *Profile → API K
 "British butler", "calm British male" gibi aramalarla bir ses seçip *Add to my voices* deyin; ses
 sayfasındaki **Voice ID**'yi kopyalayın. Türkçe için `eleven_multilingual_v2` modeli kullanılıyor.
 
+## Komut çözücü (yapay zekâsız, ücretsiz, 1-2 saniye)
+
+Sık komutlar yapay zekâya gitmeden kodla anlaşılır ve çalıştırılır; animasyonlar aynen oynar, kota harcanmaz
+(`server/src/intents/`). Anlaşılmayan ya da yorum isteyen sorular ("doğru mu", "araştır", "neden", "hangi kanalda")
+yapay zekâya gider. Takip soruları desteklenir: *"Fener yendi mi?" → "Peki sıradaki maç?" → "Ya Galatasaray?"*
+
+| Konu | Örnek cümleler |
+|---|---|
+| Futbol | Fener yendi mi · maç kaç kaç bitti · Galatasaray kazandı mı · maç şu an kaç kaç · sıradaki maç ne zaman · Fenerbahçe kaçıncı sırada · Real Madrid kazandı mı |
+| Hava | hava nasıl · yarın yağmur yağacak mı · şemsiye alayım mı · bu akşam soğuk mu · Erzurum'da kar yağacak mı · hafta sonu İzmir hava · peki öbür gün? |
+| Döviz/altın/kripto | dolar ne kadar · 100 dolar kaç TL · 5000 lira kaç euro · çeyrek altın ne kadar · altın yükseldi mi · bitcoin düştü mü |
+| Haberler | gündem · son dakika · spor/ekonomi/teknoloji haberleri · Fenerbahçe ile ilgili haberler |
+| Saat/tarih | saat kaç · bugün ayın kaçı · bugün günlerden ne |
+| Hesap | 15 çarpı 23 · 1250'nin yüzde 18'i · karekök 144 · 2 üzeri 10 |
+| Hafıza | kahvemi şekersiz içerim, unutma · hakkımda ne biliyorsun · kahve bilgisini unut |
+| Sohbet | selam · günaydın (kısa hava özetiyle) · nasılsın · teşekkürler · kimsin · ne yapabilirsin |
+
+Yeni komut eklemek: `server/src/intents/` altına `detect` (tanı) + `run` (çalıştır, sahne yayınla, cevabı döndür)
+içeren bir dosya yazıp `intents/index.ts`'deki `INTENTS` listesine ekleyin.
+
 ## Ücretsiz beyin zinciri (kota dolunca otomatik geçiş)
 
 Sunucu, anahtarı tanımlı ücretsiz beyinleri sırayla dener: **Gemini → Groq → OpenRouter → Ollama (yerel)**.

@@ -10,7 +10,8 @@ import cors from '@fastify/cors'
 import Fastify from 'fastify'
 import { describeError, resetConversation, runAgent } from './agent.ts'
 import { config, provider, services } from './config.ts'
-import { AllBrainsBusy, brainStatus, resetFreeConversation, runFreeBrains } from './brains.ts'
+import { AllBrainsBusy, brainStatus, rememberTurn, resetFreeConversation, runFreeBrains } from './brains.ts'
+import { tryLocal } from './intents/index.ts'
 import { currentGeminiModel, describeGeminiError, warmUpGemini } from './gemini.ts'
 import type { JarvisEvent } from './events.ts'
 
@@ -56,7 +57,17 @@ app.post<{ Body: { text?: string; conversationId?: string } }>('/api/chat', asyn
   res.on('close', () => ac.abort())
 
   try {
-    if (!services.ai) throw new Error('Sunucuda yapay zekâ anahtarı yok (GEMINI_API_KEY, GROQ_API_KEY, OLLAMA_URL veya ANTHROPIC_API_KEY).')
+    // 1) Önce komut çözücü: sık komutlar yapay zekâya gitmeden, ücretsiz ve hızlı
+    const local = config.localIntents ? await tryLocal(conversationId, text, emit) : null
+    if (local) {
+      if (provider === 'free') rememberTurn(conversationId, text, local.reply)
+      return
+    }
+    // 2) Yapay zekâ
+    if (!services.ai) {
+      emit({ type: 'say', text: 'Bu soruyu yanıtlamak için yapay zekâ beynim bağlı değil efendim. Hava, maç, döviz, haber, hesap ve hatırlatma gibi komutları ise hemen yapabilirim.' })
+      return
+    }
     if (provider === 'free') await runFreeBrains(conversationId, text, emit, ac.signal)
     else await runAgent(conversationId, text, emit, ac.signal)
   } catch (err) {
@@ -64,7 +75,7 @@ app.post<{ Body: { text?: string; conversationId?: string } }>('/api/chat', asyn
       req.log.error(err)
       resetConversation(conversationId)
       resetFreeConversation(conversationId)
-      const msg = err instanceof AllBrainsBusy ? 'Ücretsiz yapay zekâ servislerinin hepsi şu an yoğun ya da kotası dolu. Biraz sonra tekrar deneyin.' : (describeGeminiError(err) ?? describeError(err))
+      const msg = err instanceof AllBrainsBusy ? 'Yapay zekâ servisleri şu an yoğun ya da kotası dolu. Hava, maç, döviz, haber gibi komutlar yine de çalışır.' : (describeGeminiError(err) ?? describeError(err))
       emit({ type: 'state', state: 'error', message: msg })
       emit({ type: 'say', text: 'Üzgünüm efendim, bir sorun oluştu.' })
     }

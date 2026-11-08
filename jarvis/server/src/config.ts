@@ -21,6 +21,8 @@ export const config = {
   ollamaUrl: env('OLLAMA_URL'),
   ollamaModel: env('OLLAMA_MODEL', 'qwen3:8b'),
   ollamaKey: env('OLLAMA_KEY'),
+  /** Komut çözücü (yapay zekâsız hızlı komutlar); LOCAL_INTENTS=off ile kapatılır */
+  localIntents: env('LOCAL_INTENTS', 'on') !== 'off',
   brainOrder: env('BRAIN_ORDER').split(',').map((s) => s.trim()).filter(Boolean),
   model: env('CLAUDE_MODEL', 'claude-sonnet-5-5'),
   /** low | medium | high — sesli asistan için hız/kalite dengesi */
