@@ -1,0 +1,6 @@
+output/**/*.mp4
+output/**/*.mp3
+output/**/*.wav
+output/**/arkaplan.png
+output/**/yazi.png
+.env
