@@ -10,7 +10,7 @@ import cors from '@fastify/cors'
 import Fastify from 'fastify'
 import { describeError, resetConversation, runAgent } from './agent.ts'
 import { config, provider, services } from './config.ts'
-import { currentGeminiModel, describeGeminiError, resetGeminiConversation, runGeminiAgent } from './gemini.ts'
+import { currentGeminiModel, describeGeminiError, warmUpGemini, resetGeminiConversation, runGeminiAgent } from './gemini.ts'
 import type { JarvisEvent } from './events.ts'
 
 const app = Fastify({ logger: { level: 'info' } })
@@ -97,5 +97,6 @@ app.post<{ Body: { text?: string } }>('/api/tts', async (req, reply) => {
 app.post('/cron/tick', async () => ({ ok: true, ran: [] as string[] }))
 
 app.listen({ port: config.port, host: '0.0.0.0' }).then(() => {
+  if (provider === 'gemini' && services.ai) warmUpGemini()
   app.log.info(`J.A.R.V.I.S. çevrimiçi → :${config.port} · Beyin:${provider} ${services.ai ? '✓' : '✗'} · TTS:${services.tts ? '✓' : '✗'}`)
 })

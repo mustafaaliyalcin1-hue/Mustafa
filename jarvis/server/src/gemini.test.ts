@@ -142,3 +142,35 @@ test('gemini: model aşırı yoğunsa (503) tekrar dener, sonra yedek modele ge�
     fake.close()
   }
 })
+
+test('gemini: düşünme ayarı reddedilirse (400) ayarsız devam eder', async () => {
+  const bodies: any[] = [] // eslint-disable-line @typescript-eslint/no-explicit-any
+  const fake = http.createServer((req, res) => {
+    let b = ''
+    req.on('data', (c) => (b += c))
+    req.on('end', () => {
+      res.setHeader('content-type', 'application/json')
+      if (req.method === 'GET') return res.end(JSON.stringify({ models: [{ name: 'models/gemini-flash-latest', supportedActions: ['generateContent'] }] }))
+      const body = JSON.parse(b)
+      bodies.push(body)
+      if (body.generationConfig?.thinkingConfig) {
+        res.statusCode = 400
+        return res.end(JSON.stringify({ error: { code: 400, message: 'Unsupported field', status: 'INVALID_ARGUMENT' } }))
+      }
+      res.end(JSON.stringify({ candidates: [{ content: { role: 'model', parts: [{ text: 'Tamam efendim.' }] } }] }))
+    })
+  })
+  await new Promise<void>((r) => fake.listen(0, r))
+  const port = (fake.address() as { port: number }).port
+  process.env.GEMINI_BASE_URL = `http://127.0.0.1:${port}`
+  const mod = await import('./gemini.ts?dusunme=' + port)
+  try {
+    const events: { text?: string }[] = []
+    await mod.runGeminiAgent('g4', 'selam', (e: never) => events.push(e))
+    assert.equal(events.at(-1)!.text, 'Tamam efendim.')
+    assert.ok(bodies[0].generationConfig.thinkingConfig.thinkingLevel === 'LOW')
+    assert.equal(bodies.length, 2)
+  } finally {
+    fake.close()
+  }
+})

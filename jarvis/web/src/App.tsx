@@ -44,6 +44,12 @@ export default function App() {
     { label: 'WHATSAPP', ok: 'demo' },
     { label: 'SES MODÜLÜ', ok: 'speechSynthesis' in window },
   ])
+  // Uygulama öne gelince ücretsiz sunucuyu hemen uyandır (ilk soru beklemesin)
+  useEffect(() => {
+    const wake = () => document.visibilityState === 'visible' && backendConfigured() && fetchHealth()
+    document.addEventListener('visibilitychange', wake)
+    return () => document.removeEventListener('visibilitychange', wake)
+  }, [])
   // Backend bağlıysa gerçek servis durumlarını göster
   useEffect(() => {
     if (!backendConfigured()) return

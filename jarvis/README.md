@@ -128,7 +128,10 @@ Mimari, ücretsiz katmana göre tasarlandı:
 6. Render panelinde **Environment** sekmesinden `JARVIS_APP_SECRET` değerini kopyalayın.
 7. **Jarvis uygulaması → ⚙ Ayarlar → Sunucu bağlantısı:** adresi ve anahtarı girip *Kaydet ve bağlan*.
    Artık sorular gerçek beyne gider; açılış ekranında "YAPAY ZEKÂ ÇEKİRDEĞİ ✓" görünür.
-8. **cron-job.org** → ücretsiz hesap → *Create cronjob*:
+8. **Sunucuyu uyanık tut (önerilir, yoksa ilk soru ~1 dk bekler):** cron-job.org → ücretsiz hesap → *Create cronjob* →
+   URL: `https://jarvis-server-xxxx.onrender.com/health`, her 10 dakikada bir (GET, başlık gerekmez).
+   Zamanlanmış görevler eklendiğinde (7. aşama) aşağıdaki POST çağrısı da kullanılacak:
+9. **cron-job.org** (zamanlanmış görevler) → *Create cronjob*:
    - URL: `https://jarvis-server-xxxx.onrender.com/cron/tick`, istek tipi **POST**
    - Sıklık: her 10 dakika
    - *Advanced → Headers:* `x-jarvis-key: <JARVIS_APP_SECRET>`

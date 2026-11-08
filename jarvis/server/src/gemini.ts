@@ -8,7 +8,7 @@
  *   web_fetch  → sayfayı indirip düz metne çevirir
  * Ücretsiz katmanın günlük istek sınırı vardır; dolarsa anlaşılır bir hata verilir.
  */
-import { ApiError, GoogleGenAI, type Content, type FunctionCall, type Part } from '@google/genai'
+import { ApiError, GoogleGenAI, ThinkingLevel, type Content, type FunctionCall, type Part } from '@google/genai'
 import { z } from 'zod'
 import { memoryBlock, nowLine, SYSTEM, toSpeech } from './agent.ts'
 import { config } from './config.ts'
@@ -77,18 +77,51 @@ async function discoverModel() {
   activeModel = pick
 }
 
+/**
+ * Sunucu açılırken modeli önceden belirle: ilk soruda 404 + liste turu yaşanmasın.
+ * Ayarlanan model listede varsa o kalır; yoksa en uygun Flash seçilir.
+ */
+export async function warmUpGemini() {
+  try {
+    const names = (await listModels()).map((n) => n.replace(/^models\//, ''))
+    discovered = true
+    if (!names.includes(activeModel) && ranked[0]) {
+      console.log(`[gemini] açılış: "${activeModel}" yok → ${ranked[0]}`)
+      activeModel = ranked[0]
+    } else console.log(`[gemini] açılış: model ${activeModel}`)
+  } catch (e) {
+    console.warn('[gemini] açılışta model listesi alınamadı:', (e as Error).message)
+  }
+}
+
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 /** Geçici sunucu hataları: aşırı yoğunluk (503), iç hata (500) */
 const transient = (e: unknown) => e instanceof ApiError && (e.status === 503 || e.status === 500)
 
 type GenParams = Omit<Parameters<GoogleGenAI['models']['generateContent']>[0], 'model'>
 
+/**
+ * Hız: sesli asistan için uzun "düşünme" gereksiz → düşük düşünme seviyesi.
+ * Model bu ayarı desteklemezse (400) bir kez ayarsız dener ve bir daha göndermez.
+ */
+let thinkingSupported = true
+function withSpeed(params: GenParams): GenParams {
+  if (!thinkingSupported) return params
+  return { ...params, config: { ...params.config, thinkingConfig: { thinkingLevel: ThinkingLevel.LOW } } }
+}
+
 /** Belirli modelde dene: geçici hatada (503/500) kısa beklemelerle 2 kez daha */
 async function tryModel(model: string, params: GenParams) {
   for (let i = 0; ; i++) {
     try {
-      return await ai().models.generateContent({ ...params, model })
+      return await ai().models.generateContent({ ...withSpeed(params), model })
     } catch (e) {
+      if (e instanceof ApiError && e.status === 400 && thinkingSupported) {
+        thinkingSupported = false
+        console.log('[gemini] model düşünme seviyesi ayarını desteklemiyor; ayarsız devam')
+        i--
+        continue
+      }
       if (!transient(e) || i >= 2 || params.config?.abortSignal?.aborted) throw e
       await sleep(i === 0 ? 1200 : 3000)
     }
@@ -114,7 +147,7 @@ async function generate(params: GenParams) {
     let last = e
     for (const alt of ranked.filter((m) => m !== activeModel).slice(0, 3)) {
       try {
-        const r = await ai().models.generateContent({ ...params, model: alt })
+        const r = await ai().models.generateContent({ ...withSpeed(params), model: alt })
         console.log(`[gemini] ${activeModel} yoğun → bu istek ${alt} ile yanıtlandı`)
         return r
       } catch (e2) {
