@@ -32,12 +32,15 @@ const saved = (() => {
   }
 })()
 
+if (saved && !saved.apiUrl) delete saved.apiUrl
+
 let store: JarvisStore = {
   state: 'booting',
   scene: null,
   subtitle: null,
   messages: [],
   settings: { sound: true, voice: true, perf: 'auto', apiUrl: import.meta.env.VITE_JARVIS_API_URL || '', apiKey: '', handsFree: false, ...(saved || {}) },
+  // Kayıtlı adres boşsa derlemeye gömülü sunucu adresini kullan
   lowPerf: false,
   demo: true,
   wakeActive: false,
