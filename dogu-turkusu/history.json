@@ -46,9 +46,11 @@
         {
           "ag": "instagram",
           "tip": "REEL",
-          "saat": "2026-11-13T18:00+03:00",
-          "metricool_id": 420951630,
-          "ai_isareti": true
+          "saat": "2026-11-08T21:46+03:00",
+          "metricool_id": 420983034,
+          "ai_isareti": true,
+          "link": "https://www.instagram.com/reel/DffbuN8gO-7/",
+          "durum": "yayınlandı"
         },
         {
           "ag": "youtube",
@@ -62,6 +64,36 @@
           "tip": "video (16:9 tam sürüm)",
           "saat": "2026-11-13T18:05+03:00",
           "metricool_id": 420951944,
+          "ai_isareti": true
+        }
+      ]
+    },
+    {
+      "tarih": "2026-11-18",
+      "baslik": "Kınalı Mendil",
+      "stil": "B",
+      "muzik": "Gemini uygulaması (Lyria 3.5, ücretsiz), kullanıcı üretti (dosya adı: Fırat Duysun Sesimi)",
+      "sure_sn": 150,
+      "paylasimlar": [
+        {
+          "ag": "instagram",
+          "tip": "REEL",
+          "saat": "2026-11-18T18:00+03:00",
+          "metricool_id": 420989613,
+          "ai_isareti": true
+        },
+        {
+          "ag": "youtube",
+          "tip": "short",
+          "saat": "2026-11-18T18:00+03:00",
+          "metricool_id": 420999023,
+          "ai_isareti": true
+        },
+        {
+          "ag": "youtube",
+          "tip": "video (16:9 tam sürüm)",
+          "saat": "2026-11-18T18:05+03:00",
+          "metricool_id": 421003022,
           "ai_isareti": true
         }
       ]
