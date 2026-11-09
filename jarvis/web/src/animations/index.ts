@@ -10,5 +10,6 @@ import './scenes/News'
 import './scenes/Sports'
 import './scenes/Finance'
 import './scenes/Briefing'
+import './scenes/Calc'
 
 export * from './registry'

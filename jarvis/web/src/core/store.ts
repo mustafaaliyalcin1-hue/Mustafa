@@ -22,6 +22,8 @@ export interface JarvisStore {
   demo: boolean
   /** "Jarvis" uyandırma kelimesi dinleniyor mu */
   wakeActive: boolean
+  /** Hesap makinesi paneli açık mı */
+  calcOpen: boolean
 }
 
 const saved = (() => {
@@ -44,6 +46,7 @@ let store: JarvisStore = {
   lowPerf: false,
   demo: true,
   wakeActive: false,
+  calcOpen: false,
 }
 
 const listeners = new Set<() => void>()

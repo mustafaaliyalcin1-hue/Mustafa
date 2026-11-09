@@ -6,6 +6,7 @@
  */
 import { getScene } from '../animations'
 import type { JarvisEvent } from '../core/types'
+import { evaluate, fmtNum } from '../core/calc'
 
 const norm = (s: string) => s.toLocaleLowerCase('tr-TR')
 
@@ -25,6 +26,18 @@ export function mockRespond(text: string): JarvisEvent[] {
     if (d?.say) seq.push({ type: 'say', text: d.say })
   }
 
+  const calc = t.replace(/artı/g, '+').replace(/eksi/g, '-').replace(/çarpı|kere/g, '*').replace(/bölü/g, '/')
+  if (/\d\s*[+\-*/×÷^]\s*\d/.test(calc)) {
+    const m = calc.match(/[\d(][\d\s.,+\-*/×÷^()]*[\d)]/)
+    try {
+      const r = evaluate(m![0])
+      seq.push({ type: 'scene', scene: 'calc', data: { expr: m![0].replace(/\*/g, ' × ').replace(/\//g, ' ÷ ').replace(/\s+/g, ' '), result: r, label: 'HESAP' }, hold: 1500 })
+      seq.push({ type: 'say', text: `Sonuç ${fmtNum(r)} efendim.` }, { type: 'end' })
+      return seq
+    } catch {
+      /* çözülemezse diğer kurallara devam */
+    }
+  }
   if (/günlük özet|günün özeti|brifing|bugün neler var|^günaydın/.test(t)) {
     scene('briefing')
   } else if (/araştır|karşılaştır/.test(t)) {

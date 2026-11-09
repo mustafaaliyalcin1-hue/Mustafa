@@ -154,7 +154,8 @@ yapay zekâya gider. Takip soruları desteklenir: *"Fener yendi mi?" → "Peki s
 | Döviz/altın/kripto | dolar ne kadar · 100 dolar kaç TL · 5000 lira kaç euro · çeyrek altın ne kadar · altın yükseldi mi · bitcoin düştü mü |
 | Haberler | gündem · son dakika · spor/ekonomi/teknoloji haberleri · Fenerbahçe ile ilgili haberler |
 | Saat/tarih | saat kaç · bugün ayın kaçı · bugün günlerden ne |
-| Hesap | 15 çarpı 23 · 1250'nin yüzde 18'i · karekök 144 · 2 üzeri 10 |
+| Hesap | 15 çarpı 23 · yüz yirmi beş artı otuz · 1250'nin yüzde 18'i · 50, 200'ün yüzde kaçı · 5000'e yüzde 20 zam · 800'den yüzde 15 indirim · 1000 liranın KDV'si · KDV dahil 1200'ün KDV hariç fiyatı · 360'ın yarısı · 5 faktöriyel · 3, 5 ve 10'un ortalaması · 120'yi 7'ye böl · devam: "artı 6", "bunu 3'e böl", "sonucun yüzde 20'si" |
+| Hesap makinesi modu | "hesap makinesi aç" ya da sağ üstteki 🧮: tuşlar, geçmiş, panel içinde mikrofon, klavye desteği |
 | Hafıza | kahvemi şekersiz içerim, unutma · hakkımda ne biliyorsun · kahve bilgisini unut |
 | Günlük özet | günlük özet · brifing · bugün neler var · günaydın — hava + gündem + Fenerbahçe'nin son/sıradaki maçı (ekranda güneş doğuşu ve paneller; sağ üstteki ☀ GÜNLÜK ÖZET düğmesi) |
 | Sohbet | selam · nasılsın · teşekkürler · kimsin · ne yapabilirsin |

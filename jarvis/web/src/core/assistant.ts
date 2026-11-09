@@ -11,6 +11,14 @@ import { listenOnce, speechRecognitionSupported, startMicLevel, stopMicLevel } f
 
 export function ask(text: string) {
   if (!text.trim()) return
+  const low = text.toLocaleLowerCase('tr-TR')
+  if (/hesap makinesi|hesap modu|hesap makinası/.test(low)) {
+    const close = /kapat|gizle/.test(low)
+    setStore({ calcOpen: !close })
+    sfx(close ? 'whoosh' : 'pop')
+    play([{ type: 'say', text: close ? 'Hesap makinesini kapattım efendim.' : 'Hesap makinesi hazır efendim. Tuşlarla ya da sesle hesaplayabilirsiniz.' }, { type: 'end' }])
+    return
+  }
   interrupt()
   cancelBackend()
   closeScene()

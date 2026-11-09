@@ -3,6 +3,7 @@
  */
 import { useEffect, useState } from 'react'
 import { ask } from '../core/assistant'
+import { setStore } from '../core/store'
 
 function useNow() {
   const [now, setNow] = useState(new Date())
@@ -67,10 +68,16 @@ export default function HudWidgets() {
         </Panel>
       </div>
       <div className="pointer-events-none absolute right-3 top-3 z-10 flex flex-col items-end gap-2 sm:right-5 sm:top-5">
-        {/* Dokununca günlük özet (hava + gündem + son maçlar) */}
-        <button onClick={() => ask('günlük özet')} className="hud-panel pointer-events-auto flex items-center gap-2 px-3 py-2 font-mono text-xs tracking-wider text-hud-cyan transition hover:bg-hud-cyan/10 hover:text-white active:scale-95">
-          <span className="text-amber-300">☀</span> GÜNLÜK ÖZET
-        </button>
+        {/* Hızlı düğmeler: günlük özet (hava + gündem + son maçlar) ve hesap makinesi */}
+        <div className="flex gap-2">
+          <button onClick={() => ask('günlük özet')} className="hud-panel pointer-events-auto flex items-center gap-2 px-3 py-2 font-mono text-xs tracking-wider text-hud-cyan transition hover:bg-hud-cyan/10 hover:text-white active:scale-95" title="Günlük özet">
+            <span className="text-amber-300">☀</span>
+            <span className="hidden sm:inline">GÜNLÜK ÖZET</span>
+          </button>
+          <button onClick={() => setStore((s) => ({ calcOpen: !s.calcOpen }))} className="hud-panel pointer-events-auto flex items-center gap-2 px-3 py-2 font-mono text-xs tracking-wider text-hud-cyan transition hover:bg-hud-cyan/10 hover:text-white active:scale-95" title="Hesap makinesi">
+            🧮<span className="hidden sm:inline">HESAP</span>
+          </button>
+        </div>
         <Panel className="flex items-center gap-4 font-mono text-xs text-hud-cyan/80">
           <span className={net.on ? '' : 'text-red-400'}>
             {net.on ? '◉' : '○'} NET {net.on ? net.type || 'OK' : 'YOK'}

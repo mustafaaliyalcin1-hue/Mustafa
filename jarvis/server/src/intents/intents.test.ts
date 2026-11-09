@@ -14,7 +14,7 @@ process.env.TZ = 'Europe/Istanbul'
 
 const { recognize, tryLocal } = await import('./index.ts')
 const { ekle, extractPlace, norm, extractDayOffset } = await import('./text.ts')
-const { evaluate } = await import('./misc.ts')
+const { evaluate } = await import('./calc.ts')
 const { saatEki } = await import('./football.ts')
 
 // ------------------------------------------------------------------ 1) tanıma
@@ -54,8 +54,22 @@ const CASES: [string, string | null, Record<string, unknown>?][] = [
   ['saat kaç', 'time', { ask: 'saat' }],
   ['bugün ayın kaçı', 'time', { ask: 'tarih' }],
   ['15 çarpı 23', 'calc', { expr: '15 * 23' }],
-  ["1250'nin yüzde 18'i", 'calc', { percent: [18, 1250] }],
-  ['karekök 144', 'calc', { sqrt: 144 }],
+  ["1250'nin yüzde 18'i", 'calc', { kind: 'yuzde', a: 1250, b: 18 }],
+  ['karekök 144', 'calc', { kind: 'kisayol', a: 144 }],
+  ['yüz yirmi beş artı otuz', 'calc', { expr: '125 + 30' }],
+  ['iki bin beş yüz bölü elli', 'calc', { expr: '2500 / 50' }],
+  ["5000'e yüzde 20 zam", 'calc', { kind: 'zam', a: 5000, b: 20 }],
+  ["800'den yüzde 15 indirim", 'calc', { kind: 'indirim', a: 800, b: 15 }],
+  ["1000 liranın kdv'si ne kadar", 'calc', { kind: 'kdv', a: 1000, b: 20 }],
+  ["kdv dahil 1200'ün kdv hariç fiyatı", 'calc', { kind: 'kdvic', a: 1200 }],
+  ["50, 200'ün yüzde kaçı", 'calc', { kind: 'kacyuzde', a: 50, b: 200 }],
+  ['3, 5 ve 10 un ortalaması', 'calc', { kind: 'ortalama' }],
+  ["120'yi 7'ye böl", 'calc', { expr: '120/7' }],
+  ["100'den 37'yi çıkar", 'calc', { expr: '100-37' }],
+  ["15 ile 27'yi topla", 'calc', { expr: '15+27' }],
+  ["360'ın yarısı", 'calc', { kind: 'kisayol', a: 360 }],
+  ['5 faktöriyel', 'calc', { expr: '5!' }],
+  ['12 kere 12 kaç eder', 'calc', { expr: '12 * 12' }],
   ['kahvemi şekersiz içerim, unutma', 'memory', { action: 'save', text: 'kahvemi şekersiz içerim' }],
   ['Jarvis, unutma: annemin doğum günü 3 Mart', 'memory', { action: 'save', text: 'annemin doğum günü 3 Mart' }],
   ['hakkımda ne biliyorsun', 'memory', { action: 'list' }],
@@ -268,4 +282,40 @@ test('günlük özet: hava + haber + maç tek sahnede ve tek konuşmada', async 
   assert.match(y.say, /^Günaydın efendim, bugün/)
   assert.doesNotMatch(y.say, /Fenerbahçe/)
   assert.match(y.say, /Gündemden/)
+})
+
+test('hesap: cevaplar, ekler ve önceki sonuçla devam', async () => {
+  const { iyelik } = await import('./calc.ts')
+  assert.deepEqual([20, 30, 25, 100, 18, 40, 6, 1000].map(iyelik), ['si', 'u', 'i', 'ü', 'i', 'ı', 'sı', 'i'])
+  let x = await ask("5000'e yüzde 20 zam", 'h1')
+  assert.deepEqual(x.scenes, ['calc'])
+  assert.equal(x.say, '5.000 sayısına yüzde 20 zam yapılınca 6.000 olur efendim; artış 1.000.')
+  x = await ask("800'den yüzde 15 indirim")
+  assert.equal(x.say, '800 sayısından yüzde 15 indirimle 680 olur efendim; indirim tutarı 120.')
+  x = await ask("1000 liranın kdv'si ne kadar")
+  assert.equal(x.say, 'Yüzde 20 KDV ile birlikte 1.200 eder efendim; KDV tutarı 200.')
+  x = await ask("kdv dahil 1200'ün kdv hariç fiyatı")
+  assert.equal(x.say, 'KDV hariç tutar 1.000 efendim; içindeki yüzde 20 KDV 200.')
+  x = await ask("200'ün yüzde 30'u")
+  assert.equal(x.say, "200 sayısının yüzde 30'u 60 eder efendim.")
+  x = await ask("50, 200'ün yüzde kaçı")
+  assert.equal(x.say, "50, 200 sayısının yüzde 25'i ediyor efendim.")
+  x = await ask('yüz yirmi beş artı otuz')
+  assert.equal(x.say, 'Sonuç 155 efendim.')
+  x = await ask('5 faktöriyel')
+  assert.equal(x.say, '5 sayısının faktöriyeli 120 efendim.')
+  // Devam: önceki sonuç üzerinden
+  x = await ask('12 kere 12', 'zincir')
+  assert.equal(x.say, 'Sonuç 144 efendim.')
+  x = await ask('artı 6', 'zincir')
+  assert.equal(x.say, 'Sonuç 150 efendim.')
+  x = await ask("bunu 3'e böl", 'zincir')
+  assert.equal(x.say, 'Sonuç 50 efendim.')
+  x = await ask("sonucun yüzde 20'si", 'zincir')
+  assert.equal(x.say, "50 sayısının yüzde 20'si 10 eder efendim.")
+  x = await ask('2 ile çarp', 'zincir')
+  assert.equal(x.say, 'Sonuç 20 efendim.')
+  const sc = x.events.find((e) => e.scene === 'calc')!.data
+  assert.equal(sc.result, 20)
+  assert.equal(sc.expr, '10 × 2')
 })

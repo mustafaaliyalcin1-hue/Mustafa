@@ -12,6 +12,7 @@ import ChatDock, { ask } from './components/ChatDock'
 import { LogDrawer, SettingsDrawer } from './components/Drawers'
 import HudWidgets from './components/HudWidgets'
 import SceneLayer from './components/SceneLayer'
+import CalcPad from './components/CalcPad'
 import StateOverlay from './components/StateOverlay'
 import { setState } from './core/player'
 import { startPerfMonitor } from './core/perf'
@@ -86,6 +87,7 @@ export default function App() {
       <SceneLayer />
       <StateOverlay />
       <HudWidgets />
+      <CalcPad />
       <ChatDock onOpenGallery={() => setGallery(true)} onOpenSettings={() => setSettings(true)} onOpenLog={() => setLog(true)} />
 
       <AnimatePresence>{gallery && <Gallery onClose={() => setGallery(false)} onBoot={reboot} />}</AnimatePresence>
