@@ -32,6 +32,14 @@ export const config = {
   defaultCity: env('DEFAULT_CITY', 'İstanbul'),
   tz: env('TZ', 'Europe/Istanbul'),
   dataDir: env('DATA_DIR', './data'),
+  /** Sunucunun herkese açık adresi (Render bunu otomatik verir) */
+  publicUrl: env('PUBLIC_URL', env('RENDER_EXTERNAL_URL', 'http://localhost:8787')),
+  // YouTube (Google OAuth) — Google Cloud Console'da oluşturulan OAuth istemcisi
+  googleClientId: env('GOOGLE_CLIENT_ID'),
+  googleClientSecret: env('GOOGLE_CLIENT_SECRET'),
+  youtubeRefreshToken: env('YOUTUBE_REFRESH_TOKEN'),
+  /** Yüklenen videoların geçici klasörü */
+  uploadDir: env('UPLOAD_DIR', '/tmp/jarvis-uploads'),
 }
 
 /** Hangi beyin? Varsayılan: Gemini anahtarı varsa Gemini (ücretsiz), yoksa Claude. AI_PROVIDER ile zorlanabilir. */

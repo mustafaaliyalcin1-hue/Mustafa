@@ -12,6 +12,12 @@ import { listenOnce, speechRecognitionSupported, startMicLevel, stopMicLevel } f
 export function ask(text: string) {
   if (!text.trim()) return
   const low = text.toLocaleLowerCase('tr-TR')
+  if (/(video (paylaş|yükle|stüdyo)|stüdyoyu? aç|video stüdyosu|youtube'?a (yükle|video))/.test(low)) {
+    setStore({ studioOpen: true })
+    sfx('pop')
+    play([{ type: 'say', text: 'Video stüdyosu açık efendim. Galeriden videonuzu seçin.' }, { type: 'end' }])
+    return
+  }
   if (/hesap makinesi|hesap modu|hesap makinası/.test(low)) {
     const close = /kapat|gizle/.test(low)
     setStore({ calcOpen: !close })

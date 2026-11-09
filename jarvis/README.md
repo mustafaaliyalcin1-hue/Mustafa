@@ -192,6 +192,29 @@ Gerekenler: Windows/Mac/Linux bir bilgisayar, en az 16 GB RAM (8 GB'ta `qwen3:4b
 4. Yalnızca yerel modeli kullanmak için `BRAIN_ORDER=ollama` yapın.
 > Tünel adresini bilen herkes modelinizi kullanabilir; adresi paylaşmayın.
 
+## 🎬 Video Stüdyosu ve YouTube kurulumu
+
+Jarvis'te sağ üstteki 🎬 (ya da "video paylaş" deyin) → **Galeriden video seç** → başlık, açıklama, etiket,
+gizlilik, istenirse planlı yayın → **onay** → telefon → sunucu → YouTube. Hiçbir şey onaysız paylaşılmaz.
+
+**Bir kerelik Google kurulumu (ücretsiz, ~10 dk, YouTube kanalının olduğu Google hesabıyla):**
+1. console.cloud.google.com → üstten **Yeni proje** → ad: `Jarvis` → Oluştur.
+2. **API'ler ve Hizmetler → Kitaplık** → "YouTube Data API v3" → **Etkinleştir**.
+3. **OAuth izin ekranı** (Google Auth Platform) → Kullanıcı türü **Harici** → uygulama adı `Jarvis`, e-posta alanlarına kendi
+   adresiniz → kaydet. **Hedef kitle → Test kullanıcıları**'na kendi Gmail adresinizi ekleyin.
+   Ardından **Uygulamayı yayınla / In production** deyin (yoksa bağlantı her 7 günde bir kopar; uygulamayı yalnızca siz
+   kullanacağınız için Google doğrulaması gerekmez, sadece "doğrulanmamış uygulama" uyarısı çıkar).
+4. **Kimlik bilgileri → Kimlik bilgisi oluştur → OAuth istemci kimliği** → tür **Web uygulaması** →
+   **Yetkili yönlendirme URI'leri**: `https://jarvis-server-xxxx.onrender.com/oauth/google/callback` → Oluştur.
+   Çıkan **İstemci kimliği** ve **İstemci gizli anahtarı**nı kopyalayın.
+5. Render → jarvis-server → Environment → `GOOGLE_CLIENT_ID` ve `GOOGLE_CLIENT_SECRET` ekleyin → Save.
+6. Jarvis → 🎬 → **YouTube'u bağla** → Google hesabı → "Google bu uygulamayı doğrulamadı" → **Gelişmiş → Jarvis'e git** →
+   izin verin. Açılan sayfadaki metni Render'a `YOUTUBE_REFRESH_TOKEN` olarak ekleyin (sunucu yeniden başlasa da bağlı kalır).
+
+> **Not:** Google, denetimden geçmemiş projelerden API ile yüklenen videoları **gizli** tutar. Videoyu YouTube Studio'dan
+> herkese açabilirsiniz. Bu kısıtı kaldırmak için Google'a ücretsiz "YouTube API denetimi" başvurusu yapılabilir.
+> Ücretsiz kota günde yaklaşık 6 video yüklemeye yeter. "Son videom kaç izlendi?" gibi sorular da çalışır.
+
 ## Testler
 
 ```bash

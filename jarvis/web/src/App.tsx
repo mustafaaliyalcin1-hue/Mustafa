@@ -13,6 +13,7 @@ import { LogDrawer, SettingsDrawer } from './components/Drawers'
 import HudWidgets from './components/HudWidgets'
 import SceneLayer from './components/SceneLayer'
 import CalcPad from './components/CalcPad'
+import VideoStudio from './components/VideoStudio'
 import StateOverlay from './components/StateOverlay'
 import { setState } from './core/player'
 import { startPerfMonitor } from './core/perf'
@@ -88,6 +89,7 @@ export default function App() {
       <StateOverlay />
       <HudWidgets />
       <CalcPad />
+      <VideoStudio />
       <ChatDock onOpenGallery={() => setGallery(true)} onOpenSettings={() => setSettings(true)} onOpenLog={() => setLog(true)} />
 
       <AnimatePresence>{gallery && <Gallery onClose={() => setGallery(false)} onBoot={reboot} />}</AnimatePresence>

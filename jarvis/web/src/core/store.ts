@@ -24,6 +24,8 @@ export interface JarvisStore {
   wakeActive: boolean
   /** Hesap makinesi paneli açık mı */
   calcOpen: boolean
+  /** Video stüdyosu açık mı */
+  studioOpen: boolean
 }
 
 const saved = (() => {
@@ -47,6 +49,7 @@ let store: JarvisStore = {
   demo: true,
   wakeActive: false,
   calcOpen: false,
+  studioOpen: false,
 }
 
 const listeners = new Set<() => void>()

@@ -5,5 +5,6 @@ import './news.ts'
 import './finance.ts'
 import './sports.ts'
 import './present.ts'
+import './youtube.ts'
 
 export * from './registry.ts'

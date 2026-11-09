@@ -14,6 +14,10 @@ import { AllBrainsBusy, brainStatus, rememberTurn, resetFreeConversation, runFre
 import { tryLocal } from './intents/index.ts'
 import { isFactCheck } from './intents/text.ts'
 import { UA } from './tools/http.ts'
+import { randomUUID } from 'node:crypto'
+import type { Readable } from 'node:stream'
+import { saveUpload } from './social/media.ts'
+import { authUrl, exchangeCode, uploadVideo, youtubeConfigured, youtubeConnected } from './social/youtube.ts'
 import { currentGeminiModel, describeGeminiError, warmUpGemini } from './gemini.ts'
 import type { JarvisEvent } from './events.ts'
 
@@ -21,7 +25,7 @@ const app = Fastify({ logger: { level: 'info' } })
 
 await app.register(cors, {
   origin: config.allowedOrigins.length ? config.allowedOrigins : true,
-  allowedHeaders: ['content-type', 'x-jarvis-key'],
+  allowedHeaders: ['content-type', 'x-jarvis-key', 'x-file-name'],
 })
 
 // --- basit kimlik doğrulama + hız sınırı
@@ -35,6 +39,66 @@ app.addHook('onRequest', async (req, reply) => {
   arr.push(now)
   hits.set(req.ip, arr)
   if (arr.length > 30) return reply.code(429).send({ error: 'Çok fazla istek, biraz bekleyin efendim' })
+})
+
+// ---------------------------------------------------------------- VİDEO / SOSYAL MEDYA
+// Video dosyası ham akış olarak gelir (çok parçalı form yok): x-file-name başlığında ad
+app.addContentTypeParser(/^(video\/|application\/octet-stream)/, (_req, payload, done) => done(null, payload))
+
+app.post('/api/media', async (req, reply) => {
+  const name = decodeURIComponent((req.headers['x-file-name'] as string) || 'video.mp4')
+  const mime = (req.headers['content-type'] as string) || 'video/mp4'
+  if (!/^video\//.test(mime) && mime !== 'application/octet-stream') return reply.code(415).send({ error: 'Yalnızca video yüklenebilir' })
+  try {
+    const f = await saveUpload(req.body as Readable, name, mime)
+    return { id: f.id, size: f.size, name: f.name }
+  } catch (e) {
+    return reply.code(413).send({ error: (e as Error).message })
+  }
+})
+
+app.get('/api/social/status', async () => ({
+  youtube: { configured: youtubeConfigured(), connected: youtubeConnected() },
+  instagram: { configured: false, connected: false },
+}))
+
+// Google bağlantısı: tek kullanımlık durum kodu (gizli anahtar adreste görünmesin)
+const oauthStates = new Map<string, number>()
+app.post('/api/youtube/link', async (_req, reply) => {
+  if (!youtubeConfigured()) return reply.code(400).send({ error: 'Sunucuda GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET tanımlı değil (kurulum rehberine bakın).' })
+  const state = randomUUID()
+  oauthStates.set(state, Date.now() + 10 * 60_000)
+  return { url: authUrl(state) }
+})
+
+app.get<{ Querystring: { code?: string; state?: string; error?: string } }>('/oauth/google/callback', async (req, reply) => {
+  const { code, state, error } = req.query
+  const page = (title: string, body: string) =>
+    reply.type('text/html; charset=utf-8').send(`<!doctype html><meta name=viewport content="width=device-width,initial-scale=1"><title>J.A.R.V.I.S.</title><body style="background:#020814;color:#e6faff;font-family:system-ui;padding:24px;line-height:1.5"><h2 style="color:#3ee8ff">${title}</h2>${body}</body>`)
+  const until = state ? oauthStates.get(state) : undefined
+  if (state) oauthStates.delete(state)
+  if (error) return page('Bağlantı iptal edildi', `<p>Google: ${error}</p>`)
+  if (!code || !until || until < Date.now()) return page('Bağlantı geçersiz', '<p>Bağlantının süresi dolmuş. Jarvis’ten tekrar “YouTube’u bağla” deyin.</p>')
+  try {
+    const rt = await exchangeCode(code)
+    const persist = config.youtubeRefreshToken
+      ? '<p>Bağlantı kaydedildi.</p>'
+      : `<p><b>Son adım (kalıcı olması için):</b> Render → jarvis-server → Environment → <b>Add</b> → anahtar adı <code>YOUTUBE_REFRESH_TOKEN</code>, değer aşağıdaki metin → Save.</p><textarea readonly style="width:100%;height:90px;background:#041325;color:#3ee8ff;border:1px solid #3ee8ff55;padding:8px" onclick="this.select()">${rt}</textarea><p style="opacity:.7">Bu metni kimseyle paylaşmayın. Sunucu yeniden başlarsa bağlantı bu değerle korunur.</p>`
+    return page('YouTube bağlandı ✓', `${persist}<p>Bu sekmeyi kapatıp Jarvis’e dönebilirsiniz.</p>`)
+  } catch (e) {
+    return page('Bağlantı başarısız', `<p>${(e as Error).message}</p>`)
+  }
+})
+
+app.post<{ Body: { mediaId?: string; title?: string; description?: string; tags?: string[]; privacy?: 'private' | 'unlisted' | 'public'; publishAt?: string } }>('/api/youtube/upload', async (req, reply) => {
+  const b = req.body || {}
+  if (!b.mediaId || !b.title) return reply.code(400).send({ error: 'Video ve başlık gerekli' })
+  try {
+    return await uploadVideo({ mediaId: b.mediaId, title: b.title, description: b.description, tags: b.tags, privacy: b.privacy || 'private', publishAt: b.publishAt })
+  } catch (e) {
+    req.log.error(e)
+    return reply.code(502).send({ error: (e as Error).message })
+  }
 })
 
 app.get('/health', async () => ({ ok: true, services, model: provider === 'free' ? currentGeminiModel() : config.model, brains: provider === 'free' ? brainStatus() : undefined, time: new Date().toISOString() }))
