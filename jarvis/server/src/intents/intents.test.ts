@@ -60,7 +60,10 @@ const CASES: [string, string | null, Record<string, unknown>?][] = [
   ['Jarvis, unutma: annemin doğum günü 3 Mart', 'memory', { action: 'save', text: 'annemin doğum günü 3 Mart' }],
   ['hakkımda ne biliyorsun', 'memory', { action: 'list' }],
   ['selam', 'smalltalk', { kind: 'selam' }],
-  ['günaydın jarvis', 'smalltalk', { kind: 'gunaydin' }],
+  ['günaydın jarvis', 'briefing', { morning: true }],
+  ['günlük özet', 'briefing'],
+  ['bugün neler var', 'briefing'],
+  ['Jarvis brifing ver', 'briefing'],
   ['teşekkürler', 'smalltalk', { kind: 'tesekkur' }],
   ['ne yapabilirsin', 'smalltalk', { kind: 'yetenek' }],
   ['elektrikli araba mı hibrit mi araştır', null],
@@ -244,4 +247,25 @@ test('haber, saat, hesap, hafıza, sohbet', async () => {
   // Yapay zekâ gerektiren soru yerelde çözülmez
   x = await ask('bu haber doğru mu')
   assert.equal(x.r, null)
+})
+
+test('günlük özet: hava + haber + maç tek sahnede ve tek konuşmada', async () => {
+  board = { events: [ev('1', iso(-1), 'post', ['Fenerbahce', '3'], ['Galatasaray', '1']), ev('2', iso(6), 'pre', ['Besiktas', ''], ['Fenerbahce', ''])] }
+  const x = await ask('günlük özet')
+  assert.deepEqual(x.scenes, ['briefing'])
+  const d = x.events.find((e) => e.scene === 'briefing')!.data
+  assert.equal(d.weather.city, 'İstanbul')
+  assert.equal(d.news.length, 2)
+  assert.equal(d.football.last.home.name, 'Fenerbahçe')
+  assert.equal(d.football.next.home.name, 'Beşiktaş')
+  assert.match(x.say, /bugün .*\. İstanbul'da hava 14 derece/)
+  assert.match(x.say, /Gündemden öne çıkanlar: Merkez Bankası faizi sabit tuttu; Yeni metro hattı açıldı\./)
+  assert.match(x.say, /Fenerbahçe dün Galatasaray'ı 3-1 yendi\. Sıradaki maç .* Beşiktaş ile\. İyi bir gün dilerim\.$/)
+
+  // Maç kaynağı çökerse özet yine gelir (maçsız)
+  board = { bozuk: true }
+  const y = await ask('günaydın')
+  assert.match(y.say, /^Günaydın efendim, bugün/)
+  assert.doesNotMatch(y.say, /Fenerbahçe/)
+  assert.match(y.say, /Gündemden/)
 })

@@ -147,9 +147,9 @@ export const footballIntent: Intent<P> = {
 
 const sideOf = (m: Match, name: string) => (fold(m.home.name).includes(fold(name).slice(0, 6)) ? 'home' : 'away')
 const isHome = (m: Match, name: string) => sideOf(m, name) === 'home'
-const opponent = (m: Match, name: string) => (isHome(m, name) ? m.away.name : m.home.name)
+export const opponent = (m: Match, name: string) => (isHome(m, name) ? m.away.name : m.home.name)
 
-function resultText(m: Match, name: string) {
+export function resultText(m: Match, name: string) {
   const us = sideOf(m, name)
   const ours = m[us].score ?? 0
   const theirs = m[us === 'home' ? 'away' : 'home'].score ?? 0
@@ -168,7 +168,7 @@ function resultText(m: Match, name: string) {
   return `${name} ${ago} ${opp} ile ${ours}-${theirs} berabere kaldı efendim.`
 }
 
-function liveText(m: Match, name: string) {
+export function liveText(m: Match, name: string) {
   const us = sideOf(m, name)
   const ours = m[us].score ?? 0
   const theirs = m[us === 'home' ? 'away' : 'home'].score ?? 0
@@ -179,7 +179,7 @@ function liveText(m: Match, name: string) {
   return `${min}${name} ile ${opp} ${ours}-${theirs} berabere.`
 }
 
-function daysAgo(iso: string) {
+export function daysAgo(iso: string) {
   const d = Math.round((startOfDay(new Date()) - startOfDay(new Date(iso))) / 864e5)
   if (d <= 0) return 'bugün'
   if (d === 1) return 'dün'
@@ -188,7 +188,7 @@ function daysAgo(iso: string) {
 }
 const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
 
-function when(iso: string) {
+export function when(iso: string) {
   const d = new Date(iso)
   const days = Math.round((startOfDay(d) - startOfDay(new Date())) / 864e5)
   const saat = d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Istanbul' })

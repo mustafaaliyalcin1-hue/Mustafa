@@ -25,7 +25,9 @@ export function mockRespond(text: string): JarvisEvent[] {
     if (d?.say) seq.push({ type: 'say', text: d.say })
   }
 
-  if (/araştır|karşılaştır/.test(t)) {
+  if (/günlük özet|günün özeti|brifing|bugün neler var|^günaydın/.test(t)) {
+    scene('briefing')
+  } else if (/araştır|karşılaştır/.test(t)) {
     seq.push({ type: 'scene', scene: 'research', data: { topic: '', summary: '', sources: [] }, hold: 1600 })
     scene('research')
   } else if (/maç|skor|fenerbahçe|fener|puan durumu|fikstür|lig/.test(t)) {
@@ -49,7 +51,7 @@ export function mockRespond(text: string): JarvisEvent[] {
   } else if (/hata|bozuk/.test(t)) {
     seq.push({ type: 'state', state: 'error', message: 'Demo: bağlantı zaman aşımına uğradı (sahte hata).' })
     seq.push({ type: 'say', text: 'Üzgünüm efendim, bir sorun oluştu. Tekrar deneyeceğim.' })
-  } else if (/merhaba|selam|günaydın|nasılsın/.test(t)) {
+  } else if (/merhaba|selam|nasılsın/.test(t)) {
     seq.push({ type: 'say', text: 'Merhaba efendim. Tüm sistemler çalışıyor; size nasıl yardımcı olabilirim?' })
   } else {
     seq.push({ type: 'scene', scene: 'generic', data: { label: 'İŞLEM YAPILIYOR' }, hold: 2400 })

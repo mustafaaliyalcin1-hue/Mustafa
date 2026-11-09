@@ -2,6 +2,7 @@
  * Köşe HUD widget'ları: saat, tarih, hava, pil, internet + ara sıra geçen "sistem taraması".
  */
 import { useEffect, useState } from 'react'
+import { ask } from '../core/assistant'
 
 function useNow() {
   const [now, setNow] = useState(new Date())
@@ -66,9 +67,10 @@ export default function HudWidgets() {
         </Panel>
       </div>
       <div className="pointer-events-none absolute right-3 top-3 z-10 flex flex-col items-end gap-2 sm:right-5 sm:top-5">
-        <Panel className="flex items-center gap-3 font-mono text-xs text-hud-cyan/80">
-          <span title="Hava (demo)">☀ 18°C İSTANBUL</span>
-        </Panel>
+        {/* Dokununca günlük özet (hava + gündem + son maçlar) */}
+        <button onClick={() => ask('günlük özet')} className="hud-panel pointer-events-auto flex items-center gap-2 px-3 py-2 font-mono text-xs tracking-wider text-hud-cyan transition hover:bg-hud-cyan/10 hover:text-white active:scale-95">
+          <span className="text-amber-300">☀</span> GÜNLÜK ÖZET
+        </button>
         <Panel className="flex items-center gap-4 font-mono text-xs text-hud-cyan/80">
           <span className={net.on ? '' : 'text-red-400'}>
             {net.on ? '◉' : '○'} NET {net.on ? net.type || 'OK' : 'YOK'}

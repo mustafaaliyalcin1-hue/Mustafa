@@ -56,16 +56,22 @@ function Subtitle() {
   const sub = useJarvis((s) => s.subtitle)
   const sceneOpen = useJarvis((s) => !!s.scene)
   if (!sub) return null
-  const words = sub.text.split(/\s+/).filter(Boolean)
+  const all = sub.text.split(/\s+/).filter(Boolean)
+  // Uzun konuşmalarda altyazı 16 kelimelik parçalar halinde akar (ekranı kapatmasın)
+  const CHUNK = 16
+  const chunk = all.length > CHUNK + 4 ? Math.floor(Math.max(0, sub.shown - 1) / CHUNK) : 0
+  const offset = all.length > CHUNK + 4 ? chunk * CHUNK : 0
+  const words = all.length > CHUNK + 4 ? all.slice(offset, offset + CHUNK) : all
+  const shownInChunk = sub.shown - offset
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-28 z-20 flex justify-center px-4 sm:bottom-32">
       <p className={`max-w-3xl text-center font-hud font-medium leading-snug text-white/95 drop-shadow-[0_0_8px_rgba(62,232,255,0.6)] ${sceneOpen ? "rounded-md bg-[#020814]/80 px-4 py-2 text-lg backdrop-blur-sm sm:text-xl" : "text-xl sm:text-2xl"}`}>
         {words.map((w, i) => (
           <motion.span
-            key={i + w}
+            key={offset + i + w}
             className="mr-[0.3em] inline-block"
             initial={{ opacity: 0, y: 8, filter: 'blur(4px)' }}
-            animate={i < sub.shown ? { opacity: 1, y: 0, filter: 'blur(0px)' } : { opacity: 0.08, y: 8 }}
+            animate={i < shownInChunk ? { opacity: 1, y: 0, filter: 'blur(0px)' } : { opacity: 0.08, y: 8 }}
             transition={{ duration: 0.22 }}
           >
             {w}

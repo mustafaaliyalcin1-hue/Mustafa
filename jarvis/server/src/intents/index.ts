@@ -6,6 +6,7 @@
  * yapay zekâya bırakır. Takip sorularını anlar: "peki yarın?", "ya Galatasaray?".
  */
 import type { Emit } from '../events.ts'
+import { briefingIntent } from './briefing.ts'
 import { financeIntent } from './finance.ts'
 import { footballIntent } from './football.ts'
 import { calcIntent, memoryIntent, smallTalkIntent, timeIntent } from './misc.ts'
@@ -15,7 +16,7 @@ import type { Intent, IntentContext } from './types.ts'
 import { weatherIntent } from './weather.ts'
 
 /** Sıra önemli: daha özel olan önce */
-export const INTENTS: Intent[] = [smallTalkIntent, memoryIntent, timeIntent, newsIntent, footballIntent, financeIntent, weatherIntent, calcIntent] as unknown as Intent[]
+export const INTENTS: Intent[] = [briefingIntent, smallTalkIntent, memoryIntent, timeIntent, newsIntent, footballIntent, financeIntent, weatherIntent, calcIntent] as unknown as Intent[]
 
 /** Bu kalıplar yorum/araştırma ister → her zaman yapay zekâya */
 const NEEDS_AI = /(dogru mu|gercek mi|yalan mi|dogrula|teyit|arastir|karsilastir|\bneden\b|\bniye\b|nasil yapilir|anlat|acikla|yorumla|tavsiye|oner|ozetle|cevir|tercume|ne demek|kimdir|nedir|tarifi|yorumun|sence|fikrin|analiz|hangi kanal|nereden izle|yayin\w* hangi|kim att|golleri kim|kadro|sakat|transfer)/

@@ -9,5 +9,6 @@ import './scenes/Research'
 import './scenes/News'
 import './scenes/Sports'
 import './scenes/Finance'
+import './scenes/Briefing'
 
 export * from './registry'

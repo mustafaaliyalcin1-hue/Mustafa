@@ -156,7 +156,8 @@ yapay zekâya gider. Takip soruları desteklenir: *"Fener yendi mi?" → "Peki s
 | Saat/tarih | saat kaç · bugün ayın kaçı · bugün günlerden ne |
 | Hesap | 15 çarpı 23 · 1250'nin yüzde 18'i · karekök 144 · 2 üzeri 10 |
 | Hafıza | kahvemi şekersiz içerim, unutma · hakkımda ne biliyorsun · kahve bilgisini unut |
-| Sohbet | selam · günaydın (kısa hava özetiyle) · nasılsın · teşekkürler · kimsin · ne yapabilirsin |
+| Günlük özet | günlük özet · brifing · bugün neler var · günaydın — hava + gündem + Fenerbahçe'nin son/sıradaki maçı (ekranda güneş doğuşu ve paneller; sağ üstteki ☀ GÜNLÜK ÖZET düğmesi) |
+| Sohbet | selam · nasılsın · teşekkürler · kimsin · ne yapabilirsin |
 
 Yeni komut eklemek: `server/src/intents/` altına `detect` (tanı) + `run` (çalıştır, sahne yayınla, cevabı döndür)
 içeren bir dosya yazıp `intents/index.ts`'deki `INTENTS` listesine ekleyin.
