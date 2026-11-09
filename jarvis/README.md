@@ -171,7 +171,22 @@ yapay zekâya gider. Takip soruları desteklenir: *"Fener yendi mi?" → "Peki s
 | Hatırlatıcı / takvim | yarın 10'da dişçiyi hatırlat · cuma 18:00'de annemi aramayı hatırlat · hatırlatıcılarım neler — takvim sayfası animasyonu |
 | Mesaj (WhatsApp) | Ahmet'e yarın geliyorum yaz — önce ekranda onay sorulur ("evet / hayır" ya da düğme), onaylanınca WhatsApp açılır; onaysız hiçbir şey gönderilmez |
 | Görsel analiz | "bu ne" ya da sağ üstteki 📷: kamera/galeri → fotoğraftaki nesneler kutularla işaretlenir ve anlatılır (Gemini görüntü, ücretsiz kota) |
-| Roborock (demo) | salonu süpür · mutfağı paspasla — şimdilik yalnızca animasyon; gerçek kontrol için Home Assistant/köprü gerekir |
+| Roborock | salonu süpür · mutfağı paspasla · süpür · süpürgeyi şarja gönder — iPhone'da Kısayollar uygulamasındaki aynı adlı kısayolu çalıştırır (aşağıya bakın); diğer cihazlarda yalnızca animasyon |
+
+### 🤖 Roborock (iPhone Kısayolları ile, ücretsiz)
+
+Jarvis komutu anlayınca animasyonu oynatır ve iPhone'daki **Kısayollar** uygulamasında şu adlı kısayolu çalıştırır:
+
+| Söylenen | Çalışan kısayol adı |
+|---|---|
+| süpür / temizlik yap | `Süpür` |
+| salonu süpür · mutfağı süpür … | `Salon Süpür` · `Mutfak Süpür` … |
+| mutfağı paspasla | `Mutfak Paspas` (oda yoksa `Paspas`) |
+| salonu süpür ve paspasla | `Salon Süpür Paspas` |
+| şarja gönder / durdur | `Şarja Dön` |
+
+Kurulum: Roborock uygulamasında istediğiniz temizliği (oda seçimi, emiş gücü, paspas) bir **rutin/sahne** olarak kaydedin
+→ Kısayollar uygulamasında **+** → *Eylem ekle* → "Roborock" → o rutini seçin → kısayola tablodaki adı verin.
 
 ### 🔔 Bildirimler (uygulama kapalıyken de hatırlatıcı/alarm)
 

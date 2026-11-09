@@ -5,7 +5,7 @@
  *  📅 "yarın saat 10'da dişçiyi hatırlat", "15 dakika sonra annemi aramayı hatırlat", "hatırlatmalarım neler"
  *  ✈️ "Ahmet'e yarın geliyorum yaz", "anneme seni seviyorum diye mesaj at"
  *  📷 "bu ne", "kamerayı aç", "fotoğrafa bak"
- *  🤖 "salonu süpür", "mutfağı paspasla", "süpürgeyi şarja gönder" (Roborock — şimdilik gösterim)
+ *  🤖 "salonu süpür", "mutfağı paspasla", "süpürgeyi şarja gönder" (Roborock — iPhone Kısayolları ile)
  */
 import { addReminder, addTimer, cancelTimers, upcoming } from './timekeeper'
 import { fmtDur, fmtWhen, fold, parseClock, parseDay, parseDuration } from './nlp'
@@ -13,7 +13,7 @@ import { closeScene, interrupt, play } from './player'
 import type { JarvisEvent } from './types'
 import { sfx } from './sfx'
 import { setStore } from './store'
-import { enablePush } from './push'
+import { enablePush, isIOS } from './push'
 
 /** Önce süren konuşma/sahne kesilir, sonra yeni olaylar oynar */
 function run(events: JarvisEvent[]) {
@@ -130,14 +130,26 @@ export function handleLocal(text: string): boolean {
   }
 
   // --------------------------------------------------------------- Roborock
-  if (/(supur|paspas|robot supurge|roborock|sarja (don|gonder|git))/.test(f)) {
-    const rooms = ['salon', 'oturma odasi', 'mutfak', 'koridor', 'yatak odasi', 'banyo', 'cocuk odasi', 'calisma odasi'].filter((r) => f.includes(r))
-    const mode = /sarja/.test(f) ? 'dock' : /paspas/.test(f) && /supur/.test(f) ? 'both' : /paspas/.test(f) ? 'mop' : 'vacuum'
+  // iPhone'da Kısayollar (Siri Shortcuts) üzerinden gerçek komut: Roborock uygulamasındaki
+  // kısayol adıyla çalıştırılır ("Salon Süpür", "Süpür", "Şarja Dön" …)
+  if (/(supur|paspas|robot supurge|roborock|sarja (don|gonder|git)|temizli)/.test(f)) {
+    const ROOMS: [string, string][] = [['oturma odasi', 'Oturma Odası'], ['salon', 'Salon'], ['mutfak', 'Mutfak'], ['koridor', 'Koridor'], ['yatak odasi', 'Yatak Odası'], ['banyo', 'Banyo'], ['cocuk odasi', 'Çocuk Odası'], ['calisma odasi', 'Çalışma Odası']]
+    const rooms = ROOMS.filter(([k]) => f.includes(k))
+    const mode = /sarja|dur(dur)?\b|bitir/.test(f) ? 'dock' : /paspas/.test(f) && /supur/.test(f) ? 'both' : /paspas/.test(f) ? 'mop' : 'vacuum'
+    const act = { dock: 'Şarja Dön', both: 'Süpür Paspas', mop: 'Paspas', vacuum: 'Süpür' }[mode]
+    const shortcut = mode === 'dock' || !rooms.length ? act : `${rooms[0][1]} ${act}`
+    const real = isIOS()
     run([
-      { type: 'scene', scene: 'vacuum', data: { mode, rooms: rooms.length ? rooms : ['salon'], demo: true }, hold: 4500 },
-      { type: 'say', text: 'Roborock bağlantısı henüz kurulmadı efendim; şimdilik nasıl görüneceğini gösteriyorum. Bağlandığında bu komut süpürgeyi gerçekten çalıştıracak.' },
+      { type: 'scene', scene: 'vacuum', data: { mode, rooms: rooms.length ? rooms.map(([k]) => k) : ['salon'], demo: !real }, hold: 4500 },
+      {
+        type: 'say',
+        text: real
+          ? mode === 'dock' ? 'Roborock şarj istasyonuna dönüyor efendim.' : `Roborock ${rooms.length ? rooms.map(([, n]) => n).join(' ve ') + ' için ' : ''}çalışmaya başlıyor efendim.`
+          : 'Roborock’u şimdilik yalnızca iPhone’daki Kısayollar üzerinden çalıştırabiliyorum efendim; burada nasıl görüneceğini gösteriyorum.',
+      },
       { type: 'end' },
     ])
+    if (real) setTimeout(() => (location.href = `shortcuts://run-shortcut?name=${encodeURIComponent(shortcut)}`), 1200)
     return true
   }
   return false
