@@ -173,6 +173,17 @@ yapay zekâya gider. Takip soruları desteklenir: *"Fener yendi mi?" → "Peki s
 | Görsel analiz | "bu ne" ya da sağ üstteki 📷: kamera/galeri → fotoğraftaki nesneler kutularla işaretlenir ve anlatılır (Gemini görüntü, ücretsiz kota) |
 | Roborock (demo) | salonu süpür · mutfağı paspasla — şimdilik yalnızca animasyon; gerçek kontrol için Home Assistant/köprü gerekir |
 
+### 🔔 Bildirimler (uygulama kapalıyken de hatırlatıcı/alarm)
+
+Sağ üstteki 🔕 düğmesine basın (ya da "bildirimleri aç" deyin) → izin verin → test bildirimi gelir, düğme 🔔 olur.
+Telefon hatırlatıcı listesini sunucuya gönderir; sunucu zamanı gelince Web Push ile bildirim atar (`server/src/push.ts`,
+`web/public/sw.js`). Anahtar (VAPID) kurulumu gerekmez, `JARVIS_APP_SECRET`'tan türetilir.
+
+- **iPhone:** yalnızca ana ekrana eklenmiş uygulamada çalışır (iOS 16.4+): Safari → Paylaş → *Ana Ekrana Ekle* → JARVIS'i oradan açıp 🔕'ye basın.
+- **Android:** Chrome'da doğrudan çalışır.
+- Render ücretsiz sunucu 15 dk boşta kalınca uyur; bildirimlerin zamanında gitmesi için cron-job.org ile
+  `/health` adresini 5 dakikada bir çağırın (yukarıdaki 8. adım).
+
 Yemek tarifi ("menemen tarifi") ve film/dizi/müzik/kitap önerileri yapay zekâya gider; sonuç `present_recipe` /
 `present_media` sahneleriyle (adım adım tarif kartları, dönen plak / film şeridi) gösterilir.
 

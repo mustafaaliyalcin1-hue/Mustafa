@@ -13,6 +13,7 @@ import { closeScene, interrupt, play } from './player'
 import type { JarvisEvent } from './types'
 import { sfx } from './sfx'
 import { setStore } from './store'
+import { enablePush } from './push'
 
 /** Önce süren konuşma/sahne kesilir, sonra yeni olaylar oynar */
 function run(events: JarvisEvent[]) {
@@ -36,8 +37,21 @@ function atTime(text: string): Date | undefined {
   return d
 }
 
+/** 🔔 düğmesi ve "bildirimleri aç" komutu */
+export async function turnOnNotifications() {
+  const r = await enablePush()
+  say(r.message)
+  return r.ok
+}
+
 export function handleLocal(text: string): boolean {
   const f = fold(text)
+
+  // ---------------------------------------------------- bildirim izni
+  if (/bildirim/.test(f) && /(ac|etkin|izin|aktif|kur)/.test(f)) {
+    turnOnNotifications()
+    return true
+  }
 
   // ---------------------------------------------------- zamanlayıcı / alarm
   if (/(zamanlayici|sayaci?|geri say|kronometre|alarm)\w* (iptal|durdur|kapat|sil)|(iptal|durdur|kapat)\w* (zamanlayici|alarm|sayac)/.test(f)) {

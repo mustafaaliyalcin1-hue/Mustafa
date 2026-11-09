@@ -21,6 +21,8 @@ import { authUrl, exchangeCode, uploadVideo, youtubeConfigured, youtubeConnected
 import { claudeVision } from './vision.ts'
 import { currentGeminiModel, describeGeminiError, geminiVision, warmUpGemini } from './gemini.ts'
 import type { JarvisEvent } from './events.ts'
+import { pushStats, pushTick, sendPush, startPushLoop, syncDevice, vapidPublicKey, type PushItem } from './push.ts'
+import type { PushSubscription } from 'web-push'
 
 const app = Fastify({ logger: { level: 'info' } })
 
@@ -244,8 +246,27 @@ app.post<{ Body: { text?: string } }>('/api/tts', async (req, reply) => {
 
 // Dış cron servisi (cron-job.org) her birkaç dakikada çağırır:
 // hem sunucuyu uyanık tutar hem de zamanı gelen görevleri çalıştırır (7. aşamada dolacak).
-app.post('/cron/tick', async () => ({ ok: true, ran: [] as string[] }))
+app.post('/cron/tick', async () => ({ ok: true, pushed: await pushTick() }))
 
+// ---------------------------------------------------------------- bildirimler (Web Push)
+app.get('/api/push/key', async () => ({ publicKey: vapidPublicKey, ...pushStats() }))
+app.post<{ Body: { subscription: PushSubscription; items: PushItem[] } }>('/api/push/sync', async (req, reply) => {
+  try {
+    return { ok: true, count: syncDevice(req.body?.subscription, Array.isArray(req.body?.items) ? req.body.items : []) }
+  } catch (e) {
+    return reply.code(400).send({ error: (e as Error).message })
+  }
+})
+app.post<{ Body: { subscription: PushSubscription } }>('/api/push/test', async (req, reply) => {
+  try {
+    await sendPush(req.body.subscription, { title: 'J.A.R.V.I.S.', body: 'Bildirimler açık efendim. Hatırlatmalarınızı buradan alacaksınız.', tag: 'test' })
+    return { ok: true }
+  } catch (e) {
+    return reply.code(400).send({ error: (e as Error).message })
+  }
+})
+
+startPushLoop()
 app.listen({ port: config.port, host: '0.0.0.0' }).then(() => {
   if (provider === 'free' && config.geminiKey) warmUpGemini()
   app.log.info(`J.A.R.V.I.S. çevrimiçi → :${config.port} · Beyin:${provider} ${services.ai ? '✓' : '✗'} · TTS:${services.tts ? '✓' : '✗'}`)

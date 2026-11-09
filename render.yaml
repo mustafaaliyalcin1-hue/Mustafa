@@ -21,7 +21,7 @@ services:
       - key: CLAUDE_EFFORT
         value: medium
       - key: DEFAULT_CITY
-        value: İstanbul
+        value: Elazığ
       - key: JARVIS_APP_SECRET
         generateValue: true
       # Ücretsiz beyin: Google AI Studio anahtarı (aistudio.google.com → Get API key)

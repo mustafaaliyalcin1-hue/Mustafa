@@ -11,6 +11,7 @@ import { test } from 'node:test'
 
 process.env.DATA_DIR = path.join(os.tmpdir(), 'jarvis-test-' + process.pid)
 process.env.TZ = 'Europe/Istanbul'
+process.env.DEFAULT_CITY = 'İstanbul'
 
 const { recognize, tryLocal } = await import('./index.ts')
 const { clearCache } = await import('../tools/cache.ts')

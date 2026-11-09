@@ -50,6 +50,7 @@ export type WeatherResult = {
 
 /** Sık kullanılan şehirlerin koordinatları: konum araması bile gerekmesin */
 const KNOWN: Record<string, { name: string; lat: number; lon: number }> = {
+  elazig: { name: 'Elazığ', lat: 38.681, lon: 39.2264 },
   istanbul: { name: 'İstanbul', lat: 41.0082, lon: 28.9784 },
   ankara: { name: 'Ankara', lat: 39.9334, lon: 32.8597 },
   izmir: { name: 'İzmir', lat: 38.4237, lon: 27.1428 },

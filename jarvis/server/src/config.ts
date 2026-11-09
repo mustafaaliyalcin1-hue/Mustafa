@@ -29,7 +29,7 @@ export const config = {
   effort: env('CLAUDE_EFFORT', 'medium') as 'low' | 'medium' | 'high',
   elevenKey: env('ELEVENLABS_API_KEY'),
   elevenVoice: env('ELEVENLABS_VOICE_ID'),
-  defaultCity: env('DEFAULT_CITY', 'İstanbul'),
+  defaultCity: env('DEFAULT_CITY', 'Elazığ'),
   tz: env('TZ', 'Europe/Istanbul'),
   dataDir: env('DATA_DIR', './data'),
   /** Sunucunun herkese açık adresi (Render bunu otomatik verir) */

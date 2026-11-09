@@ -4,6 +4,8 @@
 import { useEffect, useState } from 'react'
 import { ask } from '../core/assistant'
 import { setStore } from '../core/store'
+import { pushEnabled } from '../core/push'
+import { turnOnNotifications } from '../core/localCommands'
 
 function useNow() {
   const [now, setNow] = useState(new Date())
@@ -80,6 +82,7 @@ export default function HudWidgets() {
           <button onClick={() => setStore((s) => ({ visionOpen: !s.visionOpen }))} className="hud-panel pointer-events-auto flex items-center gap-2 px-3 py-2 font-mono text-xs tracking-wider text-hud-cyan transition hover:bg-hud-cyan/10 hover:text-white active:scale-95" title="Görsel analiz">
             📷<span className="hidden sm:inline">BU NE?</span>
           </button>
+          <BellButton />
           <button onClick={() => setStore((s) => ({ editorOpen: !s.editorOpen, studioOpen: false }))} className="hud-panel pointer-events-auto flex items-center gap-2 px-3 py-2 font-mono text-xs tracking-wider text-hud-cyan transition hover:bg-hud-cyan/10 hover:text-white active:scale-95" title="Kurgu stüdyosu">
             🎞<span className="hidden sm:inline">KURGU</span>
           </button>
@@ -99,5 +102,15 @@ export default function HudWidgets() {
       {/* Ara sıra geçen sistem tarama çizgisi */}
       <div className="scan-sweep pointer-events-none absolute inset-x-0 top-0 z-0 h-24" />
     </>
+  )
+}
+
+/** 🔔 Bildirimler: uygulama kapalıyken de hatırlatıcı/alarm */
+function BellButton() {
+  const [on, setOn] = useState(pushEnabled())
+  return (
+    <button onClick={async () => setOn(await turnOnNotifications())} className={`hud-panel pointer-events-auto flex items-center gap-2 px-3 py-2 font-mono text-xs tracking-wider transition hover:bg-hud-cyan/10 hover:text-white active:scale-95 ${on ? 'text-hud-cyan' : 'text-hud-cyan/50'}`} title={on ? 'Bildirimler açık (test bildirimi gönder)' : 'Bildirimleri aç'}>
+      {on ? '🔔' : '🔕'}
+    </button>
   )
 }

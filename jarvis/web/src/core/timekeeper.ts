@@ -7,6 +7,7 @@
 import { play } from './player'
 import { sfx } from './sfx'
 import { getStore, setStore } from './store'
+import { pushEnabled, registerSW, syncPush } from './push'
 
 export interface Timer {
   id: string
@@ -35,11 +36,13 @@ const save = (k: string, v: unknown) => {
   } catch {
     /* gizli sekme */
   }
+  syncPush() // uygulama kapalıyken de bildirim gelsin diye sunucuya bildir
 }
 
 export function initTimekeeper() {
   setStore({ timers: load<Timer>('jarvis.timers').filter((t) => t.end > Date.now() - 60_000), reminders: load<Reminder>('jarvis.reminders') })
   setInterval(tick, 500)
+  registerSW().then(() => syncPush())
 }
 
 const uid = () => Math.random().toString(36).slice(2, 9)
@@ -62,8 +65,6 @@ export function addReminder(text: string, at: number) {
   const reminders = [...getStore().reminders, r].sort((a, b) => a.at - b.at)
   setStore({ reminders })
   save('jarvis.reminders', reminders)
-  // Bildirim izni (bir kez sorulur)
-  if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission().catch(() => {})
   return r
 }
 export function removeReminder(id: string) {
@@ -86,7 +87,8 @@ function ring(times = 6) {
   beep()
 }
 
-function notify(title: string, body: string) {
+function notify(title: string, body: string, pushed = true) {
+  if (pushed && pushEnabled()) return // sunucu zaten bildirim gönderiyor (çift bildirim olmasın)
   try {
     if ('Notification' in window && Notification.permission === 'granted') new Notification(title, { body, icon: '/favicon.svg' })
   } catch {
@@ -104,7 +106,7 @@ function tick() {
     save('jarvis.timers', rest)
     for (const t of due) {
       ring()
-      notify('J.A.R.V.I.S.', t.kind === 'alarm' ? `Alarm: ${t.label}` : `Süre doldu: ${t.label}`)
+      notify('J.A.R.V.I.S.', t.kind === 'alarm' ? `Alarm: ${t.label}` : `Süre doldu: ${t.label}`, t.kind === 'alarm' || t.total >= 60)
       play([{ type: 'scene', scene: 'timer', data: { done: true, label: t.label, kind: t.kind }, hold: 2000 }, { type: 'say', text: t.kind === 'alarm' ? `Alarm efendim. ${t.label === 'Alarm' ? 'Kalkma vakti.' : t.label}` : `Süre doldu efendim${t.label && t.label !== 'Zamanlayıcı' ? `: ${t.label}` : ''}.` }, { type: 'end' }])
     }
   }
