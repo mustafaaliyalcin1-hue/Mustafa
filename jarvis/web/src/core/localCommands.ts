@@ -111,6 +111,25 @@ export function handleLocal(text: string): boolean {
     }
   }
 
+  // ------------------------------------------------------- rehber (WhatsApp numarası)
+  const num = text.match(/^(?:jarvis[,\s]+)?(.+?)['’]?(?:n[ıiuü]n|[ıiuü]n)?\s+(?:numaras[ıi]|telefonu|whatsapp[ıi]?)\s*(?:şu|su)?[:\s]*(\+?[\d\s()-]{10,})/i)
+  if (num) {
+    const phone = normalizePhone(num[2])
+    if (!phone) {
+      say('Numarayı anlayamadım efendim. Örneğin: Ahmet’in numarası 0532 123 45 67.')
+      return true
+    }
+    const name = num[1].trim()
+    saveContact(name, phone)
+    say(`${name} kaydedildi efendim. Artık ${name} için yazdığınız mesajlar doğrudan onun sohbetinde açılacak.`)
+    return true
+  }
+  if (/(rehber|kayitli kisiler|kayitli numaralar)/.test(f)) {
+    const c = Object.values(contacts())
+    say(c.length ? `Kayıtlı kişiler: ${c.map((x) => x.name).join(', ')}.` : 'Henüz kayıtlı kişi yok efendim. Örneğin "Ahmet’in numarası 0532 123 45 67" diyebilirsiniz.')
+    return true
+  }
+
   // ------------------------------------------------------------------ mesaj
   const msg = text.match(/^(?:jarvis[,\s]+)?(.+?)['’]?(?:ya|ye|a|e)\s+(.+?)\s+(?:diye\s+)?(?:yaz|mesaj (?:at|gönder|yolla)|gönder|ilet)\b/i)
   if (msg && !/(çevir|hesap|not)/i.test(text)) {
@@ -155,9 +174,47 @@ export function handleLocal(text: string): boolean {
   return false
 }
 
-/** Hazırlanan mesajı onaylayınca: kağıt uçak + WhatsApp (kişiyi siz seçersiniz) */
+// ------------------------------------------------------------------ rehber
+// Numaralar YALNIZCA bu telefonda saklanır (sunucuya gitmez)
+interface Contact { name: string; phone: string }
+function contacts(): Record<string, Contact> {
+  try {
+    return JSON.parse(localStorage.getItem('jarvis.contacts') || '{}')
+  } catch {
+    return {}
+  }
+}
+/** "Ahmet", "Ahmet'e", "anneme" → aynı anahtar */
+const contactKey = (n: string) => fold(n).replace(/['’]/g, '').replace(/\s+/g, ' ').trim()
+function findContact(name: string): Contact | undefined {
+  const all = contacts()
+  const k = contactKey(name)
+  for (const cand of [k, k.replace(/(ya|ye|a|e|m)$/, ''), k.replace(/(im|um|ım|üm|m)$/, ''), k + 'm']) if (all[cand]) return all[cand]
+  return undefined
+}
+function saveContact(name: string, phone: string) {
+  const all = contacts()
+  all[contactKey(name)] = { name, phone }
+  try {
+    localStorage.setItem('jarvis.contacts', JSON.stringify(all))
+  } catch {
+    /* gizli sekme */
+  }
+}
+/** Türkiye numarası → uluslararası rakamlar (905321234567) */
+export function normalizePhone(raw: string) {
+  let d = raw.replace(/\D/g, '')
+  if (d.startsWith('00')) d = d.slice(2)
+  if (d.startsWith('0')) d = '90' + d.slice(1)
+  if (d.length === 10 && d.startsWith('5')) d = '90' + d
+  return d.length >= 11 && d.length <= 15 ? d : undefined
+}
+
+/** Hazırlanan mesajı onaylayınca: kağıt uçak + WhatsApp (kayıtlıysa doğrudan o kişinin sohbeti) */
 export function sendPendingMessage(m: { to: string; text: string }) {
+  const c = findContact(m.to)
   sfx('paper')
-  play([{ type: 'scene', scene: 'message', data: m, hold: 2400 }, { type: 'say', text: `WhatsApp açılıyor efendim; ${m.to} kişisini seçip gönderin.` }, { type: 'end' }])
-  setTimeout(() => window.open(`https://wa.me/?text=${encodeURIComponent(m.text)}`, '_blank'), 1800)
+  play([{ type: 'scene', scene: 'message', data: { ...m, to: c?.name || m.to }, hold: 2400 }, { type: 'say', text: c ? `${c.name} ile sohbet açılıyor efendim; gönder tuşuna basmanız yeterli.` : `WhatsApp açılıyor efendim; ${m.to} kişisini seçip gönderin. Bir dahakine doğrudan açmam için numarasını söyleyebilirsiniz.` }, { type: 'end' }])
+  const url = `https://wa.me/${c ? c.phone : ''}?text=${encodeURIComponent(m.text)}`
+  setTimeout(() => window.open(url, '_blank'), 1800)
 }
