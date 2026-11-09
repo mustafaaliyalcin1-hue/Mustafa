@@ -97,6 +97,36 @@
           "ai_isareti": true
         }
       ]
+    },
+    {
+      "tarih": "2026-11-23",
+      "baslik": "Kar Yağar Munzur'a",
+      "stil": "C (kış teması K)",
+      "muzik": "Gemini uygulaması (Lyria 3.5, ücretsiz), kullanıcı üretti (dosya adı: Anamın Ocağında)",
+      "sure_sn": 177,
+      "paylasimlar": [
+        {
+          "ag": "instagram",
+          "tip": "REEL",
+          "saat": "2026-11-23T18:00+03:00",
+          "metricool_id": 421828456,
+          "ai_isareti": true
+        },
+        {
+          "ag": "youtube",
+          "tip": "short",
+          "saat": "2026-11-23T18:00+03:00",
+          "metricool_id": 421831515,
+          "ai_isareti": true
+        },
+        {
+          "ag": "youtube",
+          "tip": "video (16:9 tam sürüm)",
+          "saat": "2026-11-23T18:05+03:00",
+          "metricool_id": 421831688,
+          "ai_isareti": true
+        }
+      ]
     }
   ]
 }
