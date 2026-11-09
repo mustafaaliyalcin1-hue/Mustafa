@@ -74,6 +74,12 @@ const sounds = {
     for (let i = 0; i < 6; i++) tone(110, 0.18, 'sine', 0.06, undefined, i * 0.32)
   },
   pop: () => tone(600, 0.1, 'sine', 0.06, 1200),
+  alarm: () => {
+    tone(880, 0.12, 'square', 0.08)
+    tone(1175, 0.12, 'square', 0.08, undefined, 0.15)
+    tone(880, 0.12, 'square', 0.08, undefined, 0.3)
+  },
+  paper: () => noise(0.6, 0.1, 2500, 0, 'highpass'),
 }
 
 export type SfxName = keyof typeof sounds

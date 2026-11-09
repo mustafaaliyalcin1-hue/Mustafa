@@ -29,6 +29,13 @@ export interface JarvisStore {
   /** Kurgu stüdyosu açık mı + sesli komutla seçilen tarz */
   editorOpen: boolean
   editorStyle: 'vlog' | 'phonk' | null
+  /** Zamanlayıcılar / alarmlar ve hatırlatıcılar (telefonda) */
+  timers: import('./timekeeper').Timer[]
+  reminders: import('./timekeeper').Reminder[]
+  /** Kamera/görsel analiz paneli */
+  visionOpen: boolean
+  /** Onay bekleyen mesaj */
+  pendingMessage: { to: string; text: string } | null
 }
 
 const saved = (() => {
@@ -55,6 +62,10 @@ let store: JarvisStore = {
   studioOpen: false,
   editorOpen: false,
   editorStyle: null,
+  timers: [],
+  reminders: [],
+  visionOpen: false,
+  pendingMessage: null,
 }
 
 const listeners = new Set<() => void>()

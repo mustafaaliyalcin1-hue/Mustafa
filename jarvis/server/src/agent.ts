@@ -30,6 +30,7 @@ Kurallar:
 - Araştırma istekleri ("araştır", "detaylı araştır", karşılaştırma): web_search ile birden fazla kaynağa bak (detaylıysa en az 5), sonra present_research ile bulguları göster, sonra kısa sesli özet ver.
 - Bir veri aracı hata verirse web_search ile aynı bilgiyi bul.
 - Kullanıcı kalıcı bir tercih veya "unutma" dediği bir bilgi verirse memory_save ile kaydet.
+- Yol/mesafe/süre: get_route. Çeviri: translate. Yemek tarifi: present_recipe ile göster. Film/dizi/müzik/kitap önerisi: present_media ile göster.
 - Birden fazla adım gerekiyorsa araçları sırayla kullan (ör. önce hava durumuna bak, sonra öneride bulun).
 - Sayıları ve birimleri okunabilir yaz: "18 derece", "yüzde 60".`
 

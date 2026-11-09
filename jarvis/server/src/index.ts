@@ -18,7 +18,8 @@ import { randomUUID } from 'node:crypto'
 import type { Readable } from 'node:stream'
 import { saveUpload } from './social/media.ts'
 import { authUrl, exchangeCode, uploadVideo, youtubeConfigured, youtubeConnected } from './social/youtube.ts'
-import { currentGeminiModel, describeGeminiError, warmUpGemini } from './gemini.ts'
+import { claudeVision } from './vision.ts'
+import { currentGeminiModel, describeGeminiError, geminiVision, warmUpGemini } from './gemini.ts'
 import type { JarvisEvent } from './events.ts'
 
 const app = Fastify({ logger: { level: 'info' } })
@@ -98,6 +99,22 @@ app.post<{ Body: { mediaId?: string; title?: string; description?: string; tags?
   } catch (e) {
     req.log.error(e)
     return reply.code(502).send({ error: (e as Error).message })
+  }
+})
+
+// ------------------------------------------------------------- GÖRSEL ANALİZ
+// Kamera/galeri fotoğrafı: { image: "data:image/jpeg;base64,...", question? } → açıklama + nesne kutuları
+app.post<{ Body: { image?: string; question?: string } }>('/api/vision', { bodyLimit: 12 * 1024 * 1024 }, async (req, reply) => {
+  const m = (req.body?.image || '').match(/^data:(image\/[a-z+]+);base64,(.+)$/)
+  if (!m) return reply.code(400).send({ error: 'Görsel gerekli' })
+  const question = (req.body?.question || '').slice(0, 500)
+  try {
+    if (config.geminiKey) return await geminiVision(m[2], m[1], question)
+    if (config.anthropicKey) return await claudeVision(m[2], m[1], question)
+    return reply.code(503).send({ error: 'Görsel analiz için yapay zekâ anahtarı yok' })
+  } catch (e) {
+    req.log.error(e)
+    return reply.code(502).send({ error: describeGeminiError(e) ?? (e as Error).message })
   }
 })
 

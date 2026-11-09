@@ -15,9 +15,11 @@ import { newsIntent } from './news.ts'
 import { FACT_CHECK, norm, type Norm } from './text.ts'
 import type { Intent, IntentContext } from './types.ts'
 import { weatherIntent } from './weather.ts'
+import { routeIntent } from './route.ts'
+import { translateIntent } from './translate.ts'
 
 /** Sıra önemli: daha özel olan önce */
-export const INTENTS: Intent[] = [briefingIntent, smallTalkIntent, memoryIntent, timeIntent, newsIntent, footballIntent, financeIntent, weatherIntent, calcIntent] as unknown as Intent[]
+export const INTENTS: Intent[] = [briefingIntent, smallTalkIntent, memoryIntent, timeIntent, translateIntent, routeIntent, newsIntent, footballIntent, financeIntent, weatherIntent, calcIntent] as unknown as Intent[]
 
 /** Bu kalıplar yorum/araştırma ister → her zaman yapay zekâya */
 const NEEDS_AI = /(arastir|karsilastir|\bneden\b|\bniye\b|nasil yapilir|anlat|acikla|yorumla|tavsiye|oner|ozetle|cevir|tercume|ne demek|kimdir|nedir|tarifi|yorumun|sence|fikrin|analiz|hangi kanal|nereden izle|yayin\w* hangi|kim att|golleri kim|kadro|sakat|transfer)/
@@ -34,6 +36,9 @@ export interface LocalResult {
 /** Komutu tanı (çalıştırmadan) — test ve yönlendirme için */
 export function recognize(text: string, ctx: IntentContext = {}): { intent: Intent; params: Record<string, unknown> } | null {
   const n: Norm = norm(text)
+  // Çeviri kalıpları "ne demek/çevir" içerir; yapay zekâ filtresinden önce denenir
+  const tr = translateIntent.detect(n, ctx)
+  if (tr && !FACT_CHECK.test(n.f)) return { intent: translateIntent as unknown as Intent, params: tr }
   if (NEEDS_AI.test(n.f) || FACT_CHECK.test(n.f)) return null
   for (const intent of INTENTS) {
     const params = intent.detect(n, ctx)

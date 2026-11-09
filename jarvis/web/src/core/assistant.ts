@@ -7,11 +7,27 @@ import { askBackend, backendConfigured, cancelBackend } from './backend'
 import { closeScene, interrupt, play, setState } from './player'
 import { sfx } from './sfx'
 import { getStore, setStore } from './store'
+import { handleLocal, sendPendingMessage } from './localCommands'
 import { listenOnce, speechRecognitionSupported, startMicLevel, stopMicLevel } from './voice'
 
 export function ask(text: string) {
   if (!text.trim()) return
   const low = text.toLocaleLowerCase('tr-TR')
+  // Onay bekleyen mesaj: "evet / gönder" → WhatsApp, "hayır / vazgeç" → iptal
+  const pend = getStore().pendingMessage
+  if (pend) {
+    if (/^(evet|gönder|olur|tamam|yolla|onayla)/.test(low)) {
+      setStore({ pendingMessage: null })
+      sendPendingMessage(pend)
+      return
+    }
+    if (/^(hayır|vazgeç|iptal|gönderme)/.test(low)) {
+      setStore({ pendingMessage: null })
+      play([{ type: 'say', text: 'Mesajı iptal ettim efendim.' }, { type: 'end' }])
+      return
+    }
+  }
+  if (handleLocal(text)) return
   // Kurgu: "phonk edit yap", "vlog kurgusu", "videoyu editle", "kurgu yap"
   if (/(phonk|fonk|funk|punk)\w* ?(edit|kurgu)|(vlog|video)\w* (kurgu|edit|düzenle)|kurgu (yap|stüdyo)|edit(le|leyelim| yap)|video düzenle/.test(low)) {
     const phonk = /(phonk|fonk|funk|punk)/.test(low)

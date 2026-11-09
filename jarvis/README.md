@@ -160,6 +160,21 @@ yapay zekâya gider. Takip soruları desteklenir: *"Fener yendi mi?" → "Peki s
 | Hafıza | kahvemi şekersiz içerim, unutma · hakkımda ne biliyorsun · kahve bilgisini unut |
 | Günlük özet | günlük özet · brifing · bugün neler var · günaydın — hava + gündem + Fenerbahçe'nin son/sıradaki maçı (ekranda güneş doğuşu ve paneller; sağ üstteki ☀ GÜNLÜK ÖZET düğmesi) |
 | Sohbet | selam · nasılsın · teşekkürler · kimsin · ne yapabilirsin |
+| Yol / harita | Kadıköy'e ne kadar sürer · Ankara'dan İzmir'e kaç km · havaalanına nasıl giderim · Taksim'e yürüyerek kaç dakika (OpenStreetMap + OSRM; haritada rota çizilir) |
+| Çeviri | elmayı İngilizceye çevir · "günaydın" Almancada ne demek · İspanyolca teşekkürler nasıl denir (bayraklar arası harf animasyonu) |
+
+### Telefonda çalışan yerel komutlar (internet/yapay zekâ gerekmez — `web/src/core/localCommands.ts`)
+
+| Konu | Örnek cümleler |
+|---|---|
+| Zamanlayıcı / alarm | 5 dakika zamanlayıcı kur · 30 saniye say · yarın 7'de alarm kur · saat 14:30'a alarm · zamanlayıcıyı iptal et — üstte geri sayım şeridi, süre dolunca alarm sesi + bildirim |
+| Hatırlatıcı / takvim | yarın 10'da dişçiyi hatırlat · cuma 18:00'de annemi aramayı hatırlat · hatırlatıcılarım neler — takvim sayfası animasyonu |
+| Mesaj (WhatsApp) | Ahmet'e yarın geliyorum yaz — önce ekranda onay sorulur ("evet / hayır" ya da düğme), onaylanınca WhatsApp açılır; onaysız hiçbir şey gönderilmez |
+| Görsel analiz | "bu ne" ya da sağ üstteki 📷: kamera/galeri → fotoğraftaki nesneler kutularla işaretlenir ve anlatılır (Gemini görüntü, ücretsiz kota) |
+| Roborock (demo) | salonu süpür · mutfağı paspasla — şimdilik yalnızca animasyon; gerçek kontrol için Home Assistant/köprü gerekir |
+
+Yemek tarifi ("menemen tarifi") ve film/dizi/müzik/kitap önerileri yapay zekâya gider; sonuç `present_recipe` /
+`present_media` sahneleriyle (adım adım tarif kartları, dönen plak / film şeridi) gösterilir.
 
 Yeni komut eklemek: `server/src/intents/` altına `detect` (tanı) + `run` (çalıştır, sahne yayınla, cevabı döndür)
 içeren bir dosya yazıp `intents/index.ts`'deki `INTENTS` listesine ekleyin.

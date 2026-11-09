@@ -77,6 +77,9 @@ export default function HudWidgets() {
           <button onClick={() => setStore((s) => ({ calcOpen: !s.calcOpen }))} className="hud-panel pointer-events-auto flex items-center gap-2 px-3 py-2 font-mono text-xs tracking-wider text-hud-cyan transition hover:bg-hud-cyan/10 hover:text-white active:scale-95" title="Hesap makinesi">
             🧮<span className="hidden sm:inline">HESAP</span>
           </button>
+          <button onClick={() => setStore((s) => ({ visionOpen: !s.visionOpen }))} className="hud-panel pointer-events-auto flex items-center gap-2 px-3 py-2 font-mono text-xs tracking-wider text-hud-cyan transition hover:bg-hud-cyan/10 hover:text-white active:scale-95" title="Görsel analiz">
+            📷<span className="hidden sm:inline">BU NE?</span>
+          </button>
           <button onClick={() => setStore((s) => ({ editorOpen: !s.editorOpen, studioOpen: false }))} className="hud-panel pointer-events-auto flex items-center gap-2 px-3 py-2 font-mono text-xs tracking-wider text-hud-cyan transition hover:bg-hud-cyan/10 hover:text-white active:scale-95" title="Kurgu stüdyosu">
             🎞<span className="hidden sm:inline">KURGU</span>
           </button>

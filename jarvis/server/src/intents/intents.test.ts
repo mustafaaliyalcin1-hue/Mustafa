@@ -40,7 +40,7 @@ const CASES: [string, string | null, Record<string, unknown>?][] = [
   ['şemsiye alayım mı', 'weather', { ask: 'yagmur' }],
   ['bu akşam soğuk mu', 'weather', { ask: 'soguk', day: 0 }],
   ['erzurumda kar yağacak mı', 'weather', { city: 'Erzurum', ask: 'kar' }],
-  ['havaalanına nasıl giderim', null],
+  ['havaalanına nasıl giderim', 'route'],
   ['dolar ne kadar', 'finance', { fx: ['USD'] }],
   ['100 dolar kaç TL', 'finance', { convert: { amount: 100, from: 'USD', to: 'TRY' } }],
   ['5000 lira kaç euro', 'finance', { convert: { amount: 5000, from: 'TRY', to: 'EUR' } }],
@@ -84,6 +84,15 @@ const CASES: [string, string | null, Record<string, unknown>?][] = [
   ['elektrikli araba mı hibrit mi araştır', null],
   ['Fenerbahçe neden kaybetti', null],
   ['macera filmi öner', null],
+  ["Kadıköy'e ne kadar sürer", 'route', { to: "Kadıköy'e", walk: false }],
+  ["Taksim'den Kadıköy'e nasıl giderim", 'route', { from: 'Taksim', to: "Kadıköy'e" }],
+  ['Ankara ile İzmir arası kaç km', 'route', { from: 'Ankara', to: 'İzmir' }],
+  ["Galata Kulesi'ne yürüyerek ne kadar sürer", 'route', { walk: true }],
+  ['elmayı İngilizceye çevir', 'translate', { text: 'elma', to: 'en', from: 'tr' }],
+  ['teşekkürler Almanca ne demek', 'translate', { text: 'teşekkürler', to: 'de', from: 'tr' }],
+  ['İngilizcede kitap ne demek', 'translate', { text: 'kitap', to: 'en' }],
+  ['serendipity ne demek', 'translate', { text: 'serendipity', to: 'tr', from: 'en' }],
+  ['"Nasılsın, iyi misin?" cümlesini İngilizceye çevir', 'translate', { to: 'en' }],
   ['Elazığspor maçı kaç bitti', null], // 2. Lig → yapay zekâ + internet araması
   ['2. lig puan durumu', null],
   ['ikinci lig sonuçları', null],
@@ -190,6 +199,18 @@ globalThis.fetch = (async (url: string) => {
   if (u.includes('simple/price')) return J({ 'pax-gold': { try: 168000, try_24h_change: 1.3 }, bitcoin: { try: 4125000, try_24h_change: -2.4 } })
   if (u.includes('market_chart')) return J({ prices: [[1, 160000], [2, 168000]] })
   if (u.includes('news.google')) return new Response(RSS)
+  if (u.includes('nominatim')) {
+    const q = decodeURIComponent(u.match(/q=([^&]+)/)![1]).toLocaleLowerCase('tr-TR')
+    const known: Record<string, [number, number]> = { 'kadıköy': [40.99, 29.03], 'taksim': [41.037, 28.985], 'istanbul': [41.0082, 28.9784], 'i̇stanbul': [41.0082, 28.9784], ankara: [39.93, 32.86], 'izmir': [38.42, 27.14], 'i̇zmir': [38.42, 27.14] }
+    const k = known[q]
+    return J(k ? [{ lat: String(k[0]), lon: String(k[1]), display_name: q }] : [])
+  }
+  if (u.includes('router.project-osrm.org')) return J({ code: 'Ok', routes: [{ distance: 14230, duration: 1500, geometry: { coordinates: [[29.0, 41.0], [29.02, 41.0], [29.03, 40.99]] } }] })
+  if (u.includes('mymemory')) {
+    const q = decodeURIComponent(u.match(/q=([^&]+)/)![1])
+    const dict: Record<string, string> = { elma: 'apple', teşekkürler: 'Danke', kitap: 'book', serendipity: 'tesadüfi şans', 'Nasılsın, iyi misin?': 'How are you, are you okay?' }
+    return J({ responseStatus: 200, responseData: { translatedText: dict[q] ?? q } })
+  }
   return new Response('yok', { status: 404 })
 }) as typeof fetch
 
@@ -368,4 +389,24 @@ test('doğrulama isteği algılanır (bitişik yazımlar dahil)', async () => {
   const { isFactCheck } = await import('./text.ts')
   for (const t of ['bu gerçek mi', 'bu haber gerçekmi', 'doğrumu bu', 'yalanmı', 'sahte mi bu video', 'bunu teyit et', 'aslı var mı']) assert.equal(isFactCheck(t), true, t)
   for (const t of ['gündem haberleri', 'hava nasıl', 'gerçekten çok güzel']) assert.equal(isFactCheck(t), false, t)
+})
+
+test('yol ve çeviri cevapları', async () => {
+  let x = await ask("Kadıköy'e ne kadar sürer")
+  assert.deepEqual(x.scenes, ['map'])
+  assert.equal(x.say, "Kadıköy'e arabayla yaklaşık 25 dakika efendim; 14,2 kilometre. Bu, trafiksiz bir tahmin.")
+  const m = x.events.find((e) => e.scene === 'map')!.data
+  assert.equal(m.path.length, 3)
+  assert.deepEqual(m.path[0], [41.0, 29.0]) // [enlem, boylam]
+  x = await ask("Taksim'den Kadıköy'e nasıl giderim")
+  assert.match(x.say, /^Taksim'den Kadıköy'e arabayla/)
+  x = await ask('Kadıköye yürüyerek ne kadar sürer')
+  assert.match(x.say, /^Kadıköy'e yürüyerek yaklaşık 2 saat 58 dakika efendim; 14,2 kilometre\.$/)
+  x = await ask('elmayı İngilizceye çevir')
+  assert.deepEqual(x.scenes, ['translate'])
+  assert.equal(x.say, '"elma" İngilizcede "apple" efendim.')
+  x = await ask('teşekkürler Almanca ne demek')
+  assert.equal(x.say, '"teşekkürler" Almancada "Danke" efendim.')
+  x = await ask('serendipity ne demek')
+  assert.equal(x.say, '"serendipity" Türkçede "tesadüfi şans" efendim.')
 })

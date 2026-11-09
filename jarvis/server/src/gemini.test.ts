@@ -181,3 +181,10 @@ test('gemini: düşünme ayarı reddedilirse (400) ayarsız devam eder', async (
     fake.close()
   }
 })
+
+test('görsel analiz yanıtı ayrıştırılır ve kutular sınırlanır', async () => {
+  const { parseVision } = await import('./gemini.ts')
+  const v = parseVision('```json\n{"description":"Masada bir fincan var efendim.","objects":[{"label":"fincan","box":[100,200,400,1200]},{"label":"bozuk"}]}\n```')
+  assert.equal(v.description, 'Masada bir fincan var efendim.')
+  assert.deepEqual(v.objects, [{ label: 'fincan', box: [100, 200, 400, 1000] }])
+})

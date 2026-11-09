@@ -15,6 +15,8 @@ import SceneLayer from './components/SceneLayer'
 import CalcPad from './components/CalcPad'
 import VideoStudio from './components/VideoStudio'
 import VideoEditor from './components/VideoEditor'
+import { MessageConfirm, TimerStrip, VisionPanel } from './components/Helpers'
+import { initTimekeeper } from './core/timekeeper'
 import StateOverlay from './components/StateOverlay'
 import { setState } from './core/player'
 import { startPerfMonitor } from './core/perf'
@@ -34,6 +36,7 @@ export default function App() {
 
   useEffect(() => {
     startPerfMonitor()
+    initTimekeeper()
     if (!booting) setState('idle')
     // Test/otomasyon için: ?soru=... ile doğrudan bir soru sor
     const q = new URLSearchParams(location.search).get('soru')
@@ -92,6 +95,9 @@ export default function App() {
       <CalcPad />
       <VideoStudio />
       <VideoEditor />
+      <VisionPanel />
+      <TimerStrip />
+      <MessageConfirm />
       <ChatDock onOpenGallery={() => setGallery(true)} onOpenSettings={() => setSettings(true)} onOpenLog={() => setLog(true)} />
 
       <AnimatePresence>{gallery && <Gallery onClose={() => setGallery(false)} onBoot={reboot} />}</AnimatePresence>

@@ -58,3 +58,32 @@ defineTool({
     return { result: { shown: true }, scene: { scene: 'sports', data: { focusTeam: m.home, matches: [match] }, hold: 3600 } }
   },
 })
+
+defineTool({
+  name: 'present_recipe',
+  description: 'Kullanıcı bir yemek tarifi istediğinde tarifi ekranda animasyonla göster (malzemeler tabağa düşer). Ardından kısaca özetle; adımlar ekranda kalır.',
+  schema: z.object({
+    name: z.string(),
+    emoji: z.string().optional().describe('Yemeği temsil eden tek emoji'),
+    time: z.string().optional().describe('ör. "45 dakika"'),
+    servings: z.string().optional(),
+    ingredients: z.array(z.object({ item: z.string(), amount: z.string().optional(), emoji: z.string().optional() })).min(1).max(20),
+    steps: z.array(z.string()).min(1).max(12),
+  }),
+  async run(input) {
+    return { result: { shown: true }, scene: { scene: 'recipe', data: input, hold: 5000 } }
+  },
+})
+
+defineTool({
+  name: 'present_media',
+  description: 'Film, dizi, müzik/şarkı/albüm ya da kitap önerisi istendiğinde önerileri ekranda (dönen plak / film şeridi + afiş kartları) göster. 3-6 öneri; gerçek ve var olan eserler öner.',
+  schema: z.object({
+    kind: z.enum(['film', 'dizi', 'muzik', 'kitap']),
+    title: z.string().describe('Başlık, ör. "Bu akşam için bilim kurgu filmleri"'),
+    items: z.array(z.object({ title: z.string(), by: z.string().optional().describe('Yönetmen / sanatçı / yazar'), year: z.string().optional(), note: z.string().optional().describe('Neden önerildiği, kısa'), emoji: z.string().optional() })).min(1).max(6),
+  }),
+  async run(input) {
+    return { result: { shown: true }, scene: { scene: 'media', data: input, hold: 5000 } }
+  },
+})

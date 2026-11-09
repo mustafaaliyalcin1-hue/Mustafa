@@ -228,6 +228,33 @@ export async function runGeminiTurn(history: Turn[], userText: string, emit: Emi
   return ''
 }
 
+/** Görsel analiz: açıklama + nesne kutuları (0–1000 ölçekli [ymin, xmin, ymax, xmax]) */
+export async function geminiVision(b64: string, mime: string, question: string) {
+  const r = await generate({
+    contents: [
+      {
+        role: 'user',
+        parts: [
+          { inlineData: { mimeType: mime, data: b64 } },
+          { text: `${question || 'Bu görselde ne var?'}\nTürkçe yanıt ver. Yalnızca şu JSON'u döndür: {"description": "1-3 cümlelik açıklama, kullanıcıya efendim diye hitap et", "objects": [{"label": "Türkçe nesne adı", "box": [ymin, xmin, ymax, xmax]}]} — kutular 0-1000 ölçeğinde, en fazla 8 belirgin nesne.` },
+        ],
+      },
+    ],
+    config: { responseMimeType: 'application/json' },
+  })
+  return parseVision(r.text || '')
+}
+
+export function parseVision(text: string): { description: string; objects: { label: string; box: [number, number, number, number] }[] } {
+  const m = text.match(/\{[\s\S]*\}/)
+  const j = m ? JSON.parse(m[0]) : { description: text }
+  const objects = (Array.isArray(j.objects) ? j.objects : [])
+    .filter((o: { label?: unknown; box?: unknown }) => typeof o.label === 'string' && Array.isArray(o.box) && o.box.length === 4)
+    .slice(0, 8)
+    .map((o: { label: string; box: number[] }) => ({ label: o.label, box: o.box.map((v) => Math.max(0, Math.min(1000, Number(v)))) as [number, number, number, number] }))
+  return { description: String(j.description || '').trim(), objects }
+}
+
 export function describeGeminiError(err: unknown): string | null {
   if (!(err instanceof ApiError)) return null
   if (err.status === 429) return 'Ücretsiz yapay zekâ kotası şimdilik doldu; biraz sonra (en geç yarın) tekrar deneyin.'
