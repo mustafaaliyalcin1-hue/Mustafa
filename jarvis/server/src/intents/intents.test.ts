@@ -13,6 +13,7 @@ process.env.DATA_DIR = path.join(os.tmpdir(), 'jarvis-test-' + process.pid)
 process.env.TZ = 'Europe/Istanbul'
 
 const { recognize, tryLocal } = await import('./index.ts')
+const { clearCache } = await import('../tools/cache.ts')
 const { ekle, extractPlace, norm, extractDayOffset } = await import('./text.ts')
 const { evaluate } = await import('./calc.ts')
 const { saatEki } = await import('./football.ts')
@@ -169,7 +170,10 @@ const RSS = `<rss><channel><item><title>Merkez Bankası faizi sabit tuttu - AA</
 globalThis.fetch = (async (url: string) => {
   const u = String(url)
   const J = (o: unknown) => new Response(JSON.stringify(o))
-  if (u.includes('soccer') && u.includes('scoreboard')) return J(u.includes('tur.1') ? board : u.includes('tur.2') ? board2 : { events: [] })
+  // ESPN: takım listeleri + takım fikstürü + skor tabloları
+  if (/\/teams$/.test(u)) return J({ sports: [{ leagues: [{ teams: u.includes('tur.1') ? [{ team: { id: '1', displayName: 'Fenerbahce' } }, { team: { id: '2', displayName: 'Galatasaray' } }] : u.includes('tur.2') ? [{ team: { id: '77', displayName: 'Bandirmaspor' } }] : [] }] }] })
+  if (u.includes('/schedule')) return J(u.includes('fixture=true') ? { events: [] } : u.includes('/teams/77/') ? board2 : board)
+  if (u.includes('soccer') && u.includes('scoreboard')) return J(u.includes('uefa') ? { events: [] } : u.includes('tur.1') ? board : u.includes('tur.2') ? board2 : { events: [] })
   if (u.includes('standings'))
     return J({ children: [{ standings: { entries: [
       { team: { displayName: 'Galatasaray' }, stats: [{ name: 'rank', value: 1 }, { name: 'points', value: 31 }, { name: 'gamesPlayed', value: 12 }] },
@@ -190,6 +194,7 @@ globalThis.fetch = (async (url: string) => {
 }) as typeof fetch
 
 async function ask(text: string, conv = 'c-' + Math.random()) {
+  clearCache() // her soru güncel sahte veriyle
   const events: { type: string; scene?: string; text?: string; data?: any }[] = [] // eslint-disable-line @typescript-eslint/no-explicit-any
   const r = await tryLocal(conv, text, (e) => events.push(e as never))
   return { r, events, say: events.find((e) => e.type === 'say')?.text || '', scenes: events.filter((e) => e.type === 'scene').map((e) => e.scene) }

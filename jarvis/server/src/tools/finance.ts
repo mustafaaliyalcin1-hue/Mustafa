@@ -6,6 +6,7 @@
  * Borsa (BIST) için anahtarsız güvenilir kaynak yok → Claude web aramasıyla bakar.
  */
 import { z } from 'zod'
+import { cached } from './cache.ts'
 import { getJson } from './http.ts'
 import { defineTool } from './registry.ts'
 
@@ -49,7 +50,59 @@ async function fx(codes: string[], chartCode?: string) {
   return { items, chart }
 }
 
+/** Altın/kripto: önce CoinGecko, sınırlanırsa (429) Binance açık piyasa verisi */
 async function crypto(symbols: string[], withGold: boolean) {
+  try {
+    return await coingecko(symbols, withGold)
+  } catch (e) {
+    console.warn(`[finans] CoinGecko başarısız (${(e as Error).message}) → Binance`)
+    return binance(symbols, withGold)
+  }
+}
+
+const BINANCE_HOSTS = ['https://data-api.binance.vision', 'https://api.binance.com']
+async function binanceGet<T>(path: string): Promise<T> {
+  let last: unknown
+  for (const h of BINANCE_HOSTS) {
+    try {
+      return await getJson<T>(h + path)
+    } catch (e) {
+      last = e
+    }
+  }
+  throw last
+}
+
+/** Binance: kripto/TRY çiftleri doğrudan; altın = PAXG/USDT × USDT/TRY (1 PAXG = 1 ons altın) */
+export async function binance(symbols: string[], withGold: boolean) {
+  const pairs = [...symbols.filter((s) => CRYPTO[s]).map((s) => `${s}TRY`), ...(withGold ? ['PAXGUSDT', 'USDTTRY'] : [])]
+  if (!pairs.length) return { items: [] as FinanceItem[], chart: undefined }
+  const t = await binanceGet<{ symbol: string; lastPrice: string; priceChangePercent: string }[]>(`/api/v3/ticker/24hr?symbols=${encodeURIComponent(JSON.stringify(pairs))}`)
+  const by = (p: string) => t.find((x) => x.symbol === p)
+  const items: FinanceItem[] = []
+  for (const s of symbols) {
+    const r = by(`${s}TRY`)
+    if (r && CRYPTO[s]) items.push({ symbol: s, name: CRYPTO[s].name, price: Number(r.lastPrice), change: Number(r.priceChangePercent), unit: '₺' })
+  }
+  let chart: { label: string; points: number[] } | undefined
+  const usdtry = Number(by('USDTTRY')?.lastPrice || 0)
+  const paxg = by('PAXGUSDT')
+  if (withGold && paxg && usdtry) {
+    const oz = Number(paxg.lastPrice) * usdtry
+    const ch = Number(paxg.priceChangePercent)
+    items.unshift({ symbol: 'GRAM', name: 'Gram Altın', price: oz / OZ_GRAM, change: ch, unit: '₺' }, { symbol: 'ONS', name: 'Ons Altın', price: oz, change: ch, unit: '₺' })
+  }
+  try {
+    const sym = withGold ? 'PAXGUSDT' : `${symbols[0]}TRY`
+    const k = await binanceGet<[number, string, string, string, string][]>(`/api/v3/klines?symbol=${sym}&interval=1d&limit=30`)
+    chart = { label: `${withGold ? 'Gram altın' : items[0]?.name} · 30 gün`, points: k.map((x) => (withGold ? (Number(x[4]) * usdtry) / OZ_GRAM : Number(x[4]))) }
+  } catch {
+    /* grafik isteğe bağlı */
+  }
+  return { items, chart }
+}
+
+async function coingecko(symbols: string[], withGold: boolean) {
   const ids = symbols.map((s) => CRYPTO[s]?.id).filter(Boolean) as string[]
   if (withGold) ids.push('pax-gold')
   if (!ids.length) return { items: [] as FinanceItem[], chart: undefined }
@@ -89,7 +142,10 @@ defineTool({
     const fxCodes = (currencies || []).map((c) => c.toUpperCase()).filter((c) => c !== 'TRY')
     const crCodes = (cr || []).map((c) => c.toUpperCase())
     if (!fxCodes.length && !gold && !crCodes.length) fxCodes.push('USD', 'EUR')
-    const [a, b] = await Promise.all([fxCodes.length ? fx(fxCodes) : null, gold || crCodes.length ? crypto(crCodes, !!gold) : null])
+    const [a, b] = await Promise.all([
+      fxCodes.length ? cached(`fx:${fxCodes.join(',')}`, 10 * 60_000, () => fx(fxCodes)) : null,
+      gold || crCodes.length ? cached(`cr:${crCodes.join(',')}:${!!gold}`, 60_000, () => crypto(crCodes, !!gold)) : null,
+    ])
     const items = [...(a?.items || []), ...(b?.items || [])]
     const chart = (gold ? b?.chart : a?.chart) || a?.chart || b?.chart
     const data = { items, chart }

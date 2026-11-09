@@ -4,6 +4,7 @@
  * Takım adı verilirse ±10 günlük pencerede o takımın maçları süzülür (varsayılan: Fenerbahçe).
  */
 import { z } from 'zod'
+import { cached } from './cache.ts'
 import { getJson } from './http.ts'
 import { defineTool } from './registry.ts'
 
@@ -27,7 +28,6 @@ export const LEAGUE_NAMES: Record<LeagueKey, string> = {
   sampiyonlar_ligi: 'Şampiyonlar Ligi', avrupa_ligi: 'Avrupa Ligi', konferans_ligi: 'Konferans Ligi', fransa: 'Fransa Ligue 1', hollanda: 'Hollanda Ligi', portekiz: 'Portekiz Ligi',
 }
 /** Takım aranırken taranan tüm ligler (Türkiye önce) */
-const ALL_CODES = ['tur.1', 'tur.2', 'uefa.champions', 'uefa.europa', 'uefa.europa.conf', 'eng.1', 'esp.1', 'ita.1', 'ger.1', 'fra.1', 'ned.1', 'por.1']
 
 export interface Match {
   id: string
@@ -98,18 +98,60 @@ const TEAM_LEAGUE: Record<string, string> = {
 }
 
 /** Takımın ESPN takvimi: önce takım kimliği bulunur, sonra sonuçlar ve fikstür alınır */
-async function teamSchedule(code: string, key: string): Promise<Match[]> {
-  const base = `https://site.api.espn.com/apis/site/v2/sports/soccer/${code}`
-  const list = await getJson(`${base}/teams`)
-  const teams: { id: string; displayName: string }[] = (list.sports?.[0]?.leagues?.[0]?.teams || []).map((t: { team: { id: string; displayName: string } }) => t.team)
-  const t = teams.find((x) => norm(x.displayName).includes(key))
-  if (!t) throw new Error(`takım bulunamadı (${key})`)
-  const [past, next] = await Promise.all([getJson(`${base}/teams/${t.id}/schedule`).catch(() => ({})), getJson(`${base}/teams/${t.id}/schedule?fixture=true`).catch(() => ({}))])
-  const all = [...parseScoreboard(past, code), ...parseScoreboard(next, code)]
-  const now = Date.now()
-  // Takvimde durum bilgisi yoksa tarihe göre tahmin et
-  for (const m of all) if (!m.status || (m.status === 'pre' && m.home.score !== undefined && new Date(m.date).getTime() < now - 3 * 3600e3)) m.status = 'post'
-  return [...new Map(all.map((m) => [m.id, m])).values()].sort((a, b) => a.date.localeCompare(b.date))
+const ESPN = 'https://site.api.espn.com/apis/site/v2/sports/soccer'
+const dayStr = (offset: number) => ymd(new Date(Date.now() + offset * 864e5))
+
+/**
+ * Bir ligin maçları. ESPN geniş tarih aralığını bazen reddediyor (400) →
+ * önce aralık, olmazsa gün gün sorgu (+ tarihsiz "güncel hafta").
+ */
+async function leagueBoard(code: string, back: number, fwd: number): Promise<Match[]> {
+  return cached(`board:${code}:${back}:${fwd}`, 120_000, async () => {
+    try {
+      const j = await getJson(`${ESPN}/${code}/scoreboard?dates=${dayStr(-back)}-${dayStr(fwd)}`)
+      const ms = parseScoreboard(j, code)
+      if (ms.length) return ms
+    } catch (e) {
+      console.warn(`[futbol] ${code} aralık sorgusu reddedildi (${(e as Error).message}); gün gün deneniyor`)
+    }
+    const days = Array.from({ length: back + fwd + 1 }, (_, i) => i - back)
+    const boards = await Promise.all([
+      getJson(`${ESPN}/${code}/scoreboard`).then((j) => parseScoreboard(j, code)).catch(() => [] as Match[]),
+      ...days.map((d) => getJson(`${ESPN}/${code}/scoreboard?dates=${dayStr(d)}`).then((j) => parseScoreboard(j, code)).catch(() => [] as Match[])),
+    ])
+    return [...new Map(boards.flat().map((m) => [m.id, m])).values()]
+  })
+}
+
+/** Lig takım listesi (12 saat önbellekli) */
+function teamsOf(code: string): Promise<{ id: string; displayName: string }[]> {
+  return cached(`teams:${code}`, 12 * 3600e3, async () => {
+    const list = await getJson(`${ESPN}/${code}/teams`)
+    return (list.sports?.[0]?.leagues?.[0]?.teams || []).map((t: { team: { id: string; displayName: string } }) => t.team)
+  })
+}
+
+/** Takımı liglerde bul → {lig, kimlik} */
+async function findTeamId(key: string, codes: string[]) {
+  for (const code of codes) {
+    const teams = await teamsOf(code).catch(() => [])
+    const t = teams.find((x) => norm(x.displayName).includes(key))
+    if (t) return { code, id: t.id, name: t.displayName }
+  }
+  return null
+}
+
+/** Takımın ESPN takvimi: geçmiş sonuçlar + gelecek fikstür */
+async function teamSchedule(code: string, id: string): Promise<Match[]> {
+  return cached(`sched:${code}:${id}`, 180_000, async () => {
+    const base = `${ESPN}/${code}/teams/${id}/schedule`
+    const [past, next] = await Promise.all([getJson(base).catch(() => ({})), getJson(`${base}?fixture=true`).catch(() => ({}))])
+    const all = [...parseScoreboard(past, code), ...parseScoreboard(next, code)]
+    const now = Date.now()
+    // Takvimde durum bilgisi eksikse tarihe/skora göre tahmin et
+    for (const m of all) if (!m.status || (m.status === 'pre' && m.home.score !== undefined && new Date(m.date).getTime() < now - 3 * 3600e3)) m.status = 'post'
+    return all
+  })
 }
 
 export interface FootballData {
@@ -122,16 +164,14 @@ export interface FootballData {
 /** Bir ligin son ve yakın günlerdeki maçları (+ istenirse puan durumu) */
 export async function fetchLeague(league: LeagueKey, standings = false) {
   const code = LEAGUES[league]
-  const from = new Date(Date.now() - 4 * 864e5)
-  const to = new Date(Date.now() + 4 * 864e5)
-  const matches = parseScoreboard(await getJson(`https://site.api.espn.com/apis/site/v2/sports/soccer/${code}/scoreboard?dates=${ymd(from)}-${ymd(to)}&limit=300`), code).sort((a, b) => a.date.localeCompare(b.date))
+  const matches = (await leagueBoard(code, 4, 4)).sort((a, b) => a.date.localeCompare(b.date))
   for (const m of matches) {
     m.home.name = turkishTeam(m.home.name)
     m.away.name = turkishTeam(m.away.name)
   }
   let table
   if (standings) {
-    table = parseStandings(await getJson(`https://site.api.espn.com/apis/v2/sports/soccer/${code}/standings`)).slice(0, 24)
+    table = parseStandings(await cached(`st:${code}`, 300_000, () => getJson(`https://site.api.espn.com/apis/v2/sports/soccer/${code}/standings`))).slice(0, 24)
     for (const t of table) t.team = turkishTeam(t.team)
   }
   return { matches, standings: table as FootballData['standings'] }
@@ -139,30 +179,22 @@ export async function fetchLeague(league: LeagueKey, standings = false) {
 
 export async function fetchFootball(opts: { team?: string; league?: LeagueKey; standings?: boolean; searchAll?: boolean }): Promise<FootballData> {
   const { team, league, standings } = opts
-  const lg = league || 'super_lig'
-  const code = LEAGUES[lg]
-  const from = new Date(Date.now() - 21 * 864e5)
-  const to = new Date(Date.now() + 21 * 864e5)
+  const code = LEAGUES[league || 'super_lig']
   const focus = team || 'Fenerbahçe'
   const key = norm(focus).replace(/\s*(sk|fk|as|cf|fc)$/, '')
-  // Takım için: kendi ligi + Avrupa kupaları
   const own = Object.entries(TEAM_LEAGUE).find(([k]) => k.includes(key) || key.includes(k))?.[1]
-  // Bilinmeyen takım → tüm liglerde ara; bilinen takım → kendi ligi + Avrupa kupaları
-  const codes = league ? [code] : opts.searchAll && !own ? ALL_CODES : [...new Set([own || code, 'uefa.champions', 'uefa.europa', 'uefa.europa.conf'])]
-  const boards = await Promise.all(
-    codes.map((c) =>
-      getJson(`https://site.api.espn.com/apis/site/v2/sports/soccer/${c}/scoreboard?dates=${ymd(from)}-${ymd(to)}&limit=300`)
-        .then((j) => parseScoreboard(j, c))
-        .catch((e) => {
-          console.warn(`[futbol] ${c} skor tablosu alınamadı: ${(e as Error).message}`)
-          return [] as Match[]
-        }),
-    ),
-  )
-  let matches = [...new Map(boards.flat().map((m) => [m.id, m])).values()].sort((a, b) => a.date.localeCompare(b.date))
-  if (team || !league) matches = matches.filter((m) => norm(m.home.name).includes(key) || norm(m.away.name).includes(key))
-  // Yedek: takımın kendi takvimi (geçmiş sonuçlar + gelecek fikstür)
-  if (!matches.length && !(opts.searchAll && !own)) matches = await teamSchedule(own || code, key).catch((e) => (console.warn(`[futbol] takvim yedeği başarısız: ${(e as Error).message}`), []))
+  // 1) Takımı bul: kendi ligi önce, bilinmiyorsa tüm ligler
+  const searchCodes = league && !league.startsWith('sampiyon') && !league.startsWith('avrupa') && !league.startsWith('konferans') ? [code] : [...new Set([own || 'tur.1', ...(opts.searchAll ? ['tur.1', 'tur.2', 'eng.1', 'esp.1', 'ita.1', 'ger.1', 'fra.1', 'ned.1', 'por.1'] : [])])]
+  const found = await findTeamId(key, searchCodes)
+  let matches: Match[] = []
+  if (found) matches = await teamSchedule(found.code, found.id).catch(() => [])
+  // 2) Avrupa kupaları (bu haftanın maçları) + takvim boşsa lig skor tablosu
+  const extra = await Promise.all([
+    ...['uefa.champions', 'uefa.europa', 'uefa.europa.conf'].map((c) => getJson(`${ESPN}/${c}/scoreboard`).then((j) => parseScoreboard(j, c)).catch(() => [] as Match[])),
+    ...(!matches.length ? [leagueBoard(found?.code || own || code, 10, 10).catch(() => [] as Match[])] : []),
+  ])
+  matches = [...matches, ...extra.flat()].filter((m) => norm(m.home.name).includes(key) || norm(m.away.name).includes(key))
+  matches = [...new Map(matches.map((m) => [m.id, m])).values()].sort((a, b) => a.date.localeCompare(b.date))
   if (!matches.length) throw new Error(`${focus} için maç verisi alınamadı`)
   for (const m of matches) {
     m.home.name = turkishTeam(m.home.name)
@@ -174,8 +206,8 @@ export async function fetchFootball(opts: { team?: string; league?: LeagueKey; s
   const next = matches.filter((m) => m.status === 'pre').slice(0, 2)
   let table
   if (standings) {
-    const stCode = own || code
-    table = parseStandings(await getJson(`https://site.api.espn.com/apis/v2/sports/soccer/${stCode}/standings`)).slice(0, 20)
+    const stCode = found?.code || own || code
+    table = parseStandings(await cached(`st:${stCode}`, 300_000, () => getJson(`https://site.api.espn.com/apis/v2/sports/soccer/${stCode}/standings`))).slice(0, 24)
     for (const t of table) t.team = turkishTeam(t.team)
   }
   return { focusTeam: focus, matches: [...past, ...live, ...next], standings: table }

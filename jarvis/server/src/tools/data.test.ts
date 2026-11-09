@@ -115,3 +115,82 @@ test('ESPN takvim biçimi: skor nesnesi ve yarışma içi durum', () => {
   assert.equal(m[0].away.score, 0)
   assert.equal(m[0].home.logo, 'l.png')
 })
+
+test('ESPN tarih aralığını reddederse (400) gün gün sorguya geçilir', async () => {
+  const { clearCache } = await import('./cache.ts')
+  clearCache()
+  let rangeCalls = 0
+  const real = globalThis.fetch
+  globalThis.fetch = (async (u: string) => {
+    const url = String(u)
+    if (/\/teams$/.test(url)) return new Response('yok', { status: 404 })
+    if (url.includes('scoreboard') && /dates=\d{8}-\d{8}/.test(url)) {
+      rangeCalls++
+      return new Response(JSON.stringify({ code: 400, message: 'Failed to get events endpoint.' }), { status: 400 })
+    }
+    if (url.includes('tur.1/scoreboard')) return new Response(JSON.stringify(BOARD))
+    return new Response(JSON.stringify({ events: [] }))
+  }) as typeof fetch
+  try {
+    const out = await getTool('get_football')!.run({ team: 'Fenerbahçe' })
+    const d = out.scene!.data as { matches: { id: string }[] }
+    assert.deepEqual(d.matches.map((m) => m.id), ['1', '3', '4'])
+    assert.ok(rangeCalls >= 1)
+  } finally {
+    globalThis.fetch = real
+  }
+})
+
+test('altın/kripto: CoinGecko sınırlarsa (429) Binance yedeği', async () => {
+  const { clearCache } = await import('./cache.ts')
+  clearCache()
+  const real = globalThis.fetch
+  globalThis.fetch = (async (u: string) => {
+    const url = String(u)
+    if (url.includes('coingecko')) return new Response('Throttled', { status: 429 })
+    if (url.includes('/ticker/24hr'))
+      return new Response(JSON.stringify([
+        { symbol: 'BTCTRY', lastPrice: '4100000', priceChangePercent: '-2.5' },
+        { symbol: 'PAXGUSDT', lastPrice: '3110.35', priceChangePercent: '1.1' },
+        { symbol: 'USDTTRY', lastPrice: '50' },
+      ]))
+    if (url.includes('/klines')) return new Response(JSON.stringify([[1, '0', '0', '0', '3000'], [2, '0', '0', '0', '3110.35']]))
+    return new Response('yok', { status: 404 })
+  }) as typeof fetch
+  try {
+    const out = await getTool('get_market')!.run({ gold: true, crypto: ['BTC'] })
+    const d = out.scene!.data as { items: { symbol: string; price: number; change: number }[]; chart: { points: number[] } }
+    const gram = d.items.find((i) => i.symbol === 'GRAM')!
+    assert.ok(Math.abs(gram.price - 5000) < 1) // 3110.35 × 50 / 31.1035
+    assert.equal(d.items.find((i) => i.symbol === 'BTC')!.price, 4100000)
+    assert.equal(d.chart.points.length, 2)
+  } finally {
+    globalThis.fetch = real
+  }
+})
+
+test('hava: Open-Meteo kotası dolarsa (429) MET Norway yedeği', async () => {
+  const { clearCache } = await import('./cache.ts')
+  clearCache()
+  const { fetchWeather } = await import('./weather.ts')
+  const real = globalThis.fetch
+  const ts = (h: number, temp: number, sym: string, mm: number) => ({ time: new Date(Date.UTC(2026, 10, 9, h)).toISOString(), data: { instant: { details: { air_temperature: temp, relative_humidity: 80, wind_speed: 3 } }, next_1_hours: { summary: { symbol_code: sym }, details: { precipitation_amount: mm } } } })
+  globalThis.fetch = (async (u: string) => {
+    const url = String(u)
+    if (url.includes('open-meteo')) return new Response(JSON.stringify({ reason: 'Daily API request limit exceeded.' }), { status: 429 })
+    if (url.includes('api.met.no')) return new Response(JSON.stringify({ properties: { timeseries: [ts(9, 12, 'lightrain', 0.6), ts(10, 14, 'rain', 1.5), ts(11, 15, 'rain', 1), ts(30, 9, 'clearsky_day', 0), ts(31, 11, 'fair_day', 0)] } }))
+    return new Response('yok', { status: 404 })
+  }) as typeof fetch
+  try {
+    const w = await fetchWeather('İstanbul')
+    assert.equal(w.source, 'MET Norway')
+    assert.equal(w.city, 'İstanbul')
+    assert.equal(w.temp, 12)
+    assert.equal(w.condition, 'rain')
+    assert.equal(w.days[0].max, 15)
+    assert.ok(w.days[0].rain >= 60)
+    assert.equal(w.days[1].condition, 'sunny')
+  } finally {
+    globalThis.fetch = real
+  }
+})

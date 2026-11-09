@@ -50,13 +50,17 @@ app.get('/diag', async () => {
   const from = ymd(new Date(Date.now() - 21 * 864e5))
   const to = ymd(new Date(Date.now() + 21 * 864e5))
   const checks: [string, string, (body: string) => string][] = [
-    ['espn_skor', `https://site.api.espn.com/apis/site/v2/sports/soccer/tur.1/scoreboard?dates=${from}-${to}&limit=300`, (b) => `${(JSON.parse(b).events || []).length} maç`],
+    ['espn_aralik', `https://site.api.espn.com/apis/site/v2/sports/soccer/tur.1/scoreboard?dates=${ymd(new Date(Date.now() - 7 * 864e5))}-${ymd(new Date())}`, (b) => `${(JSON.parse(b).events || []).length} maç`],
+    ['espn_gun', `https://site.api.espn.com/apis/site/v2/sports/soccer/tur.1/scoreboard?dates=${ymd(new Date(Date.now() - 864e5))}`, (b) => `${(JSON.parse(b).events || []).length} maç`],
+    ['espn_fb_fikstur', 'https://site.api.espn.com/apis/site/v2/sports/soccer/tur.1/teams/436/schedule', (b) => `${(JSON.parse(b).events || []).length} maç (436 = örnek takım kimliği)`],
     ['espn_1lig', `https://site.api.espn.com/apis/site/v2/sports/soccer/tur.2/scoreboard?dates=${from}-${to}&limit=300`, (b) => `${(JSON.parse(b).events || []).length} maç`],
     ['espn_bugun', 'https://site.api.espn.com/apis/site/v2/sports/soccer/tur.1/scoreboard', (b) => `${(JSON.parse(b).events || []).length} maç`],
     ['espn_takimlar', 'https://site.api.espn.com/apis/site/v2/sports/soccer/tur.1/teams', (b) => `${(JSON.parse(b).sports?.[0]?.leagues?.[0]?.teams || []).length} takım`],
     ['hava', 'https://api.open-meteo.com/v1/forecast?latitude=41&longitude=29&current=temperature_2m', (b) => `${JSON.parse(b).current?.temperature_2m}°`],
     ['doviz', 'https://api.frankfurter.dev/v1/latest?base=USD&symbols=TRY', (b) => `USD ${JSON.parse(b).rates?.TRY}`],
     ['altin_kripto', 'https://api.coingecko.com/api/v3/simple/price?ids=pax-gold,bitcoin&vs_currencies=try', (b) => Object.keys(JSON.parse(b)).join(',')],
+    ['binance_yedek', 'https://data-api.binance.vision/api/v3/ticker/price?symbol=PAXGUSDT', (b) => `PAXG ${JSON.parse(b).price}`],
+    ['hava_yedek_met', 'https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=41.0082&lon=28.9784', (b) => `${JSON.parse(b).properties?.timeseries?.[0]?.data?.instant?.details?.air_temperature}°`],
     ['haberler', 'https://news.google.com/rss?hl=tr&gl=TR&ceid=TR:tr', (b) => `${(b.match(/<item>/g) || []).length} haber`],
     ['arama', 'https://html.duckduckgo.com/html/?q=fenerbahce', (b) => `${(b.match(/result__a/g) || []).length} sonuç`],
   ]
@@ -64,7 +68,9 @@ app.get('/diag', async () => {
     checks.map(async ([name, url, summarize]) => {
       const t0 = Date.now()
       try {
-        const r = await fetch(url, { signal: AbortSignal.timeout(8000), headers: { 'user-agent': UA, 'accept-language': 'tr-TR,tr;q=0.9' } })
+        // MET Norway kimliği belli bir istemci ister
+        const ua = url.includes('api.met.no') ? 'JarvisPersonalAssistant/1.0 (+https://github.com/mustafaaliyalcin1-hue/Mustafa)' : UA
+        const r = await fetch(url, { signal: AbortSignal.timeout(8000), headers: { 'user-agent': ua, 'accept-language': 'tr-TR,tr;q=0.9' } })
         const body = await r.text()
         let info = ''
         try {
