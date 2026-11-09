@@ -50,6 +50,7 @@ app.get('/diag', async () => {
   const to = ymd(new Date(Date.now() + 21 * 864e5))
   const checks: [string, string, (body: string) => string][] = [
     ['espn_skor', `https://site.api.espn.com/apis/site/v2/sports/soccer/tur.1/scoreboard?dates=${from}-${to}&limit=300`, (b) => `${(JSON.parse(b).events || []).length} maç`],
+    ['espn_1lig', `https://site.api.espn.com/apis/site/v2/sports/soccer/tur.2/scoreboard?dates=${from}-${to}&limit=300`, (b) => `${(JSON.parse(b).events || []).length} maç`],
     ['espn_bugun', 'https://site.api.espn.com/apis/site/v2/sports/soccer/tur.1/scoreboard', (b) => `${(JSON.parse(b).events || []).length} maç`],
     ['espn_takimlar', 'https://site.api.espn.com/apis/site/v2/sports/soccer/tur.1/teams', (b) => `${(JSON.parse(b).sports?.[0]?.leagues?.[0]?.teams || []).length} takım`],
     ['hava', 'https://api.open-meteo.com/v1/forecast?latitude=41&longitude=29&current=temperature_2m', (b) => `${JSON.parse(b).current?.temperature_2m}°`],

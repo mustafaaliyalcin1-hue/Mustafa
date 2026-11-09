@@ -9,6 +9,7 @@ import { defineTool } from './registry.ts'
 
 export const LEAGUES = {
   super_lig: 'tur.1',
+  birinci_lig: 'tur.2',
   premier_lig: 'eng.1',
   la_liga: 'esp.1',
   serie_a: 'ita.1',
@@ -16,7 +17,17 @@ export const LEAGUES = {
   sampiyonlar_ligi: 'uefa.champions',
   avrupa_ligi: 'uefa.europa',
   konferans_ligi: 'uefa.europa.conf',
+  fransa: 'fra.1',
+  hollanda: 'ned.1',
+  portekiz: 'por.1',
 } as const
+export type LeagueKey = keyof typeof LEAGUES
+export const LEAGUE_NAMES: Record<LeagueKey, string> = {
+  super_lig: 'Süper Lig', birinci_lig: '1. Lig', premier_lig: 'Premier Lig', la_liga: 'La Liga', serie_a: 'Serie A', bundesliga: 'Bundesliga',
+  sampiyonlar_ligi: 'Şampiyonlar Ligi', avrupa_ligi: 'Avrupa Ligi', konferans_ligi: 'Konferans Ligi', fransa: 'Fransa Ligue 1', hollanda: 'Hollanda Ligi', portekiz: 'Portekiz Ligi',
+}
+/** Takım aranırken taranan tüm ligler (Türkiye önce) */
+const ALL_CODES = ['tur.1', 'tur.2', 'uefa.champions', 'uefa.europa', 'uefa.europa.conf', 'eng.1', 'esp.1', 'ita.1', 'ger.1', 'fra.1', 'ned.1', 'por.1']
 
 export interface Match {
   id: string
@@ -71,6 +82,9 @@ const ymd = (d: Date) => d.toISOString().slice(0, 10).replace(/-/g, '')
 const TR_NAMES: Record<string, string> = {
   fenerbahce: 'Fenerbahçe', besiktas: 'Beşiktaş', basaksehir: 'Başakşehir', 'istanbul basaksehir': 'Başakşehir', goztepe: 'Göztepe', kasimpasa: 'Kasımpaşa', eyupspor: 'Eyüpspor',
   genclerbirligi: 'Gençlerbirliği', 'fatih karagumruk': 'Karagümrük', karagumruk: 'Karagümrük', 'caykur rizespor': 'Rizespor', rizespor: 'Rizespor', 'gaziantep fk': 'Gaziantep FK', 'kocaelispor': 'Kocaelispor',
+  bandirmaspor: 'Bandırmaspor', umraniyespor: 'Ümraniyespor', istanbulspor: 'İstanbulspor', elazigspor: 'Elazığspor', igdir: 'Iğdır FK', 'igdir fk': 'Iğdır FK',
+  corum: 'Çorum FK', 'corum fk': 'Çorum FK', keciorengucu: 'Keçiörengücü', 'ankara keciorengucu': 'Keçiörengücü', sariyer: 'Sarıyer', 'esenler erokspor': 'Esenler Erokspor',
+  'bb erzurumspor': 'Erzurumspor', 'adana demirspor': 'Adana Demirspor', 'manisa fk': 'Manisa FK', 'serik belediyespor': 'Serik Belediyespor', 'sanliurfaspor': 'Şanlıurfaspor',
   'bayern munich': 'Bayern Münih', 'internazionale': 'Inter', 'atletico madrid': 'Atletico Madrid', 'paris saint-germain': 'PSG', 'olympiacos': 'Olympiakos', 'fc copenhagen': 'Kopenhag',
 }
 export function turkishTeam(name: string) {
@@ -105,7 +119,25 @@ export interface FootballData {
 }
 
 /** Bir takımın (varsayılan Fenerbahçe) son/canlı/sıradaki maçları + istenirse puan durumu */
-export async function fetchFootball(opts: { team?: string; league?: keyof typeof LEAGUES; standings?: boolean }): Promise<FootballData> {
+/** Bir ligin son ve yakın günlerdeki maçları (+ istenirse puan durumu) */
+export async function fetchLeague(league: LeagueKey, standings = false) {
+  const code = LEAGUES[league]
+  const from = new Date(Date.now() - 4 * 864e5)
+  const to = new Date(Date.now() + 4 * 864e5)
+  const matches = parseScoreboard(await getJson(`https://site.api.espn.com/apis/site/v2/sports/soccer/${code}/scoreboard?dates=${ymd(from)}-${ymd(to)}&limit=300`), code).sort((a, b) => a.date.localeCompare(b.date))
+  for (const m of matches) {
+    m.home.name = turkishTeam(m.home.name)
+    m.away.name = turkishTeam(m.away.name)
+  }
+  let table
+  if (standings) {
+    table = parseStandings(await getJson(`https://site.api.espn.com/apis/v2/sports/soccer/${code}/standings`)).slice(0, 24)
+    for (const t of table) t.team = turkishTeam(t.team)
+  }
+  return { matches, standings: table as FootballData['standings'] }
+}
+
+export async function fetchFootball(opts: { team?: string; league?: LeagueKey; standings?: boolean; searchAll?: boolean }): Promise<FootballData> {
   const { team, league, standings } = opts
   const lg = league || 'super_lig'
   const code = LEAGUES[lg]
@@ -115,7 +147,8 @@ export async function fetchFootball(opts: { team?: string; league?: keyof typeof
   const key = norm(focus).replace(/\s*(sk|fk|as|cf|fc)$/, '')
   // Takım için: kendi ligi + Avrupa kupaları
   const own = Object.entries(TEAM_LEAGUE).find(([k]) => k.includes(key) || key.includes(k))?.[1]
-  const codes = league ? [code] : [...new Set([own || code, 'uefa.champions', 'uefa.europa', 'uefa.europa.conf'])]
+  // Bilinmeyen takım → tüm liglerde ara; bilinen takım → kendi ligi + Avrupa kupaları
+  const codes = league ? [code] : opts.searchAll && !own ? ALL_CODES : [...new Set([own || code, 'uefa.champions', 'uefa.europa', 'uefa.europa.conf'])]
   const boards = await Promise.all(
     codes.map((c) =>
       getJson(`https://site.api.espn.com/apis/site/v2/sports/soccer/${c}/scoreboard?dates=${ymd(from)}-${ymd(to)}&limit=300`)
@@ -129,7 +162,7 @@ export async function fetchFootball(opts: { team?: string; league?: keyof typeof
   let matches = [...new Map(boards.flat().map((m) => [m.id, m])).values()].sort((a, b) => a.date.localeCompare(b.date))
   if (team || !league) matches = matches.filter((m) => norm(m.home.name).includes(key) || norm(m.away.name).includes(key))
   // Yedek: takımın kendi takvimi (geçmiş sonuçlar + gelecek fikstür)
-  if (!matches.length) matches = await teamSchedule(own || code, key).catch((e) => (console.warn(`[futbol] takvim yedeği başarısız: ${(e as Error).message}`), []))
+  if (!matches.length && !(opts.searchAll && !own)) matches = await teamSchedule(own || code, key).catch((e) => (console.warn(`[futbol] takvim yedeği başarısız: ${(e as Error).message}`), []))
   if (!matches.length) throw new Error(`${focus} için maç verisi alınamadı`)
   for (const m of matches) {
     m.home.name = turkishTeam(m.home.name)
@@ -154,12 +187,12 @@ defineTool({
     'Futbol: bir takımın son ve sıradaki maçları, canlı skorlar, ligdeki günün maçları ve puan durumu. Kullanıcının takımı Fenerbahçe’dir; takım belirtilmezse onu varsay. Sonucu söylerken skoru ve kimin kazandığını net belirt.',
   schema: z.object({
     team: z.string().optional().describe('Takım adı, ör. "Fenerbahçe", "Galatasaray", "Real Madrid"'),
-    league: z.enum(['super_lig', 'premier_lig', 'la_liga', 'serie_a', 'bundesliga', 'sampiyonlar_ligi', 'avrupa_ligi', 'konferans_ligi']).optional(),
+    league: z.enum(Object.keys(LEAGUES) as [LeagueKey, ...LeagueKey[]]).optional(),
     standings: z.boolean().optional().describe('Puan durumu da isteniyorsa true'),
   }),
   pendingScene: { scene: 'sports', data: { matches: [] } },
   async run({ team, league, standings }) {
-    const data = await fetchFootball({ team, league, standings })
+    const data = await fetchFootball({ team, league, standings, searchAll: !!team })
     return {
       result: {
         matches: data.matches.map(({ home, away, ...m }) => ({ ...m, home: `${home.name} ${home.score ?? ''}`, away: `${away.name} ${away.score ?? ''}` })),

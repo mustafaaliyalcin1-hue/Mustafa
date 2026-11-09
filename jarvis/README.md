@@ -149,6 +149,7 @@ yapay zekâya gider. Takip soruları desteklenir: *"Fener yendi mi?" → "Peki s
 
 | Konu | Örnek cümleler |
 |---|---|
+| Futbol (tüm takımlar) | Elazığspor maçı kaç bitti · Amedspor'un maçı ne zaman · 1. Lig puan durumu · Premier Lig sonuçları · bugün hangi maçlar var · Galatasaray Şampiyonlar Ligi maçı ne zaman — veri kaynağında olmayan alt lig maçlarını yapay zekâ internetten bulup aynı skor animasyonuyla gösterir |
 | Futbol | Fener yendi mi · maç kaç kaç bitti · Galatasaray kazandı mı · maç şu an kaç kaç · sıradaki maç ne zaman · Fenerbahçe kaçıncı sırada · Real Madrid kazandı mı |
 | Hava | hava nasıl · yarın yağmur yağacak mı · şemsiye alayım mı · bu akşam soğuk mu · Erzurum'da kar yağacak mı · hafta sonu İzmir hava · peki öbür gün? |
 | Döviz/altın/kripto | dolar ne kadar · 100 dolar kaç TL · 5000 lira kaç euro · çeyrek altın ne kadar · altın yükseldi mi · bitcoin düştü mü |

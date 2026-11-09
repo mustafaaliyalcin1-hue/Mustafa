@@ -83,6 +83,14 @@ const CASES: [string, string | null, Record<string, unknown>?][] = [
   ['elektrikli araba mı hibrit mi araştır', null],
   ['Fenerbahçe neden kaybetti', null],
   ['macera filmi öner', null],
+  ['Elazığspor maçı kaç bitti', 'football', { team: 'elazigspor', display: 'Elazığspor', generic: true, ask: 'sonuc' }],
+  ["Amedspor'un maçı ne zaman", 'football', { team: 'amedspor', display: 'Amedspor', ask: 'siradaki' }],
+  ['Bandırmaspor kazandı mı', 'football', { display: 'Bandırmaspor', generic: true }],
+  ['Keçiörengücü maçı', 'football', { display: 'Keçiörengücü' }],
+  ['1. lig puan durumu', 'football', { league: 'birinci_lig', ask: 'puan' }],
+  ['premier lig sonuçları', 'football', { league: 'premier_lig', ask: 'liste' }],
+  ['bugün hangi maçlar var', 'football', { league: 'super_lig', ask: 'liste' }],
+  ['Galatasaray şampiyonlar ligi maçı ne zaman', 'football', { team: 'Galatasaray', league: 'sampiyonlar_ligi', ask: 'siradaki' }],
   ["Milano'da hava nasıl", 'weather'],
   ["Fenerbahçe'nin maçı ne zaman", 'football', { team: 'Fenerbahce', ask: 'siradaki' }],
   ["fenerin maçı saat kaçta", 'football', { ask: 'siradaki' }],
@@ -149,11 +157,12 @@ const ev = (id: string, date: string, state: string, h: [string, string], a: [st
 })
 
 let board: unknown = { events: [] }
+let board2: unknown = { events: [] }
 const RSS = `<rss><channel><item><title>Merkez Bankası faizi sabit tuttu - AA</title><link>https://x/1</link><pubDate>Sun, 08 Nov 2026 10:00:00 GMT</pubDate><source url="https://aa.com.tr">AA</source></item><item><title>Yeni metro hattı açıldı - NTV</title><link>https://x/2</link><pubDate>Sun, 08 Nov 2026 09:00:00 GMT</pubDate><source url="https://ntv.com.tr">NTV</source></item></channel></rss>`
 globalThis.fetch = (async (url: string) => {
   const u = String(url)
   const J = (o: unknown) => new Response(JSON.stringify(o))
-  if (u.includes('soccer') && u.includes('scoreboard')) return J(u.includes('tur.1') ? board : { events: [] })
+  if (u.includes('soccer') && u.includes('scoreboard')) return J(u.includes('tur.1') ? board : u.includes('tur.2') ? board2 : { events: [] })
   if (u.includes('standings'))
     return J({ children: [{ standings: { entries: [
       { team: { displayName: 'Galatasaray' }, stats: [{ name: 'rank', value: 1 }, { name: 'points', value: 31 }, { name: 'gamesPlayed', value: 12 }] },
@@ -318,4 +327,27 @@ test('hesap: cevaplar, ekler ve önceki sonuçla devam', async () => {
   const sc = x.events.find((e) => e.scene === 'calc')!.data
   assert.equal(sc.result, 20)
   assert.equal(sc.expr, '10 × 2')
+})
+
+test('tüm takımlar: alt lig takımı, bulunamayan takım asla Fenerbahçe sonucu vermez, lig listesi', async () => {
+  board = { events: [ev('1', iso(-1), 'post', ['Fenerbahce', '3'], ['Galatasaray', '1']), ev('5', iso(-1), 'post', ['Konyaspor', '0'], ['Kasimpasa', '2'])] }
+  board2 = { events: [ev('7', iso(-1), 'post', ['Sivasspor', '1'], ['Bandirmaspor', '2'])] }
+  // 1. Lig takımı bulunur
+  let x = await ask('Bandırmaspor kazandı mı')
+  assert.deepEqual(x.scenes, ['sports'])
+  assert.match(x.say, /Bandırmaspor dün Sivasspor'u 2-1 yendi/)
+  assert.doesNotMatch(x.say, /Fenerbahçe/)
+  // Hiçbir ligde olmayan takım → yerelde cevap yok (yapay zekâ internetten bulur), Fenerbahçe gösterilmez
+  x = await ask('Elazığspor maçı kaç bitti')
+  assert.equal(x.r, null)
+  assert.deepEqual(x.scenes, [])
+  // Lig listesi
+  x = await ask('süper lig sonuçları')
+  assert.deepEqual(x.scenes, ['sports'])
+  assert.match(x.say, /^Süper Lig'de son oynanan maçlar efendim: Fenerbahçe 3, Galatasaray 1; Konyaspor 0, Kasımpaşa 2\.$/)
+  x = await ask('1. lig sonuçları')
+  assert.match(x.say, /^1\. Lig'de son oynanan maçlar efendim: Sivasspor 1, Bandırmaspor 2\.$/)
+  // Lig puan durumu
+  x = await ask('süper lig puan durumu')
+  assert.match(x.say, /^Süper Lig puan durumu efendim: 1\. Galatasaray 31 puan, 2\. Fenerbahçe 29 puan\.$/)
 })

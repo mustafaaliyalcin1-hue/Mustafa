@@ -6,7 +6,7 @@
  *  Puan  : "puan durumu", "kaçıncıyız", "lider kim", "Fenerbahçe kaçıncı sırada"
  * Takım söylenmezse Fenerbahçe. Ekranda stadyum + skor animasyonu, Fener kazandıysa kutlama.
  */
-import { fetchFootball, type Match } from '../tools/sports.ts'
+import { fetchFootball, fetchLeague, LEAGUE_NAMES, type LeagueKey, type Match } from '../tools/sports.ts'
 import { DAY_NAMES, ekle, fold, hasPhrase, hasStem, pick, type Norm } from './text.ts'
 import type { Intent } from './types.ts'
 
@@ -19,6 +19,15 @@ const TEAMS: [string[], string, string][] = [
   [['basaksehir'], 'Basaksehir', 'Başakşehir'],
   [['samsunspor'], 'Samsunspor', 'Samsunspor'],
   [['goztepe'], 'Goztepe', 'Göztepe'],
+  [['kasimpasa'], 'Kasimpasa', 'Kasımpaşa'],
+  [['karagumruk'], 'Karagumruk', 'Karagümrük'],
+  [['genclerbirligi', 'genclerbirlik'], 'Genclerbirligi', 'Gençlerbirliği'],
+  [['kecioren', 'keciorengucu'], 'Keciorengucu', 'Keçiörengücü'],
+  [['sariyer'], 'Sariyer', 'Sarıyer'],
+  [['gaziantep'], 'Gaziantep', 'Gaziantep FK'],
+  [['manisa'], 'Manisa', 'Manisa FK'],
+  [['igdir'], 'Igdir', 'Iğdır FK'],
+  [['corum'], 'Corum', 'Çorum FK'],
   [['real madrid', 'real'], 'Real Madrid', 'Real Madrid'],
   [['barcelona', 'barselona', 'barca'], 'Barcelona', 'Barcelona'],
   [['manchester city', 'man city', 'city'], 'Manchester City', 'Manchester City'],
@@ -36,22 +45,69 @@ const TEAMS: [string[], string, string][] = [
 /** Takım adına gelebilecek Türkçe ekler (Fener'in, Fenerbahçe'yi, Galatasaray'dan...) — "Milano" gibi başka kelimeler eşleşmesin */
 const TEAM_SUFFIX = /^(y?[iu]n?|n[iu]n|y?[ae]|[dt][ae]n?|l[ae]r\w*|li|lu|nin|in|e|ye)?$/
 
-function findTeam(n: Norm): { search: string; display: string } | undefined {
+function findTeam(n: Norm): { search: string; display: string; generic?: boolean } | undefined {
   for (const [aliases, search, display] of TEAMS) {
     for (const a of aliases) {
       if (a.includes(' ') ? n.f.includes(a) : n.words.some((w) => w === a || (a.length >= 4 && w.startsWith(a) && TEAM_SUFFIX.test(w.slice(a.length))))) return { search, display }
     }
   }
+  return genericTeam(n)
+}
+
+/**
+ * Listede olmayan takımlar: "-spor", "-gücü" ile biten her kelime (Elazığspor, Amedspor, Bandırmaspor…)
+ * ve "X FK / X SK". Ekranda/konuşmada kullanıcının yazdığı Türkçe ad kullanılır.
+ */
+export function genericTeam(n: Norm): { search: string; display: string; generic: true } | undefined {
+  for (const w of n.f.split(' ')) {
+    const m = w.match(/^([a-z]{2,}(?:spor|gucu|idmanyurdu))('?(?:un|in|u|i|a|e|ya|ye|da|de|dan|den|nin|nun|la|le|lu|li)?)$/)
+    if (m && m[1] !== 'spor') return { search: m[1], display: displayOf(n.raw, m[1]), generic: true }
+  }
+  const fk = n.f.match(/(?:^|\s)([a-z]{3,}) (fk|sk|as|bld|belediyespor)(?:\s|'|$)/)
+  if (fk && !['bir', 'mac'].includes(fk[1])) return { search: fk[1], display: displayOf(n.raw, fk[1]) + ' ' + fk[2].toUpperCase(), generic: true }
+  return undefined
+}
+
+/** Sadeleştirilmiş kökün kullanıcının yazdığı Türkçe halini bul: "elazigspor" → "Elazığspor" */
+function displayOf(raw: string, stem: string) {
+  for (const w of raw.split(/\s+/)) {
+    const f = fold(w)
+    if (f.startsWith(stem)) {
+      const t = w.replace(/['’].*$/, '').slice(0, stem.length + (w.length - f.length))
+      const clean = t.replace(/[^A-Za-zÇĞİÖŞÜçğıöşü]/g, '').slice(0, Math.max(stem.length, 1))
+      return clean.charAt(0).toLocaleUpperCase('tr-TR') + clean.slice(1)
+    }
+  }
+  return stem.charAt(0).toUpperCase() + stem.slice(1)
+}
+
+/** Lig adı: "1. Lig", "Premier Lig", "İspanya"… */
+export function findLeague(n: Norm): LeagueKey | undefined {
+  const f = n.f
+  if (/(1\.? lig|birinci lig|tff 1)/.test(f)) return 'birinci_lig'
+  if (/super lig/.test(f)) return 'super_lig'
+  if (/(sampiyonlar ligi|devler ligi)/.test(f)) return 'sampiyonlar_ligi'
+  if (/avrupa ligi/.test(f)) return 'avrupa_ligi'
+  if (/konferans ligi/.test(f)) return 'konferans_ligi'
+  if (/(premier lig|ingiltere|ingiliz)/.test(f)) return 'premier_lig'
+  if (/(la liga|ispanya)/.test(f)) return 'la_liga'
+  if (/(serie a|italya)/.test(f)) return 'serie_a'
+  if (/(bundesliga|almanya)/.test(f)) return 'bundesliga'
+  if (/(ligue 1|fransa)/.test(f)) return 'fransa'
+  if (/(eredivisie|hollanda)/.test(f)) return 'hollanda'
+  if (/portekiz/.test(f)) return 'portekiz'
   return undefined
 }
 
 /** "maç", "maçı", "maçta", "maçlar" — ama "macera", "macun" değil */
 const isMatchWord = (n: Norm) => n.words.some((w) => /^mac(i|in|ini|a|ta|tan|tayiz|lar\w*|imiz\w*)?$/.test(w))
 
-type Ask = 'sonuc' | 'canli' | 'siradaki' | 'puan'
+type Ask = 'sonuc' | 'canli' | 'siradaki' | 'puan' | 'liste'
 interface P extends Record<string, unknown> {
   team?: string
   display?: string
+  generic?: boolean
+  league?: LeagueKey
   ask: Ask
 }
 
@@ -67,22 +123,32 @@ export const footballIntent: Intent<P> = {
   name: 'football',
   detect(n) {
     const team = findTeam(n)
+    const league = findLeague(n)
+    // Takımsız lig soruları: "1. Lig puan durumu", "Süper Lig'de bugün hangi maçlar var", "Premier Lig sonuçları"
+    if (!team && league) {
+      const a = askOf(n)
+      return { league, ask: a === 'puan' ? 'puan' : 'liste' }
+    }
+    if (!team && hasPhrase(n, 'hangi maclar', 'bugunku maclar', 'bugun hangi mac', 'mac sonuclari', 'maclar ne oldu', 'haftanin maclari')) return { league: 'super_lig', ask: 'liste' }
     const isFootball = team || isMatchWord(n) || hasStem(n, 'futbol', 'derbi', 'fikstur') || n.words.some((w) => /^lig(i|de|in|e)?$/.test(w))
     if (!isFootball) return null
     const ask = askOf(n)
-    if (!ask) return team || isMatchWord(n) ? { team: team?.search, display: team?.display, ask: 'sonuc' } : null
-    return { team: team?.search, display: team?.display, ask }
+    if (!ask) return team || isMatchWord(n) ? { team: team?.search, display: team?.display, generic: team?.generic, league, ask: 'sonuc' } : null
+    return { team: team?.search, display: team?.display, generic: team?.generic, league, ask }
   },
   followUp(n, prev) {
     // "ya Galatasaray?", "peki sıradaki maç?"
     const team = findTeam(n)
     const ask = askOf(n)
     if (!team && !ask) return null
-    return { team: team?.search ?? prev.team, display: team?.display ?? prev.display, ask: ask ?? prev.ask }
+    return team ? { team: team.search, display: team.display, generic: team.generic, ask: ask ?? prev.ask } : { ...prev, ask: ask ?? prev.ask }
   },
-  async run({ team, display, ask }, emit) {
+  async run({ team, display, generic, league, ask }, emit) {
+    // Takımsız lig soruları
+    if (!team && league && (ask === 'liste' || ask === 'puan')) return leagueAnswer(league, ask, emit)
     const name = display || 'Fenerbahçe'
-    const data = await fetchFootball({ team: team || 'Fenerbahce', standings: ask === 'puan' })
+    // Bilinmeyen takım: tüm liglerde aranır; bulunamazsa hata → yapay zekâ internetten bulur (present_match)
+    const data = await fetchFootball({ team: team || 'Fenerbahce', league: generic ? undefined : league, standings: ask === 'puan', searchAll: !!generic })
     const ms = data.matches
     const live = ms.find((m) => m.status === 'in')
     const last = [...ms].reverse().find((m) => m.status === 'post')
@@ -91,8 +157,17 @@ export const footballIntent: Intent<P> = {
 
     if (ask === 'puan') {
       scene(live ? [live] : last ? [last] : next ? [next] : [])
-      const st = data.standings || []
-      const mine = st.find((t) => fold(t.team).includes(fold(name).slice(0, 6)))
+      let st = data.standings || []
+      let mine = st.find((t) => fold(t.team).includes(fold(name).slice(0, 6)))
+      // Süper Lig'de yoksa 1. Lig tablosuna bak
+      if (!mine && generic) {
+        const alt = await fetchLeague('birinci_lig', true).catch(() => null)
+        const found = alt?.standings?.find((t) => fold(t.team).includes(fold(name).slice(0, 6)))
+        if (alt?.standings && found) {
+          st = alt.standings
+          mine = found
+        }
+      }
       const leader = st[0]
       if (!st.length) return 'Puan durumunu şu an alamadım efendim.'
       if (!mine) return `Lider ${leader.team}, ${leader.points} puanla efendim.`
@@ -203,4 +278,28 @@ export function saatEki(d: Date) {
   // son okunan kelimeye göre: 1 bir,2 iki,7 yedi,8 sekiz → de · 3 üç,4 dört,5 beş → te · 6 altı,9 dokuz,10 on,30 otuz,40 kırk(ta),50 elli(de),20 yirmi(de)
   const map: Record<number, string> = { 1: 'de', 2: 'de', 3: 'te', 4: 'te', 5: 'te', 6: 'da', 7: 'de', 8: 'de', 9: 'da', 10: 'da', 20: 'de', 30: 'da', 40: 'ta', 50: 'de', 0: 'da' }
   return map[last] ?? 'de'
+}
+
+/** Lig geneli: maç listesi ya da puan durumu */
+async function leagueAnswer(league: LeagueKey, ask: 'liste' | 'puan', emit: Parameters<Intent['run']>[1]) {
+  const lname = LEAGUE_NAMES[league]
+  const { matches, standings } = await fetchLeague(league, ask === 'puan')
+  const live = matches.filter((m) => m.status === 'in')
+  const done = matches.filter((m) => m.status === 'post').slice(-6)
+  const upcoming = matches.filter((m) => m.status === 'pre').slice(0, 6)
+  if (ask === 'puan') {
+    const st = standings || []
+    if (!st.length) throw new Error('puan durumu yok')
+    emit({ type: 'scene', scene: 'sports', data: { focusTeam: st[0].team, matches: [...live, ...done.slice(-2), ...upcoming.slice(0, 2)], standings: st }, hold: 3600 })
+    const top = st.slice(0, 3).map((t) => `${t.rank}. ${t.team} ${t.points} puan`).join(', ')
+    const fb = st.find((t) => t.team.startsWith('Fenerbah'))
+    return `${lname} puan durumu efendim: ${top}.${fb && fb.rank > 3 ? ` Fenerbahçe ${fb.points} puanla ${fb.rank}. sırada.` : ''}`
+  }
+  const list = live.length ? live : done.length ? done : upcoming
+  if (!list.length) throw new Error('maç yok')
+  emit({ type: 'scene', scene: 'sports', data: { focusTeam: list[0].home.name, matches: list }, hold: 3600 })
+  const read = list.slice(0, 5).map((m) => (m.status === 'pre' ? `${m.home.name} - ${m.away.name} ${when(m.date)}` : `${m.home.name} ${m.home.score ?? 0}, ${m.away.name} ${m.away.score ?? 0}`)).join('; ')
+  const where = ekle(lname, 'loc')
+  const head = live.length ? `${where} şu an oynanan maçlar efendim:` : done.length ? `${where} son oynanan maçlar efendim:` : `${where} sıradaki maçlar efendim:`
+  return `${head} ${read}.`
 }
