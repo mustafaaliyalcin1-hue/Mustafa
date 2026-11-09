@@ -12,7 +12,7 @@ import { footballIntent } from './football.ts'
 import { calcIntent } from './calc.ts'
 import { memoryIntent, smallTalkIntent, timeIntent } from './misc.ts'
 import { newsIntent } from './news.ts'
-import { norm, type Norm } from './text.ts'
+import { FACT_CHECK, norm, type Norm } from './text.ts'
 import type { Intent, IntentContext } from './types.ts'
 import { weatherIntent } from './weather.ts'
 
@@ -20,7 +20,7 @@ import { weatherIntent } from './weather.ts'
 export const INTENTS: Intent[] = [briefingIntent, smallTalkIntent, memoryIntent, timeIntent, newsIntent, footballIntent, financeIntent, weatherIntent, calcIntent] as unknown as Intent[]
 
 /** Bu kalıplar yorum/araştırma ister → her zaman yapay zekâya */
-const NEEDS_AI = /(dogru mu|gercek mi|yalan mi|dogrula|teyit|arastir|karsilastir|\bneden\b|\bniye\b|nasil yapilir|anlat|acikla|yorumla|tavsiye|oner|ozetle|cevir|tercume|ne demek|kimdir|nedir|tarifi|yorumun|sence|fikrin|analiz|hangi kanal|nereden izle|yayin\w* hangi|kim att|golleri kim|kadro|sakat|transfer)/
+const NEEDS_AI = /(arastir|karsilastir|\bneden\b|\bniye\b|nasil yapilir|anlat|acikla|yorumla|tavsiye|oner|ozetle|cevir|tercume|ne demek|kimdir|nedir|tarifi|yorumun|sence|fikrin|analiz|hangi kanal|nereden izle|yayin\w* hangi|kim att|golleri kim|kadro|sakat|transfer)/
 
 const FOLLOW_UP = /^(peki|ya|ve|bir de|ayrica|o zaman|ya da)\b/
 
@@ -34,7 +34,7 @@ export interface LocalResult {
 /** Komutu tanı (çalıştırmadan) — test ve yönlendirme için */
 export function recognize(text: string, ctx: IntentContext = {}): { intent: Intent; params: Record<string, unknown> } | null {
   const n: Norm = norm(text)
-  if (NEEDS_AI.test(n.f)) return null
+  if (NEEDS_AI.test(n.f) || FACT_CHECK.test(n.f)) return null
   for (const intent of INTENTS) {
     const params = intent.detect(n, ctx)
     if (params) return { intent, params }

@@ -164,3 +164,10 @@ export function parseAmount(s: string): number | undefined {
 }
 
 export const pick = <T>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)]
+
+/**
+ * Haber/iddia doğrulama isteği mi? Ses tanımanın bitişik yazımları da dahil:
+ * "gerçek mi", "gerçekmi", "doğru mu/doğrumu", "yalan mı", "sahte mi", "aslı var mı", "teyit et"...
+ */
+export const FACT_CHECK = /(gercek ?mi(dir)?\b|gercekten (oldu|dogru)|dogru ?mu(dur)?\b|yalan ?mi\b|sahte ?mi\b|uydurma ?mi\b|fake|asli (var|astari) ?mi|dogrula|dogrulugu|teyit|inanayim ?mi|gercegi yansit|dezenformasyon|iddia dogru)/
+export const isFactCheck = (text: string) => FACT_CHECK.test(fold(text))

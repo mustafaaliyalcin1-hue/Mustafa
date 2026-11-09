@@ -81,10 +81,24 @@ function displayOf(raw: string, stem: string) {
   return stem.charAt(0).toUpperCase() + stem.slice(1)
 }
 
+/**
+ * TFF 2. Lig (2026-27) takımları — ücretsiz veri kaynağında (ESPN) yok; bu takımlar ve
+ * "2. Lig / 3. Lig" soruları doğrudan yapay zekânın internet aramasına gider (present_match ile gösterilir).
+ * (Basında doğrulanabilen adlar; "-spor" ile biten diğer takımlar zaten otomatik tanınır.)
+ */
+const LOWER_LEAGUE_TEAMS = [
+  'elazigspor', 'aksaray belediyespor', '68 aksaray', 'adana demirspor', 'aliaga', 'ankaraspor', 'arnavutkoy', 'corluspor', 'kastamonuspor', 'guzide gebze', 'gebze',
+  'hatayspor', 'isparta 32', 'ispartaspor', 'inegol kafkas', 'inegolspor', 'kizilkaya', 'sebat genclik', 'somaspor', 'bingolspor', '12 bingol', '1461 trabzon', 'orduspor', '52 orduspor',
+  'adana 01', 'altinordu', 'erzincanspor', '24erzincan', 'ankara demirspor', 'beyoglu yeni carsi', 'yeni carsi', 'fethiyespor',
+]
+export function isLowerLeague(n: Norm) {
+  return /(2\.? lig|ikinci lig|tff 2|3\.? lig|ucuncu lig|tff 3|bal ligi|amator lig)/.test(n.f) || LOWER_LEAGUE_TEAMS.some((t) => n.f.includes(t))
+}
+
 /** Lig adı: "1. Lig", "Premier Lig", "İspanya"… */
 export function findLeague(n: Norm): LeagueKey | undefined {
   const f = n.f
-  if (/(1\.? lig|birinci lig|tff 1)/.test(f)) return 'birinci_lig'
+  if (/((^|[^0-9])1\.? lig|birinci lig|tff 1(\s|$))/.test(f)) return 'birinci_lig'
   if (/super lig/.test(f)) return 'super_lig'
   if (/(sampiyonlar ligi|devler ligi)/.test(f)) return 'sampiyonlar_ligi'
   if (/avrupa ligi/.test(f)) return 'avrupa_ligi'
@@ -122,6 +136,8 @@ function askOf(n: Norm): Ask | null {
 export const footballIntent: Intent<P> = {
   name: 'football',
   detect(n) {
+    // Alt ligler: veri kaynağı yok → yapay zekâ internetten bulsun (yerelde Fenerbahçe'ye düşmesin)
+    if (isLowerLeague(n)) return null
     const team = findTeam(n)
     const league = findLeague(n)
     // Takımsız lig soruları: "1. Lig puan durumu", "Süper Lig'de bugün hangi maçlar var", "Premier Lig sonuçları"

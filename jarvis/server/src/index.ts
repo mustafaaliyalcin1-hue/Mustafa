@@ -12,6 +12,7 @@ import { describeError, resetConversation, runAgent } from './agent.ts'
 import { config, provider, services } from './config.ts'
 import { AllBrainsBusy, brainStatus, rememberTurn, resetFreeConversation, runFreeBrains } from './brains.ts'
 import { tryLocal } from './intents/index.ts'
+import { isFactCheck } from './intents/text.ts'
 import { UA } from './tools/http.ts'
 import { currentGeminiModel, describeGeminiError, warmUpGemini } from './gemini.ts'
 import type { JarvisEvent } from './events.ts'
@@ -113,8 +114,12 @@ app.post<{ Body: { text?: string; conversationId?: string } }>('/api/chat', asyn
       emit({ type: 'say', text: 'Bu soruyu yanıtlamak için yapay zekâ beynim bağlı değil efendim. Hava, maç, döviz, haber, hesap ve hatırlatma gibi komutları ise hemen yapabilirim.' })
       return
     }
-    if (provider === 'free') await runFreeBrains(conversationId, text, emit, ac.signal)
-    else await runAgent(conversationId, text, emit, ac.signal)
+    // Doğrulama isteğinde yapay zekâya açık görev: gündem değil, iddianın kendisini araştır
+    const aiText = isFactCheck(text)
+      ? `${text}\n\n[GÖREV: HABER DOĞRULAMA. get_news KULLANMA. İddiayı web_search ile araştır (link varsa web_fetch ile oku); birden çok güvenilir kaynağa ve teyit.org, dogrulukpayi.com, Reuters/AP/AFP doğrulama sayfalarına bak. Sonra present_fact_check ile DOĞRU/YALAN/YANILTICI/DOĞRULANAMADI sonucunu göster ve kısaca gerekçeyi söyle. İddia bu mesajda yoksa önceki konuşmadaki haberi değerlendir; hâlâ belirsizse hangi haberi kastettiğini sor.]`
+      : text
+    if (provider === 'free') await runFreeBrains(conversationId, aiText, emit, ac.signal)
+    else await runAgent(conversationId, aiText, emit, ac.signal)
   } catch (err) {
     if (!ac.signal.aborted) {
       req.log.error(err)

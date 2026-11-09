@@ -83,7 +83,14 @@ const CASES: [string, string | null, Record<string, unknown>?][] = [
   ['elektrikli araba mı hibrit mi araştır', null],
   ['Fenerbahçe neden kaybetti', null],
   ['macera filmi öner', null],
-  ['Elazığspor maçı kaç bitti', 'football', { team: 'elazigspor', display: 'Elazığspor', generic: true, ask: 'sonuc' }],
+  ['Elazığspor maçı kaç bitti', null], // 2. Lig → yapay zekâ + internet araması
+  ['2. lig puan durumu', null],
+  ['ikinci lig sonuçları', null],
+  ['1461 Trabzon kazandı mı', null],
+  ['Fenerbahçe ile ilgili bu haber gerçekmi', null], // bitişik yazım → doğrulama (yapay zekâ)
+  ['bu haber doğrumu', null],
+  ['Fener yeni hoca aldı yalanmı', null],
+  ['bu iddianın aslı var mı', null],
   ["Amedspor'un maçı ne zaman", 'football', { team: 'amedspor', display: 'Amedspor', ask: 'siradaki' }],
   ['Bandırmaspor kazandı mı', 'football', { display: 'Bandırmaspor', generic: true }],
   ['Keçiörengücü maçı', 'football', { display: 'Keçiörengücü' }],
@@ -338,7 +345,7 @@ test('tüm takımlar: alt lig takımı, bulunamayan takım asla Fenerbahçe sonu
   assert.match(x.say, /Bandırmaspor dün Sivasspor'u 2-1 yendi/)
   assert.doesNotMatch(x.say, /Fenerbahçe/)
   // Hiçbir ligde olmayan takım → yerelde cevap yok (yapay zekâ internetten bulur), Fenerbahçe gösterilmez
-  x = await ask('Elazığspor maçı kaç bitti')
+  x = await ask('Muşspor maçı kaç bitti')
   assert.equal(x.r, null)
   assert.deepEqual(x.scenes, [])
   // Lig listesi
@@ -350,4 +357,10 @@ test('tüm takımlar: alt lig takımı, bulunamayan takım asla Fenerbahçe sonu
   // Lig puan durumu
   x = await ask('süper lig puan durumu')
   assert.match(x.say, /^Süper Lig puan durumu efendim: 1\. Galatasaray 31 puan, 2\. Fenerbahçe 29 puan\.$/)
+})
+
+test('doğrulama isteği algılanır (bitişik yazımlar dahil)', async () => {
+  const { isFactCheck } = await import('./text.ts')
+  for (const t of ['bu gerçek mi', 'bu haber gerçekmi', 'doğrumu bu', 'yalanmı', 'sahte mi bu video', 'bunu teyit et', 'aslı var mı']) assert.equal(isFactCheck(t), true, t)
+  for (const t of ['gündem haberleri', 'hava nasıl', 'gerçekten çok güzel']) assert.equal(isFactCheck(t), false, t)
 })

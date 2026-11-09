@@ -5,7 +5,7 @@
  * Ekranda manşet bandı + kart destesi; ilk üç başlık okunur.
  */
 import { getTool } from '../tools/index.ts'
-import { hasPhrase, hasStem, type Norm } from './text.ts'
+import { FACT_CHECK, hasPhrase, hasStem, type Norm } from './text.ts'
 import type { Intent } from './types.ts'
 
 const CATS: [string[], string][] = [
@@ -29,7 +29,7 @@ export const newsIntent: Intent<P> = {
     const isNews = hasStem(n, 'haber', 'mansett', 'manset', 'gundem') || hasPhrase(n, 'son dakika', 'neler oldu', 'ne oldu bugun', 'dunyada neler')
     if (!isNews) return null
     // Doğrulama soruları yapay zekâya ("bu haber doğru mu")
-    if (hasPhrase(n, 'dogru mu', 'gercek mi', 'yalan mi', 'dogrula', 'teyit')) return null
+    if (FACT_CHECK.test(n.f)) return null
     if (hasPhrase(n, 'son dakika')) return {}
     // "X hakkında / ile ilgili haberler"
     const q = n.raw.match(/(.+?)\s+(?:hakkında|ile ilgili|ilgili|konusunda|haberleri)\b/i)
