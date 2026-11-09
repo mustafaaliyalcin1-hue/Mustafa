@@ -77,8 +77,8 @@ export default function HudWidgets() {
           <button onClick={() => setStore((s) => ({ calcOpen: !s.calcOpen }))} className="hud-panel pointer-events-auto flex items-center gap-2 px-3 py-2 font-mono text-xs tracking-wider text-hud-cyan transition hover:bg-hud-cyan/10 hover:text-white active:scale-95" title="Hesap makinesi">
             🧮<span className="hidden sm:inline">HESAP</span>
           </button>
-          <button onClick={() => setStore((s) => ({ studioOpen: !s.studioOpen }))} className="hud-panel pointer-events-auto flex items-center gap-2 px-3 py-2 font-mono text-xs tracking-wider text-hud-cyan transition hover:bg-hud-cyan/10 hover:text-white active:scale-95" title="Video stüdyosu">
-            🎬<span className="hidden sm:inline">VİDEO</span>
+          <button onClick={() => setStore((s) => ({ editorOpen: !s.editorOpen, studioOpen: false }))} className="hud-panel pointer-events-auto flex items-center gap-2 px-3 py-2 font-mono text-xs tracking-wider text-hud-cyan transition hover:bg-hud-cyan/10 hover:text-white active:scale-95" title="Kurgu stüdyosu">
+            🎞<span className="hidden sm:inline">KURGU</span>
           </button>
         </div>
         <Panel className="flex items-center gap-4 font-mono text-xs text-hud-cyan/80">

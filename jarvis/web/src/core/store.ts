@@ -26,6 +26,9 @@ export interface JarvisStore {
   calcOpen: boolean
   /** Video stüdyosu açık mı */
   studioOpen: boolean
+  /** Kurgu stüdyosu açık mı + sesli komutla seçilen tarz */
+  editorOpen: boolean
+  editorStyle: 'vlog' | 'phonk' | null
 }
 
 const saved = (() => {
@@ -50,6 +53,8 @@ let store: JarvisStore = {
   wakeActive: false,
   calcOpen: false,
   studioOpen: false,
+  editorOpen: false,
+  editorStyle: null,
 }
 
 const listeners = new Set<() => void>()

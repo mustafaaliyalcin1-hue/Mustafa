@@ -12,6 +12,14 @@ import { listenOnce, speechRecognitionSupported, startMicLevel, stopMicLevel } f
 export function ask(text: string) {
   if (!text.trim()) return
   const low = text.toLocaleLowerCase('tr-TR')
+  // Kurgu: "phonk edit yap", "vlog kurgusu", "videoyu editle", "kurgu yap"
+  if (/(phonk|fonk|funk|punk)\w* ?(edit|kurgu)|(vlog|video)\w* (kurgu|edit|düzenle)|kurgu (yap|stüdyo)|edit(le|leyelim| yap)|video düzenle/.test(low)) {
+    const phonk = /(phonk|fonk|funk|punk)/.test(low)
+    setStore({ editorOpen: true, editorStyle: phonk ? 'phonk' : 'vlog', studioOpen: false, calcOpen: false })
+    sfx('pop')
+    play([{ type: 'say', text: phonk ? 'Phonk edit modu hazır efendim. Klipleri seçin, gerisini ben hallederim.' : 'Kurgu stüdyosu hazır efendim. Klipleri galeriden seçin.' }, { type: 'end' }])
+    return
+  }
   if (/(video (paylaş|yükle|stüdyo)|stüdyoyu? aç|video stüdyosu|youtube'?a (yükle|video))/.test(low)) {
     setStore({ studioOpen: true })
     sfx('pop')

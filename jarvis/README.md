@@ -192,6 +192,22 @@ Gerekenler: Windows/Mac/Linux bir bilgisayar, en az 16 GB RAM (8 GB'ta `qwen3:4b
 4. Yalnızca yerel modeli kullanmak için `BRAIN_ORDER=ollama` yapın.
 > Tünel adresini bilen herkes modelinizi kullanabilir; adresi paylaşmayın.
 
+## 🎞 Kurgu Stüdyosu (telefonda, ücretsiz, video hiçbir yere yüklenmez)
+
+Sağ üstteki 🎞 ya da sesle: *"phonk edit yap"*, *"vlog kurgusu yap"*, *"videoyu editle"*.
+Galeriden bir veya birden çok klip seç → tarz → oran (9:16 Reels / 16:9 YouTube / 1:1) → uzunluk (15/30/60 sn/otomatik)
+→ müzik → başlık → kurgu → önizle → **Galeriye kaydet** (iPhone'da paylaşım sayfasından "Videoyu Kaydet").
+
+| Tarz | Ne yapar |
+|---|---|
+| 🎬 **Günlük Vlog** | Kliplerden akıcı 2,5–4,5 sn'lik bölümler (kronolojik), çapraz geçişler, yavaş yakınlaşma (Ken Burns), sıcak renk, başlık + tarih, bitişte kararma; orijinal ses korunur, müzik altta. Uzun videolarda otomatik süre ≈ %35 (30–180 sn). |
+| 🔥 **Phonk Edit** | Müziğin vuruşlarını bulur (kendi müziğinde otomatik BPM), kesmeler vuruşa oturur; vuruşta zoom darbesi, 4 vuruşta bir beyaz flaş, sarsıntı, RGB kayması, ara ara ağır çekim, karanlık/yüksek kontrast renk, vinyet, yanıp sönen başlık. |
+
+Müzik: **Jarvis'in kendi ürettiği** phonk (cowbell melodi + kayan 808 bas) ya da lo-fi — telif sorunu yok;
+veya kendi müzik dosyan (ritmi otomatik bulunur) ya da videonun orijinal sesi.
+Teknik: WebCodecs (donanım hızlandırmalı) + Mediabunny; çıktı H.264 MP4 (AAC, yoksa Opus ses), 720p.
+iPhone'da iOS 17+ önerilir. Kod: `web/src/editor/` (plan.ts kurgu kuralları, beats.ts ritim, music.ts müzik, render.ts motor).
+
 ## 🎬 Video Stüdyosu ve YouTube kurulumu
 
 Jarvis'te sağ üstteki 🎬 (ya da "video paylaş" deyin) → **Galeriden video seç** → başlık, açıklama, etiket,
