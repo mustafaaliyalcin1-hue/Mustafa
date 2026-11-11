@@ -37,6 +37,36 @@
       ]
     },
     {
+      "tarih": "2026-11-11",
+      "baslik": "Were Delalê",
+      "stil": "B (halay-pop, Kürtçe nakarat, girişsiz hook)",
+      "muzik": "Gemini uygulaması (Lyria 3.5, ücretsiz), kullanıcı üretti (dosya adı: Kara Gözlerin Uğruna)",
+      "sure_sn": 123,
+      "paylasimlar": [
+        {
+          "ag": "instagram",
+          "tip": "REEL",
+          "saat": "2026-11-11T20:59+03:00",
+          "metricool_id": 424748536,
+          "ai_isareti": true
+        },
+        {
+          "ag": "youtube",
+          "tip": "short",
+          "saat": "2026-11-11T20:59+03:00",
+          "metricool_id": 424748650,
+          "ai_isareti": true
+        },
+        {
+          "ag": "youtube",
+          "tip": "video (16:9 tam sürüm)",
+          "saat": "2026-11-11T21:02+03:00",
+          "metricool_id": 424748822,
+          "ai_isareti": true
+        }
+      ]
+    },
+    {
       "tarih": "2026-11-13",
       "baslik": "Islak Mektup",
       "stil": "A",
