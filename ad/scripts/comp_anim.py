@@ -17,7 +17,19 @@ def clamp(x, a=0., b=1.): return max(a, min(b, x))
 def io(t): t = clamp(t); return 4 * t ** 3 if t < .5 else 1 - (-2 * t + 2) ** 3 / 2
 def ocub(t): t = clamp(t); return 1 - (1 - t) ** 3
 def oback(t, s=1.6): t = clamp(t); return 1 + (s + 1) * (t - 1) ** 3 + s * (t - 1) ** 2
-def P(f, k): v = M[str(f)]['p'][k]; return v[0] * W, v[1] * H, v[2]
+# render katmanı dönüşümü: altyazılar telefonla çakışmasın diye küçült + yukarı kaydır. (kare, ölçek, yukarı kayma oranı)
+_k = 0.84 if not V else 0.92; _d = 0.065 if not V else 0.04
+LT = [(0, 1, 0), (28, 1, 0), (36, _k, _d), (81, _k, _d), (82, 1, 0), (186, 1, 0), (187, _k, _d), (291, _k, _d), (292, _k, _d), (471, _k, _d),
+      (472, 0.93, 0.0), (591, 0.93, 0.0), (592, _k, _d), (681, _k, _d), (682, 0.93, 0.0), (801, 0.93, 0.0), (802, 1, 0), (900, 1, 0)]
+def layer_tf(f):
+    for (f0, s0, d0), (f1, s1, d1) in zip(LT, LT[1:]):
+        if f0 <= f <= f1:
+            if f1 - f0 <= 1: return (s0, d0) if f == f0 else (s1, d1)
+            t = io((f - f0) / (f1 - f0)); return s0 + (s1 - s0) * t, d0 + (d1 - d0) * t
+    return 1, 0
+def P(f, k):
+    v = M[str(f)]['p'][k]; sc, dy = layer_tf(f)
+    return (v[0] * W - W / 2) * sc + W / 2, (v[1] * H - H / 2) * sc + H / 2 - dy * H, v[2]
 
 # ---------- altyazılar ----------
 SUP = [  # metin, giriş, çıkış, y (oran), boyut (U oranı)
@@ -115,7 +127,7 @@ def brackets(img, cx, cy, rx, ry, t, locked):
     img.alpha_composite(O)
 def gram(img, f, ax, ay, t, a):
     O = Image.new('RGBA', img.size, (0, 0, 0, 0)); d = ImageDraw.Draw(O); col = (255, 255, 255, int(240 * a))
-    bx, by = (ax + U * 0.08, ay - U * 0.10) if not V else (ax - U * 0.30, ay - U * 0.22)
+    bx, by = (ax + U * 0.10, ay - U * 0.14) if not V else (ax - U * 0.30, ay - U * 0.22)
     bx = min(bx, W - U * 0.42)
     d.line((ax, ay, bx, by), fill=col, width=LW); d.line((bx, by, bx + U * 0.30, by), fill=col, width=LW)
     d.ellipse((ax - LW * 2.5, ay - LW * 2.5, ax + LW * 2.5, ay + LW * 2.5), fill=col)
@@ -142,6 +154,10 @@ def compose(f):
     m = M[str(f)]; shot = m['shot']
     r = Image.open(os.path.join(RD, f'{f:04d}.png')).convert('RGBA')
     if r.size != (W, H): r = r.resize((W, H))
+    sc, dy = layer_tf(f)
+    if abs(sc - 1) > 1e-4 or dy:
+        sw, sh = int(round(W * sc)), int(round(H * sc)); rr = r.resize((sw, sh), Image.LANCZOS)
+        r = Image.new('RGBA', (W, H), (0, 0, 0, 0)); r.alpha_composite(rr, ((W - sw) // 2, int(round((H - sh) / 2 - dy * H))))
     base = bg_for(f, shot)
     img = to_img(over(base, r, shadow=0.28)).convert('RGBA')
     # grafikler

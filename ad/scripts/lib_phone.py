@@ -133,7 +133,10 @@ def load_phone(kind='F8'):
     set_p(M['Frame (Lavender)'],**{'Base Color':srgb(pal['frame']),'Metallic':1.0,'Roughness':0.16 if kind.startswith('F') else 0.30})
     set_p(M['Frame (Lavender).001'],**{'Base Color':srgb(pal['frame2']),'Metallic':1.0,'Roughness':0.20 if kind.startswith('F') else 0.32})
     set_p(M['Glass back'],**{'Base Color':srgb(pal['back']),'Metallic':0.0,'Roughness':pal['back_rough'],'Coat Weight':0.6 if kind.startswith('F') else 0.35,'Coat Roughness':0.08})
-    set_p(M['Glass сamera'],**{'Base Color':srgb('#0B0A14'),'Transmission Weight':0.0,'Roughness':0.02,'Coat Weight':1.0})
+    set_p(M['Glass сamera'],**{'Base Color':srgb('#040307'),'Transmission Weight':0.0,'Roughness':0.03,'Specular IOR Level':0.25,'Coat Weight':0.0})
+    cm=M['Camera']; nt=cm.node_tree
+    for n in [n for n in nt.nodes if n.type=='TEX_IMAGE']: nt.nodes.remove(n)
+    set_p(cm,**{'Base Color':srgb('#07060B'),'Metallic':0.0,'Roughness':0.06,'Coat Weight':1.0,'Coat Roughness':0.0,'Specular IOR Level':0.8})
     set_p(M['Camera frame'],**{'Base Color':srgb(pal['camframe']),'Metallic':1.0,'Roughness':0.14})
     remap_uv(meshes,M['Screen'].name); remap_uv(meshes,M['Screen_2'].name)
     emissive_screen(M['Screen'],[os.path.join(ROOT,f"tex/{n}.png") for n in pal.get('main_seq',[pal['main']])]); emissive_screen(M['Screen_2'],os.path.join(ROOT,f"tex/{pal['cover']}.png"))
