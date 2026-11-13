@@ -10,7 +10,7 @@ RD, OD = sys.argv[1], sys.argv[2]; ASP = sys.argv[3] if len(sys.argv) > 3 else '
 V = ASP == 'V'
 meta = json.load(open(os.path.join(RD, 'meta.json'))); W, H = meta['W'], meta['H']; M = meta['frames']
 os.makedirs(OD, exist_ok=True)
-NF = 425; EC = 45
+NF = 875; EC = 45
 U = min(W, H)          # tipografi birimi: kısa kenar
 
 def clamp(x, a=0., b=1.): return max(a, min(b, x))
@@ -28,8 +28,14 @@ SUP = [  # metin, giriş, çıkış, y (oran), boyut (U oranı)
     ('Yeni form açılıyor.', 268, 291, 0.86, 0.080),
     ('Dümdüz.', 300, 319, 0.30 if not V else 0.36, 0.100),
     ('Samsung’un en hafif Fold’u', 327, 351, 0.86, 0.072),
+    ('Katlanınca 8,9 mm', 360, 398, 0.86, 0.080),
+    ('50MP ultra geniş · 3x optik zoom', 404, 440, 0.86, 0.064),
+    ('Galaxy Z Fold8 Ultra · 4 renk', 480, 590, 0.12, 0.066),
+    ('Katlanınca 9,7 mm', 598, 634, 0.86, 0.080),
+    ('7,6 inç ana ekran', 640, 680, 0.86, 0.080),
+    ('Galaxy Z Fold8 · 4 renk', 690, 800, 0.12, 0.066),
 ]
-if V: SUP = [(t, a, b, (0.80 if y > 0.5 else y), s * 1.05) for t, a, b, y, s in SUP]
+if V: SUP = [(t, a, b, (0.80 if y > 0.5 else 0.06), s * (1.05 if len(t) < 22 else 0.80)) for t, a, b, y, s in SUP]
 _wcache = {}; _ink = {}
 def word_img(word, size, weight=700):
     k = (word, size, weight)
@@ -123,7 +129,7 @@ def straightedge(img, y, t, a):
     img.alpha_composite(O)
 
 # ---------- hayalet kelimeler ----------
-GHOST = {'S1': 'ULTRA', 'S2': 'ULTRA', 'S3': 'ULTRA', 'S5': 'FOLD', 'S6': 'FOLD', 'S7': 'FOLD'}
+GHOST = {'S1': 'ULTRA', 'S2': 'ULTRA', 'S3': 'ULTRA', 'S5': 'FOLD', 'S6': 'FOLD', 'S7': 'FOLD', 'U360': 'ULTRA', 'UCOL': 'ULTRA', 'F360': 'FOLD', 'FCOL': 'FOLD'}
 _bg = studio_bg(W, H); _gc = {}
 def bg_for(f, shot):
     word = GHOST.get(shot)
@@ -154,6 +160,17 @@ def compose(f):
         x, y, _ = P(f, 'F_hinge_mid'); straightedge(img, y, (f - 302) / 10, clamp((320 - f) / 4))
     if 325 <= f <= 351:
         x, y, _ = P(f, 'F_right'); gram(img, f, x, y, (f - 325) / 20, clamp((f - 325) / 3) * clamp((351 - f) / 4))
+    for keys, names, f0 in ((('U', 'U2', 'U3', 'U4'), ('Violet Shadow', 'Graphite', 'Cream', 'Green Shadow'), 502),
+                            (('F', 'F2', 'F3', 'F4'), ('Lavender', 'Graphite', 'Cream', 'Pistachio'), 712)):
+        if f0 <= f <= f0 + 90:
+            O = Image.new('RGBA', img.size, (0, 0, 0, 0)); d = ImageDraw.Draw(O); fn = F(600, U * (0.042 if not V else 0.036))
+            for i, (k, nm) in enumerate(zip(keys, names)):
+                t = ocub((f - f0 - i * 4) / 8); out = clamp((f0 + 90 - f) / 5)
+                if t <= 0: continue
+                x, y, _ = P(f, k + '_bot'); y += (1 - t) * U * 0.02
+                d.line((x - U * 0.03, y - U * 0.012, x + U * 0.03, y - U * 0.012), fill=(255, 255, 255, int(200 * t * out)), width=LW)
+                d.text((x, y + U * 0.012), nm, font=fn, fill=(255, 255, 255, int(255 * t * out)), anchor='mt')
+            img.alpha_composite(O)
     for t, a0, a1, y, s in SUP: draw_super(img, t, f, a0, a1, y, s)
     if 164 <= f <= 167:                                     # deklanşör flaşı
         k = [0.75, 0.45, 0.2, 0.06][f - 164]; img.alpha_composite(Image.new('RGBA', img.size, (255, 255, 255, int(255 * k))))
@@ -175,7 +192,7 @@ def page_turn(A, B, t):
         img.paste(page, (cx - pw, 0))
     d = ImageDraw.Draw(img); d.line((cx, 0, cx, h), fill=(255, 255, 255), width=1)
     return img
-TURNS = {82: 7, 234: 7, 321: 7}
+TURNS = {82: 7, 234: 7, 321: 7, 352: 7, 592: 7, 802: 7}
 
 # ---------- son kart ----------
 def endcard():

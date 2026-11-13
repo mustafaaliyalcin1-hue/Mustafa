@@ -16,7 +16,8 @@ A = ap.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else s
 V = A.aspect == 'V'
 W = A.w; H = round(W * 9 / 16) if not V else round(W * 16 / 9)
 if V: W, H = A.w, round(A.w * 16 / 9)
-NF = 425
+NF = 875          # 29,17 s teslim + 1,5 s son kart (2D)
+SHIFT = 450       # eski S7 sonu + S8, renk bölümleri eklendiği için 450 kare kaydı
 
 # ---------- yardımcılar ----------
 def clamp(x, a=0., b=1.): return max(a, min(b, x))
@@ -56,7 +57,7 @@ def shot_of(f):
     return n
 
 # ---------- sahne durumu: tamamen f'nin fonksiyonu ----------
-def state(f):
+def state_core(f):
     s = shot_of(f)
     U = dict(pos=FAR, rot=(0, 0, 0), a=0); F = dict(pos=FAR, rot=(0, 0, 0), a=0)
     C = dict(t=(0, 0, 0), d=0.8, az=0, el=0, roll=0, lens=70, fs=0)
@@ -131,6 +132,57 @@ def state(f):
         mixU[1] = io((f - 400) / 10); mixF[0] = io((f - 403) / 10)
     return dict(shot=s, U=U, F=F, C=C, mixU=mixU, mixF=mixF)
 
+VAR = ['U2', 'U3', 'U4', 'F2', 'F3', 'F4']           # renk varyantları
+VKIND = dict(U2='U_GR', U3='U_CR', U4='U_GS', F2='F_GR', F3='F_CR', F4='F_PI')
+SHOTS_NEW = [('U360', 352), ('UCOL', 472), ('F360', 592), ('FCOL', 682), ('S7B', 802), ('S8', 824)]
+def lineup(f, f0, keys, Wh, Hh):
+    """4 telefon: aşağıdan sırayla giriş, domino gibi arkayı gösterme, hafif salınım. keys: 4 anahtar (soldan sağa)"""
+    out = {}
+    if not V:
+        pitch = Wh + 0.032; xs = [(i - 1.5) * pitch for i in range(4)]; zs = [0] * 4
+    else:
+        pitch = Wh + 0.022; xs = [-pitch / 2, pitch / 2, -pitch / 2, pitch / 2]; zs = [Hh / 2 + 0.012] * 2 + [-(Hh / 2 + 0.012)] * 2
+    for i, k in enumerate(keys):
+        e = oexp((f - f0 - i * 4) / 22)
+        turn = io((f - f0 - 30 - i * 5) / 16)
+        sway = 6 * math.sin((f - f0) / 25 * 2 * math.pi * 0.35 + i * 0.7) * io((f - f0 - 60) / 20)
+        out[k] = dict(pos=(xs[i], 0, zs[i] + lerp(-0.45, 0, e)), rot=(0, 0, lerp(-25, 0, e) + 180 * turn + sway), a=0)
+    return out
+def state(f):
+    if f >= 802:
+        st = state_core(f - SHIFT); st['shot'] = 'S7B' if f < 824 else 'S8'
+    elif f < 352:
+        st = state_core(f)
+    else:
+        st = dict(U=dict(pos=FAR, rot=(0, 0, 0), a=0), F=dict(pos=FAR, rot=(0, 0, 0), a=0), C=dict(t=(0, 0, 0), d=0.8, az=0, el=0, roll=0, lens=70, fs=0),
+                  mixU=[1.0, 0.0], mixF=[0.0])
+        U, F, C = st['U'], st['F'], st['C']
+        if f < 472:                                     # Ultra şov: 360° dönüş, sonra kitap gibi açılır
+            st['shot'] = 'U360'
+            spin = path(f, [(352, -35), (440, 325, lambda t: t)])
+            op = io((f - 440) / 26)
+            U.update(pos=(0, 0, 0), rot=(lerp(-5, 0, op), 0, lerp(spin, 340, op) if f >= 440 else spin), a=lerp(0, 105, op))
+            C.update(t=(0, 0, -0.005), d=lerp(0.72 if not V else 0.56, 0.80 if not V else 0.62, op), az=seg(f, 352, 472, -8, 8, sm),
+                     el=seg(f, 352, 440, -6, 6, sm), lens=75)
+        elif f < 592:                                   # Ultra renkleri
+            st['shot'] = 'UCOL'
+            L = lineup(f, 472, ['U', 'U2', 'U3', 'U4'], WU, HU)
+            st['U'].update(L['U']); [st.setdefault(k, {}).update(L[k]) for k in ('U2', 'U3', 'U4')]
+            C.update(t=(0, 0, -0.008), d=0.86 if not V else 0.80, az=seg(f, 472, 592, -4, 4, sm), el=3, lens=70)
+        elif f < 682:                                   # Fold8 şov
+            st['shot'] = 'F360'
+            spin = path(f, [(592, -35), (655, 325, lambda t: t)])
+            op = io((f - 655) / 22)
+            F.update(pos=(0, 0, 0), rot=(0, 0, lerp(spin, 360, op) if f >= 655 else spin), a=lerp(0, 180, op))
+            C.update(t=(0, 0, 0), d=lerp(0.60 if not V else 0.50, 0.64 if not V else 0.66, op), az=seg(f, 592, 682, -6, 6, sm), el=seg(f, 592, 655, -5, 4, sm), lens=75)
+        else:                                           # Fold8 renkleri
+            st['shot'] = 'FCOL'
+            L = lineup(f, 682, ['F', 'F2', 'F3', 'F4'], WF, HF)
+            st['F'].update(L['F']); [st.setdefault(k, {}).update(L[k]) for k in ('F2', 'F3', 'F4')]
+            C.update(t=(0, 0, -0.006), d=0.92 if not V else 0.70, az=seg(f, 682, 802, -4, 4, sm), el=3, lens=70)
+    for k in VAR: st.setdefault(k, dict(pos=FAR, rot=(0, 0, 0), a=0))
+    return st
+
 # ---------- sahne ----------
 bpy.ops.wm.read_factory_settings(use_empty=True)
 cam = studio(engine='CYCLES', w=W, h=H, samples=A.spp)
@@ -139,6 +191,7 @@ sc.render.use_motion_blur = True; sc.render.motion_blur_shutter = 0.25
 sc.render.fps = 25; sc.frame_start = 0; sc.frame_end = NF - 1
 cam.rotation_mode = 'QUATERNION'; cam.data.dof.use_dof = False
 PU = load_phone('U'); PF = load_phone('F8')
+PV = {k: load_phone(VKIND[k]) for k in VAR}
 
 def local_center(P, names):
     pts = []
@@ -185,8 +238,9 @@ prevq = None
 for f in range(NF):
     st = state(f)
     place(PU, st['U'], WU); place(PF, st['F'], WF)
+    for k in VAR: place(PV[k], st[k], WU if k[0] == 'U' else WF)
     prevq = cam_set(st['C'], prevq)
-    for P in (PU, PF):
+    for P in [PU, PF] + list(PV.values()):
         P['root'].keyframe_insert('location', frame=f); P['root'].keyframe_insert('rotation_euler', frame=f)
         P['hinge'].keyframe_insert('rotation_euler', frame=f); P['spine'].keyframe_insert('rotation_euler', frame=f)
     cam.keyframe_insert('location', frame=f); cam.keyframe_insert('rotation_quaternion', frame=f)
@@ -195,7 +249,7 @@ for f in range(NF):
     for n, v in zip(mixU_nodes, st['mixU']): n.inputs['Factor'].default_value = v; n.inputs['Factor'].keyframe_insert('default_value', frame=f)
     for n, v in zip(mixF_nodes, st['mixF']): n.inputs['Factor'].default_value = v; n.inputs['Factor'].keyframe_insert('default_value', frame=f)
 # kesmelerde ve sıçramalarda bulanıklık olmasın: sabit (CONSTANT) geçişler, diğerleri doğrusal
-CUTS = {f0 for _, f0 in SHOTS}
+CUTS = {f0 for _, f0 in SHOTS if f0 < 352} | {f0 for _, f0 in SHOTS_NEW}
 def fix_curves(idb):
     ad = idb.animation_data
     if not ad or not ad.action: return
@@ -206,7 +260,7 @@ def fix_curves(idb):
                     for k in fc.keyframe_points: k.interpolation = 'CONSTANT' if int(k.co[0]) + 1 in CUTS else 'LINEAR'
     for fc in getattr(ad.action, 'fcurves', []) or []:
         for k in fc.keyframe_points: k.interpolation = 'CONSTANT' if int(k.co[0]) + 1 in CUTS else 'LINEAR'
-for idb in [PU['root'], PF['root'], PU['hinge'], PF['hinge'], PU['spine'], PF['spine'], cam, cam.data, PU['mats']['Screen'].node_tree, PF['mats']['Screen'].node_tree]:
+for idb in [x for P in PV.values() for x in (P['root'], P['hinge'], P['spine'])] + [PU['root'], PF['root'], PU['hinge'], PF['hinge'], PU['spine'], PF['spine'], cam, cam.data, PU['mats']['Screen'].node_tree, PF['mats']['Screen'].node_tree]:
     try: fix_curves(idb)
     except Exception as e: print('curve fix', idb.name, e)
 # DOF kesmede açılıp kapanmasın: use_dof'u fs ile sabitledik (aperture 16 ~ keskin)
@@ -229,6 +283,10 @@ def track(f):
     p['F_hinge_top'] = proj(PF['root'], (0, 0, HF / 2)); p['F_hinge_mid'] = proj(PF['root'], (0, 0, 0))
     p['F_corner'] = proj(PF['root'], (WF, 0, HF / 2)); p['F_left'] = proj(PF['hinge'], (-WF, 0, 0)); p['F_right'] = proj(PF['root'], (WF, 0, 0))
     p['F_left_top'] = proj(PF['hinge'], (-WF, 0, HF / 2))
+    p['U_bot'] = proj(PU['root'], (WU / 2, 0, -HU / 2 - 0.01)); p['F_bot'] = proj(PF['root'], (WF / 2, 0, -HF / 2 - 0.01))
+    for k in VAR:
+        Wh, Hh = (WU, HU) if k[0] == 'U' else (WF, HF)
+        p[k + '_bot'] = proj(PV[k]['root'], (Wh / 2, 0, -Hh / 2 - 0.01))
     d['p'] = p; return d
 
 os.makedirs(A.out, exist_ok=True)

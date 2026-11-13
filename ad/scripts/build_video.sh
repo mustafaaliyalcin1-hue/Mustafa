@@ -11,7 +11,7 @@ python3 - "$CD" "${OUT%.mp4}_kontakt.png" <<'PY'
 import sys,os
 from PIL import Image, ImageDraw, ImageFont
 cd,out=sys.argv[1:3]
-SH=[('S0 Geç kalmışlık',18),('S1 Kanca',60),('S2 4,1 mm',124),('S3 Kamera',170),('S4 Ve karşınızda',205),('S5 Fold8',245),('S6 Açılış',280),('S6 Dümdüz',312),('S7 201 g',340),('S7 Arkalar',368),('S8 Künye',418),('Son kart',460)]
+SH=[('Geç kalmışlık',18),('Kanca',60),('4,1 mm',124),('Kamera',170),('Ve karşınızda',205),('Fold8',245),('Açılış',280),('Dümdüz',312),('201 g',340),('Ultra şov',380),('Ultra şov açılış',465),('Ultra 4 renk',560),('Fold8 şov',615),('Fold8 açılış',675),('Fold8 4 renk',770),('Arkalar',818),('Künye',868),('Son kart',910)]
 f=ImageFont.truetype('fonts/Inter-700.ttf',22); ims=[]
 for name,fr in SH:
     im=Image.open(f'{cd}/{fr:04d}.png').convert('RGB'); s=480/max(im.size); im=im.resize((int(im.width*s),int(im.height*s)))

@@ -3,7 +3,7 @@
 import sys, numpy as np
 from scipy import signal
 import pyloudnorm as pyln
-SR = 48000; DUR = 15.67; N = int(SR * DUR) + SR
+SR = 48000; DUR = 875 / 30 + 1.5; N = int(SR * DUR) + SR
 rng = np.random.default_rng(8)
 def T(f): return f / 30.0
 BPM = 154; B = 60 / BPM; DROP = T(57)          # SNAP = drop
@@ -64,13 +64,13 @@ add(mus, 0.0, riser * rt ** 2 * 0.10)
 up = np.sin(2 * np.pi * np.cumsum(np.linspace(200, 900, int(DROP * SR))) / SR) * np.linspace(0, 1, int(DROP * SR)) ** 3 * 0.04
 add(mus, 0.0, up)
 # drop sonrası: ölçü ölçü
-END_MUS = T(400)                  # son akor kilitlenmesi
+END_MUS = T(850)                  # son akor kilitlenmesi
 nbar = 0; t0 = DROP
-FILTER_DOWN = (T(380), T(386))
+FILTER_DOWN = (T(830), T(836))
 while t0 < END_MUS - 0.01:
     c = nbar % 4; bar = 4 * B
     cut = 3200
-    lift = 1.0 + (0.35 if T(234) <= t0 < T(300) else 0)
+    lift = 1.0 + (0.35 if (T(234) <= t0 < T(300) or T(472) <= t0 < T(592) or T(682) <= t0 < T(802)) else 0)
     add(mus, t0, pad(CH[c], bar + 0.1, cut=cut * lift, g=0.07))
     for k in range(4):
         tb = t0 + k * B
@@ -168,15 +168,29 @@ C(T(292), whoosh(0.8, 300, 2500, 0.15), name='yatma'); C(T(302), slide(0.35, 0.1
 for k in range(24):
     tk = (k / 23) ** 1.7; C(T(325) + tk * T(20), tick(0.06, 2800 + k * 30), name='gram tık')
 C(T(345), chime(90, 0.06, 0.9), name='gram son')
-C(T(352), whoosh(0.7, 300, 3000, 0.18), name='dönüş'); C(T(367), click(0.5, 2600, 0.02), name='kapanma'); C(T(355), whoosh(0.6, 250, 2500, 0.16), pan=-0.5, name='ultra giriş')
+C(T(802), whoosh(0.7, 300, 3000, 0.18), name='dönüş'); C(T(817), click(0.5, 2600, 0.02), name='kapanma'); C(T(805), whoosh(0.6, 250, 2500, 0.16), pan=-0.5, name='ultra giriş')
 # S9'a yumuşak alkış
-C(T(374), clap(0.35), name='alkış')
-C(T(374), whoosh(0.4, 400, 3000, 0.14), name='dönüş')
-C(T(386), whoosh(0.8, 250, 3000, 0.18), name='açılış'); C(T(410), click(0.8, 3000, 0.025), pan=-0.3, name='menteşe U'); C(T(410) + 0.03, click(0.7, 3300, 0.025), pan=0.3, name='menteşe F')
-C(T(410), thump(0.55, 60, 0.4), name='vuruş')
-C(T(401), chime(86, 0.07, 2.0), name='künye ışıltı'); C(T(404), chime(93, 0.05, 2.0), name='künye ışıltı 2')
+C(T(824), clap(0.35), name='alkış')
+C(T(824), whoosh(0.4, 400, 3000, 0.14), name='dönüş')
+C(T(836), whoosh(0.8, 250, 3000, 0.18), name='açılış'); C(T(860), click(0.8, 3000, 0.025), pan=-0.3, name='menteşe U'); C(T(860) + 0.03, click(0.7, 3300, 0.025), pan=0.3, name='menteşe F')
+C(T(860), thump(0.55, 60, 0.4), name='vuruş')
+C(T(851), chime(86, 0.07, 2.0), name='künye ışıltı'); C(T(854), chime(93, 0.05, 2.0), name='künye ışıltı 2')
 # son kart
-C(T(425), chime(81, 0.08, 1.4), name='son kart'); C(T(425), whoosh(0.5, 3000, 300, 0.08), name='son kart hışırtı')
+C(T(875), chime(81, 0.08, 1.4), name='son kart'); C(T(875), whoosh(0.5, 3000, 300, 0.08), name='son kart hışırtı')
+# ŞOV + RENK bölümleri
+for f in (352, 592, 802): C(T(f) - 0.05, whoosh(0.32, 400, 5000, 0.28), name='sayfa')
+C(T(356), whoosh(1.6, 200, 1500, 0.12), name='dönüş tabla'); C(T(400), whoosh(1.4, 250, 1800, 0.10), name='dönüş tabla 2')
+C(T(440), whoosh(0.8, 300, 3000, 0.16), name='açılış'); C(T(466), click(0.6, 3000, 0.025), name='menteşe')
+C(T(596), whoosh(1.6, 200, 1500, 0.12), name='dönüş tabla'); C(T(655), whoosh(0.7, 300, 3200, 0.16), name='açılış'); C(T(677), click(0.7, 3000, 0.025), name='menteşe'); C(T(677), thump(0.4, 70, 0.3), name='vuruş')
+for f, nw in ((360, 3), (404, 6), (480, 6), (598, 3), (640, 4), (690, 5)): C(T(f), flap(nw, 0.14), pan=0.1, name='flap')
+for f0 in (472, 682):
+    C(T(f0), thump(0.35, 80, 0.3), name='renk vuruş'); C(T(f0), hp(noise(1.6), 4000) * np.exp(-tt(1.6) * 2.4) * 0.05, name='crash')
+    for i in range(4):
+        C(T(f0 + i * 4), whoosh(0.35, 300 + i * 150, 3500 + i * 400, 0.12), pan=-0.6 + 0.4 * i, name='giriş')
+        C(T(f0 + 30 + i * 5) + 0.15, click(0.35, 2600 + i * 300, 0.02), pan=-0.6 + 0.4 * i, name='domino')
+        C(T(f0 + 30 + i * 5), whoosh(0.25, 600, 4000, 0.08), pan=-0.6 + 0.4 * i, name='domino hışırtı')
+        C(T(f0 + 30 + i * 4), tick(0.10, 3000 + i * 250), pan=-0.6 + 0.4 * i, name='etiket')
+
 print('ses ipucu sayısı:', len(cues))
 
 # ---------------- MİKS ----------------

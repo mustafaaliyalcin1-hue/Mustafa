@@ -47,6 +47,13 @@ PALETTE={
  'F8':dict(frame='#D6CAE0',frame2='#CDBFD9',back='#9D8BB4',back_rough=0.45,camframe='#D6CAE0',main='f8_main',cover='f8_cover',main_seq=['f8_main','f8_lock']),
  'U': dict(frame='#2C1A2B',frame2='#241523',back='#211321',back_rough=0.42,camframe='#2C1A2B',main='u_main',cover='u_cover',main_seq=['u_text','u_main','u_lock']),
 }
+# renk varyantları (resmi adlar: Ultra = Violet Shadow, Graphite, Cream, Green Shadow; Fold8 = Lavender, Graphite, Cream, Pistachio)
+PALETTE['U_GR']=dict(PALETTE['U'],frame='#3A3C41',frame2='#2F3135',back='#2A2C30',back_rough=0.40,camframe='#3A3C41',main_seq=['u_main'])
+PALETTE['U_CR']=dict(PALETTE['U'],frame='#D9CDB8',frame2='#CFC2AC',back='#E6DCCB',back_rough=0.42,camframe='#D9CDB8',main_seq=['u_main'])
+PALETTE['U_GS']=dict(PALETTE['U'],frame='#34443A',frame2='#2B3830',back='#26332B',back_rough=0.40,camframe='#34443A',main_seq=['u_main'])
+PALETTE['F_GR']=dict(PALETTE['F8'],frame='#5A5C61',frame2='#4E5055',back='#36383C',back_rough=0.42,camframe='#5A5C61',main_seq=['f8_main'])
+PALETTE['F_CR']=dict(PALETTE['F8'],frame='#E2D8C6',frame2='#D8CDB9',back='#EAE1D1',back_rough=0.45,camframe='#E2D8C6',main_seq=['f8_main'])
+PALETTE['F_PI']=dict(PALETTE['F8'],frame='#CFDCC2',frame2='#C3D2B5',back='#BFD3AE',back_rough=0.45,camframe='#CFDCC2',main_seq=['f8_main'])
 def warp_ultra(meshes):
     """Fold8 gövdesini Ultra ölçülerine getirir: köşeleri bozmadan uzat/daralt, 3. lensi ekle."""
     import bmesh
@@ -97,7 +104,7 @@ def load_phone(kind='F8'):
     HX,HY=0.0304,-0.0100      # menteşe ekseni (z yönünde), ekran düzlemi
     for o in meshes: o.location+=mathutils.Vector((-HX,-HY,0))
     bpy.context.view_layer.update()
-    if kind=='U': meshes+=warp_ultra(meshes)
+    if kind.startswith('U'): meshes+=warp_ultra(meshes)
     bpy.context.view_layer.update()
     # malzemeleri bu telefona özel kopyala, orijinalleri sil
     mp={}
@@ -123,9 +130,9 @@ def load_phone(kind='F8'):
         if nm in('Screen','Screen.002','Cube.005'): o.hide_render=True   # yarı saydam ekran camları
         o.name=f'{kind}:{nm}'
     pal=PALETTE[kind]
-    set_p(M['Frame (Lavender)'],**{'Base Color':srgb(pal['frame']),'Metallic':1.0,'Roughness':0.16 if kind=='F8' else 0.30})
-    set_p(M['Frame (Lavender).001'],**{'Base Color':srgb(pal['frame2']),'Metallic':1.0,'Roughness':0.20 if kind=='F8' else 0.32})
-    set_p(M['Glass back'],**{'Base Color':srgb(pal['back']),'Metallic':0.0,'Roughness':pal['back_rough'],'Coat Weight':0.6 if kind=='F8' else 0.35,'Coat Roughness':0.08})
+    set_p(M['Frame (Lavender)'],**{'Base Color':srgb(pal['frame']),'Metallic':1.0,'Roughness':0.16 if kind.startswith('F') else 0.30})
+    set_p(M['Frame (Lavender).001'],**{'Base Color':srgb(pal['frame2']),'Metallic':1.0,'Roughness':0.20 if kind.startswith('F') else 0.32})
+    set_p(M['Glass back'],**{'Base Color':srgb(pal['back']),'Metallic':0.0,'Roughness':pal['back_rough'],'Coat Weight':0.6 if kind.startswith('F') else 0.35,'Coat Roughness':0.08})
     set_p(M['Glass сamera'],**{'Base Color':srgb('#0B0A14'),'Transmission Weight':0.0,'Roughness':0.02,'Coat Weight':1.0})
     set_p(M['Camera frame'],**{'Base Color':srgb(pal['camframe']),'Metallic':1.0,'Roughness':0.14})
     remap_uv(meshes,M['Screen'].name); remap_uv(meshes,M['Screen_2'].name)
