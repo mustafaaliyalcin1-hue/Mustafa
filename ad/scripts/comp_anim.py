@@ -30,7 +30,7 @@ SUP = [  # metin, giriş, çıkış, y (oran), boyut (U oranı)
     ('Samsung’un en hafif Fold’u', 327, 351, 0.86, 0.072),
 ]
 if V: SUP = [(t, a, b, (0.80 if y > 0.5 else y), s * 1.05) for t, a, b, y, s in SUP]
-_wcache = {}
+_wcache = {}; _ink = {}
 def word_img(word, size, weight=700):
     k = (word, size, weight)
     if k not in _wcache:
@@ -46,14 +46,14 @@ def draw_super(img, text, f, f0, f1, y, size):
     tw = sum(i.width for i in ims) + sp * (len(ims) - 1)
     x = (W - tw) / 2; yy = H * y - ims[0].height / 2
     out_t = clamp((f - f1) / 6); alpha_all = 1 - out_t
-    lum = img.convert('L')
+    reg = np.asarray(img.convert('L').crop((int(max(0, x)), int(max(0, yy)), int(min(W, x + tw)), int(min(H, yy + ims[0].height))))).astype(float)
+    if text not in _ink: _ink[text] = bool(reg.size > 0 and np.percentile(reg, 50) > 185)
+    dark = _ink[text]
+    ink = (42, 27, 54) if dark else (255, 255, 255)
     sh = Image.new('RGBA', img.size, (0, 0, 0, 0)); lay = Image.new('RGBA', img.size, (0, 0, 0, 0))
     for i, im in enumerate(ims):
         t = (f - f0 - i * 2) / 7
         if t <= 0: x += im.width + sp; continue
-        reg = np.asarray(lum.crop((int(max(0, x)), int(max(0, yy)), int(min(W, x + im.width)), int(min(H, yy + im.height))))).astype(float)
-        dark = reg.size > 0 and np.percentile(reg, 60) > 190
-        ink = (42, 27, 54) if dark else (255, 255, 255)
         k = oback(t, 1.2); hh = max(1, int(im.height * clamp(k, 0, 1.15)))
         piece = im.resize((im.width, hh), Image.BILINEAR)
         # kanat gölgesi: açılırken koyudan beyaza
