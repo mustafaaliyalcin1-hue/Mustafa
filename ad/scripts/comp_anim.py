@@ -54,13 +54,14 @@ def draw_super(img, text, f, f0, f1, y, size):
     for i, im in enumerate(ims):
         t = (f - f0 - i * 2) / 7
         if t <= 0: x += im.width + sp; continue
-        k = oback(t, 1.2); hh = max(1, int(im.height * clamp(k, 0, 1.15)))
-        piece = im.resize((im.width, hh), Image.BILINEAR)
-        # kanat gölgesi: açılırken koyudan beyaza
+        k = ocub(t)                                   # 0..1, harfler asla ölçeklenmez
+        hh = im.height; cut = int(hh * (1 - k) / 2)
+        a = np.asarray(im).astype(float).copy()
+        if cut > 0: a[:cut, :, 3] = 0; a[hh - cut:, :, 3] = 0
         shade = clamp(t * 1.6)
-        a = np.asarray(piece).astype(float); a[..., :3] = np.array(ink, float) * (0.72 + 0.28 * shade) if not dark else np.array(ink, float); a[..., 3] *= alpha_all
+        a[..., :3] = np.array(ink, float) * ((0.80 + 0.20 * shade) if not dark else 1.0); a[..., 3] *= alpha_all
         piece = Image.fromarray(a.astype(np.uint8))
-        py = yy + (im.height - hh) * 0.5 - out_t * U * 0.03
+        py = yy + (1 - ocub(t)) * U * 0.012 - out_t * U * 0.03
         lay.alpha_composite(piece, (int(x), int(py)))
         sa = np.asarray(piece).astype(float); sa[..., :3] = (70, 40, 100) if not dark else (255, 255, 255); sa[..., 3] *= 0.35 if not dark else 0.5
         sh.alpha_composite(Image.fromarray(sa.astype(np.uint8)), (int(x), int(py + U * 0.004)))
@@ -139,11 +140,11 @@ def compose(f):
     img = to_img(over(base, r, shadow=0.28)).convert('RGBA')
     # grafikler
     if 37 <= f <= 81:
-        a = clamp((f - 37) / 4) * clamp((82 - f) / 4); hud_pill(img, f"Menteşe  {int(round(m['aU']))}°", a=a)
+        pass
     if 43 <= f <= 80:
         x, y, z = P(f, 'U_hinge_top'); a = clamp((f - 43) / 4) * clamp((80 - f) / 5); protractor(img, f, x, y - U * 0.03, m['aU'], a)
     if 264 <= f <= 292:
-        a = clamp((f - 264) / 4) * clamp((292 - f) / 4); hud_pill(img, f"Menteşe  {int(round(m['aF']))}°", a=a)
+        pass
     if 112 <= f <= 139:
         xa, ya, _ = P(f, 'U_edge_f'); xb, yb, _ = P(f, 'U_edge_b'); calipers(img, f, xa, xb, (ya + yb) / 2, (f - 112) / 14, clamp((f - 122) / 5))
     if 150 <= f <= 186:
