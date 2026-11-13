@@ -67,7 +67,7 @@ def state(f):
         d0, d1 = (0.20, 0.80) if not V else (0.16, 0.62)
         C.update(t=(0, 0, 0), d=lerp(d0, d1, path(f, [(0, 0), (8, 0.04, sm), (33, 1, ocub)])), az=seg(f, 0, 35, 0, -6), el=seg(f, 0, 35, 0, 4))
     elif s == 'S1':
-        a = path(f, [(35, 180), (38, 0, icub), (43, 0), (47, 90, ocub), (53, 90), (57, 180, icub)])
+        a = path(f, [(35, 180), (40, 0, io), (42, 0), (48, 90, io), (51, 90), (57, 180, lambda t: t * t)])
         kick = 0.035 * math.exp(-(f - 57) / 3) * (1 if f >= 57 else 0)
         U.update(pos=(0, 0, 0), rot=(seg(f, 35, 82, 0, -4), 0, seg(f, 35, 82, -12, 16, sm)), a=a)
         d = seg(f, 35, 82, 0.80, 0.68, sm) if not V else seg(f, 35, 82, 0.62, 0.55, sm)
@@ -96,7 +96,7 @@ def state(f):
         F.update(pos=(0, 0, 0), rot=(0, 0, seg(f, 234, 263, -14, 6, sm)), a=0)
         C.update(t=(0, 0, 0), d=seg(f, 234, 263, 0.58, 0.50, sm) if not V else seg(f, 234, 263, 0.50, 0.44, sm), az=seg(f, 234, 263, -5, 5), el=2)
     elif s == 'S6':
-        a = seg(f, 263, 286, 0, 180, lambda t: ocub(t) if t < 1 else 1)
+        a = seg(f, 263, 286, 0, 180, io)
         lay = io((f - 292) / 24)
         F.update(pos=(0, 0, 0), rot=(lerp(0, -90, lay), 0, seg(f, 263, 292, -10, 0, sm)), a=a)
         dO = 0.56 if not V else 0.62
@@ -108,9 +108,9 @@ def state(f):
             F.update(pos=(0, 0, bob), rot=(-8, 0, seg(f, 321, 352, -30, 22, sm)), a=180)
             C.update(t=(0, 0, 0), d=0.52 if not V else 0.60, az=0, el=8)
         else:
-            t = io((f - 352) / 18)
+            t = io((f - 352) / 21)
             F.update(pos=(lerp(0, 0.06 if not V else 0.02, t), 0, lerp(bob, 0 if not V else -0.05, t)),
-                     rot=(lerp(-8, 0, t), 0, lerp(22, 195, t)), a=seg(f, 352, 362, 180, 0, io))
+                     rot=(lerp(-8, 0, t), 0, lerp(22, 195, t)), a=seg(f, 352, 367, 180, 0, io))
             U.update(pos=(lerp(-0.5, -0.06, oexp((f - 352) / 20)) if not V else lerp(-0.5, -0.02, oexp((f - 352) / 20)), 0.01, 0 if not V else 0.045),
                      rot=(0, 0, seg(f, 352, 372, 140, 168, ocub)), a=0)
             C.update(t=(0, 0, 0 if not V else -0.005), d=lerp(0.52 if not V else 0.60, 0.72 if not V else 0.70, t), az=0, el=lerp(8, 3, t))
@@ -135,7 +135,7 @@ def state(f):
 bpy.ops.wm.read_factory_settings(use_empty=True)
 cam = studio(engine='CYCLES', w=W, h=H, samples=A.spp)
 sc = bpy.context.scene
-sc.render.use_motion_blur = True; sc.render.motion_blur_shutter = 0.5
+sc.render.use_motion_blur = True; sc.render.motion_blur_shutter = 0.25
 sc.render.fps = 25; sc.frame_start = 0; sc.frame_end = NF - 1
 cam.rotation_mode = 'QUATERNION'; cam.data.dof.use_dof = False
 PU = load_phone('U'); PF = load_phone('F8')

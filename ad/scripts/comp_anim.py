@@ -142,7 +142,7 @@ def compose(f):
     if 37 <= f <= 81:
         pass
     if 43 <= f <= 80:
-        x, y, z = P(f, 'U_hinge_top'); a = clamp((f - 43) / 4) * clamp((80 - f) / 5); protractor(img, f, x, y - U * 0.03, m['aU'], a)
+        pass                                            # derece sembolü kaldırıldı
     if 264 <= f <= 292:
         pass
     if 112 <= f <= 139:

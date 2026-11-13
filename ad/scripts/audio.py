@@ -135,15 +135,15 @@ def C(t, x, g=1.0, pan=0.0, name=''): cues.append(name); add(sfx, t, x, g, pan)
 for k in range(4): C(beat(-5 + k) if beat(-5 + k) > 0 else 0.02, tick(0.22, 2000 if k % 2 else 1600), name='tik')
 C(0.05, whoosh(1.0, 200, 2500, 0.18, rev=True), name='geri çekilme')
 # KANCA: KLİK kapanır (kilit + çatırtı + sub)
-tS = T(38); C(tS, click(0.9, 2500, 0.025), name='kilit'); C(tS + 0.004, click(0.6, 6000, 0.012), name='çatırtı'); C(tS, thump(0.55, 70, 0.3), name='sub')
+tS = T(40); C(tS, click(0.9, 2500, 0.025), name='kilit'); C(tS + 0.004, click(0.6, 6000, 0.012), name='çatırtı'); C(tS, thump(0.55, 70, 0.3), name='sub')
 C(T(35), whoosh(0.12, 800, 5000, 0.15), name='kapanma hışırtı')
 # flick 90
-C(T(47), click(0.7, 3800, 0.02), name='flick'); C(T(43), whoosh(0.13, 600, 4000, 0.12), name='flick hışırtı')
+C(T(48), click(0.7, 3800, 0.02), name='flick'); C(T(43), whoosh(0.13, 600, 4000, 0.12), name='flick hışırtı')
 # SNAP 180 (mıknatıs + menteşe klik + derin vuruş)
 C(T(57) - 0.03, magnet(0.4), name='mıknatıs'); C(T(57), click(1.0, 3000, 0.03), name='menteşe'); C(T(57), thump(0.9, 55, 0.5), name='derin vuruş')
 C(T(53), whoosh(0.13, 500, 6000, 0.16), name='snap hışırtı')
 # açı sayacı tıkları
-for f in list(range(43, 48)) + list(range(53, 58)) + list(range(266, 287, 2)): C(T(f), tick(0.07, 3200), name='açı tık')
+for f in list(range(43, 49)) + list(range(52, 58)) + list(range(266, 287, 2)): C(T(f), tick(0.07, 3200), name='açı tık')
 # iletki
 C(T(43), slide(0.3, 0.06), name='iletki')
 # altyazı çırpıntıları
@@ -168,7 +168,7 @@ C(T(292), whoosh(0.8, 300, 2500, 0.15), name='yatma'); C(T(302), slide(0.35, 0.1
 for k in range(24):
     tk = (k / 23) ** 1.7; C(T(325) + tk * T(20), tick(0.06, 2800 + k * 30), name='gram tık')
 C(T(345), chime(90, 0.06, 0.9), name='gram son')
-C(T(352), whoosh(0.7, 300, 3000, 0.18), name='dönüş'); C(T(362), click(0.5, 2600, 0.02), name='kapanma'); C(T(355), whoosh(0.6, 250, 2500, 0.16), pan=-0.5, name='ultra giriş')
+C(T(352), whoosh(0.7, 300, 3000, 0.18), name='dönüş'); C(T(367), click(0.5, 2600, 0.02), name='kapanma'); C(T(355), whoosh(0.6, 250, 2500, 0.16), pan=-0.5, name='ultra giriş')
 # S9'a yumuşak alkış
 C(T(374), clap(0.35), name='alkış')
 C(T(374), whoosh(0.4, 400, 3000, 0.14), name='dönüş')
