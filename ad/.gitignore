@@ -1,3 +1,4 @@
 node_modules/
 build/
 storyboard/storyboard.html
+__pycache__/
