@@ -8,15 +8,23 @@ def bsdf(m): return m.node_tree.nodes.get('Principled BSDF')
 def set_p(m,**k):
     b=bsdf(m)
     for n,v in k.items(): b.inputs[n].default_value=v
-def emissive_screen(m,img_path):
+def emissive_screen(m,img_paths):
+    """Ekran: birden çok doku, sırayla karıştırılır. m['mix'] = karışım düğüm adları (fac 0->1 bir sonraki dokuya geçer)."""
+    if isinstance(img_paths,str): img_paths=[img_paths]
     nt=m.node_tree; nt.nodes.clear()
-    tc=nt.nodes.new('ShaderNodeTexCoord'); tx=nt.nodes.new('ShaderNodeTexImage'); tx.image=bpy.data.images.load(img_path); tx.interpolation='Cubic'
-    em=nt.nodes.new('ShaderNodeEmission'); em.inputs['Strength'].default_value=0.85
+    tc=nt.nodes.new('ShaderNodeTexCoord'); cols=[]
+    for pth in img_paths:
+        tx=nt.nodes.new('ShaderNodeTexImage'); tx.image=bpy.data.images.load(pth,check_existing=True); tx.interpolation='Cubic'
+        nt.links.new(tc.outputs['UV'],tx.inputs['Vector']); cols.append(tx.outputs['Color'])
+    cur=cols[0]; mixes=[]
+    for c in cols[1:]:
+        mx=nt.nodes.new('ShaderNodeMix'); mx.data_type='RGBA'; mx.inputs['Factor'].default_value=0.0
+        nt.links.new(cur,mx.inputs[6]); nt.links.new(c,mx.inputs[7]); cur=mx.outputs[2]; mixes.append(mx.name)
+    em=nt.nodes.new('ShaderNodeEmission'); em.inputs['Strength'].default_value=0.85; em.name='EMIT'
     gl=nt.nodes.new('ShaderNodeBsdfPrincipled'); gl.inputs['Base Color'].default_value=(0,0,0,1); gl.inputs['Roughness'].default_value=0.04
     add=nt.nodes.new('ShaderNodeAddShader'); out=nt.nodes.new('ShaderNodeOutputMaterial')
-    nt.links.new(tc.outputs['UV'],tx.inputs['Vector']); nt.links.new(tx.outputs['Color'],em.inputs['Color'])
-    nt.links.new(em.outputs[0],add.inputs[0]); nt.links.new(gl.outputs[0],add.inputs[1]); nt.links.new(add.outputs[0],out.inputs[0])
-    m['strength_node']=em.name
+    nt.links.new(cur,em.inputs['Color']); nt.links.new(em.outputs[0],add.inputs[0]); nt.links.new(gl.outputs[0],add.inputs[1]); nt.links.new(add.outputs[0],out.inputs[0])
+    m['mix']=mixes
 def remap_uv(objs,matname):
     sel=[]
     for o in objs:
@@ -36,8 +44,8 @@ def remap_uv(objs,matname):
                 for li in p.loop_indices: uv[li].uv=((uv[li].uv[0]-u0)/(u1-u0),(uv[li].uv[1]-v0)/(v1-v0))
 
 PALETTE={
- 'F8':dict(frame='#D6CAE0',frame2='#CDBFD9',back='#9D8BB4',back_rough=0.45,camframe='#D6CAE0',main='f8_main',cover='f8_cover'),
- 'U': dict(frame='#2C1A2B',frame2='#241523',back='#211321',back_rough=0.42,camframe='#2C1A2B',main='u_main',cover='u_cover'),
+ 'F8':dict(frame='#D6CAE0',frame2='#CDBFD9',back='#9D8BB4',back_rough=0.45,camframe='#D6CAE0',main='f8_main',cover='f8_cover',main_seq=['f8_main','f8_lock']),
+ 'U': dict(frame='#2C1A2B',frame2='#241523',back='#211321',back_rough=0.42,camframe='#2C1A2B',main='u_main',cover='u_cover',main_seq=['u_text','u_main','u_lock']),
 }
 def warp_ultra(meshes):
     """Fold8 gövdesini Ultra ölçülerine getirir: köşeleri bozmadan uzat/daralt, 3. lensi ekle."""
@@ -121,7 +129,7 @@ def load_phone(kind='F8'):
     set_p(M['Glass сamera'],**{'Base Color':srgb('#0B0A14'),'Transmission Weight':0.0,'Roughness':0.02,'Coat Weight':1.0})
     set_p(M['Camera frame'],**{'Base Color':srgb(pal['camframe']),'Metallic':1.0,'Roughness':0.14})
     remap_uv(meshes,M['Screen'].name); remap_uv(meshes,M['Screen_2'].name)
-    emissive_screen(M['Screen'],os.path.join(ROOT,f"tex/{pal['main']}.png")); emissive_screen(M['Screen_2'],os.path.join(ROOT,f"tex/{pal['cover']}.png"))
+    emissive_screen(M['Screen'],[os.path.join(ROOT,f"tex/{n}.png") for n in pal.get('main_seq',[pal['main']])]); emissive_screen(M['Screen_2'],os.path.join(ROOT,f"tex/{pal['cover']}.png"))
     def set_angle(a,frame=None):
         hinge.rotation_euler=(0,0,math.radians(180-a)); spine.rotation_euler=(0,0,math.radians((180-a)/2))
         if frame is not None:
