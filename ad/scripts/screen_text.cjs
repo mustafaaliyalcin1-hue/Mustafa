@@ -6,7 +6,7 @@ const css=`@font-face{font-family:I;font-weight:400;src:url(data:font/ttf;base64
 const wall=n=>'data:image/png;base64,'+fs.readFileSync(path.join(__dirname,'../tex',n+'.png')).toString('base64');
 const jobs=[
  ['u_text',1800,1990,`<div style="width:1800px;height:1990px;background:#fff;display:flex;align-items:center;justify-content:center">
-   <div style="font-weight:700;font-size:200px;color:#0b0b0b;letter-spacing:-6px">Geç kalmışlık.</div></div>`],
+   <div style="font-weight:700;font-size:200px;line-height:1.08;color:#0b0b0b;letter-spacing:-6px;text-align:center">Onun<br>geç kalmışlık.</div></div>`],
  ['u_lock',1800,1990,`<div style="width:1800px;height:1990px;background:url(${wall('u_wall0')});background-size:cover;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center">
    <div style="position:absolute;inset:0;background:rgba(90,50,110,.28)"></div>
    <div style="position:relative;font-weight:700;font-size:190px;line-height:1.02;letter-spacing:-4px">Galaxy Z<br>Fold8 Ultra</div>
