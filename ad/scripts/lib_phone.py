@@ -70,8 +70,8 @@ def warp_ultra(meshes):
         mw=o.matrix_world; inv=mw.inverted(); iscam=o.name in cam_names or o.name=='Camera.mid'
         for v in o.data.vertices:
             p=mw@v.co
-            if p.x>0.040: p.x-=DX
-            elif p.x<-0.040: p.x+=DX
+            ax=abs(p.x); k=min(1.0,max(0.0,(ax-0.010)/0.028))   # yumuşak daraltma: katlanma/çakışma yok
+            p.x=math.copysign(ax-DX*k,p.x) if ax>0 else p.x
             if iscam:
                 if o.name=='Camera.mid': p.z+=PITCH
                 elif o.name=='Camera.007':

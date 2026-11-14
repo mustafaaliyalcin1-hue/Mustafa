@@ -58,12 +58,12 @@ def word_img(word, size, weight=700):
     return _wcache[k]
 def draw_super(img, text, f, f0, f1, y, size):
     """Bölünmüş kanat (split-flap) girişi: her kelime üst kenarından katlanarak açılır, sırayla."""
-    if f < f0 or f > f1 + 6: return
+    if f < f0 or f > f1: return
     sz = int(U * size * (1.0 if not V else 0.95)); words = text.split(' ')
     sp = F(700, sz).getlength(' ') * 0.55; ims = [word_img(w, sz) for w in words]
     tw = sum(i.width for i in ims) + sp * (len(ims) - 1)
     x = (W - tw) / 2; yy = H * y - ims[0].height / 2
-    out_t = clamp((f - f1) / 6); alpha_all = 1 - out_t
+    out_t = clamp((f - (f1 - 5)) / 5); alpha_all = 1 - out_t
     reg = np.asarray(img.convert('L').crop((int(max(0, x)), int(max(0, yy)), int(min(W, x + tw)), int(min(H, yy + ims[0].height))))).astype(float)
     if text not in _ink: _ink[text] = bool(reg.size > 0 and np.percentile(reg, 50) > 185)
     dark = _ink[text]
@@ -208,7 +208,7 @@ def page_turn(A, B, t):
         img.paste(page, (cx - pw, 0))
     d = ImageDraw.Draw(img); d.line((cx, 0, cx, h), fill=(255, 255, 255), width=1)
     return img
-TURNS = {82: 7, 234: 7, 321: 7, 352: 7, 592: 7, 802: 7}
+TURNS = {}   # sayfa çevirme geçişleri kaldırıldı (katlanma hatası gibi görünüyordu) — temiz kesmeler
 
 # ---------- son kart ----------
 def endcard():
