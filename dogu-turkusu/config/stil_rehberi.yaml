@@ -54,3 +54,16 @@ hashtagler:
   A: ["#arabeskmüzik", "#damar", "#karasevda"]
   B: ["#halay", "#düğün", "#davulzurna"]
   C: ["#gurbet", "#bağlama", "#fırat"]
+
+# Kısa video kuralları (14 Kasım istatistiklerinden: ilk 3 sn'de geçme %81-100)
+kisa_video:
+  sure_sn: 40                      # Reels + Shorts: en güçlü 40 sn (otomatik bulunur, genelde nakarat)
+  tam_surum: "YouTube uzun video (16:9) — şarkının tamamı"
+  ilk_3_sn: "ekranın ortasında kanca cümlesi (src/yazilar.cjs)"
+  sonra: "nakarat sözleri ekranda"
+  sarki_yapisi: "GİRİŞ YOK — şarkı ilk saniyeden nakaratla başlasın (Were Delalê en iyi sonucu verdi)"
+  kanca_ornekleri:
+    A: "Karasevdası olan *sonuna kadar dinlesin* 💔"
+    B: "Bu halayı duyan *yerinde duramaz* 🔥 Sesi aç!"
+    C: "Gurbetteysen bu türküyü *sonuna kadar dinle* 🤍"
+    K: "Anasını özleyen *bu türküyü dinlesin* 🤍"
