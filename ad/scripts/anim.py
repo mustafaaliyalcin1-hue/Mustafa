@@ -16,7 +16,8 @@ A = ap.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else s
 V = A.aspect == 'V'
 W = A.w; H = round(W * 9 / 16) if not V else round(W * 16 / 9)
 if V: W, H = A.w, round(A.w * 16 / 9)
-NF = 875          # 29,17 s teslim + 1,5 s son kart (2D)
+import timeline as TL
+NF = TL.NG         # render karesi sayısı (planlar yavaşlatılmış); kurgu sırası timeline.py'de
 SHIFT = 450       # eski S7 sonu + S8, renk bölümleri eklendiği için 450 kare kaydı
 
 # ---------- yardımcılar ----------
@@ -236,7 +237,7 @@ mixF_nodes = [PF['mats']['Screen'].node_tree.nodes[n] for n in PF['mats']['Scree
 # bake: her kare için anahtar kare
 prevq = None
 for f in range(NF):
-    st = state(f)
+    st = state(TL.old_of(f))
     place(PU, st['U'], WU); place(PF, st['F'], WF)
     for k in VAR: place(PV[k], st[k], WU if k[0] == 'U' else WF)
     prevq = cam_set(st['C'], prevq)
@@ -249,7 +250,7 @@ for f in range(NF):
     for n, v in zip(mixU_nodes, st['mixU']): n.inputs['Factor'].default_value = v; n.inputs['Factor'].keyframe_insert('default_value', frame=f)
     for n, v in zip(mixF_nodes, st['mixF']): n.inputs['Factor'].default_value = v; n.inputs['Factor'].keyframe_insert('default_value', frame=f)
 # kesmelerde ve sıçramalarda bulanıklık olmasın: sabit (CONSTANT) geçişler, diğerleri doğrusal
-CUTS = {f0 for _, f0 in SHOTS if f0 < 352} | {f0 for _, f0 in SHOTS_NEW}
+CUTS = set(TL.SHOT_STARTS_G)
 def fix_curves(idb):
     ad = idb.animation_data
     if not ad or not ad.action: return
@@ -272,7 +273,7 @@ def proj(P_or_obj, local):
     v = world_to_camera_view(sc, cam, co)
     return [round(v.x, 5), round(1 - v.y, 5), round(v.z, 5)]
 def track(f):
-    sc.frame_set(f); st = state(f)
+    sc.frame_set(f); st = state(TL.old_of(f))
     d = dict(shot=st['shot'], aU=round(st['U']['a'], 2), aF=round(st['F']['a'], 2))
     p = {}
     p['U_hinge_top'] = proj(PU['root'], (0, 0, HU / 2)); p['U_hinge_bot'] = proj(PU['root'], (0, 0, -HU / 2))

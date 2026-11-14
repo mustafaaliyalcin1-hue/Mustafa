@@ -11,7 +11,8 @@ python3 - "$CD" "${OUT%.mp4}_kontakt.png" <<'PY'
 import sys,os
 from PIL import Image, ImageDraw, ImageFont
 cd,out=sys.argv[1:3]
-SH=[('Geç kalmışlık',18),('Kanca',60),('4,1 mm',124),('Kamera',170),('Ultra şov',215),('Ultra şov açılış',300),('Ultra 4 renk',395),('Ve karşınızda',445),('Fold8',485),('Açılış',520),('Dümdüz',552),('201 g',580),('Fold8 şov',615),('Fold8 açılış',675),('Fold8 4 renk',770),('Arkalar',818),('Künye',868),('Son kart',910)]
+sys.path.insert(0,'scripts'); from timeline import delivered_of_old as D
+SH=[(n,int(D(f))) for n,f in [('Geç kalmışlık',18),('Kanca',60),('4,1 mm',124),('Kamera',170),('Ultra şov',380),('Ultra şov açılış',465),('Ultra 4 renk',560),('Ve karşınızda',205),('Fold8',245),('Açılış',280),('Dümdüz',312),('201 g',340),('Fold8 şov',615),('Fold8 açılış',675),('Fold8 4 renk',770),('Arkalar',818),('Künye',868),('Son kart',910)]]
 f=ImageFont.truetype('fonts/Inter-700.ttf',22); ims=[]
 for name,fr in SH:
     im=Image.open(f'{cd}/{fr:04d}.png').convert('RGB'); s=480/max(im.size); im=im.resize((int(im.width*s),int(im.height*s)))

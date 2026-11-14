@@ -3,11 +3,13 @@
 import sys, numpy as np
 from scipy import signal
 import pyloudnorm as pyln
-SR = 48000; DUR = 875 / 30 + 1.5; N = int(SR * DUR) + SR
+SR = 48000
 rng = np.random.default_rng(8)
 sys.path.insert(0, __import__('os').path.dirname(__import__('os').path.abspath(__file__)))
-from timeline import new_of_old
-def T(f): return new_of_old(f) / 30.0     # yazım karesi -> teslim zamanı (kurgu sırası)
+import timeline as TL
+from timeline import delivered_of_old
+DUR = TL.NG / 30 + 1.5; N = int(SR * DUR) + SR
+def T(f): return delivered_of_old(f) / 30.0     # yazım karesi -> teslim zamanı (yavaşlatma + kurgu sırası)
 BPM = 154; B = 60 / BPM; DROP = T(57)          # SNAP = drop
 def beat(n): return DROP + n * B               # n<0 => drop öncesi
 mus = np.zeros((N, 2)); sfx = np.zeros((N, 2))
@@ -168,7 +170,7 @@ C(T(263), whoosh(0.6, 300, 3500, 0.18), name='açılış'); C(T(286), click(0.8,
 C(T(292), whoosh(0.8, 300, 2500, 0.15), name='yatma'); C(T(302), slide(0.35, 0.12), name='cetvel'); C(T(312), click(0.3, 5000, 0.015), name='cetvel uç')
 # S7: gram sayacı (hızlanıp yavaşlayan tıklar)
 for k in range(24):
-    tk = (k / 23) ** 1.7; C(T(325) + tk * T(20), tick(0.06, 2800 + k * 30), name='gram tık')
+    tk = (k / 23) ** 1.7; C(T(325 + tk * 20), tick(0.06, 2800 + k * 30), name='gram tık')
 C(T(345), chime(90, 0.06, 0.9), name='gram son')
 C(T(802), whoosh(0.7, 300, 3000, 0.18), name='dönüş'); C(T(817), click(0.5, 2600, 0.02), name='kapanma'); C(T(805), whoosh(0.6, 250, 2500, 0.16), pan=-0.5, name='ultra giriş')
 # S9'a yumuşak alkış

@@ -10,7 +10,8 @@ RD, OD = sys.argv[1], sys.argv[2]; ASP = sys.argv[3] if len(sys.argv) > 3 else '
 V = ASP == 'V'
 meta = json.load(open(os.path.join(RD, 'meta.json'))); W, H = meta['W'], meta['H']; M = meta['frames']
 os.makedirs(OD, exist_ok=True)
-NF = 875; EC = 45
+import timeline as TL
+NF = TL.NG; EC = 45; CUR_G = [0]   # CUR_G: işlenen render karesi (izleme verisi bu kareden okunur)
 U = min(W, H)          # tipografi birimi: kısa kenar
 
 def clamp(x, a=0., b=1.): return max(a, min(b, x))
@@ -28,7 +29,7 @@ def layer_tf(f):
             t = io((f - f0) / (f1 - f0)); return s0 + (s1 - s0) * t, d0 + (d1 - d0) * t
     return 1, 0
 def P(f, k):
-    v = M[str(f)]['p'][k]; sc, dy = layer_tf(f)
+    v = M[str(CUR_G[0])]['p'][k]; sc, dy = layer_tf(f)
     return (v[0] * W - W / 2) * sc + W / 2, (v[1] * H - H / 2) * sc + H / 2 - dy * H, v[2]
 
 # ---------- altyazılar ----------
@@ -150,9 +151,10 @@ def bg_for(f, shot):
     if key not in _gc: _gc[key] = ghost(_bg.copy(), word, alpha=0.30, blur=0.012, y=0.5)
     return _gc[key]
 
-def compose(f):
-    m = M[str(f)]; shot = m['shot']
-    r = Image.open(os.path.join(RD, f'{f:04d}.png')).convert('RGBA')
+def compose(g):
+    CUR_G[0] = g; f = TL.old_of(g)                  # f: yazım zamanı (altyazı/grafik zamanlamaları bu ölçekte)
+    m = M[str(g)]; shot = m['shot']
+    r = Image.open(os.path.join(RD, f'{g:04d}.png')).convert('RGBA')
     if r.size != (W, H): r = r.resize((W, H))
     sc, dy = layer_tf(f)
     if abs(sc - 1) > 1e-4 or dy:
@@ -189,7 +191,7 @@ def compose(f):
             img.alpha_composite(O)
     for t, a0, a1, y, s in SUP: draw_super(img, t, f, a0, a1, y, s)
     if 164 <= f <= 167:                                     # deklanşör flaşı
-        k = [0.75, 0.45, 0.2, 0.06][f - 164]; img.alpha_composite(Image.new('RGBA', img.size, (255, 255, 255, int(255 * k))))
+        k = [0.75, 0.45, 0.2, 0.06][min(3, int(f - 164))]; img.alpha_composite(Image.new('RGBA', img.size, (255, 255, 255, int(255 * k))))
     return img.convert('RGB')
 
 # ---------- sayfa çevirme geçişi (merkezdeki kat çizgisinden) ----------
@@ -238,7 +240,7 @@ def ec_frame(i, base, layers):
 if __name__ == '__main__':
     from timeline import ORDER
     only = set(int(x) for x in sys.argv[4].split(',')) if len(sys.argv) > 4 else None
-    for n, f in enumerate(ORDER):                 # teslim karesi n <- yazım karesi f
+    for n, f in enumerate(ORDER):                 # teslim karesi n <- render karesi f
         if only and n not in only: continue
         if not os.path.exists(os.path.join(RD, f'{f:04d}.png')): continue
         compose(f).save(os.path.join(OD, f'{n:04d}.png'))
