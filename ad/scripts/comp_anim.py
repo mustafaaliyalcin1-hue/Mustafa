@@ -39,7 +39,7 @@ SUP = [  # metin, giriş, çıkış, y (oran), boyut (U oranı)
     ('Ve karşınızda', 189, 214, 0.86, 0.080),
     ('Galaxy Z Fold8', 235, 261, 0.86, 0.085),
     ('Yeni form açılıyor.', 268, 291, 0.86, 0.080),
-    ('Dümdüz.', 300, 319, 0.30 if not V else 0.36, 0.100),
+    ('Dümdüz.', 304, 319, 0.30 if not V else 0.36, 0.100),
     ('Samsung’un en hafif Fold’u', 327, 351, 0.86, 0.072),
     ('Katlanınca 8,9 mm', 360, 398, 0.86, 0.080),
     ('50MP ultra geniş · 3x optik zoom', 404, 440, 0.86, 0.064),

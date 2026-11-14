@@ -147,7 +147,7 @@ def lineup(f, f0, keys, Wh, Hh):
         e = oexp((f - f0 - i * 4) / 22)
         turn = io((f - f0 - 30 - i * 5) / 16)
         sway = 6 * math.sin((f - f0) / 25 * 2 * math.pi * 0.35 + i * 0.7) * io((f - f0 - 60) / 20)
-        out[k] = dict(pos=(xs[i], 0, zs[i] + lerp(-0.45, 0, e)), rot=(0, 0, lerp(-25, 0, e) + 180 * turn + sway), a=0)
+        out[k] = dict(pos=(xs[i], 0, zs[i] + lerp(-0.16, 0, e)), rot=(0, 0, lerp(-25, 0, e) + 180 * turn + sway), a=0)
     return out
 def state(f):
     if f >= 802:
@@ -188,7 +188,7 @@ def state(f):
 bpy.ops.wm.read_factory_settings(use_empty=True)
 cam = studio(engine='CYCLES', w=W, h=H, samples=A.spp)
 sc = bpy.context.scene
-sc.render.use_motion_blur = True; sc.render.motion_blur_shutter = 0.25
+sc.render.use_motion_blur = True; sc.render.motion_blur_shutter = 0.15
 sc.render.fps = 25; sc.frame_start = 0; sc.frame_end = NF - 1
 cam.rotation_mode = 'QUATERNION'; cam.data.dof.use_dof = False
 PU = load_phone('U'); PF = load_phone('F8')
@@ -302,5 +302,6 @@ for f in frames:
     fp = os.path.join(A.out, f'{f:04d}.png')
     if os.path.exists(fp): continue
     sc.frame_set(f); sc.render.filepath = fp
+    sc.render.use_motion_blur = not (f in CUTS or (f + 1) in CUTS)   # kesme karelerinde önceki planın hayaleti olmasın
     t = time.time(); bpy.ops.render.render(write_still=True)
     print(f'kare {f} {time.time() - t:.1f}s', flush=True)
