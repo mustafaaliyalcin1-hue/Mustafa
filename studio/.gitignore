@@ -1,0 +1,13 @@
+# Kullanıcı medyası ve çıktılar repoya girmez
+input/*
+output/*
+temp/*
+!input/.gitkeep
+!output/.gitkeep
+!temp/.gitkeep
+# setup.sh ile yeniden üretilenler / indirilenler
+assets/luts/*.cube
+assets/music/test_muzik_*.mp3
+assets/models/
+assets/sfx/real/*.wav
+__pycache__/

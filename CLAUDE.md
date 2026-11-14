@@ -7,3 +7,7 @@
 - Dikey Instagram tanıtımı (1080x1920): `video/src/reels/TanitimReels.tsx`. Claude Stüdyo eklentileri kullanılmıyor (kullanıcı kapattırdı);
   videolar her zamanki gibi oyundan çekim + Remotion kurgusuyla yapılır.
 - İl simgeleri: `LANDM.defs` (plaka → yerler), modeller `LMK`. Diyarbakır'a (21) hiçbir şey konmayacak (kullanıcı istedi).
+- **Video Edit Stüdyosu:** `studio/` (ayrıntılar `studio/CLAUDE.md`). Oturum başında araçlar eksikse önce
+  `bash studio/setup.sh`. Her edit isteğinde: ffprobe ile incele → kısa plan → `--onizleme` render + kare kontrolü →
+  final. Varsayılan 9:16 Reels 1080x1920, SFX açık (`auto_sfx.py`); orijinallerin üzerine yazma, çıktılar
+  `studio/output/` içine tarihli. Bitince dosyayı gönder ve 2–3 satır özetle.

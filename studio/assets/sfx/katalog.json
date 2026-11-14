@@ -1,0 +1,182 @@
+[
+ {
+  "ad": "whoosh_yumusak",
+  "dosya": "whoosh_yumusak.wav",
+  "kategori": "whoosh",
+  "sure": 0.9,
+  "tepe": 0.495,
+  "aciklama": "yumuşak, alçak, geniş hava",
+  "kaynak": "sentez"
+ },
+ {
+  "ad": "whoosh_sert",
+  "dosya": "whoosh_sert.wav",
+  "kategori": "whoosh",
+  "sure": 0.6,
+  "tepe": 0.39,
+  "aciklama": "sert, dolgun, gövdeli",
+  "kaynak": "sentez"
+ },
+ {
+  "ad": "whoosh_kisa",
+  "dosya": "whoosh_kisa.wav",
+  "kategori": "whoosh",
+  "sure": 0.25,
+  "tepe": 0.15,
+  "aciklama": "kısa, tiz, hızlı",
+  "kaynak": "sentez"
+ },
+ {
+  "ad": "whoosh_uzun",
+  "dosya": "whoosh_uzun.wav",
+  "kategori": "whoosh",
+  "sure": 1.8,
+  "tepe": 1.08,
+  "aciklama": "uzun, soldan sağa geçen",
+  "kaynak": "sentez"
+ },
+ {
+  "ad": "swoosh_ince",
+  "dosya": "swoosh_ince.wav",
+  "kategori": "swoosh",
+  "sure": 0.45,
+  "tepe": 0.135,
+  "aciklama": "ince, havadan inen",
+  "kaynak": "sentez"
+ },
+ {
+  "ad": "swoosh_tonal",
+  "dosya": "swoosh_tonal.wav",
+  "kategori": "swoosh",
+  "sure": 0.55,
+  "tepe": 0.165,
+  "aciklama": "tonal, yükselen ıslık",
+  "kaynak": "sentez"
+ },
+ {
+  "ad": "pop_balon",
+  "dosya": "pop_balon.wav",
+  "kategori": "pop",
+  "sure": 0.09,
+  "tepe": 0.0,
+  "aciklama": "balon/baloncuk pop",
+  "kaynak": "sentez"
+ },
+ {
+  "ad": "pop_tiz",
+  "dosya": "pop_tiz.wav",
+  "kategori": "pop",
+  "sure": 0.06,
+  "tepe": 0.0,
+  "aciklama": "tiz, parlak pop",
+  "kaynak": "sentez"
+ },
+ {
+  "ad": "pop_agiz",
+  "dosya": "pop_agiz.wav",
+  "kategori": "pop",
+  "sure": 0.14,
+  "tepe": 0.0,
+  "aciklama": "alçak ağız pop",
+  "kaynak": "sentez"
+ },
+ {
+  "ad": "click_ui",
+  "dosya": "click_ui.wav",
+  "kategori": "click",
+  "sure": 0.03,
+  "tepe": 0.0,
+  "aciklama": "arayüz tık (tonal)",
+  "kaynak": "sentez"
+ },
+ {
+  "ad": "click_mekanik",
+  "dosya": "click_mekanik.wav",
+  "kategori": "click",
+  "sure": 0.08,
+  "tepe": 0.0,
+  "aciklama": "mekanik çift tık",
+  "kaynak": "sentez"
+ },
+ {
+  "ad": "click_yumusak",
+  "dosya": "click_yumusak.wav",
+  "kategori": "click",
+  "sure": 0.06,
+  "tepe": 0.0,
+  "aciklama": "yumuşak tuş",
+  "kaynak": "sentez"
+ },
+ {
+  "ad": "impact_hafif",
+  "dosya": "impact_hafif.wav",
+  "kategori": "impact",
+  "sure": 0.85,
+  "tepe": 0.0,
+  "aciklama": "hafif vuruş",
+  "kaynak": "sentez"
+ },
+ {
+  "ad": "impact_orta",
+  "dosya": "impact_orta.wav",
+  "kategori": "impact",
+  "sure": 1.7,
+  "tepe": 0.0,
+  "aciklama": "orta vuruş, yankılı",
+  "kaynak": "sentez"
+ },
+ {
+  "ad": "impact_derin",
+  "dosya": "impact_derin.wav",
+  "kategori": "impact",
+  "sure": 4.2,
+  "tepe": 0.0,
+  "aciklama": "derin sinematik boom",
+  "kaynak": "sentez"
+ },
+ {
+  "ad": "riser_gurultu",
+  "dosya": "riser_gurultu.wav",
+  "kategori": "riser",
+  "sure": 2.5,
+  "tepe": 2.5,
+  "aciklama": "beyaz gürültü riser 2.5 sn",
+  "kaynak": "sentez"
+ },
+ {
+  "ad": "riser_tonal",
+  "dosya": "riser_tonal.wav",
+  "kategori": "riser",
+  "sure": 3.0,
+  "tepe": 3.0,
+  "aciklama": "tonal riser 3 sn",
+  "kaynak": "sentez"
+ },
+ {
+  "ad": "bass_drop",
+  "dosya": "bass_drop.wav",
+  "kategori": "drop",
+  "sure": 2.0,
+  "tepe": 0.0,
+  "aciklama": "bass drop",
+  "kaynak": "sentez"
+ },
+ {
+  "ad": "glitch",
+  "dosya": "glitch.wav",
+  "kategori": "glitch",
+  "sure": 0.7,
+  "tepe": 0.0,
+  "aciklama": "dijital glitch",
+  "kaynak": "sentez"
+ },
+ {
+  "ad": "shutter",
+  "dosya": "shutter.wav",
+  "kategori": "shutter",
+  "sure": 0.22,
+  "tepe": 0.0,
+  "aciklama": "fotoğraf makinesi deklanşör",
+  "kaynak": "sentez"
+ }
+]
