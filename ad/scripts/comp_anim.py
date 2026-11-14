@@ -224,7 +224,7 @@ def endcard():
     layers = []
     L1 = Image.new('RGBA', (W, H), (0, 0, 0, 0)); L1.paste(Image.new('RGBA', matte.size, ink + (255,)), ((W - lw) // 2, int(H * 0.5 - lh * 2.1)), matte)
     L2 = Image.new('RGBA', (W, H), (0, 0, 0, 0)); ImageDraw.Draw(L2).text((W / 2, H * 0.5), '×', font=F(400, U * 0.075), fill=ink + (255,), anchor='mm')
-    fm = F(600, U * 0.112); L3 = Image.new('RGBA', (W, H), (0, 0, 0, 0)); ImageDraw.Draw(L3).text((W / 2, H * 0.5 + lh * 1.9), 'maybeta', font=fm, fill=ink + (255,), anchor='mm')  # logo ile eş görsel ağırlık
+    fm = F(600, U * 0.112); L3 = Image.new('RGBA', (W, H), (0, 0, 0, 0)); ImageDraw.Draw(L3).text((W / 2, H * 0.5 + lh * 1.9), 'Maybeta', font=fm, fill=ink + (255,), anchor='mm')  # logo ile eş görsel ağırlık
     return base, [L1, L2, L3]
 def ec_frame(i, base, layers):
     img = base.copy()
@@ -236,18 +236,12 @@ def ec_frame(i, base, layers):
     return img.convert('RGB')
 
 if __name__ == '__main__':
+    from timeline import ORDER
     only = set(int(x) for x in sys.argv[4].split(',')) if len(sys.argv) > 4 else None
-    last = None
-    for f in range(NF):
-        if only and f not in only and (f + 1) not in only: continue
+    for n, f in enumerate(ORDER):                 # teslim karesi n <- yazım karesi f
+        if only and n not in only: continue
         if not os.path.exists(os.path.join(RD, f'{f:04d}.png')): continue
-        img = compose(f)
-        for f0, n in TURNS.items():
-            if f0 <= f < f0 + n and last is not None:
-                img = page_turn(last_frozen[f0], img, (f - f0 + 1) / (n + 1))
-        if (f + 1) in TURNS: last_frozen = globals().setdefault('last_frozen', {}); last_frozen[f + 1] = img
-        if only and f not in only: last = img; continue
-        img.save(os.path.join(OD, f'{f:04d}.png')); last = img
+        compose(f).save(os.path.join(OD, f'{n:04d}.png'))
     if not only or any(x >= NF for x in only):
         base, layers = endcard()
         for i in range(EC): ec_frame(i, base, layers).save(os.path.join(OD, f'{NF + i:04d}.png'))

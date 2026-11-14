@@ -5,7 +5,9 @@ from scipy import signal
 import pyloudnorm as pyln
 SR = 48000; DUR = 875 / 30 + 1.5; N = int(SR * DUR) + SR
 rng = np.random.default_rng(8)
-def T(f): return f / 30.0
+sys.path.insert(0, __import__('os').path.dirname(__import__('os').path.abspath(__file__)))
+from timeline import new_of_old
+def T(f): return new_of_old(f) / 30.0     # yazım karesi -> teslim zamanı (kurgu sırası)
 BPM = 154; B = 60 / BPM; DROP = T(57)          # SNAP = drop
 def beat(n): return DROP + n * B               # n<0 => drop öncesi
 mus = np.zeros((N, 2)); sfx = np.zeros((N, 2))
@@ -70,7 +72,7 @@ FILTER_DOWN = (T(830), T(836))
 while t0 < END_MUS - 0.01:
     c = nbar % 4; bar = 4 * B
     cut = 3200
-    lift = 1.0 + (0.35 if (T(234) <= t0 < T(300) or T(472) <= t0 < T(592) or T(682) <= t0 < T(802)) else 0)
+    lift = 1.0 + (0.35 if (T(234) <= t0 < T(300) or T(472) <= t0 < T(591) + 1 / 30 or T(682) <= t0 < T(801) + 1 / 30) else 0)
     add(mus, t0, pad(CH[c], bar + 0.1, cut=cut * lift, g=0.07))
     for k in range(4):
         tb = t0 + k * B
