@@ -221,8 +221,8 @@ def endcard():
     a = np.asarray(up).astype(float); a = np.clip((a - 70) / (190 - 70), 0, 1)   # luma matte, temiz kenar
     lw = int(U * (0.62 if not V else 0.62) * (1 if not V else 1)); lh = int(lw * a.shape[0] / a.shape[1])
     matte = Image.fromarray((a * 255).astype(np.uint8)).resize((lw, lh), Image.LANCZOS)
-    bgc = studio_bg(W, H, (0xF3, 0xEC, 0xFA), (0xE2, 0xD6, 0xF0)); base = to_img(bgc).convert('RGBA')
-    ink = (42, 28, 52)
+    base = Image.new('RGBA', (W, H), (0, 0, 0, 255))      # son kart: siyah zemin
+    ink = (255, 255, 255)                                  # beyaz yazı
     layers = []
     L1 = Image.new('RGBA', (W, H), (0, 0, 0, 0)); L1.paste(Image.new('RGBA', matte.size, ink + (255,)), ((W - lw) // 2, int(H * 0.5 - lh * 2.1)), matte)
     L2 = Image.new('RGBA', (W, H), (0, 0, 0, 0)); ImageDraw.Draw(L2).text((W / 2, H * 0.5), '×', font=F(400, U * 0.075), fill=ink + (255,), anchor='mm')
