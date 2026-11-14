@@ -20,3 +20,7 @@ echo "file '$(pwd)/$T/ec.mp4'" >> $LIST
 ffmpeg -v error -y -f concat -safe 0 -i $LIST -i build/audio.wav -map 0:v -map 1:a -c:v libx264 -preset slow -crf 19 -maxrate 9M -bufsize 18M \
   -pix_fmt yuv420p -r 30 -c:a aac -b:a 192k -shortest -movflags +faststart out/$OUTN.mp4
 ffprobe -v error -show_entries format=duration,size:stream=width,height -of compact out/$OUTN.mp4
+# ikinci sürüm: Samsung filminin müziğiyle (aynı görüntü, ses değişir)
+[ -f build/audio_samsung.wav ] || MUSIC=samsung python3 scripts/audio.py build/audio_samsung.wav
+ffmpeg -v error -y -i out/$OUTN.mp4 -i build/audio_samsung.wav -map 0:v -map 1:a -c:v copy -c:a aac -b:a 192k -shortest -movflags +faststart out/${OUTN}_samsung_muzik.mp4
+ls -la out/${OUTN}*.mp4
