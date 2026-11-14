@@ -4,3 +4,7 @@ output/**/*.wav
 output/**/arkaplan.png
 output/**/yazi.png
 .env
+output/**/kanca.png
+output/**/nakarat.png
+output/**/arkaplan_yatay.png
+output/**/yazi_yatay.png
