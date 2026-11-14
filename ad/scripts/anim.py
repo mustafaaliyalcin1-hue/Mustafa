@@ -10,7 +10,7 @@ from lib_phone import load_phone, studio
 ap = argparse.ArgumentParser()
 ap.add_argument('--aspect', default='H'); ap.add_argument('--w', type=int, default=960)
 ap.add_argument('--spp', type=int, default=12); ap.add_argument('--out', default='build/r540H')
-ap.add_argument('--start', type=int, default=0); ap.add_argument('--end', type=int, default=424)
+ap.add_argument('--start', type=int, default=0); ap.add_argument('--end', type=int, default=-1)
 ap.add_argument('--only-meta', action='store_true'); ap.add_argument('--frames', default='')
 A = ap.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else sys.argv[1:])
 V = A.aspect == 'V'
@@ -296,7 +296,7 @@ json.dump(dict(W=W, H=H, frames=meta), open(meta_path, 'w'))
 print('META yazıldı', meta_path, flush=True)
 if A.only_meta: sys.exit(0)
 
-frames = [int(x) for x in A.frames.split(',')] if A.frames else range(A.start, A.end + 1)
+frames = [int(x) for x in A.frames.split(',')] if A.frames else range(A.start, (A.end if A.end >= 0 else NF - 1) + 1)
 for f in frames:
     fp = os.path.join(A.out, f'{f:04d}.png')
     if os.path.exists(fp): continue
