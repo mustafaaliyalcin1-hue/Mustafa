@@ -136,6 +136,33 @@ def reverb(x, d=2.2, mix=0.22):
     return x * (1 - mix) + out * mix
 mus = reverb(eight_d(mus), 2.2, 0.20)
 
+# ---- İsteğe bağlı: Samsung filminin müziğiyle kurgu (MUSIC=samsung). Ses logosu (29,7 sn) kullanılmaz. ----
+import os as _os
+if _os.environ.get('MUSIC') == 'samsung':
+    import soundfile as _sf
+    src, _sr = _sf.read(_os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..', 'build', 'samsung_audio.wav'))
+    assert _sr == SR
+    BP = 0.4805; DB = lambda k: 0.5855 + 4 * BP * k            # kaynakta ölçü başları (124,9 BPM)
+    def piece(a, b): return src[int(a * SR):int(b * SR)].copy()
+    XF = int(0.04 * SR)
+    def join(parts):
+        out = parts[0]
+        for p in parts[1:]:
+            w = np.linspace(0, 1, XF)[:, None]
+            head = out[-XF:] * np.sqrt(1 - w) + p[:XF] * np.sqrt(w)
+            out = np.concatenate([out[:-XF], head, p[XF:]])
+        return out
+    drop_src = DB(5)                                           # 10,196 sn: kaynaktaki asıl yükseliş
+    A = piece(drop_src - DROP, drop_src + 0.04)
+    A[:int(0.4 * SR)] *= np.linspace(0, 1, int(0.4 * SR))[:, None]
+    body1 = piece(DB(5), DB(11) + 0.04); loop = piece(DB(6), DB(11) + 0.04)
+    C = piece(DB(11), 29.30)
+    C[-int(0.5 * SR):] *= np.linspace(1, 0, int(0.5 * SR))[:, None]
+    bed = join([A, body1, loop, loop, C])
+    mus = np.zeros((N, 2)); mus[:min(N, len(bed))] = bed[:N]
+    mus = reverb(eight_d(mus, 10.0), 1.6, 0.08)
+    print('müzik: Samsung filmi kurgusu, süre', round(len(bed) / SR, 2))
+
 # ---------------- SES EFEKTLERİ ----------------
 def click(g=0.5, fc=3500, d=0.02):
     x = bp(noise(d), fc * 0.6, fc * 1.6) * np.exp(-tt(d) * 260); return x * g
