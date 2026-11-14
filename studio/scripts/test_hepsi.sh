@@ -75,7 +75,7 @@ python3 $S/efekt.py $E/3_renk.mp4 -e zoomin@0-3.6=0.12 -e punch@7.2-7.8=0.15 -e 
 python3 $S/yazi.py $E/4_efekt.mp4 -y "TEPETAKLAK *STÜDYO*|0.3|3.3|pop|orta" \
   -y "Her kare beat'te|4.2|6.6|kelime|ust" -y "ŞİMDİ *İZLE*|8.3|10.6|zoom|orta" \
   --bant "Video Edit Stüdyosu" --bant-alt "OTOMATİK SFX · RENK · ALTYAZI" --bas 4.4 --sure 3 -o $E/5_yazi.mp4 2>/dev/null
-python3 $S/altyazi.py $E/5_yazi.mp4 --metin "Kes, birleştir, renklendir ve sesi otomatik ekle" --bas 0.8 --son 3.4 --buyuk --konum 0.82 --boyut 0.042 -o $E/6_altyazi.mp4 2>/dev/null
+python3 $S/altyazi.py $E/5_yazi.mp4 --metin "Kes, birleştir, renklendir ve sesi otomatik ekle" --bas 0.8 --son 3.4 --buyuk --boyut 0.045 -o $E/6_altyazi.mp4 2>/dev/null
 python3 $S/ses.py $E/6_altyazi.mp4 --muzik $M --muzik-db -4 --orijinal 0.15 --ducking -o $E/7_ses.mp4 2>/dev/null
 python3 $S/auto_sfx.py $E/7_ses.mp4 -o $E/8_sfx.mp4 2>/dev/null > $E/sfx_plan.json
 TARIH=$(date +%Y%m%d_%H%M%S)

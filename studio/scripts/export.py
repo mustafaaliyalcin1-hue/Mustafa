@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Platform export: Reels / TikTok / Shorts (1080x1920), YouTube (1920x1080), kare (1080x1080), 4:5 (1080x1350).
-H.264 High, yüksek bitrate, AAC 320k 48 kHz, -14 LUFS, +faststart, BT.709 etiketleri.
+H.264 High, yüksek bitrate, AAC 320k 48 kHz, +faststart, BT.709 etiketleri.
+Ses varsayılanı: ortalama ≤ -14 LUFS (iki geçişli loudnorm) ve limiter ile tepe ≤ -1 dBTP; kodlamadan sonra ölçülür.
 
   export.py video.mp4                         # varsayılan: reels, 30 fps
   export.py video.mp4 --platform tiktok --fps 60
@@ -14,7 +15,7 @@ import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from _ortak import TEMP, bilgi, bitti, cikti_yolu, ffmpeg, probe, olay_aktar  # noqa: E402
+from _ortak import TEMP, bilgi, bitti, cikti_yolu, ffmpeg, loudnorm_filtre, probe, olay_aktar, ses_sinirla  # noqa: E402
 
 PLATFORM = {
     'reels': (1080, 1920, '9:16', '25M'), 'tiktok': (1080, 1920, '9:16', '25M'), 'shorts': (1080, 1920, '9:16', '25M'),
@@ -40,7 +41,8 @@ def export(girdi, platform, fps, sigdir, akici, cikti=None, normalize=True):
     else:
         vf += f',fps={fps}'
     vf += ',format=yuv420p'
-    af = ('loudnorm=I=-14:TP=-1.0:LRA=11,' if normalize else '') + 'aresample=48000'
+    # ses: iki geçişli -14 LUFS + limiter (tepe ≤ -1 dBTP); --normalize-yok olsa da limiter her zaman açık
+    af = loudnorm_filtre(kaynak) if normalize else 'aresample=48000,alimiter=limit=0.8318:level=disabled:asc=1'
     out = cikti_yolu(girdi, f'{platform}_{fps}fps', o=cikti)
     ses = probe(kaynak)['ses']
     ffmpeg(['-i', kaynak, '-vf', vf] + (['-af', af] if ses else []) +
@@ -50,6 +52,9 @@ def export(girdi, platform, fps, sigdir, akici, cikti=None, normalize=True):
             '-color_range', 'tv'] +
            (['-c:a', 'aac', '-b:a', '320k', '-ar', '48000', '-ac', '2'] if ses else ['-an']) +
            ['-t', f'{inf["sure"]:.3f}', '-movflags', '+faststart', out])
+    if ses:  # kodlanmış dosyada doğrula; sınır aşıldıysa yalnız sesi kısarak düzelt
+        i, tp = ses_sinirla(out, -14.0 if normalize else 99.0, -1.0)
+        bilgi(f'ses: {i:.1f} LUFS, true peak {tp:.1f} dBTP')
     olay_aktar(girdi, out)
     return out
 

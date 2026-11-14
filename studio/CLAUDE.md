@@ -18,7 +18,12 @@ Kullanıcıyla Türkçe konuş.
 4. **Orijinal dosyaların üzerine asla yazma.** Çıktılar `studio/output/` içine tarihli isimle gider
    (`<ad>_<islem>_<YYYYMMDD_HHMMSS>.mp4`; araçlar bunu otomatik yapar, `-o` ile girdinin üstüne yazmayı reddeder).
 5. **Varsayılanlar:** 9:16 dikey Reels, 1080x1920, 30 fps, SFX açık (`auto_sfx.py` her kurgunun export'tan önceki
-   son adımı), -14 LUFS.
+   son adımı).
+   - **Ses:** her export'ta ortalama ≤ -14 LUFS (iki geçişli loudnorm) + limiter ile true peak ≤ -1 dBTP; kodlanmış
+     dosya ölçülüp gerekirse otomatik düzeltilir (`_ortak.ses_normalize / ses_sinirla / ses_olc`).
+   - **Güvenli alan:** dikey videoda yazı/altyazı/alt bant üstten %12, alttan %25 boş bırakır (`_ortak.guvenli_alan`;
+     yatayda %6/%10). Altyazı varsayılan olarak güvenli alanın alt sınırına oturur, konumlar buna kırpılır.
+   - **Altyazı:** satırlar asla üst üste binmez (her olay bir sonrakinin başladığı santisaniyede biter).
 6. **Bitince:** dosyayı kullanıcıya gönder (SendUserFile) ve yaptıklarını 2–3 satırla özetle.
 
 ## Klasörler
@@ -86,7 +91,7 @@ python3 scripts/yazi.py v.mp4 --bant "Ayşe Çelik" --bant-alt "YÖNETMEN" --bas
 ### Otomatik altyazı — `altyazi.py` (kelime kelime vurgulu, videoya gömülü + .srt)
 ```bash
 python3 scripts/altyazi.py v.mp4                      # faster-whisper (model gerekir; yoksa "model yok", kod 3)
-python3 scripts/altyazi.py v.mp4 --model medium --buyuk --kelime 3
+python3 scripts/altyazi.py v.mp4 --model medium --buyuk --kelime 3 --konum 0.6   # konum güvenli alana kırpılır
 python3 scripts/altyazi.py v.mp4 --metin "Merhaba arkadaşlar" --bas 0.5 --son 3   # model olmadan
 python3 scripts/altyazi.py v.mp4 --srt konusma.srt
 ```
@@ -130,7 +135,8 @@ python3 scripts/export.py v.mp4 --platform tiktok --fps 60      # shorts, youtub
 python3 scripts/export.py v.mp4 --platform youtube --fps 60 --akici --sigdir bulanik
 python3 scripts/export.py v.mp4 --hepsi                         # reels + youtube + kare
 ```
-H.264 High 4.2, CRF 16 + maxrate (25M dikey / 40M YouTube), AAC 320k 48 kHz, -14 LUFS, BT.709, +faststart.
+H.264 High 4.2, CRF 16 + maxrate (25M dikey / 40M YouTube), AAC 320k 48 kHz, ≤ -14 LUFS, true peak ≤ -1 dBTP
+(`--normalize-yok` verilse bile limiter açık), BT.709, +faststart. Sonuç ses değerleri çıktıda yazdırılır.
 
 ## Tipik tam kurgu (örnek)
 ```bash

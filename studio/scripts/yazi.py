@@ -8,6 +8,7 @@
 -y biçimi: "METİN|bas|son|animasyon|konum"   konum: ust | orta | alt | x,y (piksel)
 Animasyonlar: pop, kay, zoom, fade, daktilo, kelime (kelime kelime), parlama, sallan
 Fontlar: montserrat (varsayılan, Black), anton, bebas
+Güvenli alan varsayılan: dikeyde üstten %12, alttan %25 boş (Reels/TikTok arayüzü); konumlar buna kırpılır.
 Metinde *yıldızlı* kelime vurgu rengiyle yazılır.
 """
 import argparse
@@ -17,7 +18,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _ortak import (AENC, FONTS, TEMP, ass_kac, ass_renk, ass_zaman, bitti, cikti_yolu, enc, ffmpeg,  # noqa: E402
-                    filtre_yolu, font_adi, font_yolu, hazirla, ortak_argumanlar, probe, olay_oku, olay_yaz)
+                    filtre_yolu, font_adi, font_yolu, guvenli_alan, guvenli_y, hazirla, ortak_argumanlar, probe, olay_oku, olay_yaz)
 
 
 def ass_baslik(W, H, stiller):
@@ -76,6 +77,10 @@ def yazi_olay(metin, a, b, anim, x, y, W, H, vurgu, stil_ad='Baslik', temel='#FF
         metin, yeni = sigdir(metin, fdosya, fboyut, W * 0.86)
         if int(yeni) != int(fboyut):
             fs_tag = f'\\fs{int(yeni)}'
+    # güvenli alan: blok (satır sayısı × font + kenar payı) üst %12 / alt %25'in dışına taşmasın
+    fsz = (yeni if fdosya and fboyut else None) or fboyut or H * 0.075
+    blok_h = (metin.count('\n') + 1) * fsz * 1.2 + fsz * 0.2
+    y = guvenli_y(y, blok_h * (1.18 if anim == 'pop' else 1.0), W, H)  # pop'un %118 taşmasına pay
     cikis = min(250, ms // 4)
     satirlar = []
     tx = ass_kac(metin)
@@ -84,7 +89,7 @@ def yazi_olay(metin, a, b, anim, x, y, W, H, vurgu, stil_ad='Baslik', temel='#FF
     if anim == 'pop':
         tag = f'{P}\\fscx0\\fscy0\\t(0,140,\\fscx118\\fscy118)\\t(140,240,\\fscx100\\fscy100)\\fad(0,{cikis})'
     elif anim == 'kay':
-        d = int(H * 0.06)
+        d = min(int(H * 0.06), max(0, guvenli_alan(W, H)[1] - int(y + blok_h / 2)))  # alttan, güvenli alanda kalarak
         tag = f'\\an5\\move({x},{y + d},{x},{y},0,280)\\fad(180,{cikis}){fs_tag}'
     elif anim == 'zoom':
         tag = f'{P}\\fscx170\\fscy170\\alpha&HFF&\\t(0,320,0.6,\\fscx100\\fscy100\\alpha&H00&)\\fad(0,{cikis})'
@@ -124,8 +129,10 @@ def yazi_olay(metin, a, b, anim, x, y, W, H, vurgu, stil_ad='Baslik', temel='#FF
 
 def bant_olay(ust, alt, a, b, W, H, renk, vurgu, font):
     """Lower third: soldan kayan renkli bant + iki satır yazı."""
-    bw, bh = int(W * 0.62), int(H * 0.075)
-    x0, y0 = int(W * 0.06), int(H * 0.74)
+    bw, bh = int(W * 0.62), int(H * 0.075) if H > W else int(H * 0.1)
+    ah = int(bh * 0.62)
+    _, alt_s = guvenli_alan(W, H)  # bandın tamamı güvenli alanın içinde, alt sınıra oturur
+    x0, y0 = int(W * 0.06), alt_s - bh - (ah if alt else 0) - int(H * 0.01)
     ms = int((b - a) * 1000)
     c = ass_renk(vurgu)
     cikis = f'\\t({ms - 250},{ms},\\alpha&HFF&)'
@@ -140,7 +147,6 @@ def bant_olay(ust, alt, a, b, W, H, renk, vurgu, font):
     s.append(f'Dialogue: 1,{ass_zaman(a + 0.2)},{ass_zaman(b)},BantYazi,,0,0,0,,{{\\an4\\move({tx - 60},{y0 + bh // 2},'
              f'{tx},{y0 + bh // 2},0,300)\\fad(150,0){cikis}}}{ass_kac(ust)}')
     if alt:
-        ah = int(bh * 0.62)
         s.append(f'Dialogue: 0,{ass_zaman(a + 0.25)},{ass_zaman(b)},Bant,,0,0,0,,{{\\an7\\move({-bw},{y0 + bh},'
                  f'{x0 + int(bw * 0.03)},{y0 + bh},0,340)\\p1\\bord0\\shad0\\1c&H101010&\\1a&H30&{cikis}}}'
                  f'm 0 0 l {int(bw * 0.7)} 0 l {int(bw * 0.68)} {ah} l 0 {ah}{{\\p0}}')

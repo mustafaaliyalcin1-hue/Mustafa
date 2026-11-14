@@ -14,7 +14,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from _ortak import AENC, MUSIC, bitti, cikti_yolu, ffmpeg, hata, ortak_argumanlar, probe, olay_aktar  # noqa: E402
+from _ortak import AENC, MUSIC, bitti, cikti_yolu, ffmpeg, hata, ortak_argumanlar, probe, olay_aktar, ses_normalize  # noqa: E402
 
 
 def main():
@@ -59,12 +59,13 @@ def main():
         fc.append('[o]anull[mx]')
     else:
         fc.append(f'anullsrc=r=48000:cl=stereo,atrim=0:{D:.3f}[mx]')
-    son = '[mx]' + ('loudnorm=I=-14:TP=-1.0:LRA=11,' if args.normalize else '') + \
-        'alimiter=limit=0.95:level=disabled,aresample=48000[a]'
+    son = '[mx]alimiter=limit=0.8318:level=disabled:asc=1,aresample=48000[a]'  # tepe ≤ -1.6 dBFS
     fc.append(son)
     out = cikti_yolu(args.girdi, 'ses', o=args.cikti, onizleme=args.onizleme)
     ffmpeg(ins + ['-filter_complex', ';'.join(fc), '-map', '0:v', '-map', '[a]', '-c:v', 'copy'] + AENC
            + ['-t', f'{D:.3f}', '-movflags', '+faststart', out])
+    if args.normalize:
+        ses_normalize(out, -14.0, -1.0)
     olay_aktar(args.girdi, out)
     bitti(out)
 

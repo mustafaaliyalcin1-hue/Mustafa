@@ -137,10 +137,106 @@ def ses_akisi_ekle(inp_index, info, sure=None):
     return f'anullsrc=r=48000:cl=stereo,atrim=0:{d:.3f}'
 
 
+def ass_cs(t):
+    """Saniye -> ASS'in çözünürlüğü olan santisaniye (tamsayı, tutarlı yuvarlama)."""
+    return max(0, int(round(t * 100)))
+
+
 def ass_zaman(t):
-    t = max(0.0, t)
-    h = int(t // 3600); m = int(t % 3600 // 60); s = t % 60
-    return f'{h}:{m:02d}:{s:05.2f}'
+    cs = ass_cs(t)
+    h, cs = divmod(cs, 360000); m, cs = divmod(cs, 6000); s, cs = divmod(cs, 100)
+    return f'{h}:{m:02d}:{s:02d}.{cs:02d}'
+
+
+# ---------------- Güvenli alan (Reels/TikTok/Shorts arayüzü yazıların üstünü kapatmasın)
+GUVENLI_DIKEY = (0.12, 0.25)   # üstten %12, alttan %25 boş
+GUVENLI_YATAY = (0.06, 0.10)
+
+
+def guvenli_alan(W, H):
+    """İçeriğin kalması gereken dikey aralık: (ust_y, alt_y) piksel."""
+    u, a = GUVENLI_DIKEY if H > W else GUVENLI_YATAY
+    return int(H * u), int(H * (1 - a))
+
+
+def guvenli_y(y_merkez, yukseklik, W, H):
+    """Ortası y_merkez olan, yüksekliği verilen bloğu güvenli alana it."""
+    u, a = guvenli_alan(W, H)
+    y = max(y_merkez, u + yukseklik / 2)
+    return int(min(y, a - yukseklik / 2))
+
+
+# ---------------- Ses seviyesi (export varsayılanı: -14 LUFS, true peak ≤ -1 dBTP)
+def ses_olc(path):
+    """(integrated LUFS, true peak dBTP) — ebur128 ile, kodlanmış dosyanın kendisinden."""
+    import re
+    r = subprocess.run(['ffmpeg', '-hide_banner', '-nostdin', '-i', path, '-map', '0:a:0', '-af', 'ebur128=peak=true',
+                       '-f', 'null', '-'], capture_output=True, text=True)
+    ozet = r.stderr[r.stderr.rfind('Summary:'):]
+    i = re.search(r'I:\s+(-?[\d.]+|-inf) LUFS', ozet)
+    p = re.search(r'True peak:\s+Peak:\s+(-?[\d.]+|-inf) dBFS', ozet)
+    f = lambda m: float(m.group(1)) if m and m.group(1) != '-inf' else -99.0  # noqa: E731
+    return f(i), f(p)
+
+
+def loudnorm_filtre(path, I=-14.0, TP=-1.0):
+    """İki geçişli loudnorm (ölç → doğrusal uygula) + tepe limiter. AAC taşmasına karşı 0.5 dB pay bırakır."""
+    import re
+    r = subprocess.run(['ffmpeg', '-hide_banner', '-nostdin', '-i', path, '-map', '0:a:0', '-af',
+                        f'loudnorm=I={I}:TP={TP - 0.5}:LRA=11:print_format=json', '-f', 'null', '-'],
+                       capture_output=True, text=True)
+    m = re.search(r'\{[^{}]*"input_i"[^{}]*\}', r.stderr)
+    lim = f'alimiter=limit={10 ** ((TP - 1.5) / 20):.4f}:attack=2:release=60:level=disabled:asc=1'
+    if not m:
+        return f'loudnorm=I={I}:TP={TP - 0.5}:LRA=11,aresample=48000,{lim}'
+    j = json.loads(m.group(0))
+    if j['input_i'] in ('-inf', 'inf'):  # sessiz kaynak
+        return f'aresample=48000,{lim}'
+    return (f"loudnorm=I={I}:TP={TP - 0.5}:LRA=11:measured_I={j['input_i']}:measured_TP={j['input_tp']}:"
+            f"measured_LRA={j['input_lra']}:measured_thresh={j['input_thresh']}:offset={j['target_offset']}:"
+            f"linear=true,aresample=48000,{lim}")
+
+
+def ses_normalize(path, I=-14.0, TP=-1.0):
+    """Kodlanmış dosyanın sesini iki geçişli loudnorm + limiter ile hedefe getir, sonra doğrula (video kopyalanır)."""
+    tmp = path + '.norm_tmp.mp4'
+    ffmpeg(['-i', path, '-map', '0:v?', '-map', '0:a', '-c:v', 'copy', '-af', loudnorm_filtre(path, I, TP),
+            '-c:a', 'aac', '-b:a', '320k', '-ar', '48000', '-movflags', '+faststart', tmp])
+    os.replace(tmp, path)
+    return ses_sinirla(path, I, TP)
+
+
+def ses_sinirla(path, I=-14.0, TP=-1.0, deneme=3):
+    """Kodlanmış çıktıyı ölç ve garanti et: ortalama ≤ I LUFS, true peak ≤ TP dBTP (video kopyalanır).
+    Aşım varsa kısar; limiter ortalamayı hedefin >0.5 dB altına çektiyse güvenli tavanla yükseltmeyi dener."""
+    def kazanc(db, hedef, tavan=TP - 0.8):
+        ffmpeg(['-i', path, '-map', '0:v?', '-map', '0:a', '-c:v', 'copy', '-af',
+                f'volume={db:.2f}dB,alimiter=limit={10 ** (tavan / 20):.4f}:level=disabled:asc=1',
+                '-c:a', 'aac', '-b:a', '320k', '-ar', '48000', '-movflags', '+faststart', hedef])
+    i, tp = ses_olc(path)
+    for _ in range(deneme):  # sınır aşımı: yalnız kıs
+        fazla = max(i - I, tp - TP)
+        if fazla <= 0:
+            break
+        tmp = path + '.ses_tmp.mp4'
+        kazanc(-(fazla + 0.1), tmp)
+        os.replace(tmp, path)
+        i, tp = ses_olc(path)
+    # limiter yoğun yerleri bastırıp ortalamayı hedefin çok altına çektiyse: limiter arkasından biraz yükselt
+    if I < 0 and i < I - 0.5:
+        eksik, en_iyi = I - 0.1 - i, None
+        for k, carpan in enumerate((1.0, 1.4, 1.8)):  # limiter kazancın bir kısmını yer: birkaç aday dene
+            tmp = f'{path}.ses_tmp{k}.mp4'
+            kazanc(eksik * carpan, tmp, TP - 1.4)
+            i2, tp2 = ses_olc(tmp)
+            if i2 <= I and tp2 <= TP and (en_iyi is None or i2 > en_iyi[1]):
+                en_iyi = (tmp, i2, tp2)
+        if en_iyi:
+            os.replace(en_iyi[0], path); i, tp = en_iyi[1], en_iyi[2]
+        for k in range(3):
+            if os.path.exists(f'{path}.ses_tmp{k}.mp4'):
+                os.remove(f'{path}.ses_tmp{k}.mp4')
+    return i, tp
 
 
 def ass_renk(hexrenk, alfa=0):

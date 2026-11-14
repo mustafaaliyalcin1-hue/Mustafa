@@ -5,7 +5,8 @@
   altyazi.py video.mp4 --model small            # tiny|base|small|medium|large-v3 ya da yerel klasör yolu
   altyazi.py video.mp4 --metin "Merhaba arkadaşlar bugün çok güzel bir şey yapacağız" --bas 0.5 --son 5
   altyazi.py video.mp4 --srt konusma.srt        # hazır SRT'den kelime kelime vurgulu altyazı
-  Seçenekler: --kelime 3 (ekranda en fazla kelime) --buyuk (BÜYÜK HARF) --vurgu "#FFD400" --konum 0.70
+  Seçenekler: --kelime 3 (ekranda en fazla kelime) --buyuk (BÜYÜK HARF) --vurgu "#FFD400" --konum 0.65
+Yerleşim: Reels güvenli alanı (alttan %25, üstten %12 boş) varsayılan; satırlar asla üst üste binmez.
 Model indirilemezse "model yok" uyarısı verir ve çıkış kodu 3 ile biter (diğer araçlar etkilenmez).
 Modeli elle koymak için: assets/models/faster-whisper-<boyut>/ (model.bin, config.json, tokenizer.json, vocabulary.*)
 """
@@ -15,8 +16,8 @@ import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from _ortak import (AENC, ASSETS, FONTS, TEMP, ass_kac, ass_renk, ass_zaman, bilgi, bitti, cikti_yolu,  # noqa: E402
-                    enc, ffmpeg, filtre_yolu, font_adi, hazirla, ortak_argumanlar, probe, olay_aktar)
+from _ortak import (AENC, ASSETS, FONTS, TEMP, ass_cs, ass_kac, ass_renk, ass_zaman, bilgi, bitti, cikti_yolu,  # noqa: E402
+                    enc, ffmpeg, filtre_yolu, font_adi, font_yolu, guvenli_alan, guvenli_y, hazirla, ortak_argumanlar, probe, olay_aktar)
 
 MODELLER = os.path.join(ASSETS, 'models')
 
@@ -103,7 +104,8 @@ def main():
     ap.add_argument('--bas', type=float, default=0.0); ap.add_argument('--son', type=float)
     ap.add_argument('--kelime', type=int, default=3); ap.add_argument('--buyuk', action='store_true')
     ap.add_argument('--vurgu', default='#FFD400'); ap.add_argument('--renk', default='#FFFFFF')
-    ap.add_argument('--font', default='montserrat'); ap.add_argument('--konum', type=float, default=0.70)
+    ap.add_argument('--font', default='montserrat'); ap.add_argument('--konum', type=float,
+                    help='blok ortasının yüksekliğe oranı; varsayılan: güvenli alanın alt sınırına oturur')
     ap.add_argument('--boyut', type=float, default=0.055)
     args = ap.parse_args()
     g = hazirla(args.girdi, args)
@@ -129,29 +131,63 @@ def main():
     fs = int((H if H > W else min(W, H) * 1.3) * args.boyut)
     fa = font_adi(args.font)
     vc, rc = ass_renk(args.vurgu), ass_renk(args.renk)
-    x, y = W // 2, int(H * args.konum)
-    satir = []
-    for gr in gruplar:
+    # satır kırılımlarını önceden sabitle (vurgulanan kelime büyüyünce satır zıplamasın)
+    from PIL import ImageFont
+    pf = ImageFont.truetype(font_yolu(args.font), fs)
+    max_w = W * 0.86
+    bosluk = pf.getlength(' ')
+
+    def satirlara_bol(kelimeler):
+        satirlar, cur, gen = [], [], 0.0
+        for j, k in enumerate(kelimeler):
+            w_ = pf.getlength(k) * 1.12  # vurgu ölçeği payı
+            if cur and gen + bosluk + w_ > max_w:
+                satirlar.append(cur); cur, gen = [], 0.0
+            gen += (bosluk if cur else 0) + w_
+            cur.append(j)
+        return satirlar + [cur] if cur else satirlar
+    ust_s, alt_s = guvenli_alan(W, H)
+    pay = max(3, fs // 12) + max(2, fs // 18)  # kenar + gölge
+    x = W // 2
+    olaylar = []  # (bas_cs, son_cs, metin)
+    for gi, gr in enumerate(gruplar):
+        bolum = satirlara_bol([w for _, _, w in gr])
+        h = len(bolum) * fs * 1.2
+        if args.konum is None:
+            alt_y = alt_s - pay
+        else:  # verilen merkez, güvenli alana kırpılır
+            alt_y = guvenli_y(H * args.konum, h + 2 * pay, W, H) + h / 2
+        sonraki_grup = gruplar[gi + 1][0][0] if gi + 1 < len(gruplar) else None
         for i, (a, b, w) in enumerate(gr):
             son = gr[i + 1][0] if i + 1 < len(gr) else b + 0.15
-            parca = []
-            for j, (_, _, w2) in enumerate(gr):
-                if j == i:
-                    parca.append('{\\1c' + vc + '\\fscx112\\fscy112\\t(0,90,\\fscx106\\fscy106)}' + ass_kac(w2) +
-                                 '{\\1c' + rc + '\\fscx100\\fscy100}')
-                else:
-                    parca.append(ass_kac(w2))
+            if sonraki_grup is not None:
+                son = min(son, sonraki_grup)
+            satir_metin = []
+            for satir_idx in bolum:
+                parca = []
+                for j in satir_idx:
+                    w2 = gr[j][2]
+                    if j == i:
+                        parca.append('{\\1c' + vc + '\\fscx112\\fscy112\\t(0,90,\\fscx106\\fscy106)}' + ass_kac(w2) +
+                                     '{\\1c' + rc + '\\fscx100\\fscy100}')
+                    else:
+                        parca.append(ass_kac(w2))
+                satir_metin.append(' '.join(parca))
             ilk = '\\fad(80,0)' if i == 0 else ''
-            satir.append(f'Dialogue: 0,{ass_zaman(a)},{ass_zaman(son)},Alt,,0,0,0,,{{\\an5\\pos({x},{y}){ilk}}}'
-                         + ' '.join(parca))
+            olaylar.append([ass_cs(a), ass_cs(son), f'{{\\an2\\pos({x},{int(alt_y)}){ilk}}}' + '\\N'.join(satir_metin)])
+    # zaman çakışması yok: her olay en geç bir sonrakinin başladığı santisaniyede biter
+    olaylar.sort(key=lambda e: e[0])
+    for k in range(len(olaylar) - 1):
+        olaylar[k][1] = min(olaylar[k][1], olaylar[k + 1][0])
+    satir = [f'Dialogue: 0,{ass_zaman(a / 100)},{ass_zaman(b / 100)},Alt,,0,0,0,,{t}' for a, b, t in olaylar if b > a]
     ass = os.path.join(TEMP, f'altyazi_{os.getpid()}.ass')
     with open(ass, 'w', encoding='utf-8') as f:
-        f.write(f'[Script Info]\nScriptType: v4.00+\nPlayResX: {W}\nPlayResY: {H}\nWrapStyle: 0\nScaledBorderAndShadow: yes\n\n'
+        f.write(f'[Script Info]\nScriptType: v4.00+\nPlayResX: {W}\nPlayResY: {H}\nWrapStyle: 2\nScaledBorderAndShadow: yes\n\n'
                 '[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, '
                 'Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, '
                 'MarginL, MarginR, MarginV, Encoding\n'
                 f'Style: Alt,{fa},{fs},{rc},{rc},&H00000000,&H80000000,0,0,0,0,100,100,1,0,1,{max(3, fs // 12)},'
-                f'{max(2, fs // 18)},5,{int(W * 0.06)},{int(W * 0.06)},20,1\n\n'
+                f'{max(2, fs // 18)},2,{int(W * 0.06)},{int(W * 0.06)},20,1\n\n'
                 '[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n'
                 + '\n'.join(satir) + '\n')
     out = cikti_yolu(args.girdi, 'altyazi', o=args.cikti, onizleme=args.onizleme)
