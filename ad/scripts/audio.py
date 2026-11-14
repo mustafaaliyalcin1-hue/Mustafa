@@ -33,72 +33,108 @@ def mtof(m): return 440 * 2 ** ((m - 69) / 12)
 def saw(fr, d, det=0.0):
     t = tt(d); ph = (fr * (1 + det)) * t + rng.random(); return 2 * (ph % 1) - 1
 
-# ---------------- MÜZİK ----------------
-# D majör: D A Bm G (I V vi IV), her akor 2 ölçü değil 1 ölçü (4 vuruş)
+# ---------------- MÜZİK: minimalist, sözsüz, 8D (başın etrafında dönen) ----------------
+# D majör, 154 BPM ızgarası (kesmelere oturur) ama yarı tempo hissi: seyrek keçe piyano, sıcak ped, yumuşak ritim.
 CH = [[50, 57, 62, 66, 69], [45, 57, 61, 64, 69], [47, 59, 62, 66, 71], [43, 55, 59, 62, 67]]
 ROOT = [38, 33, 35, 31]
-def pad(notes, d, cut=2500, g=0.06):
+def pad(notes, d, cut=1800, g=0.05):
     x = np.zeros(int(d * SR))
     for m in notes:
-        for det in (-0.006, 0, 0.007):
+        for det in (-0.004, 0.0, 0.005):
             x += saw(mtof(m), d, det)
-    x = lp(x, cut, 2) * env(len(x), 0.25, 0.3, 0.8, 0.6, int((d - 1.2) * SR)) * g / len(notes)
-    return x
+    return lp(x, cut, 2) * env(len(x), 0.8, 0.5, 0.75, 1.2, int(max(0, d - 2.5) * SR)) * g / len(notes)
+def piano(m, d=2.6, g=0.12):
+    """keçe piyano: yumuşak vuruş, harmonikler hızlı söner"""
+    t = tt(d); f = mtof(m)
+    x = (np.sin(2 * np.pi * f * t) * np.exp(-t * 1.6) + 0.35 * np.sin(2 * np.pi * 2 * f * t) * np.exp(-t * 3.5)
+         + 0.12 * np.sin(2 * np.pi * 3.01 * f * t) * np.exp(-t * 6) + 0.05 * np.sin(2 * np.pi * 4.02 * f * t) * np.exp(-t * 9))
+    x *= np.minimum(1, t / 0.008)                           # yumuşak çekiç
+    x += lp(noise(d), 1200) * np.exp(-t * 60) * 0.02        # keçe sesi
+    return lp(x, 3800) * g
 def pluck(m, d=0.22, g=0.10):
     t = tt(d); x = (np.sin(2 * np.pi * mtof(m) * t) + 0.3 * saw(mtof(m), d)) * np.exp(-t * 18)
     return lp(x, 5000) * g
 def kick(g=0.9):
-    t = tt(0.35); f = 45 + 110 * np.exp(-t * 28); x = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t * 9)
-    return x * g
-def hat(g=0.05, d=0.05): return hp(noise(d), 7000) * env(int(d * SR), 0.001, d * 0.9) * g
+    t = tt(0.35); f = 45 + 90 * np.exp(-t * 30); x = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t * 10)
+    return lp(x, 900) * g
+def hat(g=0.05, d=0.05): return hp(noise(d), 8000) * env(int(d * SR), 0.001, d * 0.9) * g
 def clap(g=0.22):
     x = np.zeros(int(0.25 * SR))
     for k in range(3): x[int(k * 0.011 * SR):] += bp(noise(0.25), 900, 2500)[:len(x) - int(k * 0.011 * SR)] * np.exp(-tt(0.25 - k * 0.011) * 30)[:len(x) - int(k * 0.011 * SR)]
     return x * g
+def rim(g=0.06): t = tt(0.06); return (bp(noise(0.06), 1800, 4200) * np.exp(-t * 90) + np.sin(2 * np.pi * 1700 * t) * np.exp(-t * 120) * 0.4) * g
 def sub(m, d, g=0.22):
-    t = tt(d); return np.sin(2 * np.pi * mtof(m) * t) * env(len(t), 0.01, 0.05, 0.9, 0.08, int((d - 0.15) * SR)) * g
+    t = tt(d); return np.sin(2 * np.pi * mtof(m) * t) * env(len(t), 0.02, 0.1, 0.85, 0.2, int(max(0, d - 0.35) * SR)) * g
 
-# giriş (0 – drop): hava, ince ped + riser
-add(mus, 0.0, pad([62, 66, 69, 74], DROP + 0.2, cut=1600, g=0.05))
-r = noise(DROP); rt = np.linspace(0, 1, len(r))
-riser = np.zeros_like(r)
-for i, (a, b) in enumerate(zip(np.linspace(300, 6000, 40)[:-1], np.linspace(300, 6000, 40)[1:])):
-    s0, s1 = int(i / 39 * len(r)), int((i + 1) / 39 * len(r)); riser[s0:s1] = bp(r, a, a * 1.8)[s0:s1]
-add(mus, 0.0, riser * rt ** 2 * 0.10)
-up = np.sin(2 * np.pi * np.cumsum(np.linspace(200, 900, int(DROP * SR))) / SR) * np.linspace(0, 1, int(DROP * SR)) ** 3 * 0.04
-add(mus, 0.0, up)
-# drop sonrası: ölçü ölçü
-END_MUS = T(850)                  # son akor kilitlenmesi
-nbar = 0; t0 = DROP
+END_MUS = T(850)                                    # son akor (künye)
 FILTER_DOWN = (T(830), T(836))
+BAR = 4 * B
+# giriş: hava, ince ped + piyano motifi + yumuşak kabarma (drop = SNAP)
+add(mus, 0.0, pad([62, 66, 69, 74], DROP + 0.5, cut=1300, g=0.045))
+for k, m in enumerate([74, 69, 66, 69, 74, 76]):
+    tk = k * (DROP / 6)
+    add(mus, tk, piano(m, 2.4, 0.07 + 0.01 * k))
+sw = noise(DROP); swt = np.linspace(0, 1, len(sw)); add(mus, 0.0, lp(sw, 2500) * swt ** 3 * 0.035)
+# drop sonrası
+t0 = DROP; nbar = 0
+# piyano motifi: her ölçüde akor tonlarından seyrek 4 nota (yarı tempo: vuruş 1, 2&, 3, 4&)
+MOTIF = [(0, 4), (1.5, 3), (2, 2), (3.5, 3)]
 while t0 < END_MUS - 0.01:
-    c = nbar % 4; bar = 4 * B
-    cut = 3200
-    lift = 1.0 + (0.35 if (T(234) <= t0 < T(300) or T(472) <= t0 < T(591) + 1 / 30 or T(682) <= t0 < T(801) + 1 / 30) else 0)
-    add(mus, t0, pad(CH[c], bar + 0.1, cut=cut * lift, g=0.07))
+    c = nbar % 4
+    fd = FILTER_DOWN[0] - 0.2 <= t0 < FILTER_DOWN[1] + 0.3
+    lift = (T(234) <= t0 < T(300)) or (T(472) <= t0 < T(591) + 1 / 30) or (T(682) <= t0 < T(801) + 1 / 30)
+    add(mus, t0, pad(CH[c], BAR + 0.6, cut=2600 if lift else 1900, g=0.06))
+    for off, idx in MOTIF:
+        tb = t0 + off * B
+        if tb >= END_MUS: break
+        add(mus, tb, piano(CH[c][idx] + 12, 2.0, 0.10 if not fd else 0.05))
+    if lift:                                         # yükselişte üst oktav ışıltı
+        for j in range(8):
+            tb = t0 + j * B / 2
+            if tb < END_MUS: add(mus, tb, pluck(CH[c][1 + j % 4] + 24, 0.18, 0.025), pan=0.0)
     for k in range(4):
         tb = t0 + k * B
         if tb >= END_MUS: break
-        fd = FILTER_DOWN[0] <= tb < FILTER_DOWN[1] + 0.3
-        if not fd: add(mus, tb, kick(0.85))
-        add(mus, tb, sub(ROOT[c], B * 0.9, 0.20 if not fd else 0.08))
-        add(mus, tb + B / 2, hat(0.05 if not fd else 0.02))
-        if k in (1, 3) and not fd: add(mus, tb, clap(0.16))
-        for j in range(4):          # 16'lık arpej
-            m = CH[c][1 + (j + k) % 4] + 12
-            add(mus, tb + j * B / 4, pluck(m, g=0.06 if not fd else 0.03), pan=0.35 * (1 if j % 2 else -1))
-    t0 += bar; nbar += 1
-# Fold8 girişinde (7.80) yükselme: kısa riser + crash
-rr = noise(0.7); add(mus, T(234) - 0.7, hp(rr, 2000) * np.linspace(0, 1, len(rr)) ** 2 * 0.06)
-crash = hp(noise(2.0), 4000) * np.exp(-tt(2.0) * 2.2) * 0.07; add(mus, T(234), crash)
-# lavanta/geri çekilme yükselişi (S6 açılış)
-add(mus, T(263), hp(noise(1.2), 3000) * np.exp(-tt(1.2) * 3) * 0.05)
-# son akor: kilitlenmede, son karta çınlar
-fin = np.zeros(int(3.0 * SR))
-for m in [50, 57, 62, 66, 69, 74, 78]:
-    fin += (np.sin(2 * np.pi * mtof(m) * tt(3.0)) + 0.25 * saw(mtof(m), 3.0, 0.003))
-fin = lp(fin, 4000) * env(len(fin), 0.01, 0.4, 0.5, 2.4, int(0.2 * SR)) * 0.05
-add(mus, END_MUS, fin); add(mus, END_MUS, kick(0.9)); add(mus, END_MUS, crash * 0.8)
+        if not fd:
+            if k in (0, 2): add(mus, tb, kick(0.55))             # yarı tempo hissi
+            if k in (1, 3): add(mus, tb, rim(0.05))
+            add(mus, tb + B / 2, hat(0.025))
+        add(mus, tb, sub(ROOT[c], B * 0.95, 0.16 if not fd else 0.06))
+    t0 += BAR; nbar += 1
+# Fold8 bölümüne geçişte yumuşak kabarma
+rr = noise(0.9); add(mus, T(234) - 0.9, lp(rr, 3000) * np.linspace(0, 1, len(rr)) ** 2 * 0.03)
+crash = hp(noise(2.5), 5000) * np.exp(-tt(2.5) * 2.0) * 0.035; add(mus, T(234), crash)
+# son akor: piyano + ped, son karta kadar çınlar
+for m in [50, 57, 62, 66, 69, 74]: add(mus, END_MUS, piano(m, 3.4, 0.09))
+add(mus, END_MUS, pad([50, 57, 62, 66, 69, 74, 78], 3.4, cut=2200, g=0.06)); add(mus, END_MUS, kick(0.6))
+
+# ---- 8D: müziği başın etrafında döndür (seviye farkı + zaman farkı + arkada boğukluk) + yankı ----
+def eight_d(x, period=10.0):
+    n = len(x); t = np.arange(n) / SR
+    th = 2 * np.pi * t / period                        # 0: önde, π/2: sağ, π: arkada, 3π/2: sol
+    th = th + 0.6 * np.sin(2 * np.pi * t / (period * 2.7))   # dönüş hızı hafifçe değişir
+    m = x.mean(1)
+    s = np.sin(th); c = np.cos(th)
+    gl = np.sqrt(0.5 * (1 - 0.92 * s)); gr = np.sqrt(0.5 * (1 + 0.92 * s))
+    # arkadayken (c<0) tiz kıs: önden/arkadan karışım
+    back = np.clip(-c, 0, 1) ** 1.2
+    mlp = lp(m, 2200, 2)
+    src = m * (1 - 0.55 * back) + mlp * 0.55 * back
+    # zaman farkı (ITD): uzak kulak 0..0.6 ms gecikir (zamanla değişen gecikme)
+    itd = 0.00062 * s
+    idx = np.arange(n)
+    dl = np.clip(itd, 0, None) * SR; dr = np.clip(-itd, 0, None) * SR
+    L = np.interp(idx - dl, idx, src) * gl; R = np.interp(idx - dr, idx, src) * gr
+    out = np.stack([L, R], 1)
+    # stereo genişlik: orijinal stereo içeriğin bir kısmını koru
+    return out * 0.85 + x * 0.15
+def reverb(x, d=2.2, mix=0.22):
+    n = int(d * SR); ir = noise(d) * np.exp(-np.arange(n) / SR * 3.2); ir = lp(ir, 6000)
+    irs = [ir, np.roll(ir, 317)]
+    out = np.stack([signal.fftconvolve(x[:, i], irs[i])[:len(x)] for i in range(2)], 1)
+    out *= np.max(np.abs(x)) / (np.max(np.abs(out)) + 1e-9)
+    return x * (1 - mix) + out * mix
+mus = reverb(eight_d(mus), 2.2, 0.20)
 
 # ---------------- SES EFEKTLERİ ----------------
 def click(g=0.5, fc=3500, d=0.02):
@@ -200,7 +236,7 @@ print('ses ipucu sayısı:', len(cues))
 # ---------------- MİKS ----------------
 L = int(DUR * SR); mus = mus[:L]; sfx = sfx[:L]
 meter = pyln.Meter(SR)
-mus *= 10 ** ((-20 - meter.integrated_loudness(mus)) / 20)      # müzik efektlerin altında
+mus *= 10 ** ((-19 - meter.integrated_loudness(mus)) / 20)      # müzik efektlerin altında
 sfx *= 10 ** ((-16.5 - meter.integrated_loudness(sfx)) / 20)
 mix = mus + sfx
 # son 0.3 sn sönüm
