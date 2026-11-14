@@ -63,14 +63,14 @@ def state_core(f):
     U = dict(pos=FAR, rot=(0, 0, 0), a=0); F = dict(pos=FAR, rot=(0, 0, 0), a=0)
     C = dict(t=(0, 0, 0), d=0.8, az=0, el=0, roll=0, lens=70, fs=0)
     mixU = [1.0, 0.0]; mixF = [0.0]
-    if f < 37: mixU[0] = 0.0                        # "Geç kalmışlık." yazısı, kapanınca duvar kâğıdı
+    if f < 45: mixU[0] = 0.0                        # "Onun geç kalmışlık." yazısı; telefon kapalıyken duvar kâğıdına geçer
     if s == 'S0':
         U.update(pos=(0, 0, 0), rot=(0, 0, seg(f, 0, 35, 0, -12, sm)), a=180)
         d0, d1 = (0.20, 0.80) if not V else (0.16, 0.62)
         C.update(t=(0, 0, 0), d=lerp(d0, d1, path(f, [(0, 0), (8, 0.04, sm), (33, 1, ocub)])), az=seg(f, 0, 35, 0, -6), el=seg(f, 0, 35, 0, 4))
     elif s == 'S1':
-        a = path(f, [(35, 180), (40, 0, io), (42, 0), (48, 90, io), (51, 90), (57, 180, lambda t: t * t)])
-        kick = 0.035 * math.exp(-(f - 57) / 3) * (1 if f >= 57 else 0)
+        a = path(f, [(35, 180), (44, 0, io), (46, 0), (60, 180, io)])     # yumuşak kapanış, durmadan tek hareketle 180°
+        kick = 0.012 * math.exp(-(f - 60) / 4) * (1 if f >= 60 else 0)
         U.update(pos=(0, 0, 0), rot=(seg(f, 35, 82, 0, -4), 0, seg(f, 35, 82, -12, 16, sm)), a=a)
         d = seg(f, 35, 82, 0.80, 0.68, sm) if not V else seg(f, 35, 82, 0.62, 0.55, sm)
         C.update(t=(0, 0, 0), d=d - kick, az=seg(f, 35, 82, -6, 8, sm), el=seg(f, 35, 82, 4, 2))
@@ -162,7 +162,7 @@ def state(f):
             st['shot'] = 'U360'
             spin = path(f, [(352, -35), (440, 325, lambda t: t)])
             op = io((f - 440) / 26)
-            U.update(pos=(0, 0, 0), rot=(lerp(-5, 0, op), 0, lerp(spin, 340, op) if f >= 440 else spin), a=lerp(0, 105, op))
+            U.update(pos=(0, 0, 0), rot=(lerp(-5, 0, op), 0, lerp(spin, 340, op) if f >= 440 else spin), a=lerp(0, 180, op))
             C.update(t=(0, 0, -0.005), d=lerp(0.72 if not V else 0.56, 0.80 if not V else 0.62, op), az=seg(f, 352, 472, -8, 8, sm),
                      el=seg(f, 352, 440, -6, 6, sm), lens=75)
         elif f < 592:                                   # Ultra renkleri

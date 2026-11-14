@@ -10,7 +10,7 @@ import timeline as TL
 from timeline import delivered_of_old
 DUR = TL.NG / 30 + 1.5; N = int(SR * DUR) + SR
 def T(f): return delivered_of_old(f) / 30.0     # yazım karesi -> teslim zamanı (yavaşlatma + kurgu sırası)
-BPM = 154; B = 60 / BPM; DROP = T(57)          # SNAP = drop
+BPM = 154; B = 60 / BPM; DROP = T(60)          # tam açılış = drop
 def beat(n): return DROP + n * B               # n<0 => drop öncesi
 mus = np.zeros((N, 2)); sfx = np.zeros((N, 2))
 
@@ -202,15 +202,14 @@ def C(t, x, g=1.0, pan=0.0, name=''): cues.append(name); add(sfx, t, x, g, pan)
 for k in range(4): C(beat(-5 + k) if beat(-5 + k) > 0 else 0.02, tick(0.22, 2000 if k % 2 else 1600), name='tik')
 C(0.05, whoosh(1.0, 200, 2500, 0.18, rev=True), name='geri çekilme')
 # KANCA: KLİK kapanır (kilit + çatırtı + sub)
-tS = T(40); C(tS, click(0.9, 2500, 0.025), name='kilit'); C(tS + 0.004, click(0.6, 6000, 0.012), name='çatırtı'); C(tS, thump(0.55, 70, 0.3), name='sub')
+tS = T(44); C(tS, click(0.9, 2500, 0.025), name='kilit'); C(tS + 0.004, click(0.6, 6000, 0.012), name='çatırtı'); C(tS, thump(0.55, 70, 0.3), name='sub')
 C(T(35), whoosh(0.12, 800, 5000, 0.15), name='kapanma hışırtı')
 # flick 90
-C(T(48), click(0.7, 3800, 0.02), name='flick'); C(T(43), whoosh(0.13, 600, 4000, 0.12), name='flick hışırtı')
+C(T(46), whoosh(0.9, 300, 3500, 0.14), name='açılış hışırtı')
 # SNAP 180 (mıknatıs + menteşe klik + derin vuruş)
-C(T(57) - 0.03, magnet(0.4), name='mıknatıs'); C(T(57), click(1.0, 3000, 0.03), name='menteşe'); C(T(57), thump(0.9, 55, 0.5), name='derin vuruş')
-C(T(53), whoosh(0.13, 500, 6000, 0.16), name='snap hışırtı')
+C(T(60) - 0.03, magnet(0.3), name='mıknatıs'); C(T(60), click(0.7, 3000, 0.03), name='menteşe'); C(T(60), thump(0.7, 55, 0.5), name='derin vuruş')
 # açı sayacı tıkları
-for f in list(range(43, 49)) + list(range(52, 58)) + list(range(266, 287, 2)): C(T(f), tick(0.07, 3200), name='açı tık')
+for f in list(range(266, 287, 2)): C(T(f), tick(0.07, 3200), name='açı tık')
 # iletki
 C(T(43), slide(0.3, 0.06), name='iletki')
 # altyazı çırpıntıları
