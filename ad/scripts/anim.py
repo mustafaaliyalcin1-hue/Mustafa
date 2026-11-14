@@ -66,7 +66,7 @@ def state_core(f):
     if f < 45: mixU[0] = 0.0                        # "Onun geç kalmışlık." yazısı; telefon kapalıyken duvar kâğıdına geçer
     if s == 'S0':
         U.update(pos=(0, 0, 0), rot=(0, 0, seg(f, 0, 35, 0, -12, sm)), a=180)
-        d0, d1 = (0.20, 0.80) if not V else (0.16, 0.62)
+        d0, d1 = (0.20, 0.80) if not V else (0.42, 0.62)
         C.update(t=(0, 0, 0), d=lerp(d0, d1, path(f, [(0, 0), (8, 0.04, sm), (33, 1, ocub)])), az=seg(f, 0, 35, 0, -6), el=seg(f, 0, 35, 0, 4))
     elif s == 'S1':
         a = path(f, [(35, 180), (44, 0, io), (46, 0), (60, 180, io)])     # yumuşak kapanış, durmadan tek hareketle 180°
