@@ -161,10 +161,11 @@ test('Türkçe ekler, yer, gün ve saat eki', () => {
 })
 
 // ----------------------------------------------------------- 2) cevaplar (sahte veri)
+// Günler Türkiye saatine göre sayılır (UTC'ye göre sayınca Türkiye'de gece yarısından sonra "dün" kayıyordu)
 const iso = (days: number, h = 17) => {
   const d = new Date()
   d.setDate(d.getDate() + days)
-  d.setUTCHours(h, 0, 0, 0)
+  d.setHours(h + 3, 0, 0, 0) // h UTC = h+3 Türkiye saati
   return d.toISOString()
 }
 const ev = (id: string, date: string, state: string, h: [string, string], a: [string, string], detail = '') => ({
@@ -410,4 +411,14 @@ test('yol ve çeviri cevapları', async () => {
   assert.equal(x.say, '"teşekkürler" Almancada "Danke" efendim.')
   x = await ask('serendipity ne demek')
   assert.equal(x.say, '"serendipity" Türkçede "tesadüfi şans" efendim.')
+})
+
+test('milli maçlar yerelde Fenerbahçe’ye ya da La Liga’ya düşmez, yapay zekâya gider', () => {
+  for (const q of ['milli maç ne zaman', 'milli maç kaç bitti', 'Türkiye maçı kaç bitti', 'A milli takım kazandı mı', 'Türkiye İspanya maçı ne zaman', 'milliler yendi mi', 'İspanya Almanya maçı kaç bitti'])
+    assert.equal(recognize(q), null, q)
+  // Kulüp ve lig soruları yine yerelde
+  assert.equal(recognize('Fener yendi mi')?.intent.name, 'football')
+  assert.equal(recognize('İspanya ligi sonuçları')?.params.league, 'la_liga')
+  assert.equal(recognize('Süper Lig puan durumu')?.params.league, 'super_lig')
+  assert.equal(recognize('Türkiye hava durumu')?.intent.name, 'weather')
 })

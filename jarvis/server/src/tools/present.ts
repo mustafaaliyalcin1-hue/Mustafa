@@ -52,10 +52,11 @@ defineTool({
     date: z.string().optional().describe('ISO tarih, ör. 2026-11-08T13:00:00+03:00'),
     minute: z.string().optional().describe('Canlıysa dakika, ör. "67"'),
     competition: z.string().optional().describe('Lig/kupa adı'),
+    focus: z.string().optional().describe('Kullanıcının sorduğu takım (ekranda vurgulanır), ör. "Türkiye"'),
   }),
   async run(m) {
     const match = { id: 'ai', date: m.date || new Date().toISOString(), league: m.competition || '', status: m.status, detail: m.minute ? `${m.minute}'` : '', home: { name: m.home, short: '', score: m.homeScore }, away: { name: m.away, short: '', score: m.awayScore } }
-    return { result: { shown: true }, scene: { scene: 'sports', data: { focusTeam: m.home, matches: [match] }, hold: 3600 } }
+    return { result: { shown: true }, scene: { scene: 'sports', data: { focusTeam: m.focus || m.home, matches: [match] }, hold: 3600 } }
   },
 })
 

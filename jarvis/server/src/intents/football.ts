@@ -95,6 +95,21 @@ export function isLowerLeague(n: Norm) {
   return /(2\.? lig|ikinci lig|tff 2|3\.? lig|ucuncu lig|tff 3|bal ligi|amator lig)/.test(n.f) || LOWER_LEAGUE_TEAMS.some((t) => n.f.includes(t))
 }
 
+const ULKELER = ['turkiye', 'ispanya', 'almanya', 'italya', 'fransa', 'ingiltere', 'portekiz', 'hollanda', 'belcika', 'hirvatistan', 'isvicre', 'avusturya', 'galler', 'iskocya', 'polonya', 'cekya', 'macaristan', 'romanya', 'yunanistan', 'sirbistan', 'ukrayna', 'danimarka', 'isvec', 'norvec', 'gurcistan', 'arnavutluk', 'bosna', 'karadag', 'izlanda', 'brezilya', 'arjantin', 'abd', 'meksika', 'japonya', 'fas', 'azerbaycan', 'kazakistan', 'litvanya', 'letonya', 'estonya', 'bulgaristan', 'slovakya', 'slovenya', 'iran', 'misir']
+/**
+ * Milli takım maçı mı? ("milli maç", "A Milli Takım", "Türkiye maçı", "İspanya–Almanya maçı", "Dünya Kupası elemeleri")
+ * Veri kaynağında milli maçlar yok → yapay zekâ internetten bulup skor kartında gösterir.
+ * (Önceden takımsız sayılıp Fenerbahçe'nin maçı söyleniyordu.)
+ */
+export function isNationalTeam(n: Norm) {
+  const f = n.f
+  if (/(^|\s)(a )?milli(ler|miz)?( |$)|milli (mac|takim)|ay ?yildiz|ulusal takim|dunya kupasi|avrupa sampiyonasi|euro 20\d\d|uluslar ligi|elemeler?i?\b/.test(f)) return true
+  if (/(super lig|1\.? lig|turkiye kupasi|\blig)/.test(f)) return false
+  const ulkeler = ULKELER.filter((u) => n.words.some((w) => w.startsWith(u)))
+  // "Türkiye maçı" ya da iki ülke adı + maç ("İspanya Almanya maçı")
+  return ulkeler.includes('turkiye') || ulkeler.length >= 2
+}
+
 /** Lig adı: "1. Lig", "Premier Lig", "İspanya"… */
 export function findLeague(n: Norm): LeagueKey | undefined {
   const f = n.f
@@ -138,6 +153,8 @@ export const footballIntent: Intent<P> = {
   detect(n) {
     // Alt ligler: veri kaynağı yok → yapay zekâ internetten bulsun (yerelde Fenerbahçe'ye düşmesin)
     if (isLowerLeague(n)) return null
+    // Milli maçlar: veri kaynağında yok → yapay zekâ internetten bulsun (yerelde Fenerbahçe'ye ya da La Liga'ya düşmesin)
+    if (isNationalTeam(n) && (isMatchWord(n) || askOf(n) || hasStem(n, 'futbol', 'kadro', 'milli'))) return null
     const team = findTeam(n)
     const league = findLeague(n)
     // Takımsız lig soruları: "1. Lig puan durumu", "Süper Lig'de bugün hangi maçlar var", "Premier Lig sonuçları"
@@ -154,6 +171,7 @@ export const footballIntent: Intent<P> = {
   },
   followUp(n, prev) {
     // "ya Galatasaray?", "peki sıradaki maç?"
+    if (isNationalTeam(n)) return null
     const team = findTeam(n)
     const ask = askOf(n)
     if (!team && !ask) return null

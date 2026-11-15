@@ -75,7 +75,7 @@ ${araclar.join('\n')}
 Kurallar:
 - Haber doğrulama ("bu doğru mu", "gerçek mi", link): önce WebSearch ile birden çok güvenilir kaynağa ve doğrulama sitelerine bak (link varsa WebFetch ile oku), sonra present_fact_check kartını doldur.
 - Araştırma ("araştır", karşılaştır): WebSearch ile birden çok kaynağa bak, present_research kartını doldur; kaynakların gerçek adres (url) olsun.
-- Yemek tarifi: present_recipe. Film/dizi/müzik/kitap önerisi: present_media. Bir maç sonucunu internetten bulduysan: present_match.
+- Milli maç / Türkiye A Milli Takımı / iki ülke arasındaki maç: WebSearch ile en son oynanan ya da sıradaki maçı bul (tarihleri bugüne göre kontrol et, eski bir maçı yeniymiş gibi söyleme), present_match kartıyla göster.\n- Yemek tarifi: present_recipe. Film/dizi/müzik/kitap önerisi: present_media. Bir maç sonucunu internetten bulduysan: present_match.
 - Güncel bilgi gerekiyorsa (skor, haber, fiyat) WebSearch kullan; bulamadıysan uydurma, söyle.
 - Kart yoksa "sahne": null. "konusma" her zaman dolu olsun (1-3 cümle, markdown yok).`
   return sahneTalimati
