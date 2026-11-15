@@ -85,6 +85,36 @@ test('köprü cevap vermezse zaman aşımında API’ye düşer; hata dönerse d
   await bekle(50)
 })
 
+test('kartlı JSON cevap: sahne doğrulanır; geçersiz kart atılır; düz metin de kabul', async () => {
+  const tarif = { name: 'Menemen', ingredients: [{ item: 'Yumurta', amount: '3' }], steps: ['Pişir'] }
+  const b = sahteKopru('dogru-sifre', (istem) =>
+    /tarif/.test(istem.split('Kullanıcının yeni mesajı:')[1])
+      ? '```json\n' + JSON.stringify({ konusma: 'Tarif ekranda efendim.', sahne: { arac: 'present_recipe', veri: tarif } }) + '\n```'
+      : JSON.stringify({ konusma: 'Kart bozuk efendim.', sahne: { arac: 'present_recipe', veri: { name: 'eksik' } } }),
+  )
+  await b.acik
+  await bekle(50)
+  const c = await k.sor('menemen tarifi')
+  assert.equal(c.cevap, 'Tarif ekranda efendim.')
+  assert.equal(c.sahne?.scene, 'recipe')
+  assert.deepEqual((c.sahne?.data as { name: string }).name, 'Menemen')
+  // Köprüye giden istemde kart talimatı ve şemalar var
+  assert.match(b.gelen[0], /CEVAP BİÇİMİ/)
+  assert.match(b.gelen[0], /present_fact_check: [\s\S]*?veri şeması: \{/)
+  const bozuk = await k.sor('başka bir şey')
+  assert.equal(bozuk.cevap, 'Kart bozuk efendim.')
+  assert.equal(bozuk.sahne, undefined)
+  // Hafızaya yalnızca konuşma metni girer
+  assert.equal(k.hafizayiGetir().at(-3)!.metin, 'Tarif ekranda efendim.')
+  b.ws.close()
+  await bekle(50)
+})
+
+test('cevabiCoz: JSON öncesi/sonrası metin ve düz metin', () => {
+  assert.deepEqual(k.cevabiCoz('Tamam: {"konusma":"Merhaba","sahne":null} bitti'), { konusma: 'Merhaba', sahne: undefined })
+  assert.deepEqual(k.cevabiCoz('Sadece düz metin {değil}'), { konusma: 'Sadece düz metin {değil}' })
+})
+
 test('hafıza en fazla 20 mesaj tutar', async () => {
   for (let i = 0; i < 15; i++) await k.sor(`soru ${i}`)
   assert.equal(k.hafizayiGetir().length, 20)

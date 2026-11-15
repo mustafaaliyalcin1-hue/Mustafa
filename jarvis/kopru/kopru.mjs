@@ -3,8 +3,9 @@
  * J.A.R.V.I.S. BİLGİSAYAR KÖPRÜSÜ
  * ---------------------------------------------------------------
  * Bulut Jarvis'in /kopru ucuna bağlanır; gelen her istemi bu bilgisayardaki Claude Code'a sorar:
- *   claude -p --output-format json --tools "" --no-session-persistence --strict-mcp-config
- * ve cevabı aynı id ile geri yollar. Bağlantı koparsa 10 saniyede bir yeniden dener.
+ *   claude -p --output-format json --tools "WebSearch,WebFetch" --allowedTools "WebSearch,WebFetch" --no-session-persistence --strict-mcp-config
+ * ve cevabı aynı id ile geri yollar. Claude Code'a YALNIZCA web arama/okuma izni verilir (haber doğrulama,
+ * araştırma için); dosya, komut çalıştırma gibi araçlar kapalıdır. Bağlantı koparsa 10 saniyede bir yeniden dener.
  *
  * Ayarlar (öncelik sırasıyla):
  *   1) Ortam değişkenleri: JARVIS_SUNUCU (ör. https://jarvis-server-xxxx.onrender.com), KOPRU_SIFRESI
@@ -19,12 +20,12 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import WebSocket from 'ws'
 
-const SURUM = '1.0.0'
+const SURUM = '1.1.0'
 const YENIDEN_DENE_MS = 10_000
 const CLAUDE_ZAMAN_ASIMI_MS = 115_000 // sunucu 120 sn bekliyor; biz biraz önce bırakırız
 const AYNI_ANDA = 2 // aynı anda en fazla bu kadar claude süreci
 
-export const CLAUDE_KOMUTU = process.env.KOPRU_CLAUDE_KOMUT || 'claude -p --output-format json --tools "" --no-session-persistence --strict-mcp-config'
+export const CLAUDE_KOMUTU = process.env.KOPRU_CLAUDE_KOMUT || 'claude -p --output-format json --tools "WebSearch,WebFetch" --allowedTools "WebSearch,WebFetch" --no-session-persistence --strict-mcp-config'
 
 export const ayarKlasoru = process.env.APPDATA ? path.join(process.env.APPDATA, 'JarvisKopru') : path.join(os.homedir(), '.jarvis-kopru')
 const logDosyasi = path.join(ayarKlasoru, 'kopru.log')

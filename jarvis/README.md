@@ -209,7 +209,7 @@ içeren bir dosya yazıp `intents/index.ts`'deki `INTENTS` listesine ekleyin.
 
 ```
  Telefon / TV ──HTTPS──▶  BULUT JARVIS (Render, hep açık)  ◀──WebSocket /kopru──  BİLGİSAYAR KÖPRÜSÜ (Windows)
-                          sor(istem):                                              claude -p --output-format json …
+                          sor(istem):                                              claude -p --output-format json --tools "WebSearch,WebFetch" …
                             köprü bağlı? → bilgisayara sor (≤120 sn)               (kendi Claude hesabınız)
                             değilse / zaman aşımı / hata → Claude API
                           son 20 mesajlık ortak hafıza (iki yolda da aynı)
@@ -220,7 +220,10 @@ içeren bir dosya yazıp `intents/index.ts`'deki `INTENTS` listesine ekleyin.
 - Her cevabın yolu sunucu günlüğüne yazılır ve arayüze gider: sağ üstte **● PC** (köprü bağlı) ve **SON: 🖥 BİLGİSAYAR / ☁ API / ⚡ YEREL**.
 - Hava, maç, döviz, hesap gibi komutlar yine yapay zekâya gitmeden komut çözücüyle cevaplanır (⚡ YEREL); selamlaşma ve sohbet karma beyne gider.
 - Claude API anahtarı yoksa ve köprü kapalıysa, tanımlıysa ücretsiz zincire (Gemini…) düşülür (✦ ÜCRETSİZ).
-- Not: karma beyin düz metin cevap verir; araçlı sahneler (haber doğrulama, araştırma, tarif kartı) yalnızca `AI_PROVIDER=free` ya da `claude` modunda çıkar.
+- Kartlı cevaplar: model cevabını `{"konusma": "...", "sahne": {"arac": "present_recipe", "veri": {...}}}` biçiminde verir; sunucu kart verisini
+  diğer modlardaki sunum araçlarının şemasıyla doğrular ve aynı animasyonu oynatır (haber doğrulama, araştırma, maç, tarif, film/müzik önerisi).
+  Geçersiz kart atılır, konuşma yine okunur. Bilgisayarda Claude Code'a yalnızca **WebSearch / WebFetch** izni verilir
+  (dosya ve komut araçları kapalı); API yolunda aynı iş `web_search` / `web_fetch` sunucu araçlarıyla yapılır.
 
 ### Sunucu (bulut) kurulumu
 **Render (önerilen, ücretsiz):** depo kökündeki `render.yaml` hazır. *jarvis-server → Environment*'a şunları girin:

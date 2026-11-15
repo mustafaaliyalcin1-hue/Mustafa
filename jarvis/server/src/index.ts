@@ -219,9 +219,12 @@ app.post<{ Body: { text?: string; conversationId?: string } }>('/api/chat', asyn
     if (provider === 'karma') {
       // Karma: bilgisayar (Claude Code) → yoksa Claude API; ikisi de yoksa ücretsiz zincir
       emit({ type: 'state', state: 'thinking' })
+      // İnternet araştırması gerektiren isteklerde beklerken "taranıyor" animasyonu
+      if (isFactCheck(text) || /ara[sş]t[ıi]r|kar[sş][ıi]la[sş]t[ıi]r/i.test(text)) emit({ type: 'scene', scene: 'research', data: { topic: 'İNTERNETTE ARAŞTIRILIYOR', summary: '', sources: [] }, hold: 600 })
       try {
         const c = await sor(text, (m) => req.log.info(m))
         emit({ type: 'yol', yol: c.yol })
+        if (c.sahne) emit({ type: 'scene', ...c.sahne })
         emit({ type: 'say', text: c.cevap })
       } catch (e) {
         if (!(e instanceof ApiAnahtariYok) || !hasFreeBrain) throw e
