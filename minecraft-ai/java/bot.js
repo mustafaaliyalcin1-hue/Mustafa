@@ -16,7 +16,30 @@ const AYAR = {
   auth: process.env.MC_AUTH || 'offline',
   version: process.env.MC_SURUM || false,
   sahip: process.env.SAHIP || '',
-  xray: (process.env.XRAY || 'otomatik').toLowerCase() // otomatik | acik | kapali
+  xray: (process.env.XRAY || 'otomatik').toLowerCase(), // otomatik | acik | kapali
+  komut: (process.env.KOMUT || 'otomatik').toLowerCase() // otomatik: hileler açıksa komutla inşa | acik | kapali
+}
+
+// Hileler açık mı? Zararsız bir komut dener: cevap gelirse komut yetkisi var.
+let komutOnbellek = null
+async function komutIzni() {
+  if (AYAR.komut === 'acik') return true
+  if (AYAR.komut === 'kapali') return false
+  if (komutOnbellek && Date.now() - komutOnbellek.t < 60000) return komutOnbellek.v
+  const v = await new Promise((coz) => {
+    let bitti = false
+    const dinle = (m) => {
+      if (/time is|daytime|saat/i.test(m)) bitir(true)
+      else if (/unknown or incomplete|unknown command|permission|not allowed|bilinmeyen|yetki|izin/i.test(m)) bitir(false)
+    }
+    const bitir = (x) => { if (bitti) return; bitti = true; bot.removeListener('messagestr', dinle); clearTimeout(t); coz(x) }
+    const t = setTimeout(() => bitir(false), 3000)
+    bot.on('messagestr', dinle)
+    bot.chat('/time query daytime')
+  })
+  komutOnbellek = { t: Date.now(), v }
+  console.log(`[komut] hileler ${v ? 'AÇIK: inşaat komutla, kat kat' : 'KAPALI: inşaat gerçekçi yoldan, malzeme toplayarak'}`)
+  return v
 }
 
 // Kendi bilgisayarındaki / ev ağındaki dünya mı (LAN, localhost), yoksa dışarıdaki bir sunucu mu?
@@ -193,9 +216,25 @@ function baslat() {
   bot.loadPlugin(collectBlock)
   bot.loadPlugin(toolPlugin)
 
+  // Kazarken kolu her tick salla: gerçek oyuncunun tuşu basılı tutması gibi görünsün.
+  // (mineflayer kendisi 350 ms'de bir sallıyor; dışarıdan tıklama spamı gibi görünüyordu.)
+  bot.on('physicsTick', () => { if (bot.targetDigBlock) bot.swingArm('right') })
+  // Teşhis: kazma yarıda kesilirse ya da sunucu kırmayı kabul etmezse terminale yaz
+  bot.on('diggingAborted', (b) => console.log(`[kazma] yarıda kesildi: ${b?.name} ${b?.position}`))
+  let kazilanAd = null
+  bot.on('physicsTick', () => { if (bot.targetDigBlock) kazilanAd = bot.targetDigBlock.name })
+  bot.on('diggingCompleted', (b) => {
+    if (!b) return
+    const ad = kazilanAd, p = b.position.clone()
+    setTimeout(() => {
+      const simdi = bot.blockAt(p)
+      if (simdi && simdi.boundingBox === 'block' && simdi.name === ad) console.log(`[kazma] sunucu ${ad} kırmayı kabul etmedi (${p}), kazma süresi uyuşmuyor olabilir`)
+    }, 1200)
+  })
+
   bot.once('spawn', () => {
     hareketAyarla()
-    beceri = new Beceriler(bot, { konus, xrayIzinli })
+    beceri = new Beceriler(bot, { konus, xrayIzinli, komutIzni })
     beyin = new Beyin({
       surum: `Java ${bot.version}`,
       ad: AYAR.username,

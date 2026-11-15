@@ -719,10 +719,45 @@ async function takipEt(e, { sure = Infinity, bitir = null } = {}) {
   }
 }
 
+function insaModu() { try { return world.getDynamicProperty('yardimci:insa') || 'gercekci' } catch { return 'gercekci' } }
+
+/** Komut (hızlı) modu: malzeme toplamadan, ama bir anda değil — kat kat, blok blok kurar. */
+async function komutlaInsa(e, t) {
+  const bloklar = t.bloklar
+  await yuzeyeCik(e)
+  const o = sahibi(e)
+  const merkez = yuvarla(o && o.dimension.id === e.dimension.id ? o.location : e.location)
+  const b0 = { x: merkez.x + 3, y: merkez.y, z: merkez.z + 3 }
+  const xs = bloklar.map((b) => b.x), zs = bloklar.map((b) => b.z)
+  const minX = Math.min(...xs), maxX = Math.max(...xs), minZ = Math.min(...zs), maxZ = Math.max(...zs), maxY = Math.max(...bloklar.map((b) => b.y))
+  mesaj(`Komut modu: ${t.ad} yapısını kat kat kuruyorum (${bloklar.length} blok).`)
+  for (let y = maxY + 2; y >= 0; y--) {
+    k(e)
+    try { e.dimension.runCommand(`fill ${b0.x + minX} ${b0.y + y} ${b0.z + minZ} ${b0.x + maxX} ${b0.y + y} ${b0.z + maxZ} air`) } catch {}
+    await bekle(3)
+  }
+  let konan = 0, rapor = 0, sonKat = -1
+  for (const b of bloklar) {
+    k(e)
+    const p = { x: b0.x + b.x, y: b0.y + b.y, z: b0.z + b.z }
+    if (b.y !== sonKat) { sonKat = b.y; try { e.teleport({ x: b0.x + minX - 1.5, y: b0.y + Math.max(0, b.y - 1), z: b0.z + (minZ + maxZ) / 2 }, { facingLocation: mid(p) }) } catch {} }
+    try { e.teleport(e.location, { facingLocation: mid(p) }) } catch {}
+    ozellik(e, 'kaziyor', true)
+    if (!koyKomut(e.dimension, p, b.bedrock || b.ad, b.durum || '') && b.yedek) koyKomut(e.dimension, p, b.yedek)
+    await bekle(2)
+    konan++
+    const yuzde = Math.floor((konan / bloklar.length) * 100)
+    if (yuzde >= rapor + 25) { rapor = yuzde; mesaj(`İnşaat %${yuzde}`) }
+  }
+  ozellik(e, 'kaziyor', false)
+  mesaj(`Bitti! ${t.ad} hazır (${konan} blok).`)
+}
+
 async function insaEt(e, { sema = 'kulube' } = {}) {
   const s = st(e)
   const t = SEMALAR[sema] || SEMALAR.kulube
   if (!t) throw new Error('şema yok')
+  if (insaModu() === 'komut') return komutlaInsa(e, t)
   const bloklar = t.bloklar
   const malz = C.yapiMalzemesi(bloklar)
   await yuzeyeCik(e)
@@ -960,7 +995,7 @@ const MENU = [
   ['odun_topla', 'Odun topla'], ['ahsap_aletler', 'Tahta aletler'], ['tas_aletler', 'Taş aletler'],
   ['demir_aletler', 'Demir (x-ray)'], ['elmas', 'Elmas (x-ray)'], ['nether_portali', 'Nether portalı'],
   ['netherite', 'Netherite'], ['hepsini_yap', 'Hepsini sırayla yap'], ['insa_et', 'Yapı inşa et...'],
-  ['tarla_yap', 'Buğday tarlası'], ['esyalari_ver', 'Eşyaları bana ver'], ['_envanter', 'Envanterine bak'], ['_xray', 'X-ray ayarı'], ['_cagir', 'Yardımcıyı çağır']
+  ['tarla_yap', 'Buğday tarlası'], ['esyalari_ver', 'Eşyaları bana ver'], ['_envanter', 'Envanterine bak'], ['_xray', 'X-ray ayarı'], ['_insa', 'İnşa modu'], ['_cagir', 'Yardımcıyı çağır']
 ]
 
 function enYakinYardimci(p) {
@@ -985,6 +1020,16 @@ async function menuAc(p) {
   if (r.canceled || r.selection === undefined) return
   const [kod] = MENU[r.selection]
   if (kod === '_cagir') { cagir(p); return }
+  if (kod === '_insa') {
+    const secenek = [['gercekci', 'Gerçekçi (malzeme toplar, blok blok)'], ['komut', 'Komutla (malzemesiz, kat kat hızlı)']]
+    const f4 = new ActionFormData().title('İnşa modu').body(`Şu an: ${insaModu()}`)
+    for (const [, ad] of secenek) f4.button(ad)
+    const r4 = await f4.show(p)
+    if (r4.canceled || r4.selection === undefined) return
+    try { world.setDynamicProperty('yardimci:insa', secenek[r4.selection][0]) } catch {}
+    mesaj(`İnşa modu: ${secenek[r4.selection][0]}`)
+    return
+  }
   if (kod === '_xray') {
     const secenek = [['otomatik', 'Otomatik (tek başımayken açık, başka oyuncu varsa kapalı)'], ['kapali', 'Hep kapalı (hilesiz)'], ['acik', 'Hep açık']]
     const f3 = new ActionFormData().title('X-ray').body(`Şu an: ${xrayAyar()} → ${xrayAcik() ? 'AÇIK' : 'KAPALI'}`)
@@ -1025,6 +1070,7 @@ system.afterEvents.scriptEventReceive.subscribe((ev) => {
   if (ev.id === 'yardimci:cagir') { if (oyuncu) cagir(oyuncu); return }
   if (ev.id === 'yardimci:durum') { for (const e of yardimcilar()) durumEtiketi(e); return }
   if (ev.id === 'yardimci:soyle') { mesaj(ev.message); return }
+  if (ev.id === 'yardimci:insa') { try { world.setDynamicProperty('yardimci:insa', ev.message.trim() === 'komut' ? 'komut' : 'gercekci') } catch {} mesaj(`İnşa modu: ${insaModu()}`); return }
   if (ev.id === 'yardimci:xray') { try { world.setDynamicProperty('yardimci:xray', ev.message.trim() || 'otomatik') } catch {} mesaj(`X-ray ayarı: ${xrayAyar()} (şu an ${xrayAcik() ? 'açık' : 'kapalı'})`); return }
   if (ev.id !== 'yardimci:gorev') return
   let g

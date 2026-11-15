@@ -9,6 +9,13 @@
 | İlerleme | odun → tahta kazma → taş → kömür/demir → elmas → obsidyen → portal → Nether → ancient debris → netherite | aynı, gerçek üretim/fırın pencereleriyle |
 | İnşaat | 5 şema (kulübe, taş ev, kule, köy evi, Viking evi) malzemesini toplayıp blok blok | aynı + `semalar/` klasörüne attığın her `.schem` |
 
+## İnşaat: komutla mı, gerçekçi mi?
+
+- **Java:** Hileler açıksa yardımcı yapıyı `/setblock` ile kurar. Malzeme toplamaz ama yine de bir anda belirmez: alttan üste
+  **kat kat, blok blok** kurar, merdiven ve kapı yönleri doğru olur. Hileler kapalıysa malzemesini kendi toplar ve elle koyar.
+  Bunu kendisi anlar. Zorlamak için `.env` → `KOMUT=acik` / `KOMUT=kapali`.
+- **Bedrock:** Kumanda → **İnşa modu** → *Gerçekçi* (malzeme toplar) ya da *Komutla* (malzemesiz, kat kat).
+
 ## X-ray kuralı (iki sürümde de aynı)
 
 | Nerede | X-ray |

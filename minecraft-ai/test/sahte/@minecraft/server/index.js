@@ -51,7 +51,9 @@ class Entity {
 }
 export class ItemStack { constructor(t, n = 1) { this.typeId = t; this.amount = n } }
 const abone = (ad) => ({ subscribe: (f) => { (SAHTE.olaylar[ad] ||= []).push(f); return f } })
+const DUNYA_OZ = {}
 export const world = {
+  getDynamicProperty: (a) => DUNYA_OZ[a], setDynamicProperty: (a, v) => { DUNYA_OZ[a] = v },
   getDimension: (d) => DIM[d.includes(':') ? d : 'minecraft:' + d] || DIM['minecraft:overworld'],
   getAllPlayers: () => ENT.filter((e) => e.typeId === 'minecraft:player'),
   sendMessage: (m) => { SAHTE.mesajlar.push(m); SAHTE.dinle?.(m); if (process.env.SESLI) console.log(`[t=${Math.round(SAHTE.tick / 20)}sn]`, m.replace(/§./g, '')) },

@@ -45,5 +45,22 @@ test('x-ray: tek başınayken gizli cevheri bulur, çok oyunculuda bulmaz', { ti
   assert.ok(!cok.gizliKazildi, 'çok oyunculuda gizli kömürü görmemeliydi: ' + cok.mesajlar)
   assert.ok(cok.acikKazildi, 'açıktaki kömürü kazmalıydı: ' + cok.mesajlar)
   assert.match(cok.mesajlar, /Gözümle/)
+
+  // komut modu: malzemesiz ama kat kat
+  const mc = await dunya()
+  const p = mc.oyuncuYap({ x: 0, y: 65, z: 0 })
+  mc.olay('scriptEventReceive', { id: 'yardimci:cagir', message: '', sourceEntity: p })
+  mc.olay('scriptEventReceive', { id: 'yardimci:insa', message: 'komut', sourceEntity: p })
+  const t0 = mc.SAHTE.tick
+  mc.olay('scriptEventReceive', { id: 'yardimci:gorev', message: '{"gorev":"insa_et","sema":"kule"}', sourceEntity: p })
+  const son = Date.now() + 30000
+  while (!mc.SAHTE.mesajlar.some((m) => /Bitti!|Takıldım/.test(m)) && Date.now() < son) await new Promise((r) => setTimeout(r, 20))
+  const bitti = mc.SAHTE.mesajlar.find((m) => /Bitti!/.test(m))
+  assert.ok(bitti && /Komut modu/.test(mc.SAHTE.mesajlar.join(' ')), mc.SAHTE.mesajlar.join(' | '))
+  const sn = (mc.SAHTE.tick - t0) / 20
+  assert.ok(sn > 20, `bir anda değil kat kat kurmalı (${sn} sn)`)
+  const tasSayisi = [...mc.SAHTE.bloklar.values()].filter((v) => /cobblestone|stone_bricks|oak_fence|spruce_planks|oak_planks|torch/.test(v)).length
+  assert.ok(tasSayisi > 250, 'kule blokları konmalı: ' + tasSayisi)
+  console.log(`  komut modunda kule: ${sn.toFixed(0)} sn oyun içi`)
   process.exit(0)
 })

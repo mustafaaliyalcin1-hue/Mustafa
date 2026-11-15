@@ -52,9 +52,10 @@ const ERIT = {
 const YAKITLAR = [['coal_block', 80], ['coal', 8], ['charcoal', 8], ...AGACLAR.map((a) => [`${a}_planks`, 1.5]), ...KUTUKLER.map((k) => [k, 1.5]), ['stick', 0.5]]
 
 export class Beceriler {
-  constructor(bot, { konus, xrayIzinli = () => true }) {
+  constructor(bot, { konus, xrayIzinli = () => true, komutIzni = async () => false }) {
     this.bot = bot
     this.konus = konus
+    this.komutIzni = komutIzni // hileler açıksa (komut kullanabiliyorsa) true
     this.xrayIzinli = xrayIzinli // sunucuda / çok oyunculu dünyada false döner
     this.token = { iptal: false }
     this.portalNoktasi = null // overworld portalı
@@ -770,6 +771,7 @@ export class Beceriler {
   async insaEt(semaAd, merkezOyuncu) {
     if (!semaAd) throw new Error('hangi yapıyı kuracağımı söylemedin')
     const sema = await semaYukle(semaAd, this.bot.version)
+    if (await this.komutIzni()) return this.komutlaInsa(sema, merkezOyuncu)
     const agacSay = {}
     for (const b of this.xray(KUTUKLER, { mesafe: 64, adet: 40 })) { const t = b.name.replace(/_log$/, ''); agacSay[t] = (agacSay[t] || 0) + 1 }
     const agac = Object.entries(agacSay).sort((a, b) => b[1] - a[1])[0]?.[0] || 'oak'
@@ -789,7 +791,7 @@ export class Beceriler {
     // alanı temizle (ağaç, çimen vs.)
     const plan = new Map(bloklar.map((b) => [`${b.x},${b.y},${b.z}`, b]))
     this.konus('Önce alanı temizliyorum.')
-    for (let y = maxY; y >= 0; y--) for (let x = 0; x <= maxX; x++) for (let z = 0; z <= maxZ; z++) {
+    for (let y = maxY; y >= 0; y--) for (let x = Math.min(0, ...bloklar.map((b) => b.x)); x <= maxX; x++) for (let z = Math.min(0, ...bloklar.map((b) => b.z)); z <= maxZ; z++) {
       if (plan.has(`${x},${y},${z}`)) continue
       const b = this.bot.blockAt(o.offset(x, y, z))
       if (b && b.name !== 'air' && b.boundingBox === 'block') { try { await this.kaz(b) } catch (e) { if (e.iptal) throw e } }
@@ -824,6 +826,53 @@ export class Beceriler {
     }
     for (const b of ertelenen) { if (await this.koy(o.offset(b.x, b.y, b.z), esyaAdi(b.ad))) konan++; else atlanan++ }
     this.konus(`Bitti! ${konan} blok koydum${atlanan ? `, ${atlanan} bloğu malzeme olmadığı için atladım` : ''}.`)
+  }
+
+  /**
+   * Hileler açıkken: malzeme toplamadan /setblock ile kurar, ama bir anda değil —
+   * alttan üste kat kat, blok blok, yanında durup kolunu sallayarak. Merdiven/kapı yönleri korunur.
+   */
+  async komutlaInsa(sema, merkezOyuncu) {
+    const bloklar = sema.bloklar.filter((b) => !/^(air|cave_air|void_air|structure_void)$/.test(b.ad))
+    const sira = insaSirasi(bloklar)
+    const kaynak = merkezOyuncu?.position || this.bot.entity.position
+    const yon = this.bot.entity.yaw
+    let o = kaynak.offset(-Math.sin(yon) * 4, 0, -Math.cos(yon) * 4).floored()
+    const maxX = Math.max(...bloklar.map((b) => b.x)), maxZ = Math.max(...bloklar.map((b) => b.z)), maxY = Math.max(...bloklar.map((b) => b.y))
+    const minX = Math.min(0, ...bloklar.map((b) => b.x)), minZ = Math.min(0, ...bloklar.map((b) => b.z))
+    // en alt kat çoğunlukla toprak/çimense (şematiğin zemini), yere gömülsün
+    const taban = bloklar.filter((b) => b.y === 0)
+    if (taban.length && taban.filter((b) => /^(grass_block|dirt|coarse_dirt|podzol|sand|gravel|stone)$/.test(b.ad)).length / taban.length > 0.6) o = o.offset(0, -1, 0)
+    const bekleMs = Number(process.env.KOMUT_HIZ_MS || 120)
+    this.konus(`Hileler açık: ${sema.ad} yapısını komutla kat kat kuruyorum (${sira.length} blok).`)
+    // dışarıda, köşede dur
+    try { await this.git(o.offset(minX - 2, 1, minZ - 2), 1) } catch (e) { if (e.iptal) throw e }
+    // alanı üstten alta kat kat boşalt
+    for (let y = maxY + 2; y >= 0; y--) {
+      this.k()
+      this.bot.chat(`/fill ${o.x + minX} ${o.y + y} ${o.z + minZ} ${o.x + maxX} ${o.y + y} ${o.z + maxZ} minecraft:air`)
+      await bekle(bekleMs)
+    }
+    let konan = 0, rapor = 0, sonKat = -1
+    for (const b of sira) {
+      this.k()
+      const p = o.offset(b.x, b.y, b.z)
+      if (b.y !== sonKat) {
+        sonKat = b.y
+        // her yeni katta yapının yanına yaklaş (blok koyacak kadar yakın görünsün)
+        const merkez = o.offset(Math.floor(maxX / 2), b.y, Math.floor(maxZ / 2))
+        if (this.bot.entity.position.distanceTo(merkez) > 12) { try { await this.git(o.offset(minX - 2, Math.max(1, b.y - 2), Math.floor(maxZ / 2)), 3) } catch (e) { if (e.iptal) throw e } }
+      }
+      const durum = b.durum && Object.keys(b.durum).length ? `[${Object.entries(b.durum).map(([k, v]) => `${k}=${v}`).join(',')}]` : ''
+      this.bot.lookAt(p.offset(0.5, 0.5, 0.5), true).catch(() => {})
+      this.bot.swingArm('right')
+      this.bot.chat(`/setblock ${p.x} ${p.y} ${p.z} minecraft:${b.ad}${durum}`)
+      konan++
+      const yuzde = Math.floor((konan / sira.length) * 100)
+      if (yuzde >= rapor + 25) { rapor = yuzde; this.konus(`İnşaat %${yuzde}`) }
+      await bekle(bekleMs)
+    }
+    this.konus(`Bitti! ${sema.ad} hazır (${konan} blok).`)
   }
 
   async sandiktanAl(malz) {
