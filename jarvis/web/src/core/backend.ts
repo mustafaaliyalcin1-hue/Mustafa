@@ -3,7 +3,7 @@
  * Ayarlarda sunucu adresi + uygulama anahtarı girilmişse sorular gerçek beyne
  * (Claude) gider; olaylar SSE ile akar ve sırayla oynatılır. Girilmemişse demo modu.
  */
-import { getStore, pushMessage } from './store'
+import { getStore, pushMessage, setStore } from './store'
 import type { JarvisEvent } from './types'
 import { play } from './player'
 
@@ -48,7 +48,14 @@ export async function askBackend(text: string) {
         const chunk = buf.slice(0, i)
         buf = buf.slice(i + 2)
         const line = chunk.split('\n').find((l) => l.startsWith('data: '))
-        if (line) play(JSON.parse(line.slice(6)) as JarvisEvent)
+        if (!line) continue
+        const ev = JSON.parse(line.slice(6)) as JarvisEvent
+        // Yol bilgisi oynatılmaz: HUD'daki küçük göstergeye yazılır
+        if (ev.type === 'yol') {
+          setStore({ sonYol: ev.yol, ...(ev.yol === 'bilgisayar' ? { kopruBagli: true } : {}) })
+          if (ev.yol === 'api') bridgeCheck() // köprü kopmuş olabilir: göstergeyi hemen güncelle
+        }
+        else play(ev)
       }
     }
   } catch (e) {
@@ -67,6 +74,7 @@ export async function fetchHealth(): Promise<{ ai: boolean; tts: boolean } | nul
   try {
     const r = await fetch(`${base()}/health`, { signal: AbortSignal.timeout(2500) })
     const j = await r.json()
+    setStore({ kopruBagli: j.kopru ? !!j.kopru.bagli : null })
     return j.services
   } catch {
     return null
@@ -83,4 +91,18 @@ export async function fetchTTS(text: string): Promise<Blob | null> {
   } catch {
     return null
   }
+}
+
+/** Karma beyinde bilgisayar köprüsü bağlı mı? (HUD göstergesi için) */
+function bridgeCheck() {
+  if (!backendConfigured()) return
+  fetch(`${base()}/health`, { signal: AbortSignal.timeout(5000) })
+    .then((r) => r.json())
+    .then((j) => setStore({ kopruBagli: j.kopru ? !!j.kopru.bagli : null }))
+    .catch(() => {})
+}
+/** Köprü durumunu dakikada bir yenile */
+export function watchBridge() {
+  bridgeCheck()
+  setInterval(bridgeCheck, 60_000)
 }

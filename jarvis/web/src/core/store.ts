@@ -36,6 +36,9 @@ export interface JarvisStore {
   visionOpen: boolean
   /** Onay bekleyen mesaj */
   pendingMessage: { to: string; text: string } | null
+  /** Karma beyin: son cevabın yolu + bilgisayar köprüsü bağlı mı (null = bilinmiyor / karma değil) */
+  sonYol: import('./types').CevapYolu | null
+  kopruBagli: boolean | null
 }
 
 const saved = (() => {
@@ -58,6 +61,8 @@ let store: JarvisStore = {
   lowPerf: false,
   demo: true,
   wakeActive: false,
+  sonYol: null,
+  kopruBagli: null,
   calcOpen: false,
   studioOpen: false,
   editorOpen: false,

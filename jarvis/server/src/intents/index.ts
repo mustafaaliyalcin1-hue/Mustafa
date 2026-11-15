@@ -34,13 +34,14 @@ export interface LocalResult {
 }
 
 /** Komutu tanı (çalıştırmadan) — test ve yönlendirme için */
-export function recognize(text: string, ctx: IntentContext = {}): { intent: Intent; params: Record<string, unknown> } | null {
+export function recognize(text: string, ctx: IntentContext = {}, skip: string[] = []): { intent: Intent; params: Record<string, unknown> } | null {
   const n: Norm = norm(text)
   // Çeviri kalıpları "ne demek/çevir" içerir; yapay zekâ filtresinden önce denenir
   const tr = translateIntent.detect(n, ctx)
   if (tr && !FACT_CHECK.test(n.f)) return { intent: translateIntent as unknown as Intent, params: tr }
   if (NEEDS_AI.test(n.f) || FACT_CHECK.test(n.f)) return null
   for (const intent of INTENTS) {
+    if (skip.includes(intent.name)) continue
     const params = intent.detect(n, ctx)
     if (params) return { intent, params }
   }
@@ -55,11 +56,12 @@ export function recognize(text: string, ctx: IntentContext = {}): { intent: Inte
 }
 
 /** Yerelde çözebilirse çalıştırır ve true döner; çözemezse false (yapay zekâya gidilir) */
-export async function tryLocal(conversationId: string, text: string, emit: Emit): Promise<LocalResult | null> {
+/** skip: atlanacak komut adları (ör. karma beyinde sohbet yapay zekâya gitsin diye 'smalltalk') */
+export async function tryLocal(conversationId: string, text: string, emit: Emit, skip: string[] = []): Promise<LocalResult | null> {
   const now = Date.now()
   for (const [k, c] of contexts) if (now - c.at > 30 * 60_000) contexts.delete(k)
   const ctx = contexts.get(conversationId) || { at: now }
-  const hit = recognize(text, ctx)
+  const hit = recognize(text, ctx, skip)
   if (!hit) return null
   emit({ type: 'state', state: 'thinking' })
   try {

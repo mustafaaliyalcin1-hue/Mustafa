@@ -27,6 +27,10 @@ export const config = {
   model: env('CLAUDE_MODEL', 'claude-sonnet-5-5'),
   /** low | medium | high — sesli asistan için hız/kalite dengesi */
   effort: env('CLAUDE_EFFORT', 'medium') as 'low' | 'medium' | 'high',
+  /** Karma beyin: bilgisayar köprüsünün şifresi (yalnızca ortam değişkeninde) */
+  kopruSifresi: env('KOPRU_SIFRESI'),
+  /** Karma beyinde API'ye düşünce kullanılan efor (kısa sesli cevaplar için düşük = hızlı ve ucuz) */
+  karmaEffort: env('KARMA_EFFORT', 'low') as 'low' | 'medium' | 'high',
   elevenKey: env('ELEVENLABS_API_KEY'),
   elevenVoice: env('ELEVENLABS_VOICE_ID'),
   defaultCity: env('DEFAULT_CITY', 'Elazığ'),
@@ -44,11 +48,19 @@ export const config = {
 
 /** Hangi beyin? Varsayılan: Gemini anahtarı varsa Gemini (ücretsiz), yoksa Claude. AI_PROVIDER ile zorlanabilir. */
 const hasFree = !!(config.geminiKey || config.groqKey || config.openrouterKey || config.ollamaUrl)
-/** Beyin: ücretsiz zincir ('free') ya da Claude. Ücretsiz bir beyin tanımlıysa varsayılan odur. */
-export const provider: 'free' | 'claude' = env('AI_PROVIDER') === 'claude' ? 'claude' : hasFree ? 'free' : 'claude'
+/**
+ * Beyin seçimi (AI_PROVIDER ile zorlanabilir):
+ *  - 'karma' : bilgisayar açıkken Claude Code (köprü), kapalıyken Claude API — KOPRU_SIFRESI varsa varsayılan
+ *  - 'free'  : ücretsiz zincir (Gemini → Groq → OpenRouter → Ollama)
+ *  - 'claude': Claude API ajanı (araçlı)
+ */
+const secim = env('AI_PROVIDER')
+export const provider: 'free' | 'claude' | 'karma' =
+  secim === 'karma' || secim === 'claude' || secim === 'free' ? secim : config.kopruSifresi ? 'karma' : hasFree ? 'free' : 'claude'
+export const hasFreeBrain = hasFree
 
 export const services = {
-  ai: provider === 'free' ? hasFree : !!config.anthropicKey,
+  ai: provider === 'free' ? hasFree : provider === 'karma' ? !!(config.kopruSifresi || config.anthropicKey || hasFree) : !!config.anthropicKey,
   provider,
   tts: !!(config.elevenKey && config.elevenVoice),
 }

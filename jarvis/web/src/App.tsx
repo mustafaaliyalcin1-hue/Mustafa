@@ -5,7 +5,7 @@
  */
 import { AnimatePresence } from 'framer-motion'
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
-import { backendConfigured, fetchHealth } from './core/backend'
+import { backendConfigured, fetchHealth, watchBridge } from './core/backend'
 import './animations'
 import BootSequence, { type BootCheck } from './components/BootSequence'
 import ChatDock, { ask } from './components/ChatDock'
@@ -37,6 +37,7 @@ export default function App() {
   useEffect(() => {
     startPerfMonitor()
     initTimekeeper()
+    watchBridge()
     if (!booting) setState('idle')
     // Test/otomasyon için: ?soru=... ile doğrudan bir soru sor
     const q = new URLSearchParams(location.search).get('soru')

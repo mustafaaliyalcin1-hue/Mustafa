@@ -1,0 +1,5 @@
+node_modules/
+.env
+ayar.json
+*.log
+test/.appdata/

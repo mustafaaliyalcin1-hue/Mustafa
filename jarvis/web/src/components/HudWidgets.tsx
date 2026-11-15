@@ -3,7 +3,7 @@
  */
 import { useEffect, useState } from 'react'
 import { ask } from '../core/assistant'
-import { setStore } from '../core/store'
+import { setStore, useJarvis } from '../core/store'
 import { pushEnabled } from '../core/push'
 import { turnOnNotifications } from '../core/localCommands'
 
@@ -98,6 +98,7 @@ export default function HudWidgets() {
             {bat ? `${Math.round(bat.level * 100)}%${bat.charging ? '⚡' : ''}` : '--'}
           </span>
         </Panel>
+        <BrainBadge />
       </div>
       {/* Ara sıra geçen sistem tarama çizgisi */}
       <div className="scan-sweep pointer-events-none absolute inset-x-0 top-0 z-0 h-24" />
@@ -112,5 +113,24 @@ function BellButton() {
     <button onClick={async () => setOn(await turnOnNotifications())} className={`hud-panel pointer-events-auto flex items-center gap-2 px-3 py-2 font-mono text-xs tracking-wider transition hover:bg-hud-cyan/10 hover:text-white active:scale-95 ${on ? 'text-hud-cyan' : 'text-hud-cyan/50'}`} title={on ? 'Bildirimler açık (test bildirimi gönder)' : 'Bildirimleri aç'}>
       {on ? '🔔' : '🔕'}
     </button>
+  )
+}
+
+const YOL_ETIKETI = { bilgisayar: '🖥 BİLGİSAYAR', api: '☁ API', yerel: '⚡ YEREL', ucretsiz: '✦ ÜCRETSİZ' } as const
+
+/** Karma beyin göstergesi: son cevap hangi yoldan geldi + bilgisayar köprüsü bağlı mı */
+function BrainBadge() {
+  const yol = useJarvis((s) => s.sonYol)
+  const kopru = useJarvis((s) => s.kopruBagli)
+  if (kopru === null && !yol) return null
+  return (
+    <Panel className="flex items-center gap-3 font-mono text-[10px] tracking-wider text-hud-cyan/80">
+      {kopru !== null && (
+        <span className={kopru ? 'text-emerald-300' : 'text-white/40'} title={kopru ? 'Bilgisayar köprüsü bağlı: sorular Claude Code ile cevaplanır' : 'Bilgisayar kapalı: sorular Claude API ile cevaplanır'}>
+          {kopru ? '●' : '○'} PC
+        </span>
+      )}
+      {yol && <span title="Son cevabın geldiği yol">SON: {YOL_ETIKETI[yol]}</span>}
+    </Panel>
   )
 }

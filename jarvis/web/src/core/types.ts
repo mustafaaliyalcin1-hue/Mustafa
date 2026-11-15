@@ -21,6 +21,11 @@ export type JarvisEvent =
   | { type: 'user'; text: string }
   /** Akış bitti; sahne kapanır, boşta durumuna dönülür. */
   | { type: 'end' }
+  /** Karma beyin: cevabın geldiği yol (oynatılmaz, HUD göstergesine yazılır) */
+  | { type: 'yol'; yol: CevapYolu }
+
+/** bilgisayar = Claude Code (köprü) · api = Claude API · yerel = komut çözücü · ucretsiz = ücretsiz zincir */
+export type CevapYolu = 'bilgisayar' | 'api' | 'yerel' | 'ucretsiz'
 
 export interface ChatMessage {
   id: number

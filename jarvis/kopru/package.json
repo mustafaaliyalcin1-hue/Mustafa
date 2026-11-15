@@ -1,0 +1,15 @@
+{
+  "name": "jarvis-kopru",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "J.A.R.V.I.S. bilgisayar köprüsü: bulut Jarvis'in sorularını bu bilgisayardaki Claude Code'a (claude -p) sorar",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node kopru.mjs",
+    "test": "node --test kopru.test.mjs"
+  },
+  "dependencies": {
+    "ws": "^8.23.0"
+  }
+}

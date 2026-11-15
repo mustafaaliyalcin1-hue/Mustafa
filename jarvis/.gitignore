@@ -1,0 +1,6 @@
+# Gizli değerler asla depoya girmez
+.env
+.env.*
+!.env.example
+**/ayar.json
+data/

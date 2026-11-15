@@ -205,6 +205,46 @@ Yemek tarifi ("menemen tarifi") ve film/dizi/müzik/kitap önerileri yapay zekâ
 Yeni komut eklemek: `server/src/intents/` altına `detect` (tanı) + `run` (çalıştır, sahne yayınla, cevabı döndür)
 içeren bir dosya yazıp `intents/index.ts`'deki `INTENTS` listesine ekleyin.
 
+## 🖥☁ Karma beyin: bilgisayar açıkken Claude Code, kapalıyken Claude API
+
+```
+ Telefon / TV ──HTTPS──▶  BULUT JARVIS (Render, hep açık)  ◀──WebSocket /kopru──  BİLGİSAYAR KÖPRÜSÜ (Windows)
+                          sor(istem):                                              claude -p --output-format json …
+                            köprü bağlı? → bilgisayara sor (≤120 sn)               (kendi Claude hesabınız)
+                            değilse / zaman aşımı / hata → Claude API
+                          son 20 mesajlık ortak hafıza (iki yolda da aynı)
+```
+
+- `server/src/karma.ts` — `sor(istem) → { cevap, yol }`, `/kopru` websocket ucu, hafıza (son 20 mesaj, `DATA_DIR/karma-hafiza.json`).
+- Köprü bağlantısı `Authorization: Bearer <KOPRU_SIFRESI>` ister; yanlış şifre el sıkışmada 401 ile reddedilir.
+- Her cevabın yolu sunucu günlüğüne yazılır ve arayüze gider: sağ üstte **● PC** (köprü bağlı) ve **SON: 🖥 BİLGİSAYAR / ☁ API / ⚡ YEREL**.
+- Hava, maç, döviz, hesap gibi komutlar yine yapay zekâya gitmeden komut çözücüyle cevaplanır (⚡ YEREL); selamlaşma ve sohbet karma beyne gider.
+- Claude API anahtarı yoksa ve köprü kapalıysa, tanımlıysa ücretsiz zincire (Gemini…) düşülür (✦ ÜCRETSİZ).
+- Not: karma beyin düz metin cevap verir; araçlı sahneler (haber doğrulama, araştırma, tarif kartı) yalnızca `AI_PROVIDER=free` ya da `claude` modunda çıkar.
+
+### Sunucu (bulut) kurulumu
+**Render (önerilen, ücretsiz):** depo kökündeki `render.yaml` hazır. *jarvis-server → Environment*'a şunları girin:
+
+| Değişken | Ne |
+|---|---|
+| `JARVIS_APP_SECRET` | Arayüzün şifresi (uygulamada "Uygulama anahtarı"). Blueprint kendisi üretir. |
+| `KOPRU_SIFRESI` | Köprü şifresi (uzun, rastgele). Blueprint üretmediyse kendiniz ekleyin. Köprüde de aynısı girilir. |
+| `ANTHROPIC_API_KEY` | console.anthropic.com → *API Keys*. Bilgisayar kapalıyken kullanılır (ücretli, kullandıkça). |
+| `CLAUDE_MODEL` *(isteğe bağlı)* | Varsayılan `claude-sonnet-5-5`. |
+| `KARMA_EFFORT` *(isteğe bağlı)* | Varsayılan `low` (kısa sesli cevaplar: hızlı ve ucuz). |
+
+Render ücretsiz sunucusu 15 dk boşta kalınca uyur: cron-job.org ile `/health`'i 5 dakikada bir çağırın. Uyanınca köprü 10 sn içinde kendiliğinden yeniden bağlanır.
+
+**Railway / Fly.io:** `server/Dockerfile` hazır. Railway'de *New Project → GitHub repo*, kök dizin `jarvis/server`, değişkenleri *Variables*'a girin.
+Fly.io'da `cd jarvis/server && fly launch` (Dockerfile'ı algılar), sonra `fly secrets set KOPRU_SIFRESI=… ANTHROPIC_API_KEY=… JARVIS_APP_SECRET=…`.
+Arayüzün `VITE_JARVIS_API_URL` değerini yeni sunucu adresine çevirin.
+
+### Bilgisayar köprüsü (Windows)
+1. [Node.js LTS](https://nodejs.org) ve Claude Code kurulu olsun; bir kez terminalde `claude` yazıp hesabınızla giriş yapın.
+2. Depodaki `jarvis/kopru` klasörünü bilgisayarınıza kopyalayın (ör. `C:\Jarvis\kopru`).
+3. `kur.ps1`'e sağ tık → **PowerShell ile çalıştır**. Sunucu adresini ve `KOPRU_SIFRESI`'ni sorar (şifre `%APPDATA%\JarvisKopru\ayar.json`'a, yalnızca sizin okuyabileceğiniz şekilde yazılır), Başlangıç klasörüne gizli çalışan kısayolu koyar ve köprüyü başlatır.
+4. Bilgisayar her açıldığında köprü pencere açmadan başlar. `baslat.cmd` görünür çalıştırır (sorun ararken), `durdur.cmd` durdurur, `kaldir.ps1` tamamen kaldırır. Günlük: `%APPDATA%\JarvisKopru\kopru.log`.
+
 ## Ücretsiz beyin zinciri (kota dolunca otomatik geçiş)
 
 Sunucu, anahtarı tanımlı ücretsiz beyinleri sırayla dener: **Gemini → Groq → OpenRouter → Ollama (yerel)**.
@@ -277,6 +317,7 @@ gizlilik, istenirse planlı yayın → **onay** → telefon → sunucu → YouTu
 ```bash
 cd jarvis/server && npm install && npm test   # ajan döngüsü (sahte Claude ile), hava aracı
 cd jarvis/web && npm run build                # tip kontrolü + derleme
+cd jarvis/kopru && npm install && npm test    # köprü: claude çıktısını yorumlama (sahte claude ile)
 ```
 
 ## Yeni araç (yetenek) eklemek

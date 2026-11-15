@@ -44,7 +44,11 @@ services:
         sync: false
       - key: YOUTUBE_REFRESH_TOKEN
         sync: false
-      # İsteğe bağlı ücretli beyin (Claude). İkisi de varsa Gemini kullanılır; AI_PROVIDER=claude ile değiştirilir.
+      # KARMA BEYİN: bilgisayar açıkken Claude Code (köprü), kapalıyken Claude API.
+      # KOPRU_SIFRESI girilince karma beyin kendiliğinden açılır (AI_PROVIDER=karma ile de zorlanabilir).
+      - key: KOPRU_SIFRESI
+        generateValue: true
+      # Claude API anahtarı (console.anthropic.com → API Keys) — bilgisayar kapalıyken kullanılır
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: ELEVENLABS_API_KEY

@@ -3,13 +3,15 @@
  *   GET  /health          servis durumu (açılış ekranındaki ✓ işaretleri buradan gelir)
  *   POST /api/chat        { text, conversationId } → SSE ile JarvisEvent akışı
  *   POST /api/tts         { text } → ElevenLabs MP3 (yoksa 204: tarayıcı TTS'i kullanılır)
+ *   WS   /kopru           bilgisayar köprüsü (karma beyin) — Authorization: Bearer KOPRU_SIFRESI
  *   POST /cron/tick       zamanlanmış görevler (hatırlatıcı, sabah brifingi) — dış cron servisi çağırır
  * Tüm /api ve /cron uçları "x-jarvis-key" başlığında JARVIS_APP_SECRET ister.
  */
 import cors from '@fastify/cors'
 import Fastify from 'fastify'
 import { describeError, resetConversation, runAgent } from './agent.ts'
-import { config, provider, services } from './config.ts'
+import { config, hasFreeBrain, provider, services } from './config.ts'
+import { ApiAnahtariYok, hafizayaEkle, kopruDurumu, kopruyuBagla, sor } from './karma.ts'
 import { AllBrainsBusy, brainStatus, rememberTurn, resetFreeConversation, runFreeBrains } from './brains.ts'
 import { tryLocal } from './intents/index.ts'
 import { isFactCheck } from './intents/text.ts'
@@ -120,7 +122,7 @@ app.post<{ Body: { image?: string; question?: string } }>('/api/vision', { bodyL
   }
 })
 
-app.get('/health', async () => ({ ok: true, services, model: provider === 'free' ? currentGeminiModel() : config.model, brains: provider === 'free' ? brainStatus() : undefined, time: new Date().toISOString() }))
+app.get('/health', async () => ({ ok: true, services, kopru: provider === 'karma' ? kopruDurumu() : undefined, model: provider === 'free' ? currentGeminiModel() : config.model, brains: provider === 'free' ? brainStatus() : undefined, time: new Date().toISOString() }))
 
 /**
  * TEŞHİS: veri kaynaklarına sunucudan ulaşılabiliyor mu? (tarayıcıda açılır, gizli bilgi içermez)
@@ -193,9 +195,16 @@ app.post<{ Body: { text?: string; conversationId?: string } }>('/api/chat', asyn
 
   try {
     // 1) Önce komut çözücü: sık komutlar yapay zekâya gitmeden, ücretsiz ve hızlı
-    const local = config.localIntents ? await tryLocal(conversationId, text, emit) : null
+    // Karma beyinde selamlaşma/sohbet yapay zekâya gider (bilgisayar ya da API cevaplar)
+    const local = config.localIntents ? await tryLocal(conversationId, text, emit, provider === 'karma' ? ['smalltalk'] : []) : null
     if (local) {
       if (provider === 'free') rememberTurn(conversationId, text, local.reply)
+      if (provider === 'karma') {
+        // Komut çözücünün cevapları da ortak hafızaya girsin (yapay zekâ bağlamı bilsin)
+        hafizayaEkle({ rol: 'kullanici', metin: text })
+        hafizayaEkle({ rol: 'jarvis', metin: local.reply, yol: 'yerel' })
+        emit({ type: 'yol', yol: 'yerel' })
+      }
       return
     }
     // 2) Yapay zekâ
@@ -207,7 +216,19 @@ app.post<{ Body: { text?: string; conversationId?: string } }>('/api/chat', asyn
     const aiText = isFactCheck(text)
       ? `${text}\n\n[GÖREV: HABER DOĞRULAMA. get_news KULLANMA. İddiayı web_search ile araştır (link varsa web_fetch ile oku); birden çok güvenilir kaynağa ve teyit.org, dogrulukpayi.com, Reuters/AP/AFP doğrulama sayfalarına bak. Sonra present_fact_check ile DOĞRU/YALAN/YANILTICI/DOĞRULANAMADI sonucunu göster ve kısaca gerekçeyi söyle. İddia bu mesajda yoksa önceki konuşmadaki haberi değerlendir; hâlâ belirsizse hangi haberi kastettiğini sor.]`
       : text
-    if (provider === 'free') await runFreeBrains(conversationId, aiText, emit, ac.signal)
+    if (provider === 'karma') {
+      // Karma: bilgisayar (Claude Code) → yoksa Claude API; ikisi de yoksa ücretsiz zincir
+      emit({ type: 'state', state: 'thinking' })
+      try {
+        const c = await sor(text, (m) => req.log.info(m))
+        emit({ type: 'yol', yol: c.yol })
+        emit({ type: 'say', text: c.cevap })
+      } catch (e) {
+        if (!(e instanceof ApiAnahtariYok) || !hasFreeBrain) throw e
+        emit({ type: 'yol', yol: 'ucretsiz' })
+        await runFreeBrains(conversationId, aiText, emit, ac.signal)
+      }
+    } else if (provider === 'free') await runFreeBrains(conversationId, aiText, emit, ac.signal)
     else await runAgent(conversationId, aiText, emit, ac.signal)
   } catch (err) {
     if (!ac.signal.aborted) {
@@ -267,6 +288,9 @@ app.post<{ Body: { subscription: PushSubscription } }>('/api/push/test', async (
 })
 
 startPushLoop()
+// Bilgisayar köprüsü (websocket): wss://<sunucu>/kopru — "Authorization: Bearer <KOPRU_SIFRESI>"
+kopruyuBagla(app.server, { info: (m) => app.log.info(m), warn: (m) => app.log.warn(m) })
+
 app.listen({ port: config.port, host: '0.0.0.0' }).then(() => {
   if (provider === 'free' && config.geminiKey) warmUpGemini()
   app.log.info(`J.A.R.V.I.S. çevrimiçi → :${config.port} · Beyin:${provider} ${services.ai ? '✓' : '✗'} · TTS:${services.tts ? '✓' : '✗'}`)

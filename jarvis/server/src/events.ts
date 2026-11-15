@@ -9,5 +9,7 @@ export type JarvisEvent =
   | { type: 'scene'; scene: string; data?: unknown; hold?: number }
   | { type: 'say'; text: string }
   | { type: 'end' }
+  /** Karma beyin: cevabın geldiği yol (arayüzdeki gösterge) */
+  | { type: 'yol'; yol: 'bilgisayar' | 'api' | 'ucretsiz' | 'yerel' }
 
 export type Emit = (e: JarvisEvent) => void
