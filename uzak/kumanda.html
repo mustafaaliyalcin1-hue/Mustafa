@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#111418">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Uzak Kumanda</title>
+<style>
+:root{--bg:#111418;--panel:#1b2027;--btn:#262c35;--btn2:#313945;--txt:#e9edf2;--soft:#93a0b0;--acc:#3b82f6;--red:#ef4444}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);font:15px system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+body{display:flex;flex-direction:column;overflow:hidden;user-select:none;-webkit-user-select:none}
+button{font:inherit;color:var(--txt);background:var(--btn);border:0;border-radius:10px;padding:10px 6px;min-height:42px;cursor:pointer}
+button:active{background:var(--btn2);transform:scale(.97)}
+button.on{background:var(--acc)}
+#giris{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:9}
+#giris .kutu{width:min(320px,90vw);text-align:center}
+#giris h1{font-size:22px;margin:0 0 6px}
+#giris p{color:var(--soft);margin:0 0 18px}
+#pin{width:100%;font-size:28px;letter-spacing:8px;text-align:center;padding:12px;border-radius:12px;border:1px solid #333b46;background:var(--panel);color:var(--txt)}
+#giris button{width:100%;margin-top:12px;background:var(--acc);font-weight:600}
+#hata{color:var(--red);min-height:20px;margin-top:8px}
+header{display:flex;gap:6px;padding:8px 8px 6px;align-items:center}
+header .sekme{flex:1}
+#durum{width:10px;height:10px;border-radius:50%;background:var(--red);flex:none}
+#durum.ok{background:#22c55e}
+#alan{flex:1;position:relative;margin:0 8px;border-radius:12px;background:#000;overflow:hidden;touch-action:none}
+#ekran{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none}
+#alan.pad #ekran{opacity:.25}
+#ipucu{position:absolute;left:0;right:0;bottom:8px;text-align:center;color:var(--soft);font-size:12px;pointer-events:none}
+#imlec{position:absolute;width:18px;height:18px;margin:-9px 0 0 -9px;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 2px #0008;pointer-events:none;display:none}
+.alt{padding:8px;display:grid;gap:6px}
+.sira{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.sira5{grid-template-columns:repeat(5,1fr)}
+#metin{grid-column:span 3;font-size:16px;padding:10px;border-radius:10px;border:1px solid #333b46;background:var(--panel);color:var(--txt);user-select:text;-webkit-user-select:text}
+#tuslar{display:none}
+#tuslar.acik{display:grid}
+small{color:var(--soft)}
+</style>
+</head>
+<body>
+<div id="giris"><div class="kutu">
+  <h1>🖥️ Uzak Kumanda</h1>
+  <p>Bilgisayar penceresinde yazan PIN'i gir</p>
+  <input id="pin" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="••••••">
+  <button id="girBtn">Bağlan</button>
+  <div id="hata"></div>
+</div></div>
+
+<header>
+  <span id="durum"></span>
+  <button class="sekme on" data-mod="ekran">📺 Ekran</button>
+  <button class="sekme" data-mod="pad">🖱️ Touchpad</button>
+  <button id="kaliteBtn" style="flex:none;padding:10px 12px">HD</button>
+</header>
+
+<div id="alan"><img id="ekran" alt=""><div id="imlec"></div><div id="ipucu"></div></div>
+
+<div class="alt">
+  <div class="sira">
+    <button data-tik="left">Sol tık</button>
+    <button data-tik="double">Çift tık</button>
+    <button data-tik="right">Sağ tık</button>
+    <button id="surukle">Basılı tut</button>
+  </div>
+  <div class="sira">
+    <input id="metin" placeholder="Yaz ve Gönder…" autocomplete="off" enterkeyhint="send">
+    <button id="gonder">Gönder</button>
+  </div>
+  <div class="sira">
+    <button data-key="enter">Enter ⏎</button>
+    <button data-key="backspace">Sil ⌫</button>
+    <button data-key="esc">Esc</button>
+    <button id="dahaBtn">Tuşlar ▾</button>
+  </div>
+  <div id="tuslar" class="alt" style="padding:0">
+    <div class="sira sira5">
+      <button data-key="tab">Tab</button>
+      <button data-key="up">↑</button>
+      <button data-key="win">⊞ Win</button>
+      <button data-key="space">Boşluk</button>
+      <button data-key="delete">Del</button>
+    </div>
+    <div class="sira sira5">
+      <button data-key="left">←</button>
+      <button data-key="down">↓</button>
+      <button data-key="right">→</button>
+      <button data-key="pageup">PgUp</button>
+      <button data-key="pagedown">PgDn</button>
+    </div>
+    <div class="sira">
+      <button data-hot="alt,tab">Alt+Tab</button>
+      <button data-hot="ctrl,c">Kopyala</button>
+      <button data-hot="ctrl,v">Yapıştır</button>
+      <button data-hot="ctrl,z">Geri al</button>
+    </div>
+    <div class="sira">
+      <button data-hot="alt,f4">Pencere kapat</button>
+      <button data-hot="win,d">Masaüstü</button>
+      <button data-key="f5">F5</button>
+      <button data-key="f11">Tam ekran</button>
+    </div>
+    <div class="sira">
+      <button data-key="volumedown">🔉</button>
+      <button data-key="volumemute">🔇</button>
+      <button data-key="volumeup">🔊</button>
+      <button data-key="playpause">⏯</button>
+    </div>
+    <small>İpucu: İki parmakla kaydır = sayfa kaydırma. Uzun bas = sağ tık.</small>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+let PIN = '';
+try { PIN = localStorage.getItem('uzakPin') || ''; } catch (e) {}
+let mod = 'ekran', hd = false, bagli = false;
+
+function api(v) {
+  return fetch('/api', {method: 'POST', headers: {'Content-Type': 'application/json', 'X-Pin': PIN}, body: JSON.stringify(v)})
+    .then(r => { if (r.status === 403) cikis(); return r; }).catch(() => {});
+}
+
+// ---- giriş ----
+async function dene(p) {
+  try { const r = await fetch('/check', {headers: {'X-Pin': p}}); return r.ok; } catch (e) { return false; }
+}
+async function gir() {
+  const p = $('#pin').value.trim();
+  if (await dene(p)) { PIN = p; try { localStorage.setItem('uzakPin', p); } catch (e) {} basla(); }
+  else $('#hata').textContent = 'PIN yanlış ya da bağlantı yok';
+}
+function cikis() { bagli = false; $('#giris').style.display = 'flex'; }
+$('#girBtn').onclick = gir;
+$('#pin').onkeydown = e => { if (e.key === 'Enter') gir(); };
+
+function basla() { $('#giris').style.display = 'none'; if (!bagli) { bagli = true; yenile(); } }
+
+// ---- ekran görüntüsü döngüsü ----
+let sonUrl = null;
+async function yenile() {
+  if (!bagli) return;
+  const w = Math.round(Math.min(screen.width * devicePixelRatio, hd ? 1920 : 1100));
+  try {
+    const r = await fetch(`/screen?w=${w}&q=${hd ? 70 : 45}&t=${Date.now()}`, {headers: {'X-Pin': PIN}});
+    if (r.status === 403) return cikis();
+    const b = await r.blob();
+    const u = URL.createObjectURL(b);
+    $('#ekran').src = u;
+    if (sonUrl) URL.revokeObjectURL(sonUrl);
+    sonUrl = u;
+    $('#durum').className = 'ok';
+  } catch (e) { $('#durum').className = ''; await bekle(800); }
+  setTimeout(yenile, mod === 'pad' ? 400 : 60);
+}
+const bekle = ms => new Promise(r => setTimeout(r, ms));
+document.addEventListener('visibilitychange', () => { if (!document.hidden && bagli) { bagli = false; basla(); } else if (document.hidden) bagli = false; });
+
+$('#kaliteBtn').onclick = () => { hd = !hd; $('#kaliteBtn').classList.toggle('on', hd); };
+
+// ---- mod ----
+function modSec(m) {
+  mod = m;
+  document.querySelectorAll('.sekme').forEach(b => b.classList.toggle('on', b.dataset.mod === m));
+  $('#alan').classList.toggle('pad', m === 'pad');
+  $('#ipucu').textContent = m === 'ekran' ? 'Dokun = tıkla · Uzun bas = sağ tık · Sürükle = fareyi götür' : 'Parmağını kaydır = fare · Dokun = tıkla · 2 parmak = kaydır';
+}
+document.querySelectorAll('.sekme').forEach(b => b.onclick = () => modSec(b.dataset.mod));
+modSec('ekran');
+
+// ekrandaki görüntünün gerçek kutusu (object-fit: contain)
+function oran(cx, cy) {
+  const img = $('#ekran'), r = $('#alan').getBoundingClientRect();
+  const iw = img.naturalWidth || 16, ih = img.naturalHeight || 9;
+  const s = Math.min(r.width / iw, r.height / ih), w = iw * s, h = ih * s;
+  const ox = r.left + (r.width - w) / 2, oy = r.top + (r.height - h) / 2;
+  return {x: (cx - ox) / w, y: (cy - oy) / h, px: cx - r.left, py: cy - r.top};
+}
+function imlecGoster(p) { const c = $('#imlec'); c.style.display = 'block'; c.style.left = p.px + 'px'; c.style.top = p.py + 'px'; }
+
+// ---- dokunma ----
+const alan = $('#alan');
+let t0 = 0, bas = null, son = null, hareket = 0, uzunZ = null, ikiParmak = false, scrollY = 0;
+let birikX = 0, birikY = 0, gonderZ = null, sonAt = 0;
+
+function hareketGonder() {
+  gonderZ = null;
+  if (birikX || birikY) { api({a: 'move', dx: birikX, dy: birikY}); birikX = birikY = 0; }
+}
+
+alan.addEventListener('touchstart', e => {
+  e.preventDefault();
+  if (e.touches.length === 2) { ikiParmak = true; clearTimeout(uzunZ); scrollY = (e.touches[0].clientY + e.touches[1].clientY) / 2; return; }
+  if (e.touches.length > 1) return;
+  ikiParmak = false;
+  const t = e.touches[0];
+  t0 = Date.now(); bas = son = {x: t.clientX, y: t.clientY}; hareket = 0;
+  clearTimeout(uzunZ);
+  uzunZ = setTimeout(() => {
+    if (hareket < 10) {
+      navigator.vibrate && navigator.vibrate(30);
+      if (mod === 'ekran') { const p = oran(bas.x, bas.y); api({a: 'at', x: p.x, y: p.y, b: 'right'}); }
+      else api({a: 'click', b: 'right'});
+      bas = null;
+    }
+  }, 550);
+}, {passive: false});
+
+alan.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (ikiParmak && e.touches.length >= 2) {
+    const y = (e.touches[0].clientY + e.touches[1].clientY) / 2, d = y - scrollY;
+    if (Math.abs(d) > 12) { api({a: 'scroll', n: Math.round(d / 12) * 60}); scrollY = y; }
+    return;
+  }
+  if (!bas || e.touches.length !== 1) return;
+  const t = e.touches[0];
+  const dx = t.clientX - son.x, dy = t.clientY - son.y;
+  hareket += Math.abs(dx) + Math.abs(dy);
+  son = {x: t.clientX, y: t.clientY};
+  if (hareket > 10) clearTimeout(uzunZ);
+  if (mod === 'pad') {
+    const hiz = Math.hypot(dx, dy), k = 1.6 + Math.min(hiz / 8, 2.5); // hızlı kaydırınca hızlanır
+    birikX += dx * k; birikY += dy * k;
+    if (!gonderZ) gonderZ = setTimeout(hareketGonder, 25);
+  } else if (hareket > 10) {
+    const p = oran(t.clientX, t.clientY); imlecGoster(p);
+    const n = Date.now();
+    if (n - sonAt > 40) { sonAt = n; api({a: 'at', x: p.x, y: p.y}); }
+  }
+}, {passive: false});
+
+alan.addEventListener('touchend', e => {
+  e.preventDefault();
+  clearTimeout(uzunZ);
+  if (ikiParmak) { if (e.touches.length === 0) ikiParmak = false; return; }
+  if (!bas) return;
+  const kisa = Date.now() - t0 < 300 && hareket < 10;
+  if (mod === 'ekran') {
+    const p = oran(son.x, son.y); imlecGoster(p);
+    if (kisa) api({a: 'at', x: p.x, y: p.y, b: 'left'});
+    else api({a: 'at', x: p.x, y: p.y});
+  } else {
+    hareketGonder();
+    if (kisa) api({a: 'click', b: 'left'});
+  }
+  bas = null;
+}, {passive: false});
+
+// fareyle de çalışsın (bilgisayardan test için)
+alan.addEventListener('click', e => { if (mod === 'ekran' && e.pointerType !== 'touch' && !('ontouchstart' in window)) { const p = oran(e.clientX, e.clientY); imlecGoster(p); api({a: 'at', x: p.x, y: p.y, b: 'left'}); } });
+alan.addEventListener('wheel', e => { e.preventDefault(); api({a: 'scroll', n: -Math.sign(e.deltaY) * 120}); }, {passive: false});
+
+// ---- butonlar ----
+document.querySelectorAll('[data-tik]').forEach(b => b.onclick = () => api({a: 'click', b: b.dataset.tik}));
+document.querySelectorAll('[data-key]').forEach(b => b.onclick = () => api({a: 'key', k: b.dataset.key}));
+document.querySelectorAll('[data-hot]').forEach(b => b.onclick = () => api({a: 'hotkey', k: b.dataset.hot.split(',')}));
+$('#surukle').onclick = () => { const on = !$('#surukle').classList.contains('on'); $('#surukle').classList.toggle('on', on); api({a: on ? 'down' : 'up'}); };
+$('#dahaBtn').onclick = () => { const a = $('#tuslar').classList.toggle('acik'); $('#dahaBtn').textContent = a ? 'Tuşlar ▴' : 'Tuşlar ▾'; };
+function metinGonder() { const v = $('#metin').value; if (v) { api({a: 'type', t: v}); $('#metin').value = ''; } }
+$('#gonder').onclick = metinGonder;
+$('#metin').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); if ($('#metin').value) metinGonder(); else api({a: 'key', k: 'enter'}); } };
+
+// açılışta kayıtlı PIN'le otomatik bağlan
+if (PIN) dene(PIN).then(ok => ok ? basla() : cikis()); else $('#pin').focus();
+</script>
+</body>
+</html>
