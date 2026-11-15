@@ -13,3 +13,5 @@ assets/sfx/real/*.wav
 __pycache__/
 vendor/
 grafik/node_modules/
+grafik/public/eldiven/*.mp4
+grafik/public/eldiven/*.webm
