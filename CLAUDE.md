@@ -7,3 +7,6 @@
 - Dikey Instagram tanıtımı (1080x1920): `video/src/reels/TanitimReels.tsx`. Claude Stüdyo eklentileri kullanılmıyor (kullanıcı kapattırdı);
   videolar her zamanki gibi oyundan çekim + Remotion kurgusuyla yapılır.
 - İl simgeleri: `LANDM.defs` (plaka → yerler), modeller `LMK`. Diyarbakır'a (21) hiçbir şey konmayacak (kullanıcı istedi).
+- Minecraft yapay zeka yardımcı: `minecraft-ai/` (Java botu `java/`, Bedrock eklentisi `bedrock/eklenti/scripts/` + köprü `bedrock/kopru.js`,
+  ortak Claude beyni `ortak/beyin.js`). Eklenti `npm run eklenti` ile `minecraft-ai/yapay-zeka-yardimci.mcaddon` olarak üretilir;
+  testler `npm test` (hızlı) ve `npm run test:sim` (sahte Bedrock dünyasında elmas→netherite). Kurulum notu `minecraft-ai/KURULUM.md`.

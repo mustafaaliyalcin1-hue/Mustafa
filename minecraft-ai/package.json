@@ -1,0 +1,26 @@
+{
+  "name": "minecraft-ai-yardimci",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Minecraft'a katılan yapay zeka arkadaş (Java: Mineflayer botu, Bedrock: eklenti + köprü)",
+  "type": "module",
+  "scripts": {
+    "java": "node java/bot.js",
+    "bedrock": "node bedrock/kopru.js",
+    "eklenti": "node bedrock/eklenti-yap.js",
+    "test": "node --test test/ortak.test.js test/kopru.test.js",
+    "test:sim": "node --test test/bedrock-sim.test.js && node --test test/bedrock-nether.test.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.8.0",
+    "adm-zip": "^0.6.1",
+    "dotenv": "^18.0.10",
+    "mineflayer": "^4.39.0",
+    "mineflayer-collectblock": "^1.6.0",
+    "mineflayer-pathfinder": "^2.4.5",
+    "mineflayer-tool": "^1.2.0",
+    "prismarine-schematic": "^1.3.0",
+    "vec3": "^0.2.0",
+    "ws": "^8.23.0"
+  }
+}
