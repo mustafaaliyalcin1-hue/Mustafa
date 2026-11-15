@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Among Us skeci: boşluk kesimi + 9:16 (bulanık zeminli, kadraj kırpılmaz) + hikâye anlarına SFX.
 Konu: oyuncu görev yapıyor → imposter gelip kesiyor → oyuncu yaralanıp düşüyor → imposter vent'e atlayıp kaçıyor.
-Kesilenler (ham video saniyesi): 12.70–14.40 oyuncu düştükten sonraki boş kare; 16.65–son kaydı kapatmaya uzanma.
+Anlar (ham saniye): görev 0–2.8 (dolap), kill 2.8–4.6, vent = imposter kadrajdan çıkış 5.0–5.55, düşüş ~12.4.
+Kesilen: 12.65–son (oyuncu düştükten sonraki boş kare + kamerayı kapatmaya gelme).
 """
 import json
 import os
@@ -13,9 +14,9 @@ from _ortak import AENC, SFX, ffmpeg  # noqa: E402
 
 HAM = os.path.join(ST, 'input', 'amongus_ham.MOV')
 W = os.path.join(ST, 'temp', 'amongus'); os.makedirs(W, exist_ok=True)
-TUT = [(0.0, 12.70), (14.40, 16.65)]
+TUT = [(0.0, 12.65)]
 # hikâye anları (ham saniye) → ses, dB  (konuşma yok; kısık ama duyulur)
-OLAY = [(3.70, 'impact_orta', -15), (4.95, 'whoosh_kisa', -17), (12.30, 'impact_derin', -16), (16.45, 'whoosh_sert', -16)]
+OLAY = [(0.30, 'click_ui', -17), (3.00, 'impact_orta', -14), (5.40, 'whoosh_sert', -15), (12.35, 'impact_derin', -15)]
 
 
 def esle(t):
