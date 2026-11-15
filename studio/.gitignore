@@ -11,3 +11,5 @@ assets/music/test_muzik_*.mp3
 assets/models/
 assets/sfx/real/*.wav
 __pycache__/
+vendor/
+grafik/node_modules/

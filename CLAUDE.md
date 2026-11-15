@@ -11,3 +11,6 @@
   `bash studio/setup.sh`. Her edit isteğinde: ffprobe ile incele → kısa plan → `--onizleme` render + kare kontrolü →
   final. Varsayılan 9:16 Reels 1080x1920, SFX açık (`auto_sfx.py`); orijinallerin üzerine yazma, çıktılar
   `studio/output/` içine tarihli. Bitince dosyayı gönder ve 2–3 satır özetle.
+- **Video skill'leri:** ffmpeg-skill, ghost-editor, shorts (Claude Shorts), OpenMontage kurulu; Higgsfield hazır ama etkin
+  değil (hesap+kredi). Hangi isteğin hangi skill'e gittiği: `studio/CLAUDE.md` → "Hangi istek hangi skill'e gider".
+  Yeni oturumda `bash studio/setup.sh` hepsini (incelenmiş commit'lere sabit) geri kurar. Ücretli servisleri onaysız çağırma.

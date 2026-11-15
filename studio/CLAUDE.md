@@ -26,6 +26,38 @@ Kullanıcıyla Türkçe konuş.
    - **Altyazı:** satırlar asla üst üste binmez (her olay bir sonrakinin başladığı santisaniyede biter).
 6. **Bitince:** dosyayı kullanıcıya gönder (SendUserFile) ve yaptıklarını 2–3 satırla özetle.
 
+## Hangi istek hangi skill'e gider
+Kurulu video skill'leri (kurulum: `bash studio/skills_kur.sh`, setup.sh da çağırır; incelenmiş commit'lere sabit):
+**ffmpeg-skill** (`.claude/skills/ffmpeg-skill`, repoda) · **ghost-editor** (`~/.claude/skills/ghost-editor`) ·
+**shorts** = Claude Shorts (`~/.claude/skills/shorts`) · **OpenMontage** (`studio/vendor/OpenMontage`) ·
+**Higgsfield** (hazır, etkin değil: `studio/skills_notlar/higgsfield.md`).
+
+| İstek | Varsayılan | Neden / alternatif |
+|---|---|---|
+| Kes, birleştir, hız, geçiş, efekt, renk/LUT, yazı, müzik, SFX, Reels export | **stüdyo scripts/** | Türkçe, güvenli alan, -14 LUFS/-1 dBTP garantili; olay zinciriyle auto_sfx |
+| 9:16 dikey kırpma | **scripts/kirp.py** | özne takipli + 1080x1920; ffmpeg-skill `fit.py` yalnız orta kırpar ve büyütmez (testte özne yarıya bölündü) |
+| Altyazı (Türkçe) | **scripts/altyazi.py** | Türkçe büyük harf doğru (İ/I), çakışmasız, güvenli alan; Shorts'ta "İKINCI" hatası var, ffmpeg-skill `caption.py` ikinci seçenek |
+| Sessizlik / nefes kesme | **scripts/kk_sessizlik.py** | nefesleri de atar + punch-in; ffmpeg-skill `silence.py` nefesleri bırakır |
+| Kodlanmış dosyayı platform spec'ine göre denetleme | **ffmpeg-skill `check.py`** (+ `look.py`) | bizde eşdeğeri yok; export sonrası ek QA |
+| Kayıpsız kesme, A/V senkron/drift, HDR→SDR, multicam, toplu klasör, ses temizleme | **ffmpeg-skill** | bu işler için en kapsamlı araç seti |
+| Ham konuşan kafa kaydı → bitmiş reel (en iyi take, altyazı, sahneler, SFX) | **ghost-editor** | tam akış; önce `ghost_gsap_yerel.sh`; yüz takibi modeli ve Gemini yok → altyazı sabit yükseklikte, B-roll QA kapalı |
+| Uzun video → viral kısa klipler (puanlama + yüz takipli kırpma) | **shorts** | Claude Shorts; Türkçe büyük harf hatası için altyazıyı istersen `altyazi.py` ile yeniden bas |
+| Yüzsüz açıklama / veri hikâyesi / animasyonlu grafik video (anahtarsız) | **OpenMontage** | sıfır-anahtar Remotion demoları + HyperFrames; ücretli sağlayıcılar kapalı (bütçe tavanı 0 $) |
+| "Editorial motion graphics" tarzı AI üretimli açıklama videosu | **Higgsfield** (etkin değil) | bulut + kredi; hesap ve onayın olmadan kurulmaz/çağrılmaz |
+
+Çakışmalarda senin araçların silinmedi; skill'ler ek seçenek. Kural: Reels kurgu zinciri stüdyo araçlarıyla,
+denetim ve teknik FFmpeg işleri ffmpeg-skill ile, tam otomatik reel/klip üretimi ghost-editor/shorts ile.
+
+### Skill kullanım notları (bu ortam)
+- **Remotion kullanan skill'ler** (shorts, OpenMontage): `remotion.media` engelli → `bash studio/scripts/remotion_yerel_chrome.sh
+  <remotion klasörü>` yerel Chromium'u bağlar; shorts render'ını `~/.claude/skills/shorts/remotion` içinden çalıştır.
+- **Ghost Editor:** `node $S/scripts/build.mjs $P && bash studio/scripts/ghost_gsap_yerel.sh $P && python3 $S/scripts/finals.py preview $P`
+- **Whisper modeli yok** (HF engelli): ghost/shorts transkripti için `python3 scripts/kk_kelimeler.py video.mp4 --metin-dosya metin.txt
+  --whisper-json words.json` ile hizalanmış kelime zamanı üret (ghost: `transcribe.py --raw words.json`).
+- **Ücretli/hesap isteyenler:** ghost-editor → Gemini (ücretsiz katman, kareler Google'a gider), ElevenLabs (ücretli), Apify
+  (ücretli); OpenMontage → fal, Runway, Kling, HeyGen, ElevenLabs, OpenAI/Sora, Veo, Suno, Higgsfield, Replicate… (hepsi
+  `.env` anahtarına bağlı, `.env` boş, bütçe tavanı 0 $); Higgsfield → hesap + kredi. Hiçbiri onaysız açılmaz.
+
 ## Klasörler
 `input/` kaynak videolar · `output/` çıktılar · `temp/` ara dosyalar · `assets/fonts` (Montserrat Black/ExtraBold/Bold,
 Anton, Bebas Neue — hepsi Türkçe karakterli; yedek DejaVu Sans Bold) · `assets/music` · `assets/sfx` (20 sentez ses +

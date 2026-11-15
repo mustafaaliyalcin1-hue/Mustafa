@@ -95,6 +95,18 @@ if curl -sf -m 10 -o /dev/null https://huggingface.co/api/models/laion/larger_cl
   fi
 else uyar "earshot atlandı (huggingface.co erişimi yok; modeller inemez)"; fi
 
+# 6d. Konuşan kafa modu: kişi maskesi (mediapipe), TTS test girdisi (espeak-ng)
+command -v apt-get >/dev/null && timeout 300 apt-get install -y -qq libegl1 libgles2 libgl1 espeak-ng rsync jq >/dev/null 2>&1
+pip install $PIPF mediapipe >/dev/null 2>&1
+MP=https://storage.googleapis.com/mediapipe-models/image_segmenter
+for m in "selfie_multiclass_256x256/float32/latest/selfie_multiclass_256x256.tflite" "selfie_segmenter/float16/latest/selfie_segmenter.tflite"; do
+  f=assets/models/$(basename "$m"); [ -s "$f" ] || dene2 curl -sSfL -m 120 -o "$f" "$MP/$m" 2>/dev/null || rm -f "$f"
+done
+ls assets/models/*.tflite >/dev/null 2>&1 && ok "kişi maskesi modelleri (mediapipe)" || uyar "mediapipe modelleri inmedi → kk_maske.py rembg'ye düşer"
+
+echo "== 6e. Video skill'leri (ffmpeg-skill, Ghost Editor, Claude Shorts, OpenMontage, Higgsfield notu)"
+bash skills_kur.sh
+
 echo "== 7. Hızlı doğrulama"
 python3 scripts/kesim.py kes input/klip1_mandelbrot.mp4 --bas 0 --son 1 --onizleme -o temp/_setup_test.mp4 >/dev/null 2>&1 \
   && ok "araç zinciri çalışıyor" || uyar "hızlı test başarısız: bash scripts/test_hepsi.sh ile ayrıntı"

@@ -1,0 +1,14 @@
+{
+  "name": "studio-grafik",
+  "private": true,
+  "description": "Konuşan kafa modu için hareketli grafik katmanları (Remotion, şeffaf çıktı)",
+  "dependencies": {
+    "@remotion/cli": "4.0.538",
+    "remotion": "4.0.538",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "@fontsource/unbounded": "5.2.8",
+    "@fontsource/inter": "5.2.8"
+  },
+  "devDependencies": { "@types/react": "19.2.2", "typescript": "5.9.3" }
+}
