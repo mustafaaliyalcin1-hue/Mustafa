@@ -15,7 +15,9 @@ Telefonda ac :  http://192.168.1.25:8765
 PIN          :  396849
 ```
 Telefonu **aynı Wi-Fi'a** bağla, tarayıcıda bu adresi aç, PIN'i gir. Bitti.
-Windows "güvenlik duvarı" sorarsa **Özel ağlar → İzin ver** de.
+Windows "güvenlik duvarı" sorarsa **Özel ağlar** kutusunu işaretle ve **İzin ver** de.
+Evdeki Wi-Fi Windows'ta "Ortak" ağ olarak görünüyorsa telefon yine bağlanamaz. Bu durumda
+Ayarlar → Ağ ve İnternet → Wi-Fi → ağın adı → **Ağ profili türü: Özel** yap.
 
 İpucu: Tarayıcı menüsünden "Ana ekrana ekle" dersen uygulama gibi açılır. Ekranı büyük görmek için telefonu yan çevir.
 
@@ -24,6 +26,7 @@ Windows "güvenlik duvarı" sorarsa **Özel ağlar → İzin ver** de.
 - **🖱️ Touchpad modu:** laptop touchpad'i gibi. Kaydır = fare, dokun = tık.
 - **İki parmakla kaydır** = sayfa aşağı/yukarı.
 - **Yaz ve Gönder** kutusu: telefonda yazdığın metin bilgisayara yazılır (Türkçe karakter dahil).
+- **Hızlı iki dokunuş** = çift tık.
 - **Tuşlar ▾:** ok tuşları, Alt+Tab, kopyala/yapıştır, ses aç/kıs, pencere kapat vb.
 - **HD:** daha net görüntü (biraz daha yavaş).
 
@@ -31,4 +34,9 @@ Windows "güvenlik duvarı" sorarsa **Özel ağlar → İzin ver** de.
 - PIN ilk açılışta rastgele üretilir ve `pin.txt`'ye kaydedilir. Değiştirmek istersen bu dosyayı düzenle (silersen yenisi üretilir).
 - 8 yanlış PIN denemesinde o cihaz 1 dakika engellenir.
 - Sadece ev/iş ağında kullan; modemden dışarıya port açma.
-- Port değiştirmek için: `UZAK_PORT=9000` ortam değişkeni.
+- Port değiştirmek için `baslat.bat`'ı Not Defteri ile aç ve `rem set UZAK_PORT=9000` satırının başındaki `rem ` yazısını sil.
+
+## Bilinen sınırlar
+- Sadece **ana ekran** görünür ve kontrol edilir (ikinci monitör görünmez).
+- Görev Yöneticisi, kurulum programları ve "yönetici izni" pencereleri telefondan gelen tıklamaları kabul etmez (Windows güvenliği). Bunları bilgisayarın başında onayla.
+- Bilgisayar kilitlenince ekran telefonda görünmez.

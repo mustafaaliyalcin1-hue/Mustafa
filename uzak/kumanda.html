@@ -27,8 +27,9 @@ header .sekme{flex:1}
 #durum.ok{background:#22c55e}
 #alan{flex:1;position:relative;margin:0 8px;border-radius:12px;background:#000;overflow:hidden;touch-action:none}
 #ekran{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none}
-#alan.pad #ekran{opacity:.25}
+#alan.pad #ekran{opacity:.6}
 #ipucu{position:absolute;left:0;right:0;bottom:8px;text-align:center;color:var(--soft);font-size:12px;pointer-events:none}
+#uyari{position:absolute;left:10px;right:10px;top:10px;padding:10px;border-radius:10px;background:#7f1d1dee;color:#fff;font-size:13px;text-align:center;display:none;pointer-events:none}
 #imlec{position:absolute;width:18px;height:18px;margin:-9px 0 0 -9px;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 2px #0008;pointer-events:none;display:none}
 .alt{padding:8px;display:grid;gap:6px}
 .sira{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
@@ -43,7 +44,7 @@ small{color:var(--soft)}
 <div id="giris"><div class="kutu">
   <h1>🖥️ Uzak Kumanda</h1>
   <p>Bilgisayar penceresinde yazan PIN'i gir</p>
-  <input id="pin" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="••••••">
+  <input id="pin" inputmode="numeric" autocomplete="off" maxlength="32" placeholder="••••••">
   <button id="girBtn">Bağlan</button>
   <div id="hata"></div>
 </div></div>
@@ -55,7 +56,7 @@ small{color:var(--soft)}
   <button id="kaliteBtn" style="flex:none;padding:10px 12px">HD</button>
 </header>
 
-<div id="alan"><img id="ekran" alt=""><div id="imlec"></div><div id="ipucu"></div></div>
+<div id="alan"><img id="ekran" alt=""><div id="imlec"></div><div id="ipucu"></div><div id="uyari"></div></div>
 
 <div class="alt">
   <div class="sira">
@@ -107,7 +108,7 @@ small{color:var(--soft)}
       <button data-key="volumeup">🔊</button>
       <button data-key="playpause">⏯</button>
     </div>
-    <small>İpucu: İki parmakla kaydır = sayfa kaydırma. Uzun bas = sağ tık.</small>
+    <small>İpucu: İki parmakla kaydır = sayfa kaydırma. Uzun bas = sağ tık. Hızlı iki dokunuş = çift tık. Basılı tut açıkken dokunmak sadece fareyi götürür (sürüklemek için).</small>
   </div>
 </div>
 
@@ -115,47 +116,58 @@ small{color:var(--soft)}
 const $ = s => document.querySelector(s);
 let PIN = '';
 try { PIN = localStorage.getItem('uzakPin') || ''; } catch (e) {}
-let mod = 'ekran', hd = false, bagli = false;
+let mod = 'ekran', hd = false, girisli = false, dongu = 0, tutuluyor = false;
 
-function api(v) {
-  return fetch('/api', {method: 'POST', headers: {'Content-Type': 'application/json', 'X-Pin': PIN}, body: JSON.stringify(v)})
+function api(v, keepalive) {
+  return fetch('/api', {method: 'POST', keepalive: !!keepalive, headers: {'Content-Type': 'application/json', 'X-Pin': PIN}, body: JSON.stringify(v)})
     .then(r => { if (r.status === 403) cikis(); return r; }).catch(() => {});
 }
 
 // ---- giriş ----
 async function dene(p) {
-  try { const r = await fetch('/check', {headers: {'X-Pin': p}}); return r.ok; } catch (e) { return false; }
+  try { const r = await fetch('/check', {headers: {'X-Pin': p}}); return r.status; } catch (e) { return 0; }
 }
 async function gir() {
   const p = $('#pin').value.trim();
-  if (await dene(p)) { PIN = p; try { localStorage.setItem('uzakPin', p); } catch (e) {} basla(); }
-  else $('#hata').textContent = 'PIN yanlış ya da bağlantı yok';
+  const s = await dene(p);
+  if (s === 200) { PIN = p; try { localStorage.setItem('uzakPin', p); } catch (e) {} basla(); }
+  else $('#hata').textContent = s === 429 ? 'Çok fazla yanlış deneme. 1 dakika bekle.' : s === 403 ? 'PIN yanlış' : 'Bilgisayara ulaşılamıyor';
 }
-function cikis() { bagli = false; $('#giris').style.display = 'flex'; }
+function cikis() { girisli = false; dongu++; birak(); $('#giris').style.display = 'flex'; }
 $('#girBtn').onclick = gir;
 $('#pin').onkeydown = e => { if (e.key === 'Enter') gir(); };
 
-function basla() { $('#giris').style.display = 'none'; if (!bagli) { bagli = true; yenile(); } }
+function basla() { $('#giris').style.display = 'none'; girisli = true; dongu++; yenile(dongu); }
 
-// ---- ekran görüntüsü döngüsü ----
+// ---- ekran görüntüsü döngüsü (aynı anda tek döngü) ----
 let sonUrl = null;
-async function yenile() {
-  if (!bagli) return;
+const bekle = ms => new Promise(r => setTimeout(r, ms));
+function durum(ok, mesaj) { $('#durum').className = ok ? 'ok' : ''; $('#uyari').textContent = mesaj || ''; $('#uyari').style.display = mesaj ? 'block' : 'none'; }
+async function yenile(id) {
+  if (id !== dongu || !girisli || document.hidden) return;
   const w = Math.round(Math.min(screen.width * devicePixelRatio, hd ? 1920 : 1100));
   try {
     const r = await fetch(`/screen?w=${w}&q=${hd ? 70 : 45}&t=${Date.now()}`, {headers: {'X-Pin': PIN}});
     if (r.status === 403) return cikis();
-    const b = await r.blob();
-    const u = URL.createObjectURL(b);
-    $('#ekran').src = u;
-    if (sonUrl) URL.revokeObjectURL(sonUrl);
-    sonUrl = u;
-    $('#durum').className = 'ok';
-  } catch (e) { $('#durum').className = ''; await bekle(800); }
-  setTimeout(yenile, mod === 'pad' ? 400 : 60);
+    if (!r.ok) {
+      durum(false, r.status === 429 ? 'Çok fazla deneme, bekleniyor…' : 'Ekran alınamıyor (bilgisayar kilitli ya da yönetici izni penceresi açık olabilir)');
+      await bekle(1500);
+    } else {
+      const b = await r.blob();
+      const u = URL.createObjectURL(b);
+      $('#ekran').src = u;
+      if (sonUrl) URL.revokeObjectURL(sonUrl);
+      sonUrl = u;
+      durum(true);
+    }
+  } catch (e) { durum(false, 'Bağlantı yok — bilgisayardaki siyah pencere açık mı?'); await bekle(1000); }
+  setTimeout(() => yenile(id), mod === 'pad' ? 150 : 60);
 }
-const bekle = ms => new Promise(r => setTimeout(r, ms));
-document.addEventListener('visibilitychange', () => { if (!document.hidden && bagli) { bagli = false; basla(); } else if (document.hidden) bagli = false; });
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) birak();
+  else if (girisli) { dongu++; yenile(dongu); }
+});
+window.addEventListener('pagehide', birak);
 
 $('#kaliteBtn').onclick = () => { hd = !hd; $('#kaliteBtn').classList.toggle('on', hd); };
 
@@ -164,54 +176,63 @@ function modSec(m) {
   mod = m;
   document.querySelectorAll('.sekme').forEach(b => b.classList.toggle('on', b.dataset.mod === m));
   $('#alan').classList.toggle('pad', m === 'pad');
+  $('#imlec').style.display = 'none';
   $('#ipucu').textContent = m === 'ekran' ? 'Dokun = tıkla · Uzun bas = sağ tık · Sürükle = fareyi götür' : 'Parmağını kaydır = fare · Dokun = tıkla · 2 parmak = kaydır';
 }
 document.querySelectorAll('.sekme').forEach(b => b.onclick = () => modSec(b.dataset.mod));
 modSec('ekran');
 
-// ekrandaki görüntünün gerçek kutusu (object-fit: contain)
+// ekrandaki görüntünün gerçek kutusu (object-fit: contain); dışarısı = siyah boşluk
 function oran(cx, cy) {
   const img = $('#ekran'), r = $('#alan').getBoundingClientRect();
-  const iw = img.naturalWidth || 16, ih = img.naturalHeight || 9;
+  const iw = img.naturalWidth, ih = img.naturalHeight;
+  if (!iw || !ih) return null;
   const s = Math.min(r.width / iw, r.height / ih), w = iw * s, h = ih * s;
   const ox = r.left + (r.width - w) / 2, oy = r.top + (r.height - h) / 2;
-  return {x: (cx - ox) / w, y: (cy - oy) / h, px: cx - r.left, py: cy - r.top};
+  const p = {x: (cx - ox) / w, y: (cy - oy) / h, px: cx - r.left, py: cy - r.top};
+  return (p.x < 0 || p.x > 1 || p.y < 0 || p.y > 1) ? null : p;
 }
 function imlecGoster(p) { const c = $('#imlec'); c.style.display = 'block'; c.style.left = p.px + 'px'; c.style.top = p.py + 'px'; }
 
 // ---- dokunma ----
 const alan = $('#alan');
-let t0 = 0, bas = null, son = null, hareket = 0, uzunZ = null, ikiParmak = false, scrollY = 0;
-let birikX = 0, birikY = 0, gonderZ = null, sonAt = 0;
+let bas = null, son = null, hareket = 0, uzunZ = null, ikiParmak = false, scrollY = 0, scrollBirik = 0;
+let birikX = 0, birikY = 0, gonderZ = null, sonAt = 0, sonDokunma = 0, oncekiTik = null;
 
 function hareketGonder() {
   gonderZ = null;
-  if (birikX || birikY) { api({a: 'move', dx: birikX, dy: birikY}); birikX = birikY = 0; }
+  const dx = Math.round(birikX), dy = Math.round(birikY);
+  if (dx || dy) { api({a: 'move', dx, dy}); birikX -= dx; birikY -= dy; } // küsurat kaybolmasın
 }
 
 alan.addEventListener('touchstart', e => {
   e.preventDefault();
-  if (e.touches.length === 2) { ikiParmak = true; clearTimeout(uzunZ); scrollY = (e.touches[0].clientY + e.touches[1].clientY) / 2; return; }
-  if (e.touches.length > 1) return;
-  ikiParmak = false;
+  if (e.touches.length >= 2) {
+    ikiParmak = true; bas = null; clearTimeout(uzunZ);
+    scrollY = (e.touches[0].clientY + e.touches[1].clientY) / 2; scrollBirik = 0;
+    return;
+  }
+  if (ikiParmak) return;
   const t = e.touches[0];
-  t0 = Date.now(); bas = son = {x: t.clientX, y: t.clientY}; hareket = 0;
+  bas = son = {x: t.clientX, y: t.clientY}; hareket = 0;
   clearTimeout(uzunZ);
   uzunZ = setTimeout(() => {
-    if (hareket < 10) {
-      navigator.vibrate && navigator.vibrate(30);
-      if (mod === 'ekran') { const p = oran(bas.x, bas.y); api({a: 'at', x: p.x, y: p.y, b: 'right'}); }
-      else api({a: 'click', b: 'right'});
-      bas = null;
-    }
+    if (!bas || hareket >= 10) return;
+    navigator.vibrate && navigator.vibrate(30);
+    if (mod === 'ekran') { const p = oran(bas.x, bas.y); if (p) { imlecGoster(p); api({a: 'at', x: p.x, y: p.y, b: 'right'}); } }
+    else api({a: 'click', b: 'right'});
+    bas = null;
   }, 550);
 }, {passive: false});
 
 alan.addEventListener('touchmove', e => {
   e.preventDefault();
-  if (ikiParmak && e.touches.length >= 2) {
-    const y = (e.touches[0].clientY + e.touches[1].clientY) / 2, d = y - scrollY;
-    if (Math.abs(d) > 12) { api({a: 'scroll', n: Math.round(d / 12) * 60}); scrollY = y; }
+  if (ikiParmak) {
+    if (e.touches.length < 2) return;
+    const y = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+    scrollBirik += y - scrollY; scrollY = y;
+    const n = Math.trunc(scrollBirik / 30);
+    if (n) { api({a: 'scroll', n}); scrollBirik -= n * 30; }
     return;
   }
   if (!bas || e.touches.length !== 1) return;
@@ -225,7 +246,9 @@ alan.addEventListener('touchmove', e => {
     birikX += dx * k; birikY += dy * k;
     if (!gonderZ) gonderZ = setTimeout(hareketGonder, 25);
   } else if (hareket > 10) {
-    const p = oran(t.clientX, t.clientY); imlecGoster(p);
+    const p = oran(t.clientX, t.clientY);
+    if (!p) return;
+    imlecGoster(p);
     const n = Date.now();
     if (n - sonAt > 40) { sonAt = n; api({a: 'at', x: p.x, y: p.y}); }
   }
@@ -233,37 +256,52 @@ alan.addEventListener('touchmove', e => {
 
 alan.addEventListener('touchend', e => {
   e.preventDefault();
+  sonDokunma = Date.now();
   clearTimeout(uzunZ);
   if (ikiParmak) { if (e.touches.length === 0) ikiParmak = false; return; }
-  if (!bas) return;
-  const kisa = Date.now() - t0 < 300 && hareket < 10;
+  if (!bas) return; // uzun basma zaten sağ tık yaptı
+  const tik = hareket < 10;
   if (mod === 'ekran') {
-    const p = oran(son.x, son.y); imlecGoster(p);
-    if (kisa) api({a: 'at', x: p.x, y: p.y, b: 'left'});
-    else api({a: 'at', x: p.x, y: p.y});
+    let p = oran(son.x, son.y);
+    bas = null;
+    if (!p) return; // siyah boşluğa dokunuldu
+    // çift dokunma: ikinci dokunuşu birincinin üstüne oturt ki bilgisayar çift tık algılasın
+    const n = Date.now();
+    if (tik && oncekiTik && n - oncekiTik.t < 500 && Math.hypot(p.px - oncekiTik.p.px, p.py - oncekiTik.p.py) < 25) p = oncekiTik.p;
+    imlecGoster(p);
+    if (tik && !tutuluyor) { api({a: 'at', x: p.x, y: p.y, b: 'left'}); oncekiTik = {t: n, p}; }
+    else api({a: 'at', x: p.x, y: p.y}); // basılı tutarken sadece götür
   } else {
     hareketGonder();
-    if (kisa) api({a: 'click', b: 'left'});
+    if (tik && !tutuluyor) api({a: 'click', b: 'left'});
   }
   bas = null;
 }, {passive: false});
 
-// fareyle de çalışsın (bilgisayardan test için)
-alan.addEventListener('click', e => { if (mod === 'ekran' && e.pointerType !== 'touch' && !('ontouchstart' in window)) { const p = oran(e.clientX, e.clientY); imlecGoster(p); api({a: 'at', x: p.x, y: p.y, b: 'left'}); } });
-alan.addEventListener('wheel', e => { e.preventDefault(); api({a: 'scroll', n: -Math.sign(e.deltaY) * 120}); }, {passive: false});
+// fareyle de çalışsın (bilgisayardan / dokunmatik laptoptan)
+alan.addEventListener('click', e => {
+  if (mod !== 'ekran' || Date.now() - sonDokunma < 800) return;
+  const p = oran(e.clientX, e.clientY); if (!p) return;
+  imlecGoster(p); api({a: 'at', x: p.x, y: p.y, b: 'left'});
+});
+alan.addEventListener('wheel', e => { e.preventDefault(); api({a: 'scroll', n: -Math.sign(e.deltaY)}); }, {passive: false});
 
 // ---- butonlar ----
 document.querySelectorAll('[data-tik]').forEach(b => b.onclick = () => api({a: 'click', b: b.dataset.tik}));
 document.querySelectorAll('[data-key]').forEach(b => b.onclick = () => api({a: 'key', k: b.dataset.key}));
 document.querySelectorAll('[data-hot]').forEach(b => b.onclick = () => api({a: 'hotkey', k: b.dataset.hot.split(',')}));
-$('#surukle').onclick = () => { const on = !$('#surukle').classList.contains('on'); $('#surukle').classList.toggle('on', on); api({a: on ? 'down' : 'up'}); };
+function birak() { if (tutuluyor) { tutuluyor = false; $('#surukle').classList.remove('on'); api({a: 'up'}, true); } }
+$('#surukle').onclick = () => {
+  if (tutuluyor) return birak();
+  tutuluyor = true; $('#surukle').classList.add('on'); api({a: 'down'});
+};
 $('#dahaBtn').onclick = () => { const a = $('#tuslar').classList.toggle('acik'); $('#dahaBtn').textContent = a ? 'Tuşlar ▴' : 'Tuşlar ▾'; };
 function metinGonder() { const v = $('#metin').value; if (v) { api({a: 'type', t: v}); $('#metin').value = ''; } }
 $('#gonder').onclick = metinGonder;
 $('#metin').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); if ($('#metin').value) metinGonder(); else api({a: 'key', k: 'enter'}); } };
 
 // açılışta kayıtlı PIN'le otomatik bağlan
-if (PIN) dene(PIN).then(ok => ok ? basla() : cikis()); else $('#pin').focus();
+if (PIN) dene(PIN).then(s => s === 200 ? basla() : cikis()); else $('#pin').focus();
 </script>
 </body>
 </html>

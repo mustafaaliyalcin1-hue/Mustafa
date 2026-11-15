@@ -84,7 +84,10 @@ Klasörün içinde şunlar olmalı:
    - **"Özel ağlar"** kutusunun işaretli olduğundan emin ol,
    - **"Erişime izin ver"** düğmesine bas.
    - Bunu yapmazsan telefon bilgisayara bağlanamaz.
-5. Siyah pencerede şöyle bir yazı görürsün:
+   - ⚠️ Evdeki Wi-Fi'n Windows'ta **"Ortak"** ağ olarak ayarlıysa bu izin yetmez. Kontrol et:
+     **Ayarlar → Ağ ve İnternet → Wi-Fi → bağlı olduğun ağın adı → Ağ profili türü**.
+     **"Özel"** seçili olmalı. (Sadece kendi evindeki/işindeki ağ için yap, kafedeki ağ için yapma.)
+5. Siyah pencerede şöyle bir yazı görürsün (bazen altında "olmazsa dene" diye ikinci bir adres de çıkar; ilki açılmazsa onu dene):
 
 ```
 ==============================================
@@ -149,7 +152,8 @@ Telefonun ana ekranında bir simge çıkar. Ona dokunarak doğrudan açılır.
 
 ### Ekran modunda
 
-- **Bir yere dokun** → orası tıklanır
+- **Bir yere dokun** → orası tıklanır (görüntünün dışındaki siyah alana dokunmak bir şey yapmaz)
+- **Aynı yere hızlıca iki kez dokun** → çift tık (dosya/klasör açmak için)
 - **Uzun bas** (yarım saniye) → sağ tık
 - **Parmağını sürükle** → fare imleci parmağını takip eder
 - **İki parmakla yukarı/aşağı kaydır** → sayfa kaydırma
@@ -160,11 +164,12 @@ Telefonun ana ekranında bir simge çıkar. Ona dokunarak doğrudan açılır.
 - **Kısa dokun** → sol tık
 - **Uzun bas** → sağ tık
 - **İki parmakla kaydır** → sayfa kaydırma
+- Ekran soluk görünür; farenin yeri ekranda **beyaz halka içinde kırmızı nokta** olarak gösterilir.
 
 ### Alttaki düğmeler
 
 - **Sol tık / Çift tık / Sağ tık** — farenin olduğu yerde tıklar
-- **Basılı tut** — sol tuşu basılı tutar (bir şeyi sürüklemek için). Bırakmak için tekrar bas.
+- **Basılı tut** — sol tuşu basılı tutar (bir şeyi sürüklemek için). Açıkken ekrana dokunmak sadece fareyi götürür. Bırakmak için düğmeye tekrar bas. Uygulamadan çıkarsan kendiliğinden bırakılır.
 - **Yaz ve Gönder** — telefonda yazdığın metni bilgisayara yazar. Türkçe karakterler çalışır.
   Kutu boşken klavyedeki Enter'a basarsan bilgisayara Enter gönderir.
 - **Enter / Sil / Esc** — tek tuş
@@ -195,13 +200,16 @@ Artık bilgisayar her açıldığında uygulama kendiliğinden başlar.
 
 | Sorun | Çözüm |
 |---|---|
-| `baslat.bat`'a tıklayınca pencere açılıp hemen kapanıyor / "python tanınmıyor" yazıyor | Python kurulu değil veya **"Add to PATH"** işaretlenmemiş. Bölüm 1'e dön. |
+| "Python bulunamadi!" yazıyor | Python kurulu değil. Bölüm 1'e dön, **"Add to PATH"** kutusunu işaretlemeyi unutma. |
+| "Port 8765 kullanımda" yazıyor | Uygulama zaten açık (görev çubuğunda başka bir siyah pencere var). Onu kullan ya da kapatıp tekrar başlat. |
+| Telefonda kırmızı "Ekran alınamıyor" yazısı çıkıyor | Bilgisayar kilitli ya da ekranda bir "yönetici izni" penceresi açık. Bilgisayarın başında kilidi aç / pencereyi onayla. |
+| Görev Yöneticisi, kurulum pencereleri tıklanmıyor | Windows güvenliği gereği bu pencereler telefondan kontrol edilemez. Bilgisayarın başında onayla. |
+| İkinci monitör görünmüyor | Şimdilik sadece ana ekran destekleniyor. |
 | Telefonda sayfa açılmıyor ("siteye ulaşılamıyor") | 1) Telefon Wi-Fi'da mı, mobil veride mi? 2) Aynı modeme mi bağlılar? 3) Adresi doğru yazdın mı (`http://` ve `:8765` dahil)? 4) Güvenlik duvarına izin verdin mi? (Aşağıya bak) |
 | Güvenlik duvarı sorusunu yanlışlıkla kapattım | Başlat menüsüne **"Güvenlik duvarı üzerinden uygulamaya izin ver"** yaz → **Ayarları değiştir** → listede **Python**'u bul → **Özel** kutusunu işaretle → Tamam. |
 | Wi-Fi ağı "Ortak" olarak ayarlı | Windows Ayarlar → Ağ ve İnternet → Wi-Fi → bağlı olduğun ağ → **Ağ profili türü: Özel** yap. |
-| "PIN yanlış" diyor | Siyah penceredeki PIN'i tekrar kontrol et. 8 kez yanlış girilirse 1 dakika beklemen gerekir. |
+| "PIN yanlış" diyor | Siyah penceredeki PIN'i tekrar kontrol et. 8 kez yanlış girilirse ekranda "1 dakika bekle" yazar; bekleyip tekrar dene. |
 | Adres her gün değişiyor | Modem bilgisayara her seferinde farklı numara verebilir. Siyah pencerede yazan güncel adresi kullan. Sabitlemek istersen modem ayarlarından bilgisayara "sabit IP" verilebilir. |
-| Tıklamalar yanlış yere gidiyor | Ekran ölçeklendirmesi yüksek olan dizüstü bilgisayarlarda olabilir. Bana haber ver, düzeltelim. |
 | Görüntü yavaş / takılıyor | **HD**'yi kapat. Telefonu modeme yaklaştır. |
 | Mac'te ekran siyah görünüyor | **Ekran Kaydı** izni verilmemiş. Bölüm 3 → Mac → 4. adım. |
 
@@ -211,7 +219,7 @@ Artık bilgisayar her açıldığında uygulama kendiliğinden başlar.
 
 - PIN ilk çalıştırmada rastgele oluşturulur ve klasördeki **`pin.txt`** dosyasına kaydedilir.
   - PIN'i değiştirmek istersen `pin.txt`'yi Not Defteri ile açıp istediğin sayıyı yaz, kaydet,
-    uygulamayı yeniden başlat.
+    uygulamayı yeniden başlat. (Sadece rakam kullanman en iyisi; Türkçe harf kullanma.)
   - `pin.txt`'yi silersen bir sonraki açılışta yeni bir PIN üretilir.
 - PIN'i kimseyle paylaşma. Aynı Wi-Fi'daki biri PIN'i bilirse bilgisayarını kontrol edebilir.
 - Uygulama sadece **ev veya iş ağının içinde** çalışır. Dışarıdan (başka bir yerden, mobil veriyle)
