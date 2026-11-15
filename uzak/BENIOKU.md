@@ -22,7 +22,7 @@ Ayarlar → Ağ ve İnternet → Wi-Fi → ağın adı → **Ağ profili türü:
 İpucu: Tarayıcı menüsünden "Ana ekrana ekle" dersen uygulama gibi açılır. Ekranı büyük görmek için telefonu yan çevir.
 
 ## Dışarıdan (aynı Wi-Fi olmadan)
-Mobil veriden ya da başka bir yerden bağlanmak için **UZAKTAN.md**'ye bak (ücretsiz Tailscale ile, port açmadan).
+İnternet modu varsayılan olarak açık: siyah pencerede çıkan **ntfy.sh** linkini telefonda yer imine ekle; bilgisayarın her yeni adresi oraya gelir. Telefona uygulama kurmak ya da port açmak gerekmez. Ayrıntılar: **UZAKTAN.md**.
 
 ## Kullanım
 - **📺 Ekran modu:** bilgisayar ekranını görürsün. Dokun = o noktaya tıkla, uzun bas = sağ tık, parmağı sürükle = fareyi götür.

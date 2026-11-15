@@ -92,8 +92,8 @@ Klasörün içinde şunlar olmalı:
 ```
 ==============================================
   UZAK KUMANDA calisiyor
-  Telefonda ac :  http://192.168.1.25:8765
-  PIN          :  396849
+  Aynı Wi-Fi'dan  :  http://192.168.1.25:8765
+  Şifre           :  kx7m-p9qt-4bnz
   (Telefon ve bilgisayar ayni Wi-Fi'da olmali)
   Kapatmak icin bu pencereyi kapat / Ctrl+C
 ==============================================
@@ -230,5 +230,11 @@ Artık bilgisayar her açıldığında uygulama kendiliğinden başlar.
 
 ## BÖLÜM 8 — Aynı Wi-Fi olmadan, her yerden bağlanmak
 
-Telefon mobil veride ya da başka bir yerdeyken de bağlanmak istiyorsan **UZAKTAN.md** dosyasına bak.
-Ücretsiz **Tailscale** uygulamasıyla 5 dakikada kurulur. Modemde ayar yapmak gerekmez ve bağlantı şifrelidir.
+**İnternet modu** varsayılan olarak açık. Siyah pencerede bir süre sonra şunlar görünür:
+```
+  İNTERNETTEN     :  https://ornek-kelimeler.trycloudflare.com
+  Telefondaki yer imi (adres değişince burada görünür):
+                     https://ntfy.sh/uzak-xxxxxxxxxxxxxxxxxxxxxxxx
+```
+Alttaki **ntfy.sh** linkini telefonda aç ve yer imine ekle. Bağlanmak istediğinde bu sayfayı açıp en yeni linke dokun.
+Ayrıntılar ve güvenlik notları **UZAKTAN.md** dosyasında.

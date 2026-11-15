@@ -18,7 +18,7 @@ button.on{background:var(--acc)}
 #giris .kutu{width:min(320px,90vw);text-align:center}
 #giris h1{font-size:22px;margin:0 0 6px}
 #giris p{color:var(--soft);margin:0 0 18px}
-#pin{width:100%;font-size:28px;letter-spacing:8px;text-align:center;padding:12px;border-radius:12px;border:1px solid #333b46;background:var(--panel);color:var(--txt)}
+#pin{width:100%;font-size:24px;letter-spacing:2px;text-align:center;padding:12px;border-radius:12px;border:1px solid #333b46;background:var(--panel);color:var(--txt)}
 #giris button{width:100%;margin-top:12px;background:var(--acc);font-weight:600}
 #hata{color:var(--red);min-height:20px;margin-top:8px}
 header{display:flex;gap:6px;padding:8px 8px 6px;align-items:center}
@@ -43,8 +43,8 @@ small{color:var(--soft)}
 <body>
 <div id="giris"><div class="kutu">
   <h1>🖥️ Uzak Kumanda</h1>
-  <p>Bilgisayar penceresinde yazan PIN'i gir</p>
-  <input id="pin" inputmode="numeric" autocomplete="off" maxlength="32" placeholder="••••••">
+  <p>Bilgisayar penceresinde yazan PIN'i / şifreyi gir</p>
+  <input id="pin" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="32" placeholder="PIN / şifre">
   <button id="girBtn">Bağlan</button>
   <div id="hata"></div>
 </div></div>
@@ -116,6 +116,9 @@ small{color:var(--soft)}
 const $ = s => document.querySelector(s);
 let PIN = '';
 try { PIN = localStorage.getItem('uzakPin') || ''; } catch (e) {}
+// bildirimdeki link şifreyi # sonrasında taşır (sunucuya gönderilmez); alıp adres çubuğundan sil
+const hashK = new URLSearchParams(location.hash.slice(1)).get('k');
+if (hashK) { PIN = hashK; try { localStorage.setItem('uzakPin', hashK); } catch (e) {} history.replaceState(null, '', location.pathname); }
 let mod = 'ekran', hd = false, girisli = false, dongu = 0, tutuluyor = false;
 
 function api(v, keepalive) {
@@ -131,7 +134,7 @@ async function gir() {
   const p = $('#pin').value.trim();
   const s = await dene(p);
   if (s === 200) { PIN = p; try { localStorage.setItem('uzakPin', p); } catch (e) {} basla(); }
-  else $('#hata').textContent = s === 429 ? 'Çok fazla yanlış deneme. 1 dakika bekle.' : s === 403 ? 'PIN yanlış' : 'Bilgisayara ulaşılamıyor';
+  else $('#hata').textContent = s === 429 ? 'Çok fazla yanlış deneme. 1 dakika bekle.' : s === 403 ? 'PIN / şifre yanlış' : 'Bilgisayara ulaşılamıyor';
 }
 function cikis() { girisli = false; dongu++; birak(); $('#giris').style.display = 'flex'; }
 $('#girBtn').onclick = gir;

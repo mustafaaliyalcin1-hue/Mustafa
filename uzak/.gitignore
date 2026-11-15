@@ -1,1 +1,7 @@
 pin.txt
+adres.txt
+bildirim_konusu.txt
+cloudflared
+cloudflared.exe
+*.indiriliyor
+__pycache__/

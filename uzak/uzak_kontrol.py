@@ -39,16 +39,40 @@ WIN, MAC = SISTEM == "Windows", SISTEM == "Darwin"
 MAKS_HATA, KILIT_SN = 8, 60
 
 
+def ayarlar_al():
+    a = {"tunel": False, "bildirim": True}
+    try:
+        with open(os.path.join(KLASOR, "ayarlar.json"), encoding="utf-8-sig") as f:
+            a.update(json.load(f))
+    except FileNotFoundError:
+        pass
+    except Exception as e:
+        print("UYARI: ayarlar.json okunamadı:", e)
+    return a
+
+
+AYAR = ayarlar_al()
+GUCLU_HARFLER = "abcdefghjkmnpqrstuvwxyz23456789"  # karışan harfler (l, 1, o, 0, i) yok
+
+
+def guclu_sifre():
+    return "-".join("".join(secrets.choice(GUCLU_HARFLER) for _ in range(4)) for _ in range(3))
+
+
 def pin_al():
+    p = ""
     if os.path.exists(PIN_DOSYA):
         p = open(PIN_DOSYA, encoding="utf-8-sig").read().strip()
-        if p and p.isascii() and len(p) <= 32:
-            return p
-        if p:
-            print("UYARI: pin.txt geçersiz (Türkçe harf olmasın, en fazla 32 karakter). Yeni PIN üretildi.")
-    p = "".join(secrets.choice("0123456789") for _ in range(6))
-    with open(PIN_DOSYA, "w", encoding="utf-8") as f:
-        f.write(p)
+        if p and not (p.isascii() and len(p) <= 32):
+            print("UYARI: pin.txt geçersiz (Türkçe harf olmasın, en fazla 32 karakter). Yenisi üretildi.")
+            p = ""
+    if p and AYAR["tunel"] and len(p) < 12:
+        print("BİLGİ: İnternet modu açık; kısa PIN yerine güçlü bir şifre üretildi (pin.txt).")
+        p = ""
+    if not p:
+        p = guclu_sifre() if AYAR["tunel"] else "".join(secrets.choice("0123456789") for _ in range(6))
+        with open(PIN_DOSYA, "w", encoding="utf-8") as f:
+            f.write(p)
     return p
 
 
@@ -290,7 +314,7 @@ class Isleyici(BaseHTTPRequestHandler):
             h = h[1:h.find("]")]
         else:
             h = h.rsplit(":", 1)[0]
-        if h == "localhost" or h.endswith(".ts.net"):  # .ts.net = Tailscale adı
+        if h == "localhost" or h.endswith(".ts.net") or h.endswith(".trycloudflare.com"):  # Tailscale / tünel
             return True
         try:
             ipaddress.ip_address(h)
@@ -301,6 +325,8 @@ class Isleyici(BaseHTTPRequestHandler):
     def yetki(self):
         """200 = tamam, 403 = yanlış PIN, 429 = çok deneme."""
         ip = self.client_address[0]
+        if ip in ("127.0.0.1", "::1") and self.headers.get("CF-Connecting-IP"):
+            ip = self.headers["CF-Connecting-IP"]  # tünelden gelen isteğin gerçek adresi
         simdi = time.time()
         with _kilit:
             kayit = _hatalar.get(ip)
@@ -314,6 +340,7 @@ class Isleyici(BaseHTTPRequestHandler):
                 _hatalar.pop(ip, None)
                 return 200
             _hatalar[ip] = [(kayit[0] if kayit else 0) + 1, simdi]
+            print(f"  ! Yanlış şifre denemesi: {ip}  ({time.strftime('%H:%M:%S')})")
             return 403
 
     def red(self, kod):
@@ -367,6 +394,142 @@ class Isleyici(BaseHTTPRequestHandler):
         self.gonder(200 if ok else 400, b"ok" if ok else b"bilinmeyen")
 
 
+# ---------------- internet tüneli (Cloudflare hızlı tünel, hesap gerekmez) ----------------
+import re
+import subprocess
+import urllib.request
+from urllib.parse import quote
+
+TUNEL = {"url": None}
+ADRES_DOSYA = os.path.join(KLASOR, "adres.txt")
+KONU_DOSYA = os.path.join(KLASOR, "bildirim_konusu.txt")
+_URL_RE = re.compile(r"https://(?!api\.)[a-z0-9-]+\.trycloudflare\.com")
+PENCERESIZ = 0x08000000 if WIN else 0
+
+
+def bildirim_konusu():
+    if os.path.exists(KONU_DOSYA):
+        k = open(KONU_DOSYA, encoding="utf-8-sig").read().strip()
+        if re.fullmatch(r"[A-Za-z0-9_-]{16,64}", k):
+            return k
+    k = "uzak-" + "".join(secrets.choice(GUCLU_HARFLER) for _ in range(24))
+    with open(KONU_DOSYA, "w", encoding="utf-8") as f:
+        f.write(k)
+    return k
+
+
+def cloudflared_bul():
+    import shutil
+    ad = "cloudflared.exe" if WIN else "cloudflared"
+    yerel = os.path.join(KLASOR, ad)
+    if os.path.exists(yerel):
+        return yerel
+    if shutil.which("cloudflared"):
+        return shutil.which("cloudflared")
+    makine = platform.machine().lower()
+    kol = "arm64" if makine in ("arm64", "aarch64") else "amd64"
+    taban = "https://github.com/cloudflare/cloudflared/releases/latest/download/"
+    if WIN:
+        dosya = "cloudflared-windows-amd64.exe"  # ARM Windows'ta da çalışır (emülasyon)
+    elif MAC:
+        dosya = f"cloudflared-darwin-{kol}.tgz"
+    else:
+        dosya = f"cloudflared-linux-{kol}"
+    print("  Tünel programı (cloudflared) indiriliyor, bir kereye mahsus…")
+    try:
+        gecici = yerel + ".indiriliyor"
+        with urllib.request.urlopen(taban + dosya, timeout=120) as r, open(gecici, "wb") as f:
+            while True:
+                parca = r.read(1 << 16)
+                if not parca:
+                    break
+                f.write(parca)
+        if dosya.endswith(".tgz"):
+            import tarfile
+            with tarfile.open(gecici) as t:
+                uye = next(m for m in t.getmembers() if m.name.endswith("cloudflared"))
+                with t.extractfile(uye) as kaynak, open(yerel, "wb") as hedef:
+                    hedef.write(kaynak.read())
+            os.remove(gecici)
+        else:
+            os.replace(gecici, yerel)
+        if not WIN:
+            os.chmod(yerel, 0o755)
+        return yerel
+    except Exception as e:
+        print("  ! Tünel programı indirilemedi:", e)
+        return None
+
+
+def bildir(url):
+    """Yeni adresi telefona ulaştır: ntfy.sh üzerinden gizli bir konuya gönder."""
+    if not AYAR.get("bildirim", True):
+        return
+    link = f"{url}/#k={quote(PIN)}"  # şifre # sonrasında: sunucuya gitmez, telefon kendisi okur
+    istek = urllib.request.Request(
+        f"https://ntfy.sh/{KONU}", data=f"Uzak Kumanda adresi (dokun ve aç): {link}".encode("utf-8"),
+        headers={"Title": "Uzak Kumanda", "Click": link, "Tags": "computer"}, method="POST")
+    try:
+        urllib.request.urlopen(istek, timeout=15).read()
+    except Exception as e:
+        print("  ! Bildirim gönderilemedi:", e)
+
+
+def adres_duyur(url):
+    TUNEL["url"] = url
+    with open(ADRES_DOSYA, "w", encoding="utf-8") as f:
+        f.write(f"{url}\n{time.strftime('%Y-%m-%d %H:%M')}\n")
+    print("-" * 56)
+    print(f"  İNTERNETTEN     :  {url}")
+    if AYAR.get("bildirim", True):
+        print(f"  Telefondaki yer imi (adres değişince burada görünür):")
+        print(f"                     https://ntfy.sh/{KONU}")
+    print("-" * 56)
+    bildir(url)
+
+
+def tunel_dongusu():
+    exe = cloudflared_bul()
+    if not exe:
+        print("  ! İnternet modu çalışmıyor; sadece aynı Wi-Fi'dan bağlanılabilir.")
+        return
+    bekle = 5
+    while True:
+        try:
+            p = subprocess.Popen([exe, "tunnel", "--no-autoupdate", "--url", f"http://127.0.0.1:{PORT}"],
+                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+                                 encoding="utf-8", errors="replace", creationflags=PENCERESIZ)
+            TUNEL["proc"] = p
+            son_hata = ""
+            for satir in p.stdout:
+                if " ERR " in satir or "error" in satir.lower():
+                    son_hata = satir.strip()[-160:]
+                m = _URL_RE.search(satir)
+                if m and m.group(0) != TUNEL["url"]:
+                    bekle = 5
+                    adres_duyur(m.group(0))
+            p.wait()
+            if son_hata:
+                print("  ! Tünel:", son_hata)
+        except Exception as e:
+            print("  ! Tünel hatası:", e)
+        TUNEL["url"] = None
+        print(f"  ! İnternet tüneli koptu, {bekle} sn sonra yeniden deneniyor…")
+        time.sleep(bekle)
+        bekle = min(bekle * 2, 300)
+
+
+def bildirim_tazele():
+    """ntfy.sh mesajları bir süre sonra silinir; adresi 3 saatte bir yeniden gönder."""
+    while True:
+        time.sleep(3 * 3600)
+        if TUNEL["url"]:
+            bildir(TUNEL["url"])
+
+
+KONU = bildirim_konusu() if AYAR["tunel"] else None
+
+
 def main():
     try:
         sunucu = ThreadingHTTPServer(("0.0.0.0", PORT), Isleyici)
@@ -383,15 +546,21 @@ def main():
         print(f"  (olmazsa dene   :  http://{ip}:{PORT} )")
     if ts:
         print(f"  Her yerden      :  http://{ts}:{PORT}   (Tailscale)")
-    else:
-        print("  Her yerden      :  Tailscale kurulu değil / kapalı (UZAKTAN.md)")
-    print(f"  PIN             :  {PIN}")
+    print(f"  Şifre           :  {PIN}")
     print("  Kapatmak için bu pencereyi kapat / Ctrl+C")
     print("=" * 56)
+    if AYAR["tunel"]:
+        print("  İnternet tüneli açılıyor…")
+        threading.Thread(target=tunel_dongusu, daemon=True).start()
+        threading.Thread(target=bildirim_tazele, daemon=True).start()
     try:
         sunucu.serve_forever()
     except KeyboardInterrupt:
         pass
+    finally:
+        p = TUNEL.get("proc")
+        if p:
+            p.terminate()
 
 
 if __name__ == "__main__":
