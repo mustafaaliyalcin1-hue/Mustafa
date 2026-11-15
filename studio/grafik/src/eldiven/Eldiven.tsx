@@ -92,20 +92,33 @@ const ArkaBaslik: React.FC<{ p: Plan["arkaBaslik"] }> = ({ p }) => {
   let sayac = 0;
   const harfSure = 0.85 / tum;
   const c = cikis(t, p.b);
+  // pankart: kafa hizasında, kişinin ARKASINDA asılı; soldan açılır, hafif eğik, kumaş gibi hafif dalgalanır
+  const ac = giris(t, p.a - 0.12, fps, 10);
+  const dalga = Math.sin(t * 2.6) * 0.8;
   return (
-    <AbsoluteFill style={{ justifyContent: "flex-start", alignItems: "center", paddingTop: 250, opacity: c }}>
-      {p.satirlar.map((s, si) => (
-        <div key={si} style={{ display: "flex", fontFamily: UNB, fontWeight: 900, fontSize: p.boyut[si] ?? 140,
-          lineHeight: 1.0, letterSpacing: -4, color: si === 1 ? RENK[0] : "#ffffff",
-          textShadow: "0 12px 40px rgba(0,0,0,0.25)" }}>
-          {[...s].map((h, hi) => {
-            const ta = p.a + (sayac++) * harfSure;
-            const g = giris(t, ta, fps, 7);
-            return <span key={hi} style={{ display: "inline-block", opacity: g, transform: `translateY(${(1 - g) * 60}px)` }}>
-              {h === " " ? " " : h}</span>;
-          })}
-        </div>
-      ))}
+    <AbsoluteFill style={{ opacity: c }}>
+      {[150, 930].map((x, i) => (
+        <div key={i} style={{ position: "absolute", left: x, top: 0, width: 5, height: 450 + (i ? 22 : -22),
+          background: "rgba(40,40,40,0.55)", transform: `scaleY(${ac})`, transformOrigin: "top" }} />))}
+      <div style={{ position: "absolute", left: 40, top: 430, width: 1000, padding: "34px 0 40px",
+        background: RENK[0], borderRadius: 26, boxShadow: "0 24px 50px rgba(0,0,0,0.30), inset 0 -10px 0 rgba(0,0,0,0.08)",
+        transform: `rotate(${-2.5 + dalga * 0.3}deg) skewX(${dalga * 0.6}deg) scaleX(${ac})`, transformOrigin: "left center",
+        display: "flex", flexDirection: "column", alignItems: "center", overflow: "hidden" }}>
+        {[0.33, 0.66].map((x, i) => (
+          <div key={i} style={{ position: "absolute", top: 0, bottom: 0, left: `${x * 100 + dalga * 2}%`, width: 60,
+            background: "linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.07) 50%, rgba(0,0,0,0) 100%)" }} />))}
+        {p.satirlar.map((s, si) => (
+          <div key={si} style={{ display: "flex", fontFamily: UNB, fontWeight: 900, fontSize: p.boyut[si] ?? 120,
+            lineHeight: 1.02, letterSpacing: -3, color: si === 1 ? RENK[2] : "#141414" }}>
+            {[...s].map((h, hi) => {
+              const ta = p.a + 0.15 + (sayac++) * harfSure;
+              const g = giris(t, ta, fps, 7);
+              return <span key={hi} style={{ display: "inline-block", opacity: g, transform: `translateY(${(1 - g) * 50}px)` }}>
+                {h === " " ? "\u00A0" : h}</span>;
+            })}
+          </div>
+        ))}
+      </div>
     </AbsoluteFill>
   );
 };

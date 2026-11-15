@@ -44,7 +44,7 @@ def main():
         'sure': sure,
         'kelimeler': kel,
         'arkaBaslik': {'a': bul('bunu')['a'], 'b': bul('veya')['a'] - 0.05,
-                       'satirlar': ['BUNU', 'CLAUDE', 'EDİTLEDİ'], 'boyut': [132, 168, 116]},
+                       'satirlar': ['BUNU', 'CLAUDE', 'EDİTLEDİ'], 'boyut': [118, 150, 104]},
         'bolLR': {'a': ekrani, 'b': bul('Tekrar')['a'] - 0.02, 'baslik': 'Steril eldiven ne için kullanılır?',
                   'maddeler': [{'t': round(ekrani + 1.0 + 0.85 * i, 2), 'yazi': y} for i, y in enumerate([
                       'Ameliyat ve cerrahi müdahalelerde', 'Yara bakımı ve pansumanda',
