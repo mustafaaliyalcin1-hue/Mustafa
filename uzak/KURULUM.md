@@ -225,3 +225,10 @@ Artık bilgisayar her açıldığında uygulama kendiliğinden başlar.
 - Uygulama sadece **ev veya iş ağının içinde** çalışır. Dışarıdan (başka bir yerden, mobil veriyle)
   erişim yoktur ve modemden port açarak bunu sağlamaya çalışma.
 - Kullanmadığın zamanlarda siyah pencereyi kapatman en güvenlisidir.
+
+---
+
+## BÖLÜM 8 — Aynı Wi-Fi olmadan, her yerden bağlanmak
+
+Telefon mobil veride ya da başka bir yerdeyken de bağlanmak istiyorsan **UZAKTAN.md** dosyasına bak.
+Ücretsiz **Tailscale** uygulamasıyla 5 dakikada kurulur. Modemde ayar yapmak gerekmez ve bağlantı şifrelidir.

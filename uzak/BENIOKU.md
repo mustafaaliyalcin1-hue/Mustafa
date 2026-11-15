@@ -21,6 +21,9 @@ Ayarlar → Ağ ve İnternet → Wi-Fi → ağın adı → **Ağ profili türü:
 
 İpucu: Tarayıcı menüsünden "Ana ekrana ekle" dersen uygulama gibi açılır. Ekranı büyük görmek için telefonu yan çevir.
 
+## Dışarıdan (aynı Wi-Fi olmadan)
+Mobil veriden ya da başka bir yerden bağlanmak için **UZAKTAN.md**'ye bak (ücretsiz Tailscale ile, port açmadan).
+
 ## Kullanım
 - **📺 Ekran modu:** bilgisayar ekranını görürsün. Dokun = o noktaya tıkla, uzun bas = sağ tık, parmağı sürükle = fareyi götür.
 - **🖱️ Touchpad modu:** laptop touchpad'i gibi. Kaydır = fare, dokun = tık.

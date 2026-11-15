@@ -59,6 +59,39 @@ _ekran_kilit = threading.Lock()
 _komut_kilit = threading.Lock()  # pyautogui aynı anda tek komut çalıştırsın
 
 
+_TS_AG = ipaddress.ip_network("100.64.0.0/10")
+
+
+def tailscale_mi(ip):
+    try:
+        return ipaddress.ip_address(ip) in _TS_AG
+    except ValueError:
+        return False
+
+
+def tailscale_ip():
+    """Tailscale açıksa bu bilgisayarın 100.x.x.x adresini bul (yoksa None)."""
+    import subprocess
+    adaylar = ["tailscale"]
+    if WIN:
+        adaylar.insert(0, os.path.join(os.environ.get("ProgramFiles", r"C:\Program Files"), "Tailscale", "tailscale.exe"))
+    elif MAC:
+        adaylar.append("/Applications/Tailscale.app/Contents/MacOS/Tailscale")
+    for komut_yolu in adaylar:
+        try:
+            cikti = subprocess.run([komut_yolu, "ip", "-4"], capture_output=True, text=True, timeout=4,
+                                   creationflags=0x08000000 if WIN else 0).stdout  # pencere açmadan
+            for satir in cikti.split():
+                if tailscale_mi(satir.strip()):
+                    return satir.strip()
+        except Exception:
+            pass
+    for ip in yerel_ipler():  # komut yoksa ağ kartlarından bul
+        if tailscale_mi(ip):
+            return ip
+    return None
+
+
 def yerel_ipler():
     ana = None
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -257,7 +290,7 @@ class Isleyici(BaseHTTPRequestHandler):
             h = h[1:h.find("]")]
         else:
             h = h.rsplit(":", 1)[0]
-        if h == "localhost":
+        if h == "localhost" or h.endswith(".ts.net"):  # .ts.net = Tailscale adı
             return True
         try:
             ipaddress.ip_address(h)
@@ -341,16 +374,20 @@ def main():
         print(f"Port {PORT} kullanımda: Uzak Kumanda büyük ihtimalle zaten açık.")
         print("Açık olan diğer siyah pencereyi kullan ya da onu kapatıp tekrar başlat.")
         sys.exit(1)
-    ipler = yerel_ipler()
-    print("=" * 50)
+    ts = tailscale_ip()
+    ipler = [ip for ip in yerel_ipler() if not tailscale_mi(ip)] or ["127.0.0.1"]
+    print("=" * 56)
     print("  UZAK KUMANDA çalışıyor")
-    print(f"  Telefonda aç :  http://{ipler[0]}:{PORT}")
+    print(f"  Aynı Wi-Fi'dan  :  http://{ipler[0]}:{PORT}")
     for ip in ipler[1:]:
-        print(f"  (olmazsa dene:  http://{ip}:{PORT} )")
-    print(f"  PIN          :  {PIN}")
-    print("  (Telefon ve bilgisayar aynı Wi-Fi'da olmalı)")
+        print(f"  (olmazsa dene   :  http://{ip}:{PORT} )")
+    if ts:
+        print(f"  Her yerden      :  http://{ts}:{PORT}   (Tailscale)")
+    else:
+        print("  Her yerden      :  Tailscale kurulu değil / kapalı (UZAKTAN.md)")
+    print(f"  PIN             :  {PIN}")
     print("  Kapatmak için bu pencereyi kapat / Ctrl+C")
-    print("=" * 50)
+    print("=" * 56)
     try:
         sunucu.serve_forever()
     except KeyboardInterrupt:
