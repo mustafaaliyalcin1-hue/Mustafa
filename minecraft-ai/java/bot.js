@@ -130,7 +130,28 @@ const GOREV_FONK = {
   uyu: () => beceri.uyu()
 }
 
+// Sunucuyu bozabilecek komutlar hiç çalıştırılmaz
+const YASAK_KOMUT = /^(stop|op|deop|ban|ban-ip|pardon|pardon-ip|kick|whitelist|save-off|save-all|reload|debug|publish|transfer|perf|jfr|setidletimeout|defaultgamemode|difficulty|gamerule|worldborder|forceload)\b|@[ae]\b/i
+
+async function komutCalistir(komutlar = []) {
+  if (!(await komutIzni())) throw new Error('hileler kapalı, komut kullanamam. İstersen kendim toplayıp yapayım')
+  const oyuncu = sonKonusan || sahip || ''
+  const sonuc = []
+  for (let k of komutlar.slice(0, 12)) {
+    k = String(k).trim().replace(/^\//, '').replace(/\{oyuncu\}/g, oyuncu)
+    if (!k || YASAK_KOMUT.test(k)) { sonuc.push(`${k}: izin verilmedi`); continue }
+    bot.chat('/' + k)
+    sonuc.push(k)
+    await new Promise((r) => setTimeout(r, 250))
+  }
+  console.log('[komut]', sonuc.join(' | '))
+  return `komutlar çalıştı: ${sonuc.join(' | ')}`
+}
+
 function gorevBaslat(g) {
+  if (g.gorev === 'komut') { // elindeki işi bölmeden çalıştır
+    return komutCalistir(g.komutlar).catch((e) => { konus(e.message); return e.message })
+  }
   const f = GOREV_FONK[g.gorev]
   if (!f) return `bilinmeyen görev: ${g.gorev}`
   durdur()
@@ -163,7 +184,7 @@ function durumMetni() {
   return JSON.stringify({
     konum: { x: Math.round(p.x), y: Math.round(p.y), z: Math.round(p.z) },
     boyut: bot.game.dimension, can: Math.round(bot.health), aclik: bot.food,
-    gorev: aktifGorev?.ad || 'yok', gece: !bot.time.isDay, xray: xrayIzinli() ? 'acik' : 'kapali', sunucu: KENDI_DUNYAM ? 'kendi dünyan' : 'dış sunucu', envanter: env
+    gorev: aktifGorev?.ad || 'yok', gece: !bot.time.isDay, xray: xrayIzinli() ? 'acik' : 'kapali', hileler: komutOnbellek ? (komutOnbellek.v ? 'acik' : 'kapali') : 'bilinmiyor', sunucu: KENDI_DUNYAM ? 'kendi dünyan' : 'dış sunucu', envanter: env
   })
 }
 
@@ -244,6 +265,7 @@ function baslat() {
       konus
     })
     if (!refleksSayaci) refleksSayaci = setInterval(refleksler, 250)
+    setTimeout(() => komutIzni().catch(() => {}), 3000) // hileler açık mı, baştan öğren
     const xr = xrayIzinli()
     console.log(`[x-ray] ${xr ? 'AÇIK (kendi dünyan)' : 'KAPALI (sunucu ya da çok oyunculu dünya)'}; ayar: ${AYAR.xray}`)
     if (KENDI_DUNYAM) konus('Selam! Ben geldim. Bana "elmas bul", "ev yap", "takip et" gibi şeyler söyleyebilirsin.')

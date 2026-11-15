@@ -17,6 +17,8 @@ test('basit komut çözücü', () => {
   assert.deepStrictEqual(basitCoz('kule dik'), { gorev: 'insa_et', sema: 'kule' })
   assert.strictEqual(basitCoz('çiftlik kur').gorev, 'tarla_yap')
   assert.strictEqual(basitCoz('durum ne'), null)
+  assert.deepStrictEqual(basitCoz('bana elmas kılıç ver'), { gorev: 'komut', komutlar: ['give {oyuncu} diamond_sword'] })
+  assert.strictEqual(basitCoz('zırh lazım').komutlar.length, 4)
   for (const g of Object.values(basitCoz('ev yap'))) assert.ok(g)
   assert.ok(GOREVLER.insa_et)
 })

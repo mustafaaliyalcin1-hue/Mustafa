@@ -79,7 +79,8 @@ const ARACLAR = [
         sema: { type: 'string', description: 'insa_et için şema adı (semalari_listele\'den)' },
         cevher: { type: 'string', description: 'maden_bul için: diamond, iron, gold, coal, copper, redstone, lapis, emerald, ancient_debris, quartz' },
         adet: { type: 'integer', description: 'kaç tane (odun_topla, maden_bul)' },
-        esya: { type: 'string', description: 'esyalari_ver için eşya adı ya da "hepsi"' }
+        esya: { type: 'string', description: 'esyalari_ver için eşya adı ya da "hepsi"' },
+        komutlar: { type: 'array', items: { type: 'string' }, description: 'komut görevi için Minecraft komutları, başında / olmadan (ör. "give {oyuncu} diamond_sword")' }
       },
       required: ['gorev'],
       additionalProperties: false
@@ -181,7 +182,8 @@ export class Beyin {
 
 GÖREVLER (birini seçebilirsin):
 ${Object.entries(GOREVLER).map(([k, v]) => `- ${k}: ${v}`).join('\n')}
-Ek alanlar: insa_et için "sema", maden_bul için "cevher" (diamond, iron, gold, coal, copper, redstone, lapis, emerald, ancient_debris, quartz) ve "adet", odun_topla için "adet", esyalari_ver için "esya".
+Ek alanlar: insa_et için "sema", maden_bul için "cevher" (diamond, iron, gold, coal, copper, redstone, lapis, emerald, ancient_debris, quartz) ve "adet", odun_topla için "adet", esyalari_ver için "esya", komut için "komutlar" (dizi, başında / olmadan, {oyuncu} oyuncunun adıyla değişir).
+Komut görevini SADECE durumdaki "hileler" alanı "acik" ise kullan; kapalıysa oyuncuya hilesiz yolu öner (ör. kendisi üretip vermek).
 
 İNŞA EDİLEBİLECEK YAPILAR:
 ${semalar}
@@ -215,6 +217,7 @@ ya da bir görev başlatacaksan:
     if (!g) { this.o.konus('Anlamadım. "gel", "takip et", "elmas bul", "ev yap", "netherite" gibi yaz.'); return }
     const sonuc = await this.o.gorevBaslat(g)
     if (sonuc && /bilinmeyen/.test(sonuc)) this.o.konus(String(sonuc))
+    else if (g.gorev === 'komut') this.o.konus('Al bakalım!')
     else if (g.gorev !== 'dur') this.o.konus('Tamam, başlıyorum.')
   }
 }

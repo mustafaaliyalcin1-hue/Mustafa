@@ -17,13 +17,17 @@ export const GOREVLER = {
   tarla_yap: 'Su, çapa ve tohumla 9x9 buğday tarlası yapar.',
   maden_bul: 'X-ray ile istenen cevheri bulup kazar (cevher: diamond, iron, gold, coal, ancient_debris..., adet).',
   esyalari_ver: 'Topladığı eşyaları oyuncunun önüne atar (esya: hepsi ya da belli eşya adı).',
-  uyu: 'Gece ise yatak bulup uyur / yatak yoksa sığınak kazar.'
+  uyu: 'Gece ise yatak bulup uyur / yatak yoksa sığınak kazar.',
+  komut: 'SADECE hileler açıkken: Minecraft komutları çalıştırır (komutlar: liste, başında / olmadan). Ör. oyuncuya eşya/zırh/kılıç vermek (give {oyuncu} diamond_sword), büyülemek (enchant), efekt, gündüz/hava, ışınlanma. {oyuncu} yerine oyuncunun adı konur. Elindeki işi bölmez.'
 }
 
 const ANAHTAR = [
   [/\b(dur|bekle|kes|yeter|stop)\b/, 'dur'],
   [/takip|peşimden|arkamdan/, 'takip_et'],
   [/\b(gel|buraya|yanıma)\b/, 'gel'],
+  [/(zırh|zirh).*\b(ver|lazım|lazim)/, 'komut', { komutlar: ['give {oyuncu} diamond_helmet', 'give {oyuncu} diamond_chestplate', 'give {oyuncu} diamond_leggings', 'give {oyuncu} diamond_boots'] }],
+  [/(kılıç|kilic).*\b(ver|lazım|lazim)/, 'komut', { komutlar: ['give {oyuncu} diamond_sword'] }],
+  [/gündüz|gunduz|sabah yap/, 'komut', { komutlar: ['time set day'] }],
   [/hepsini|baştan sona|sıfırdan|full/, 'hepsini_yap'],
   [/netherit/, 'netherite'],
   [/portal/, 'nether_portali'],

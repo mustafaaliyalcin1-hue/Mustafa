@@ -15,6 +15,7 @@ console.log(`Köprü hazır. Minecraft'ta sohbete yaz:  /connect localhost:${POR
 sunucu.on('connection', (ws) => {
   console.log('Minecraft bağlandı!')
   const bekleyen = new Map()
+  let sonOyuncu = ''
 
   function gonder(govde, amac = 'commandRequest') {
     const id = randomUUID()
@@ -38,6 +39,17 @@ sunucu.on('connection', (ws) => {
     ad: AD,
     konus,
     gorevBaslat: async (g) => {
+      if (g.gorev === 'komut') {
+        const yasak = /^(stop|op|deop|ban|kick|whitelist|reload|transfer|difficulty|gamerule|worldborder|setmaxplayers|wsserver|connect)\b|@[ae]\b/i
+        const sonuc = []
+        for (let k of (g.komutlar || []).slice(0, 12)) {
+          k = String(k).trim().replace(/^\//, '').replace(/\{oyuncu\}/g, sonOyuncu || '@p')
+          if (!k || yasak.test(k)) { sonuc.push(`${k}: izin verilmedi`); continue }
+          const c = await komut(k)
+          sonuc.push(`${k}: ${c?.statusCode < 0 ? 'olmadı (' + c.statusMessage + ')' : 'tamam'}`)
+        }
+        return sonuc.join(' | ')
+      }
       const cevap = await komut(`scriptevent yardimci:gorev ${JSON.stringify(g)}`)
       if (cevap && cevap.statusCode < 0) return `komut çalışmadı: ${cevap.statusMessage} (dünyada hileler açık mı, eklenti yüklü mü?)`
       return `${g.gorev} görevi başladı`
@@ -69,6 +81,7 @@ sunucu.on('connection', (ws) => {
       const metin = b.message || b.Message || ''
       if (tur !== 'chat' || !metin || gonderen === AD || gonderen === 'Dış' || gonderen === 'External') return
       console.log(`<${gonderen}> ${metin}`)
+      sonOyuncu = gonderen
       if (/^(dur|stop|bekle)\b/i.test(metin.trim())) { komut('scriptevent yardimci:gorev dur'); return }
       beyin.mesaj(gonderen, metin)
     }

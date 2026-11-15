@@ -55,7 +55,7 @@ function durumEtiketi(e) {
   try {
     for (const t of e.getTags()) if (t.startsWith('yzd:')) e.removeTag(t)
     const s = st(e)
-    const ozet = { xray: xrayAcik() ? 'acik' : 'kapali', g: s.gorev || 'yok', c: Math.round(e.getComponent('minecraft:health')?.currentValue ?? 0), b: e.dimension.id.replace('minecraft:', ''), p: yuvarla(e.location), e: Object.fromEntries(Object.entries(s.env).sort((a, b) => b[1] - a[1]).slice(0, 18)) }
+    const ozet = { hileler: 'acik', xray: xrayAcik() ? 'acik' : 'kapali', g: s.gorev || 'yok', c: Math.round(e.getComponent('minecraft:health')?.currentValue ?? 0), b: e.dimension.id.replace('minecraft:', ''), p: yuvarla(e.location), e: Object.fromEntries(Object.entries(s.env).sort((a, b) => b[1] - a[1]).slice(0, 18)) }
     e.addTag('yzd:' + encodeURIComponent(JSON.stringify(ozet)))
   } catch {}
 }
