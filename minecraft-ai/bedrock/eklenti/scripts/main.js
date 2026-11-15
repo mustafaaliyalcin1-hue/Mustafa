@@ -55,7 +55,7 @@ function durumEtiketi(e) {
   try {
     for (const t of e.getTags()) if (t.startsWith('yzd:')) e.removeTag(t)
     const s = st(e)
-    const ozet = { g: s.gorev || 'yok', c: Math.round(e.getComponent('minecraft:health')?.currentValue ?? 0), b: e.dimension.id.replace('minecraft:', ''), p: yuvarla(e.location), e: Object.fromEntries(Object.entries(s.env).sort((a, b) => b[1] - a[1]).slice(0, 18)) }
+    const ozet = { xray: xrayAcik() ? 'acik' : 'kapali', g: s.gorev || 'yok', c: Math.round(e.getComponent('minecraft:health')?.currentValue ?? 0), b: e.dimension.id.replace('minecraft:', ''), p: yuvarla(e.location), e: Object.fromEntries(Object.entries(s.env).sort((a, b) => b[1] - a[1]).slice(0, 18)) }
     e.addTag('yzd:' + encodeURIComponent(JSON.stringify(ozet)))
   } catch {}
 }
@@ -230,8 +230,46 @@ async function yuru(e, hedef, menzil = 1.5, { maxAdim = 600 } = {}) {
   throw new Error('yol çok uzun sürdü')
 }
 
-// ---------- X-RAY: yeraltını tarar ----------
-async function xray(e, tipler, { yaricap = 16, yMin = -64, yMax = 320, adet = 8 } = {}) {
+// ---------- X-RAY ----------
+// Kural: tek başına oynadığın dünyada AÇIK. Dünyada başka oyuncu varsa (çok oyunculu / sunucu) KAPALI, hile olmasın.
+// Kumandadan elle de seçilebilir: otomatik / açık / kapalı.
+const GIZLI = /_ore$|ancient_debris|obsidian|^chest$|^trapped_chest$|^barrel$|mob_spawner|gilded_blackstone|amethyst|budding/
+function xrayAyar() { try { return world.getDynamicProperty('yardimci:xray') || 'otomatik' } catch { return 'otomatik' } }
+function xrayAcik() {
+  const a = xrayAyar()
+  if (a === 'acik') return true
+  if (a === 'kapali') return false
+  return world.getAllPlayers().length <= 1
+}
+const goz = () => (xrayAcik() ? 'X-ray ile' : 'Gözümle')
+const SEFFAF = /leaves|glass|fence|torch|ladder|vine|water|portal/
+/** Açıkta (bir yüzü havaya/suya bakıyor) ve yardımcının gözünden görünüyor mu */
+function gorunur(e, p) {
+  const dim = e.dimension
+  const acik = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]].some(([x, y, z]) => { const t = tip(dim, { x: p.x + x, y: p.y + y, z: p.z + z }); return BOS.test(t) || SEFFAF.test(t) })
+  if (!acik) return false
+  const goz0 = { x: e.location.x, y: e.location.y + 1.6, z: e.location.z }
+  const hedef = { x: p.x + 0.5, y: p.y + 0.5, z: p.z + 0.5 }
+  const L = uzak(goz0, hedef)
+  if (L > 24) return false
+  for (let t = 0.3; t < L - 0.8; t += 0.3) {
+    const q = yuvarla({ x: goz0.x + ((hedef.x - goz0.x) * t) / L, y: goz0.y + ((hedef.y - goz0.y) * t) / L, z: goz0.z + ((hedef.z - goz0.z) * t) / L })
+    if (q.x === p.x && q.y === p.y && q.z === p.z) return true
+    const ty = tip(dim, q)
+    if (!BOS.test(ty) && !SEFFAF.test(ty)) return false
+  }
+  return true
+}
+
+/** Blok arar. X-ray açıkken yeraltını görür; kapalıyken cevher/sandık gibi şeyleri sadece gerçekten görüyorsa bulur. */
+async function xray(e, tipler, secenek = {}) {
+  const acik = xrayAcik()
+  const sonuc = await tara(e, tipler, acik ? secenek : { ...secenek, adet: 64, yaricap: Math.min(secenek.yaricap ?? 16, 16), yMin: Math.max(secenek.yMin ?? -64, Math.floor(e.location.y) - 16), yMax: Math.min(secenek.yMax ?? 320, Math.floor(e.location.y) + 16) })
+  if (acik) return sonuc
+  return sonuc.filter((p) => !GIZLI.test(tip(e.dimension, p)) || gorunur(e, p)).slice(0, secenek.adet ?? 8)
+}
+
+async function tara(e, tipler, { yaricap = 16, yMin = -64, yMax = 320, adet = 8 } = {}) {
   const dim = e.dimension
   const c = yuvarla(e.location)
   const set = new Set(tipler.map((t) => (t.includes(':') ? t : `minecraft:${t}`)))
@@ -268,16 +306,30 @@ async function xray(e, tipler, { yaricap = 16, yMin = -64, yMax = 320, adet = 8 
 }
 
 /** cevherleri bulup kazar. hedef: envanterde toplam kaç tane olsun */
-async function cevherTopla(e, tipler, esya, hedef, { yaricap = 16, yMin, yMax, gezinti = true } = {}) {
+async function cevherTopla(e, tipler, esya, hedef, { yaricap = 16, yMin, yMax, hedefY, gezinti = true } = {}) {
   const s = st(e)
-  let bos = 0
+  let bos = 0, indimMesaji = false
   while ((s.env[esya] || 0) < hedef) {
     k(e)
     const bul = await xray(e, tipler, { yaricap, yMin, yMax, adet: 6 })
     if (!bul.length) {
-      if (!gezinti || ++bos > 4) throw new Error(`yakında ${esya} bulamadım`)
-      mesaj(`Burada ${esya} yok, biraz ileride bakıyorum.`)
+      const acik = xrayAcik()
+      if (!gezinti || ++bos > (acik ? 4 : 30)) throw new Error(`yakında ${esya} bulamadım`)
       const c = yuvarla(e.location)
+      const hy = hedefY ?? (yMin !== undefined && yMax !== undefined ? Math.round((Math.max(yMin, -60) + Math.min(yMax, 120)) / 2) : c.y)
+      if (!acik && Math.abs(c.y - hy) > 4) {
+        if (!indimMesaji) { mesaj(`${esya} için y=${hy} seviyesine merdiven kazarak iniyorum (x-ray kapalı).`); indimMesaji = true }
+        const fark = Math.abs(c.y - hy)
+        await yuru(e, { x: c.x + Math.min(fark, 24), y: c.y + Math.sign(hy - c.y) * Math.min(fark, 24), z: c.z }, 1.5, { maxAdim: 200 })
+        continue
+      }
+      if (!acik) {
+        // dal madenciliği: düz tünel kaz, açılan duvarlarda cevher gör
+        const yon = [[1, 0], [0, 1], [-1, 0], [0, -1]][bos % 4]
+        await yuru(e, { x: c.x + yon[0] * 16, y: c.y, z: c.z + yon[1] * 16 }, 1, { maxAdim: 80 })
+        continue
+      }
+      mesaj(`Burada ${esya} yok, biraz ileride bakıyorum.`)
       const aci = Math.random() * Math.PI * 2
       await yuru(e, { x: c.x + Math.round(Math.cos(aci) * 20), y: c.y, z: c.z + Math.round(Math.sin(aci) * 20) }, 2)
       continue
@@ -463,12 +515,12 @@ async function demirAletler(e) {
   if (C.kazmaSeviyesi(s.env) >= 3 && s.env.bucket) return
   await tasAletler(e)
   if (C.say(s.env, 'komur') < 8) {
-    mesaj('X-ray ile kömür arıyorum.')
-    await cevherTopla(e, ['coal_ore', 'deepslate_coal_ore'], 'coal', 8, { yaricap: 16, yMin: -20, yMax: 140 })
+    mesaj(`${goz()} kömür arıyorum.`)
+    await cevherTopla(e, ['coal_ore', 'deepslate_coal_ore'], 'coal', 8, { yaricap: 16, yMin: -20, yMax: 140, hedefY: 40 })
   }
   if ((s.env.iron_ingot || 0) + (s.env.raw_iron || 0) < 14) {
     mesaj('Demir avına çıkıyorum, lav görürsem kapatacağım.')
-    await cevherTopla(e, ['iron_ore', 'deepslate_iron_ore'], 'raw_iron', 14 - (s.env.iron_ingot || 0), { yaricap: 16, yMin: -40, yMax: 72 })
+    await cevherTopla(e, ['iron_ore', 'deepslate_iron_ore'], 'raw_iron', 14 - (s.env.iron_ingot || 0), { yaricap: 16, yMin: -40, yMax: 72, hedefY: 16 })
   }
   try { await cevherTopla(e, ['gold_ore', 'deepslate_gold_ore'], 'raw_gold', 4, { yaricap: 10, yMin: -64, yMax: 32, gezinti: false }) } catch (err) { if (err.iptal) throw err }
   if (s.env.raw_iron) await erit(e, 'raw_iron', s.env.raw_iron)
@@ -481,8 +533,8 @@ async function elmas(e) {
   const s = st(e)
   if (C.kazmaSeviyesi(s.env) >= 4) { mesaj('Zaten elmas kazmam var.'); return }
   await demirAletler(e)
-  mesaj('Elmasa iniyorum: x-ray açık, lav görürsem taşla kapatıyorum.')
-  await cevherTopla(e, ['diamond_ore', 'deepslate_diamond_ore'], 'diamond', 5, { yaricap: 16, yMin: -64, yMax: 16 })
+  mesaj(xrayAcik() ? 'Elmasa iniyorum: x-ray açık, lav görürsem taşla kapatıyorum.' : 'Elmas için derine iniyorum, dal madenciliği yapacağım. Lav görürsem taşla kapatırım.')
+  await cevherTopla(e, ['diamond_ore', 'deepslate_diamond_ore'], 'diamond', 5, { yaricap: 16, yMin: -64, yMax: 16, hedefY: -58 })
   await uret(e, 'diamond_pickaxe', 1)
   if ((s.env.diamond || 0) >= 2) await uret(e, 'diamond_sword', 1)
   mesaj(`Elmas kazma yaptım! ${s.env.diamond || 0} elmas daha var.`)
@@ -604,9 +656,9 @@ async function netherite(e) {
   if (s.env.netherite_pickaxe) { mesaj('Netherite kazmam zaten var!'); return }
   if (C.kazmaSeviyesi(s.env) < 4) await elmas(e)
   if (e.dimension.id !== 'minecraft:nether') await netherGit(e)
-  mesaj('Ancient debris arıyorum, x-ray açık. Nether\'de lav çok, dikkatli kazıyorum.')
+  mesaj(`Ancient debris arıyorum (${xrayAcik() ? 'x-ray açık' : 'x-ray kapalı, tünel kazacağım'}). Nether'de lav çok, dikkatli kazıyorum.`)
   const lazim = Math.max(0, 4 - (s.env.netherite_scrap || 0) - (s.env.netherite_ingot || 0) * 4)
-  if (lazim > 0) await cevherTopla(e, ['ancient_debris'], 'ancient_debris', lazim, { yaricap: 16, yMin: 8, yMax: 24 })
+  if (lazim > 0) await cevherTopla(e, ['ancient_debris'], 'ancient_debris', lazim, { yaricap: 16, yMin: 8, yMax: 24, hedefY: 15 })
   if (s.env.ancient_debris) await erit(e, 'ancient_debris', s.env.ancient_debris)
   if (!s.env.netherite_ingot) {
     if ((s.env.gold_ingot || 0) < 4 && s.env.raw_gold) await erit(e, 'raw_gold', s.env.raw_gold)
@@ -810,8 +862,8 @@ async function madenBul(e, { cevher = 'diamond', adet = 4 } = {}) {
   const s = st(e)
   const anahtar = Object.keys(CEVHER).find((k2) => k2 === cevher || CEVHER[k2][1] === cevher) || 'diamond'
   const [tipler, esya, yMin, yMax] = CEVHER[anahtar]
-  mesaj(`X-ray ile ${adet} ${esya} arıyorum.`)
-  await cevherTopla(e, tipler, esya, (s.env[esya] || 0) + adet, { yaricap: 16, yMin, yMax })
+  mesaj(`${goz()} ${adet} ${esya} arıyorum.`)
+  await cevherTopla(e, tipler, esya, (s.env[esya] || 0) + adet, { yaricap: 16, yMin, yMax, hedefY: { diamond: -58, raw_iron: 16, raw_gold: -16, ancient_debris: 15, redstone: -58, lapis_lazuli: 0 }[esya] })
   mesaj(`${adet} ${esya} tamam!`)
 }
 
@@ -886,6 +938,9 @@ system.runInterval(() => {
     }
     // açlık yerine: yiyecekle iyileşme
     if (tick % 40 === 0) {
+      const xr = xrayAcik()
+      if (s.sonXray !== undefined && s.sonXray !== xr) mesaj(xr ? 'Yalnız kaldık, x-ray tekrar açık.' : 'Dünyaya başka oyuncu girdi: x-ray kapattım, hilesiz oynuyorum.')
+      s.sonXray = xr
       try {
         const can = e.getComponent('minecraft:health')
         if (can && can.currentValue < can.effectiveMax - 4) {
@@ -905,7 +960,7 @@ const MENU = [
   ['odun_topla', 'Odun topla'], ['ahsap_aletler', 'Tahta aletler'], ['tas_aletler', 'Taş aletler'],
   ['demir_aletler', 'Demir (x-ray)'], ['elmas', 'Elmas (x-ray)'], ['nether_portali', 'Nether portalı'],
   ['netherite', 'Netherite'], ['hepsini_yap', 'Hepsini sırayla yap'], ['insa_et', 'Yapı inşa et...'],
-  ['tarla_yap', 'Buğday tarlası'], ['esyalari_ver', 'Eşyaları bana ver'], ['_envanter', 'Envanterine bak'], ['_cagir', 'Yardımcıyı çağır']
+  ['tarla_yap', 'Buğday tarlası'], ['esyalari_ver', 'Eşyaları bana ver'], ['_envanter', 'Envanterine bak'], ['_xray', 'X-ray ayarı'], ['_cagir', 'Yardımcıyı çağır']
 ]
 
 function enYakinYardimci(p) {
@@ -930,6 +985,16 @@ async function menuAc(p) {
   if (r.canceled || r.selection === undefined) return
   const [kod] = MENU[r.selection]
   if (kod === '_cagir') { cagir(p); return }
+  if (kod === '_xray') {
+    const secenek = [['otomatik', 'Otomatik (tek başımayken açık, başka oyuncu varsa kapalı)'], ['kapali', 'Hep kapalı (hilesiz)'], ['acik', 'Hep açık']]
+    const f3 = new ActionFormData().title('X-ray').body(`Şu an: ${xrayAyar()} → ${xrayAcik() ? 'AÇIK' : 'KAPALI'}`)
+    for (const [, ad] of secenek) f3.button(ad)
+    const r3 = await f3.show(p)
+    if (r3.canceled || r3.selection === undefined) return
+    try { world.setDynamicProperty('yardimci:xray', secenek[r3.selection][0]) } catch {}
+    mesaj(`X-ray ayarı: ${secenek[r3.selection][0]} (şu an ${xrayAcik() ? 'açık' : 'kapalı'})`)
+    return
+  }
   const e = enYakinYardimci(p) || cagir(p)
   st(e).sahip = p.name
   if (kod === '_envanter') {
@@ -960,6 +1025,7 @@ system.afterEvents.scriptEventReceive.subscribe((ev) => {
   if (ev.id === 'yardimci:cagir') { if (oyuncu) cagir(oyuncu); return }
   if (ev.id === 'yardimci:durum') { for (const e of yardimcilar()) durumEtiketi(e); return }
   if (ev.id === 'yardimci:soyle') { mesaj(ev.message); return }
+  if (ev.id === 'yardimci:xray') { try { world.setDynamicProperty('yardimci:xray', ev.message.trim() || 'otomatik') } catch {} mesaj(`X-ray ayarı: ${xrayAyar()} (şu an ${xrayAcik() ? 'açık' : 'kapalı'})`); return }
   if (ev.id !== 'yardimci:gorev') return
   let g
   try { g = JSON.parse(ev.message) } catch { g = { gorev: ev.message.trim() } }

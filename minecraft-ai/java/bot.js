@@ -15,12 +15,27 @@ const AYAR = {
   username: process.env.BOT_ADI || 'Yardimci',
   auth: process.env.MC_AUTH || 'offline',
   version: process.env.MC_SURUM || false,
-  sahip: process.env.SAHIP || ''
+  sahip: process.env.SAHIP || '',
+  xray: (process.env.XRAY || 'otomatik').toLowerCase() // otomatik | acik | kapali
+}
+
+// Kendi bilgisayarındaki / ev ağındaki dünya mı (LAN, localhost), yoksa dışarıdaki bir sunucu mu?
+const YEREL = /^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|::1$)/i
+const KENDI_DUNYAM = YEREL.test(AYAR.host)
+
+/** X-ray kuralı: sadece kendi tek kişilik dünyanda açık. Sunucuda ya da başka oyuncu varken kapalı (hile olmasın). */
+function xrayIzinli() {
+  if (AYAR.xray === 'acik') return true
+  if (AYAR.xray === 'kapali') return false
+  if (!KENDI_DUNYAM) return false
+  const digerleri = Object.keys(bot.players).filter((ad) => ad !== bot.username)
+  return digerleri.length <= 1
 }
 
 let bot, beceri, beyin
 let aktifGorev = null // { ad, token, soz }
 let sonKonusan = AYAR.sahip
+let sahip = AYAR.sahip // sunucuda SAHIP boşsa, adımı ilk söyleyen oyuncu sahip olur
 
 function konus(metin) {
   if (!bot || !metin) return
@@ -125,7 +140,7 @@ function durumMetni() {
   return JSON.stringify({
     konum: { x: Math.round(p.x), y: Math.round(p.y), z: Math.round(p.z) },
     boyut: bot.game.dimension, can: Math.round(bot.health), aclik: bot.food,
-    gorev: aktifGorev?.ad || 'yok', gece: !bot.time.isDay, envanter: env
+    gorev: aktifGorev?.ad || 'yok', gece: !bot.time.isDay, xray: xrayIzinli() ? 'acik' : 'kapali', sunucu: KENDI_DUNYAM ? 'kendi dünyan' : 'dış sunucu', envanter: env
   })
 }
 
@@ -180,7 +195,7 @@ function baslat() {
 
   bot.once('spawn', () => {
     hareketAyarla()
-    beceri = new Beceriler(bot, { konus })
+    beceri = new Beceriler(bot, { konus, xrayIzinli })
     beyin = new Beyin({
       surum: `Java ${bot.version}`,
       ad: AYAR.username,
@@ -190,13 +205,22 @@ function baslat() {
       konus
     })
     if (!refleksSayaci) refleksSayaci = setInterval(refleksler, 250)
-    konus('Selam! Ben geldim. Bana "elmas bul", "ev yap", "takip et" gibi şeyler söyleyebilirsin.')
+    const xr = xrayIzinli()
+    console.log(`[x-ray] ${xr ? 'AÇIK (kendi dünyan)' : 'KAPALI (sunucu ya da çok oyunculu dünya)'}; ayar: ${AYAR.xray}`)
+    if (KENDI_DUNYAM) konus('Selam! Ben geldim. Bana "elmas bul", "ev yap", "takip et" gibi şeyler söyleyebilirsin.')
+    else konus(`Selam! Ben ${sahip || 'sahibimin'} yardımcısıyım. Sunucudayız: x-ray kapalı, sadece sahibimi dinlerim.`)
   })
   bot.on('spawn', () => { if (beceri) hareketAyarla() }) // boyut değişince (Nether) hareket ayarları yenilensin
 
   bot.on('chat', (oyuncu, mesaj) => {
     if (oyuncu === bot.username) return
-    if (AYAR.sahip && oyuncu !== AYAR.sahip) return
+    if (sahip && oyuncu !== sahip) return
+    if (!sahip && !KENDI_DUNYAM) {
+      // sunucuda herkes komut vermesin: adımı ilk söyleyen sahibim olur
+      if (!mesaj.toLowerCase().includes(bot.username.toLowerCase())) return
+      sahip = oyuncu
+      konus(`Tamam ${oyuncu}, artık sadece seni dinliyorum.`)
+    }
     sonKonusan = oyuncu
     console.log(`<${oyuncu}> ${mesaj}`)
     if (/^(dur|stop|bekle)\b/i.test(mesaj.trim())) { gorevBaslat({ gorev: 'dur' }); return } // anında

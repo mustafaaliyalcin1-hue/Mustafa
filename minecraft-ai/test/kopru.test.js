@@ -5,7 +5,7 @@ import { spawn } from 'node:child_process'
 import WebSocket from 'ws'
 
 test('köprü: sohbet → scriptevent komutu', { timeout: 20000 }, async () => {
-  const kopru = spawn('node', ['bedrock/kopru.js'], { env: { ...process.env, ANTHROPIC_API_KEY: '', ANTHROPIC_AUTH_TOKEN: '', KOPRU_PORT: '3911' } })
+  const kopru = spawn('node', ['bedrock/kopru.js'], { env: { ...process.env, ANTHROPIC_API_KEY: '', ANTHROPIC_AUTH_TOKEN: '', YZ_BEYIN: 'basit', KOPRU_PORT: '3911' } })
   await new Promise((r) => kopru.stdout.on('data', (d) => /hazır/.test(d) && r()))
   const ws = new WebSocket('ws://localhost:3911')
   const komutlar = []

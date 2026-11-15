@@ -1,7 +1,57 @@
-// Yardımcının "beyni": oyuncunun Türkçe mesajını Claude'a verir, Claude görev araçlarını çağırır.
-// ANTHROPIC_API_KEY yoksa basit anahtar kelime çözücüyle çalışır.
+// Yardımcının "beyni": oyuncunun Türkçe mesajını Claude'a verir, Claude görevi seçer.
+// Üç mod (kendiliğinden seçilir, YZ_BEYIN ile zorlanabilir: api | claude | basit):
+//   api    : .env'de ANTHROPIC_API_KEY varsa
+//   claude : anahtar yoksa ama bilgisayarda Claude Code kuruluysa — kendi Claude hesabınla, API anahtarı gerekmez
+//   basit  : hiçbiri yoksa, anahtar kelimelerle ("gel", "elmas bul", "ev yap"...)
 import Anthropic from '@anthropic-ai/sdk'
+import { spawn, spawnSync } from 'node:child_process'
+import os from 'node:os'
 import { GOREVLER, basitCoz } from './gorevler.js'
+
+const WIN = process.platform === 'win32'
+
+export function claudeKurulu() {
+  try {
+    const r = spawnSync('claude', ['--version'], { shell: WIN, encoding: 'utf8', timeout: 20000, windowsHide: true })
+    return r.status === 0
+  } catch { return false }
+}
+
+/** Claude Code'u (claude -p) araçsız çalıştırır; kullanıcının kendi Claude girişini kullanır. */
+export function claudeSor(istem, { komut = 'claude', zamanAsimi = 120000 } = {}) {
+  return new Promise((coz, red) => {
+    const args = ['-p', '--output-format', 'json', '--tools', WIN ? '""' : '', '--no-session-persistence', '--strict-mcp-config']
+    let c
+    try { c = spawn(komut, args, { shell: WIN, cwd: os.tmpdir(), windowsHide: true }) } catch (e) { red(e); return }
+    let cikti = '', hata = ''
+    const t = setTimeout(() => { try { c.kill() } catch {} red(new Error('Claude cevap vermedi (zaman aşımı)')) }, zamanAsimi)
+    c.stdout.on('data', (d) => { cikti += d })
+    c.stderr.on('data', (d) => { hata += d })
+    c.on('error', (e) => { clearTimeout(t); red(e) })
+    c.on('close', () => {
+      clearTimeout(t)
+      try {
+        const j = JSON.parse(cikti)
+        if (j.is_error) red(new Error(String(j.result || j.api_error_status || 'Claude hatası')))
+        else coz(String(j.result ?? ''))
+      } catch { red(new Error((hata || cikti || 'Claude çalışmadı').slice(0, 300))) }
+    })
+    c.stdin.end(istem)
+  })
+}
+
+/** Claude'un yazdığı metinden {cevap, gorev} JSON'unu çıkarır. */
+export function kararCoz(metin) {
+  const a = metin.indexOf('{'), b = metin.lastIndexOf('}')
+  if (a < 0 || b <= a) return { cevap: metin.trim(), gorev: null }
+  try {
+    const j = JSON.parse(metin.slice(a, b + 1))
+    let g = j.gorev
+    if (typeof g === 'string') g = { gorev: g }
+    if (g && (typeof g !== 'object' || !GOREVLER[g.gorev])) g = null
+    return { cevap: typeof j.cevap === 'string' ? j.cevap : '', gorev: g || null, durumIste: !!j.durum_bak }
+  } catch { return { cevap: metin.trim(), gorev: null } }
+}
 
 const MODEL = process.env.YZ_MODEL || 'claude-opus-5-5'
 
@@ -14,7 +64,7 @@ Oyuncunun isteğini görev araçlarıyla yerine getirirsin. Görevler uzun süre
 - "Ev yap" gibi yapı isteklerinde önce semalari_listele ile seçenekleri gör, isteğe en uygun şemayı seç. Oyuncu "büyük" demediyse küçük ve hızlı olanı tercih et.
 - Bir şey eksikse ya da emin değilsen durum_bak ile envanterine ve konumuna bak.
 - Yeni bir görev eskisini durdurur. Oyuncu sadece sohbet ediyorsa araç çağırma, sadece cevap ver.
-- X-ray yeteneğin var: yeraltındaki cevherleri ve lavı görebiliyorsun. Bunu sadece oyuncunun kendi dünyasında kullanıyorsun.`
+- X-ray sadece oyuncunun kendi tek kişilik dünyasında açık. Sunucuda ya da başka oyuncu varken kapalı (hile olmasın); o zaman cevherleri gözünle, tünel kazarak bulursun. Durumdaki "xray" alanına bak, kapalıysa x-ray deme.`
 }
 
 const ARACLAR = [
@@ -61,8 +111,18 @@ export class Beyin {
     this.o = o
     this.gecmis = []
     this.sira = Promise.resolve()
-    this.istemci = (process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN) ? new Anthropic() : null
-    if (!this.istemci) console.log('[beyin] ANTHROPIC_API_KEY yok: basit komut modunda çalışıyorum.')
+    this.kisaGecmis = [] // claude modu için son konuşmalar
+    const zorla = (process.env.YZ_BEYIN || '').toLowerCase()
+    const anahtar = process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN
+    if (zorla === 'api' || (!zorla && anahtar)) this.mod = 'api'
+    else if (zorla === 'claude' || (!zorla && claudeKurulu())) this.mod = 'claude'
+    else this.mod = 'basit'
+    this.istemci = this.mod === 'api' ? new Anthropic() : null
+    console.log({
+      api: '[beyin] Claude API anahtarıyla çalışıyorum.',
+      claude: '[beyin] API anahtarı yok; bilgisayardaki Claude Code ile (kendi Claude hesabınla) düşünüyorum.',
+      basit: '[beyin] Claude bulunamadı: basit komut modundayım ("gel", "takip et", "elmas bul", "ev yap", "dur").'
+    }[this.mod])
   }
 
   /** Oyuncu mesajı. Mesajlar sırayla işlenir. */
@@ -75,7 +135,8 @@ export class Beyin {
   }
 
   async #isle(oyuncu, metin) {
-    if (!this.istemci) return this.#basit(metin)
+    if (this.mod === 'basit') return this.#basit(metin)
+    if (this.mod === 'claude') return this.#claudeIle(oyuncu, metin)
     if (this.gecmis.length > 40) this.gecmis = [] // sohbet çok uzadıysa baştan başla
     this.gecmis.push({ role: 'user', content: `${oyuncu}: ${metin}` })
     for (let tur = 0; tur < 6; tur++) {
@@ -110,6 +171,43 @@ export class Beyin {
       }
       this.gecmis.push({ role: 'user', content: sonuclar })
     }
+  }
+
+  async #claudeIle(oyuncu, metin) {
+    let durum = '', semalar = ''
+    try { durum = String(await this.o.durum()) } catch {}
+    try { semalar = String(await this.o.semalar()) } catch {}
+    const istem = `${sistemMetni(this.o.surum, this.o.ad)}
+
+GÖREVLER (birini seçebilirsin):
+${Object.entries(GOREVLER).map(([k, v]) => `- ${k}: ${v}`).join('\n')}
+Ek alanlar: insa_et için "sema", maden_bul için "cevher" (diamond, iron, gold, coal, copper, redstone, lapis, emerald, ancient_debris, quartz) ve "adet", odun_topla için "adet", esyalari_ver için "esya".
+
+İNŞA EDİLEBİLECEK YAPILAR:
+${semalar}
+
+ŞU ANKİ DURUMUN: ${durum}
+
+SON KONUŞMALAR:
+${this.kisaGecmis.join('\n') || '(yok)'}
+
+YENİ MESAJ — ${oyuncu}: ${metin}
+
+Sadece tek satır JSON yaz, başka hiçbir şey yazma:
+{"cevap": "oyuncuya kısa Türkçe cevap", "gorev": null}
+ya da bir görev başlatacaksan:
+{"cevap": "...", "gorev": {"gorev": "insa_et", "sema": "kulube"}}`
+    let karar
+    try { karar = kararCoz(await claudeSor(istem)) } catch (e) {
+      console.error('[beyin] Claude Code hatası:', e.message)
+      if (/log ?in|auth|credential|401|API key/i.test(e.message)) this.o.konus('Claude\'a giriş yapılmamış. Bilgisayarda bir kere "claude" yazıp hesabınla gir. Şimdilik basit komutlarla devam.')
+      return this.#basit(metin)
+    }
+    if (karar.cevap) this.o.konus(karar.cevap)
+    let sonuc = ''
+    if (karar.gorev) { try { sonuc = String(await this.o.gorevBaslat(karar.gorev)) } catch (e) { sonuc = e.message } }
+    this.kisaGecmis.push(`${oyuncu}: ${metin}`, `Sen: ${karar.cevap}${karar.gorev ? ` [görev: ${JSON.stringify(karar.gorev)} → ${sonuc}]` : ''}`)
+    this.kisaGecmis = this.kisaGecmis.slice(-12)
   }
 
   async #basit(metin) {

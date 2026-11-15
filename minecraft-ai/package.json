@@ -9,7 +9,7 @@
     "bedrock": "node bedrock/kopru.js",
     "eklenti": "node bedrock/eklenti-yap.js",
     "test": "node --test test/ortak.test.js test/kopru.test.js",
-    "test:sim": "node --test test/bedrock-sim.test.js && node --test test/bedrock-nether.test.js"
+    "test:sim": "node --test test/bedrock-xray.test.js && node --test test/bedrock-sim.test.js && node --test test/bedrock-nether.test.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.8.0",

@@ -42,14 +42,16 @@ test('Bedrock yardımcı: netherite kazmaya kadar', { timeout: 600000 }, async (
   for (const [t, n] of [['diamond_pickaxe', 1], ['iron_ingot', 6], ['oak_planks', 32], ['cobblestone', 40], ['coal', 16]]) mc.esyaAt('overworld', { x: 1, y: 65, z: 1 }, 'minecraft:' + t, n)
   await new Promise((r) => setTimeout(r, 200))
   // oyuncu portal açılır açılmaz içine giriyor
-  SAHTE.dinle = (m) => { if (/portalı açıldı/.test(m)) p.teleport({ x: 0, y: 50, z: 0 }, { dimension: mc.world.getDimension('nether') }) }
+  SAHTE.dinle = (m) => {
+    if (/portalı açıldı/.test(m)) p.teleport({ x: 0, y: 50, z: 0 }, { dimension: mc.world.getDimension('nether') })
+    if (/şablonu lazım/.test(m)) { const y = mc.SAHTE_ENT.find((e) => e.typeId === 'yardimci:arkadas'); mc.esyaAt('nether', { ...y.location }, 'minecraft:netherite_upgrade_smithing_template', 1) } // oyuncu şablonu yanına atıyor
+  }
   const t0 = SAHTE.tick
   mc.olay('scriptEventReceive', { id: 'yardimci:gorev', message: 'netherite', sourceEntity: p })
   await bekleMesaj(/Nether portalı açıldı/, 240)
   await bekleMesaj(/Ancient debris arıyorum/, 60)
   const yz = mc.SAHTE_ENT.find((e) => e.typeId === 'yardimci:arkadas')
   assert.strictEqual(yz.dimension.id, 'minecraft:nether')
-  mc.esyaAt('nether', { ...yz.location }, 'minecraft:netherite_upgrade_smithing_template', 1) // oyuncu şablonu yanına atıyor
   await bekleMesaj(/Netherite külçesi hazır/, 240)
   await bekleMesaj(/NETHERITE KAZMA TAMAM/, 120)
   console.log(`  oyun içi süre (elmas kazmadan sonra): ${((SAHTE.tick - t0) / 20 / 60).toFixed(1)} dakika`)

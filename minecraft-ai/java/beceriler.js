@@ -12,6 +12,9 @@ export class IptalHatasi extends Error { constructor() { super('iptal'); this.ip
 
 const KUTUKLER = AGACLAR.map((a) => `${a}_log`).concat(['crimson_stem', 'warped_stem'])
 const DUSMAN = new Set(['zombie', 'husk', 'drowned', 'skeleton', 'stray', 'spider', 'cave_spider', 'creeper', 'witch', 'slime', 'magma_cube', 'zombified_piglin', 'piglin_brute', 'hoglin', 'zoglin', 'blaze', 'wither_skeleton', 'ghast', 'silverfish', 'phantom', 'pillager', 'vindicator', 'bogged', 'breeze'])
+// X-ray kapalıyken görmeden bulunamayacak şeyler (bulması hile sayılanlar)
+const GIZLI = /_ore$|ancient_debris|obsidian|^chest$|^trapped_chest$|^barrel$|spawner|gilded_blackstone|amethyst|budding/
+
 export const dusmanMi = (e) => e && e !== null && (e.type === 'hostile' || DUSMAN.has(e.name))
 
 // cevher → { bloklar, esya (düşen), y (en bol olduğu seviye), boyut }
@@ -49,9 +52,10 @@ const ERIT = {
 const YAKITLAR = [['coal_block', 80], ['coal', 8], ['charcoal', 8], ...AGACLAR.map((a) => [`${a}_planks`, 1.5]), ...KUTUKLER.map((k) => [k, 1.5]), ['stick', 0.5]]
 
 export class Beceriler {
-  constructor(bot, { konus }) {
+  constructor(bot, { konus, xrayIzinli = () => true }) {
     this.bot = bot
     this.konus = konus
+    this.xrayIzinli = xrayIzinli // sunucuda / çok oyunculu dünyada false döner
     this.token = { iptal: false }
     this.portalNoktasi = null // overworld portalı
     this.netherPortali = null
@@ -76,12 +80,27 @@ export class Beceriler {
 
   idler(adlar) { return adlar.map((a) => this.reg.blocksByName[a]?.id).filter((x) => x !== undefined) }
 
-  /** X-RAY: duvarın arkasını, yeraltını görür. Yüklü chunk'lardaki blokları tarar. */
+  get xrayAcik() { try { return !!this.xrayIzinli() } catch { return false } }
+  goz() { return this.xrayAcik ? 'X-ray ile' : 'Gözümle' }
+
+  /** Açıkta mı (bir yüzü havaya/suya bakıyor) ve botun gözünden görünüyor mu */
+  gorunur(b) {
+    const komsu = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]
+    const acik = komsu.some(([x, y, z]) => { const n = this.bot.blockAt(b.position.offset(x, y, z)); return n && n.boundingBox === 'empty' })
+    return acik && this.bot.canSeeBlock(b)
+  }
+
+  /**
+   * Blok arar. X-RAY AÇIKKEN (kendi tek kişilik dünyan): duvarın arkasını, yeraltını görür.
+   * X-RAY KAPALIYKEN (sunucu / çok oyunculu): cevher, sandık, obsidyen gibi şeyleri sadece gerçekten görebiliyorsa bulur.
+   */
   xray(adlar, { mesafe = 64, adet = 1, filtre = null } = {}) {
     const ids = this.idler(adlar)
     if (!ids.length) return []
-    const konumlar = this.bot.findBlocks({ matching: ids, maxDistance: mesafe, count: Math.max(adet, 1) * (filtre ? 8 : 1) })
+    const acik = this.xrayAcik
+    const konumlar = this.bot.findBlocks({ matching: ids, maxDistance: acik ? mesafe : Math.min(mesafe, 32), count: acik ? Math.max(adet, 1) * (filtre ? 8 : 1) : 128 })
     let bloklar = konumlar.map((p) => this.bot.blockAt(p)).filter(Boolean)
+    if (!acik) bloklar = bloklar.filter((b) => !GIZLI.test(b.name) || this.gorunur(b))
     if (filtre) bloklar = bloklar.filter(filtre)
     return bloklar.slice(0, adet)
   }
@@ -168,7 +187,7 @@ export class Beceriler {
       const adaylar = this.xray(blokAdlari, { mesafe, adet: 12, filtre: (b) => !this.lavYakin(b.position) })
       if (!adaylar.length) {
         bulunamadi++
-        if (bulunamadi > 6) throw new Error(`yakında ${esyaAd} bulamadım`)
+        if (bulunamadi > (this.xrayAcik ? 6 : 24)) throw new Error(`yakında ${esyaAd} bulamadım`)
         if (hedefY !== null && Math.abs(this.bot.entity.position.y - hedefY) > 6) {
           this.konus(`${esyaAd} için y=${hedefY} seviyesine iniyorum.`)
           await this.seviyeyeIn(hedefY)
@@ -459,7 +478,7 @@ export class Beceriler {
     if (this.esya(['iron_pickaxe', 'diamond_pickaxe', 'netherite_pickaxe']) && this.esya('bucket')) return
     await this.tasAletler()
     if (this.say(['coal', 'charcoal']) < 8) {
-      this.konus('X-ray ile kömür arıyorum.')
+      this.konus(`${this.goz()} kömür arıyorum.`)
       await this.topla(CEVHERLER.coal.bloklar, 8, 'coal', { mesafe: 96, hedefY: CEVHERLER.coal.y })
     }
     const lazim = 14
@@ -482,7 +501,7 @@ export class Beceriler {
   async elmas() {
     if (this.esya(['diamond_pickaxe', 'netherite_pickaxe'])) { this.konus('Zaten elmas kazmam var.'); return }
     await this.demirAletler()
-    this.konus('Elmasa gidiyorum: x-ray açık, lavdan uzak duruyorum.')
+    this.konus(this.xrayAcik ? 'Elmasa gidiyorum: x-ray açık, lavdan uzak duruyorum.' : 'Elmas için y=-58 seviyesine inip dal madenciliği yapacağım (x-ray kapalı).')
     await this.topla(CEVHERLER.diamond.bloklar, 5, 'diamond', { mesafe: 128, hedefY: CEVHERLER.diamond.y })
     await this.tahtaYap(4)
     await this.uret('stick', 4)
@@ -667,7 +686,7 @@ export class Beceriler {
   async sablonBul() {
     if (this.esya('netherite_upgrade_smithing_template')) return true
     if (!this.reg.itemsByName.netherite_upgrade_smithing_template) return true // eski sürüm: şablon yok
-    this.konus('Netherite şablonu için bastion kalesi arıyorum (x-ray).')
+    this.konus(`Netherite şablonu için bastion kalesi arıyorum (${this.xrayAcik ? 'x-ray' : 'gözümle'}).`)
     const isaret = this.xray(['gilded_blackstone', 'polished_blackstone_bricks'], { mesafe: 96 })[0]
     if (!isaret) return false
     await this.uzaGit(isaret.position, 4)
@@ -691,7 +710,7 @@ export class Beceriler {
     if (this.esya('netherite_pickaxe')) { this.konus('Netherite kazmam zaten var!'); return }
     if (!this.esya(['diamond_pickaxe'])) await this.elmas()
     if (!this.boyutNether()) await this.netherGit()
-    this.konus('Ancient debris arıyorum, x-ray açık.')
+    this.konus(this.xrayAcik ? 'Ancient debris arıyorum, x-ray açık.' : 'Ancient debris için y=15 seviyesinde tünel kazıyorum (x-ray kapalı).')
     const lazim = 4 - this.say('netherite_scrap') - this.say('netherite_ingot') * 4
     if (lazim > 0 && this.say('ancient_debris') < lazim) await this.topla(['ancient_debris'], lazim, 'ancient_debris', { mesafe: 96, hedefY: 15 })
     if (this.say('ancient_debris')) await this.erit('ancient_debris', this.say('ancient_debris'))
@@ -890,7 +909,7 @@ export class Beceriler {
     const c = CEVHERLER[anahtar]
     if (!c) throw new Error(`${cevherAd} diye bir cevher bilmiyorum`)
     if (c.nether && !this.boyutNether()) throw new Error('o cevher Nether\'de, önce Nether\'e gitmeliyiz')
-    this.konus(`X-ray ile ${adet} ${c.esya} arıyorum.`)
+    this.konus(`${this.goz()} ${adet} ${c.esya} arıyorum.`)
     await this.topla(c.bloklar, this.say(c.esya) + adet, c.esya, { mesafe: 128, hedefY: c.y })
     this.konus(`${adet} ${c.esya} tamam!`)
   }
