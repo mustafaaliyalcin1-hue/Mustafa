@@ -16,7 +16,7 @@ const U = {
   bp: '2d4801a5-cba8-4461-889b-c0495c448827', bpData: '2446d6a5-002e-4956-bef3-b561c3bd9f9d', bpScript: 'd8dbaa88-c5f8-4742-866e-a85963dc0bef',
   rp: '34890dff-8850-4b07-a95c-019c00c4bd72', rpRes: '14d0bf38-5d06-4301-ba4c-161a12db89d6'
 }
-const SURUM = [1, 0, 1]
+const SURUM = [1, 0, 2]
 const MOTOR = [1, 21, 50]
 
 function yaz(dosya, icerik) {

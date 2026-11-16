@@ -17,13 +17,14 @@ class Block {
   get isLiquid() { return /water|lava/.test(this.typeId) }
   get permutation() { return { getState: (s) => (s === 'liquid_depth' ? 0 : undefined) } }
   getComponent() { return undefined }
+  setPermutation(perm) { SAHTE.izinler = (SAHTE.izinler || 0) + 1; tipKoy(this.location, perm.id, this.d) }
 }
 class Dimension {
   constructor(id) { this.id = id; this.heightRange = { min: -64, max: 320 } }
   getBlock(p) { return new Block(p, this.id) }
   setBlockType(p, id) { tipKoy(p, id, this.id) }
   runCommand(c) {
-    SAHTE.komutlar.push(c)
+    SAHTE.komutlar.push(c); SAHTE.komutSayisi = (SAHTE.komutSayisi || 0) + 1
     const m = /^setblock (-?\d+) (-?\d+) (-?\d+) (\S+)/.exec(c)
     if (m) tipKoy({ x: +m[1], y: +m[2], z: +m[3] }, m[4], this.id)
     return { successCount: 1 }
@@ -69,3 +70,4 @@ export function oyuncuYap(p) { const e = new Entity('minecraft:player', p, DIM['
 export function olay(ad, veri) { for (const f of SAHTE.olaylar[ad] || []) f(veri) }
 export const SAHTE_ENT = ENT
 export function esyaAt(dim, p, t, n = 1) { const e = new Entity('minecraft:item', p, world.getDimension(dim)); e.esya = new ItemStack(t, n); ENT.push(e); return e }
+export const BlockPermutation = { resolve: (id, durum) => ({ id, durum }) }

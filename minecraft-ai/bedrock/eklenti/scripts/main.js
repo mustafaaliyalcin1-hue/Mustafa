@@ -69,11 +69,21 @@ function bosMu(dim, p) { return BOS.test(tip(dim, p)) }
 function lavMi(dim, p) { return SIVI_LAV.test(tip(dim, p)) }
 function sagMi(dim, p) { const t = tip(dim, p); return t !== 'unloaded' && !BOS.test(t) && !SIVI_LAV.test(t) }
 
+// '["a"=1,"b"=true,"c"="x"]' → { a: 1, b: true, c: 'x' }
+function durumCoz(durum) {
+  const o = {}
+  for (const m of durum.matchAll(/"([^"]+)"\s*=\s*("([^"]*)"|true|false|-?\d+)/g)) o[m[1]] = m[3] !== undefined ? m[3] : m[2] === 'true' ? true : m[2] === 'false' ? false : Number(m[2])
+  return o
+}
+
+/** Blok koyar. Önce oyunun betik API'sini kullanır (hileler kapalıyken de çalışır), en son çare komut. */
 function koyKomut(dim, p, id, durum = '') {
   const tam = id.includes(':') ? id : `minecraft:${id}`
-  try {
-    if (!durum && typeof dim.setBlockType === 'function') { dim.setBlockType(p, tam); return true }
-  } catch {}
+  if (durum && mc.BlockPermutation) {
+    try { dim.getBlock(p).setPermutation(mc.BlockPermutation.resolve(tam, durumCoz(durum))); return true } catch {}
+  }
+  try { if (typeof dim.setBlockType === 'function') { dim.setBlockType(p, tam); return true } } catch {}
+  try { const b = dim.getBlock(p); if (b && typeof b.setType === 'function') { b.setType(tam); return true } } catch {}
   try { dim.runCommand(`setblock ${p.x} ${p.y} ${p.z} ${tam}${durum ? ' ' + durum : ''}`); return tip(dim, p) !== 'air' || id === 'air' } catch { return false }
 }
 
@@ -672,7 +682,7 @@ async function netherite(e) {
   mesaj('Netherite külçesi hazır!')
   if (!s.env.netherite_upgrade_smithing_template) {
     mesaj('Netherite yükseltme şablonu lazım (bastion sandıklarında çıkar). Bulursan yanıma at, kazmayı yükseltirim. Bekliyorum...')
-    for (let t = 0; t < 20 * 60 * 5 && !s.env.netherite_upgrade_smithing_template; t += 40) { k(e); await bekle(40) }
+    for (let t = 0; t < 20 * 60 * 5 && !s.env.netherite_upgrade_smithing_template; t += 40) { k(e); esyaTopla(e); await bekle(40); esyaTopla(e) }
     if (!s.env.netherite_upgrade_smithing_template) { mesaj('Şablon gelmedi; külçe bende duruyor.'); return }
   }
   if (!(await masaYanina(e, 'smithing_table'))) {
@@ -733,7 +743,7 @@ async function komutlaInsa(e, t) {
   mesaj(`Komut modu: ${t.ad} yapısını kat kat kuruyorum (${bloklar.length} blok).`)
   for (let y = maxY + 2; y >= 0; y--) {
     k(e)
-    try { e.dimension.runCommand(`fill ${b0.x + minX} ${b0.y + y} ${b0.z + minZ} ${b0.x + maxX} ${b0.y + y} ${b0.z + maxZ} air`) } catch {}
+    for (let x = minX; x <= maxX; x++) for (let z = minZ; z <= maxZ; z++) { const q = { x: b0.x + x, y: b0.y + y, z: b0.z + z }; if (tip(e.dimension, q) !== 'air') koyKomut(e.dimension, q, 'air') }
     await bekle(3)
   }
   let konan = 0, rapor = 0, sonKat = -1
@@ -930,6 +940,21 @@ const GOREVLER = {
   insa_et: insaEt, tarla_yap: tarlaYap, maden_bul: madenBul, esyalari_ver: esyalariVer, uyu
 }
 
+/** Yanındaki (2.5 blok) yerdeki eşyaları alır. */
+function esyaTopla(e) {
+  const s = st(e)
+  try {
+    for (const it of e.dimension.getEntities({ type: 'minecraft:item', location: e.location, maxDistance: 2.5 })) {
+      const st2 = it.getComponent('minecraft:item')?.itemStack
+      if (!st2) continue
+      C.ekle(s.env, st2.typeId, st2.amount)
+      it.remove()
+      ses(e.dimension, 'random.pop', yuvarla(e.location))
+      kaydet(e)
+    }
+  } catch {}
+}
+
 // ---------- refleksler (her 5 tick): lav kaçışı, eşya toplama, savaş, iyileşme ----------
 let tick = 0
 system.runInterval(() => {
@@ -947,18 +972,7 @@ system.runInterval(() => {
       mesaj('Lava düştüm, kaçtım! Taşla kapattım.')
     } else if (sagMi(dim, topla(ayak, { x: 0, y: -1, z: 0 }))) s.sonGuvenli = { ...ayak, d: dim.id }
     // yerdeki eşyaları topla (oyuncu "Q" ile atarsa yardımcı alır)
-    if (tick % 2 === 0) {
-      try {
-        for (const it of dim.getEntities({ type: 'minecraft:item', location: e.location, maxDistance: 2.5 })) {
-          const st2 = it.getComponent('minecraft:item')?.itemStack
-          if (!st2) continue
-          C.ekle(s.env, st2.typeId, st2.amount)
-          it.remove()
-          ses(dim, 'random.pop', ayak)
-          kaydet(e)
-        }
-      } catch {}
-    }
+    if (tick % 2 === 0) esyaTopla(e)
     // savaş
     if (tick % 3 === 0) {
       try {

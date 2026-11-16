@@ -60,10 +60,11 @@ Giriş yapmazsan da çalışır; o zaman sadece basit komutları anlar: "gel", "
 
 1. `minecraft-ai\yapay-zeka-yardimci.mcaddon` dosyasına çift tıkla. Minecraft açılır ve paketleri içe aktarır.
 2. Yeni dünya oluştur (ya da var olanı düzenle):
-   - **Hileler: AÇIK** (yardımcı blok koymak için komut kullanıyor)
+   - Hileler açık ya da kapalı olabilir. Yardımcı blokları oyunun betik sistemiyle koyuyor, hile gerekmiyor.
+     (Sadece sohbet köprüsü `/connect` için hile açık olması gerekebilir.)
    - Davranış Paketleri → **Yapay Zeka Yardımcı** → Etkinleştir
 3. Dünyaya girince envanterine **Yardımcı Kumandası** gelir. Kullan → **Yardımcıyı çağır**.
-   Kumandayı kaybedersen: çubuk + kızıltaş ile üretebilirsin.
+   Kumandayı kaybedersen: çalışma masasında çubuk + kızıltaş ile üretebilirsin.
 4. Kumanda menüsünden görev ver: Elmas, Netherite, Yapı inşa et, Takip et, X-ray ayarı...
 
 **Sohbetle konuşmak için (Claude):**

@@ -57,5 +57,6 @@ test('Bedrock yardımcı: netherite kazmaya kadar', { timeout: 600000 }, async (
   console.log(`  oyun içi süre (elmas kazmadan sonra): ${((SAHTE.tick - t0) / 20 / 60).toFixed(1)} dakika`)
   const portal = [...SAHTE.bloklar.values()].filter((v) => v === 'minecraft:portal').length
   assert.ok(portal >= 6, 'portal blokları olmalı')
+  assert.ok(!SAHTE.komutlar.some((c) => /^setblock|^fill/.test(c)), 'blok koymak için komut kullanmamalı (hileler kapalı da çalışsın): ' + SAHTE.komutlar.slice(0, 3).join(' | '))
   process.exit(0)
 })
