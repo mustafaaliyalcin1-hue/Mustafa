@@ -282,6 +282,12 @@ export async function eklentiYap() {
   const dosya = path.join(BURA, '..', 'yapay-zeka-yardimci.mcaddon')
   zip.writeZip(dosya)
   console.log('Hazır:', dosya, Math.round(fs.statSync(dosya).size / 1024), 'KB')
+  // Bazı telefonlar .mcaddon'u tanımıyor: iki ayrı .mcpack da üret
+  for (const [klasor, ad] of [[BP, 'yardimci-davranis.mcpack'], [RP, 'yardimci-kaynak.mcpack']]) {
+    const z = new AdmZip()
+    z.addLocalFolder(klasor)
+    z.writeZip(path.join(BURA, '..', ad))
+  }
   return dosya
 }
 
