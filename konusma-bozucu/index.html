@@ -42,8 +42,13 @@
   <label>Yankı (çift gecikme) <span id="yankiV">kapalı</span></label>
   <input id="yanki" type="range" min="0" max="80" value="0">
 
+  <label>Mikrofon</label>
+  <select id="mik" style="width:100%;padding:8px;border-radius:8px;background:#2c2c36;color:#eee;border:0;font:inherit"><option value="">Varsayılan mikrofon</option></select>
+
   <div id="seviye"><i></i></div>
+  <div id="durum" style="font-size:13px;margin-top:8px;min-height:1.2em;opacity:.85">Kapalı.</div>
   <button id="ac" style="margin-top:16px">▶ Başlat</button>
+  <button id="bip" style="width:100%;margin-top:8px">🔊 Bip testi (kulaklıktan ses geliyor mu?)</button>
   <div class="not" id="bilgi">
     Mutlaka <b>kulaklık</b> kullan (hoparlörde ses mikrofona geri döner, cızırtı yapar).
     Araştırmalara göre yetişkinlerde en çok bozan gecikme ~200 ms, çocuklarda ~400–500 ms.
@@ -57,11 +62,20 @@ let ctx, src, delay, gain, fb, fbGain, analyser, stream;
 function guncelle() {
   const ms = +$('gecikme').value;
   $('ms').textContent = ms;
-  document.querySelectorAll('[data-ms]').forEach(b => b.classList.toggle('aktif', +b.dataset.ms === ms));
+  $('bip').onclick = () => {
+  const c = motor(), o = c.createOscillator(), g = c.createGain();
+  o.frequency.value = 660; g.gain.setValueAtTime(0.3, c.currentTime); g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.6);
+  o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + 0.6);
+  if (!stream) durum('Bip duymadıysan: telefonun sesini aç, sessiz modu kapat, kulaklığı kontrol et.');
+};
+$('mik').onchange = () => { if (stream) { durdur(); $('ac').click(); } };
+document.addEventListener('pointerdown', () => ctx && ctx.state !== 'running' && ctx.resume());
+mikrofonlariListele();
+document.querySelectorAll('[data-ms]').forEach(b => b.classList.toggle('aktif', +b.dataset.ms === ms));
   $('kazV').textContent = $('kazanc').value + '%';
   const y = +$('yanki').value;
   $('yankiV').textContent = y ? y + '%' : 'kapalı';
-  if (!ctx) return;
+  if (!ctx || !delay) return;
   // Tarayıcının kendi gecikmesini düş, toplam gecikme ayarla tam tutsun
   const sistem = (ctx.baseLatency || 0) + (ctx.outputLatency || 0);
   const t = Math.max(0, ms / 1000 - sistem);
@@ -71,11 +85,34 @@ function guncelle() {
   $('bilgi').dataset.sistem = Math.round(sistem * 1000);
 }
 
+const AC = window.AudioContext || window.webkitAudioContext;
+const durum = t => ($('durum').textContent = t);
+
+// Ses motoru tıklamanın İÇİNDE, beklemeden önce açılmalı; yoksa telefonlar sesi kapalı tutar.
+function motor() {
+  if (!ctx || ctx.state === 'closed') ctx = new AC({ latencyHint: 'interactive' });
+  if (ctx.state !== 'running') ctx.resume();
+  return ctx;
+}
+
+async function mikrofonlariListele() {
+  try {
+    const d = (await navigator.mediaDevices.enumerateDevices()).filter(x => x.kind === 'audioinput');
+    const sec = $('mik'), eski = sec.value;
+    sec.innerHTML = '<option value="">Varsayılan mikrofon</option>' +
+      d.map((x, i) => `<option value="${x.deviceId}">${x.label || 'Mikrofon ' + (i + 1)}</option>`).join('');
+    sec.value = eski;
+  } catch {}
+}
+
 async function baslat() {
+  motor();
+  const id = $('mik').value;
   stream = await navigator.mediaDevices.getUserMedia({
-    audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, latency: 0 },
+    audio: { deviceId: id ? { exact: id } : undefined, echoCancellation: false, noiseSuppression: false, autoGainControl: false },
   });
-  ctx = new AudioContext({ latencyHint: 'interactive' });
+  await ctx.resume();
+  mikrofonlariListele();
   src = ctx.createMediaStreamSource(stream);
   delay = ctx.createDelay(5);
   gain = ctx.createGain();
@@ -86,26 +123,34 @@ async function baslat() {
   delay.connect(fbGain); fbGain.connect(delay);
   delay.connect(gain); gain.connect(ctx.destination);
   guncelle();
+  const iz = stream.getAudioTracks()[0];
   const buf = new Uint8Array(analyser.fftSize);
+  let enYuksek = 0, t0 = performance.now();
   (function ciz() {
-    if (!ctx) return;
+    if (!stream) return;
     analyser.getByteTimeDomainData(buf);
     let m = 0; for (const v of buf) m = Math.max(m, Math.abs(v - 128));
+    enYuksek = Math.max(enYuksek, m);
     $('seviye').firstElementChild.style.width = Math.min(100, m / 1.28) + '%';
+    let t = `Ses motoru: ${ctx.state === 'running' ? 'çalışıyor ✅' : ctx.state + ' ❌ (ekrana bir kez dokun)'} · ` +
+            `Mikrofon: ${iz.readyState === 'live' && !iz.muted ? (iz.label || 'açık') + ' ✅' : 'sessiz/kapalı ❌'}`;
+    if (performance.now() - t0 > 3000 && enYuksek < 3) t += ' · Mikrofondan ses gelmiyor, başka mikrofon seç.';
+    durum(t);
     requestAnimationFrame(ciz);
   })();
 }
 
 function durdur() {
-  stream?.getTracks().forEach(t => t.stop());
-  ctx?.close(); ctx = null;
+  stream?.getTracks().forEach(t => t.stop()); stream = null;
+  try { src.disconnect(); delay.disconnect(); fbGain.disconnect(); gain.disconnect(); } catch {}
+  durum('Kapalı.');
   $('seviye').firstElementChild.style.width = 0;
 }
 
 $('ac').onclick = async () => {
-  if (ctx) { durdur(); $('ac').textContent = '▶ Başlat'; $('ac').classList.remove('calisiyor'); return; }
+  if (stream) { durdur(); $('ac').textContent = '▶ Başlat'; $('ac').classList.remove('calisiyor'); return; }
   try { await baslat(); $('ac').textContent = '■ Durdur'; $('ac').classList.add('calisiyor'); }
-  catch (e) { alert('Mikrofon açılamadı: ' + e.message); }
+  catch (e) { durum('Mikrofon açılamadı: ' + (e.name === 'NotAllowedError' ? 'izin verilmedi. Adres çubuğundaki kilit simgesinden mikrofona izin ver.' : e.message)); }
 };
 document.querySelectorAll('[data-ms]').forEach(b => b.onclick = () => { $('gecikme').value = b.dataset.ms; guncelle(); });
 ['gecikme', 'kazanc', 'yanki'].forEach(id => $(id).oninput = guncelle);
