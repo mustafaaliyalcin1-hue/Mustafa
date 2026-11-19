@@ -58,6 +58,16 @@ denetim ve teknik FFmpeg işleri ffmpeg-skill ile, tam otomatik reel/klip üreti
   (ücretli); OpenMontage → fal, Runway, Kling, HeyGen, ElevenLabs, OpenAI/Sora, Veo, Suno, Higgsfield, Replicate… (hepsi
   `.env` anahtarına bağlı, `.env` boş, bütçe tavanı 0 $); Higgsfield → hesap + kredi. Hiçbiri onaysız açılmaz.
 
+## Mobil uygulama (APK)
+`studio/mobil/` — **Tepetaklak Stüdyo** Android uygulaması: WebView + ffmpeg.wasm, tamamen çevrimdışı (internet izni yok).
+Özellikler: video seç, kırp, boşlukları otomatik kes, 9:16 / 9:16 kırp / 1:1 / orijinal, 7 renk filtresi (canlı önizleme),
+hız 0.5–2x, yazı (konum + renk), melodik müzik + orijinal ses seviyesi, 720p/1080p, Galeri'ye (Filmler/Tepetaklak Stüdyo)
+kaydet, paylaş. Derleme: `bash studio/mobil/derle.sh` → `studio/mobil/cikti/TepetaklakStudyo.apk` (Gradle'sız; Ubuntu
+`android-sdk-platform-23`, `aapt`, `dalvik-exchange`, `zipalign`, `apksigner`). Arayüz `mobil/web/` (index.html, app.css,
+app.js); Android kabuğu `mobil/android/`. İmza anahtarı `mobil/imza/tepetaklak.jks` (şifre: tepetaklak) — güncellemelerin
+aynı imzayla yüklenebilmesi için değiştirme. API 23 platformuyla derlendiği için Java'da lambda ve API 24+ metotları kullanma.
+Web arayüzünü tarayıcıda test: `cd studio/mobil/web && python3 -m http.server 8765` (önce `bash studio/mobil/varliklar.sh`).
+
 ## Klasörler
 `input/` kaynak videolar · `output/` çıktılar · `temp/` ara dosyalar · `assets/fonts` (Montserrat Black/ExtraBold/Bold,
 Anton, Bebas Neue — hepsi Türkçe karakterli; yedek DejaVu Sans Bold) · `assets/music` · `assets/sfx` (20 sentez ses +

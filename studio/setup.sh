@@ -107,6 +107,10 @@ ls assets/models/*.tflite >/dev/null 2>&1 && ok "kişi maskesi modelleri (mediap
 echo "== 6e. Video skill'leri (ffmpeg-skill, Ghost Editor, Claude Shorts, OpenMontage, Higgsfield notu)"
 bash skills_kur.sh
 
+echo "== 6f. Mobil uygulama (APK) derleme araçları"
+command -v apt-get >/dev/null && timeout 600 apt-get install -y -qq android-sdk-platform-23 aapt zipalign apksigner dalvik-exchange >/dev/null 2>&1
+[ -f /usr/lib/android-sdk/platforms/android-23/android.jar ] && ok "Android SDK (API 23) + aapt/dx/apksigner — APK: bash mobil/derle.sh" || uyar "Android derleme araçları kurulamadı"
+
 echo "== 7. Hızlı doğrulama"
 python3 scripts/kesim.py kes input/klip1_mandelbrot.mp4 --bas 0 --son 1 --onizleme -o temp/_setup_test.mp4 >/dev/null 2>&1 \
   && ok "araç zinciri çalışıyor" || uyar "hızlı test başarısız: bash scripts/test_hepsi.sh ile ayrıntı"
