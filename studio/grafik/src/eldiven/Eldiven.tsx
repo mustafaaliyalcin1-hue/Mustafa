@@ -14,10 +14,10 @@ export type Plan = {
   bolTB: { a: number; b: number; dusus: number; cikis: number; cizBas: number; cizSon: number };
 };
 
-const RENK = ["#FFD60A", "#00D4FF", "#FF4FA3", "#9BFF3A", "#FF8A1F", "#B98CFF"];
+export const RENK = ["#FFD60A", "#00D4FF", "#FF4FA3", "#9BFF3A", "#FF8A1F", "#B98CFF"];
 const MONT = "Mont";
 const UNB = "Unbounded";
-const FONTLAR = `
+export const FONTLAR = `
 @font-face{font-family:${MONT};src:url(${staticFile("fonts/Montserrat-Black.ttf")}) format('truetype');font-weight:900}
 @font-face{font-family:${MONT};src:url(${staticFile("fonts/Montserrat-ExtraBold.ttf")}) format('truetype');font-weight:800}
 @font-face{font-family:${UNB};src:url(${staticFile("fonts/unbounded-latin-ext-900-normal.woff2")}) format('woff2');font-weight:900}
@@ -30,7 +30,7 @@ const FONTLAR = `
 const tr = (s: string) => s.toLocaleUpperCase("tr-TR");
 const useT = () => { const f = useCurrentFrame(); const { fps } = useVideoConfig(); return { f, fps, t: f / fps }; };
 /** yaylı giriş (6-10 kare) ve hızlı çıkış */
-const giris = (t: number, a: number, fps: number, d = 9) =>
+export const giris = (t: number, a: number, fps: number, d = 9) =>
   spring({ frame: Math.round((t - a) * fps), fps, config: { damping: 14, stiffness: 190, mass: 0.6 }, durationInFrames: d });
 const cikis = (t: number, b: number) => interpolate(t, [b - 0.18, b], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
@@ -50,7 +50,7 @@ const sayfalar = (k: Kelime[]) => {
   if (cur.length) out.push(cur);
   return out;
 };
-const Altyazi: React.FC<{ k: Kelime[]; altY: number }> = ({ k, altY }) => {
+export const Altyazi: React.FC<{ k: Kelime[]; altY: number }> = ({ k, altY }) => {
   const { t, fps } = useT();
   const sp = React.useMemo(() => sayfalar(k), [k]);
   const si = sp.findIndex((p, i) => t >= p[0].a - 0.05 && t < (sp[i + 1] ? sp[i + 1][0].a - 0.05 : p[p.length - 1].b + 0.4));
