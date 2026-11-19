@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Osmo 360 VR</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #000; color: #eee; font: 15px system-ui, sans-serif; overflow: hidden; }
+  #panel { position: fixed; top: 12px; left: 12px; z-index: 5; background: rgba(20,20,28,.88); padding: 14px;
+           border-radius: 12px; width: min(340px, calc(100vw - 48px)); }
+  #panel h1 { font-size: 17px; margin: 0 0 10px; }
+  label { display: block; margin: 8px 0 3px; font-size: 13px; opacity: .8; }
+  input, select, button { width: 100%; box-sizing: border-box; padding: 8px; border-radius: 8px; border: 1px solid #444;
+           background: #111; color: #eee; font: inherit; }
+  button { cursor: pointer; background: #2a5bd7; border: 0; margin-top: 10px; font-weight: 600; }
+  button.ikinci { background: #333; }
+  #durum { margin-top: 10px; font-size: 13px; min-height: 1.2em; }
+  .row { display: flex; gap: 8px; } .row > * { flex: 1; }
+  #gizle { position: fixed; top: 12px; right: 12px; z-index: 6; width: auto; margin: 0; }
+  video { display: none; }
+</style>
+</head>
+<body>
+<button id="gizle" class="ikinci">Paneli gizle</button>
+<div id="panel">
+  <h1>Osmo 360 → VR canlı önizleme</h1>
+  <label>Kaynak</label>
+  <select id="kaynak">
+    <option value="whep">Mimo canlı yayın (MediaMTX / WebRTC)</option>
+    <option value="cam">Bu cihazın kamerası / webcam (USB)</option>
+  </select>
+  <label>Yayın adı (rtmp://PC-IP:1935/<b>osmo</b>)</label>
+  <input id="yol" value="osmo">
+  <label>Görüntü biçimi</label>
+  <select id="bicim">
+    <option value="equi">360° düz (equirectangular, 2:1)</option>
+    <option value="fish">Çift balıkgözü (iki lens yan yana)</option>
+    <option value="flat">Normal düz video (önde perde)</option>
+  </select>
+  <div class="row">
+    <div><label>Lens açısı (°)</label><input id="fov" type="number" value="190" step="1"></div>
+    <div><label>Yön kaydır (°)</label><input id="yaw" type="number" value="0" step="5"></div>
+  </div>
+  <button id="baslat">Görüntüyü başlat</button>
+  <div id="xrYeri"></div>
+  <div id="durum">Hazır.</div>
+</div>
+<video id="v" playsinline muted autoplay></video>
+
+<script type="importmap">
+{ "imports": {
+  "three": "./lib/three.module.js",
+  "three/addons/": "./lib/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { VRButton } from 'three/addons/webxr/VRButton.js';
+
+const $ = id => document.getElementById(id);
+const video = $('v');
+const durum = t => ($('durum').textContent = t);
+
+// Ayarları hatırla
+const KEYS = ['kaynak', 'yol', 'bicim', 'fov', 'yaw'];
+try { const s = JSON.parse(localStorage.getItem('osmo360vr') || '{}'); KEYS.forEach(k => s[k] != null && ($(k).value = s[k])); } catch {}
+const kaydet = () => { try { localStorage.setItem('osmo360vr', JSON.stringify(Object.fromEntries(KEYS.map(k => [k, $(k).value])))); } catch {} };
+
+// --- Sahne ---
+const renderer = new THREE.WebGLRenderer({ antialias: false });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.xr.enabled = true;
+renderer.xr.setReferenceSpaceType('local');
+document.body.appendChild(renderer.domElement);
+$('xrYeri').appendChild(VRButton.createButton(renderer));
+const vrBtn = $('xrYeri').querySelector('button');
+if (vrBtn) Object.assign(vrBtn.style, { position: 'static', width: '100%', marginTop: '10px', left: 'auto', bottom: 'auto' });
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 100);
+scene.add(camera);
+
+const tex = new THREE.VideoTexture(video);
+tex.colorSpace = THREE.SRGBColorSpace;
+tex.minFilter = THREE.LinearFilter;
+tex.generateMipmaps = false;
+
+const uniforms = {
+  map: { value: tex }, mode: { value: 0 },
+  fov: { value: THREE.MathUtils.degToRad(190) }, yaw: { value: 0 },
+};
+const sphere = new THREE.Mesh(
+  new THREE.SphereGeometry(50, 96, 64),
+  new THREE.ShaderMaterial({
+    uniforms, side: THREE.BackSide, depthWrite: false,
+    vertexShader: `varying vec3 vDir; void main(){ vDir = position; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+    fragmentShader: `
+      precision highp float;
+      uniform sampler2D map; uniform int mode; uniform float fov; uniform float yaw;
+      varying vec3 vDir;
+      const float PI = 3.14159265;
+      void main(){
+        vec3 d = normalize(vDir);
+        float c = cos(yaw), s = sin(yaw);
+        d = vec3(c*d.x + s*d.z, d.y, -s*d.x + c*d.z);
+        vec2 uv;
+        if (mode == 0) {                       // equirectangular
+          float lon = atan(d.x, -d.z);
+          float lat = asin(clamp(d.y, -1.0, 1.0));
+          uv = vec2(0.5 + lon/(2.0*PI), 0.5 + lat/PI);
+        } else {                               // çift balıkgözü: sol yarı ön lens, sağ yarı arka lens
+          bool front = d.z < 0.0;
+          vec3 l = front ? vec3(d.x, d.y, -d.z) : vec3(-d.x, d.y, d.z);
+          float theta = acos(clamp(l.z, -1.0, 1.0));
+          float r = theta / (fov*0.5) * 0.5;
+          vec2 dir = length(l.xy) > 1e-5 ? normalize(l.xy) : vec2(0.0);
+          vec2 p = vec2(0.5) + dir * r;        // lens içinde 0..1
+          if (r > 0.5) { gl_FragColor = vec4(0.0,0.0,0.0,1.0); return; }
+          uv = vec2((front ? 0.0 : 0.5) + p.x*0.5, p.y);
+        }
+        gl_FragColor = texture2D(map, uv);
+        #include <colorspace_fragment>
+      }`,
+  })
+);
+scene.add(sphere);
+
+// Normal video için perde
+const screen = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 0.9), new THREE.MeshBasicMaterial({ map: tex }));
+screen.position.set(0, 0, -2.2);
+scene.add(screen);
+
+function ayarUygula() {
+  const b = $('bicim').value;
+  sphere.visible = b !== 'flat';
+  screen.visible = b === 'flat';
+  uniforms.mode.value = b === 'equi' ? 0 : 1;
+  uniforms.fov.value = THREE.MathUtils.degToRad(+$('fov').value || 190);
+  uniforms.yaw.value = THREE.MathUtils.degToRad(+$('yaw').value || 0);
+  if (video.videoWidth) screen.scale.set(1, (video.videoHeight / video.videoWidth) / (9/16), 1);
+  kaydet();
+}
+['bicim', 'fov', 'yaw'].forEach(k => $(k).addEventListener('input', ayarUygula));
+video.addEventListener('loadedmetadata', () => {
+  ayarUygula();
+  const r = video.videoWidth / video.videoHeight;
+  durum(`Görüntü geliyor: ${video.videoWidth}×${video.videoHeight}` +
+    (Math.abs(r - 2) < 0.05 ? ' (2:1 → büyük ihtimalle 360° düz)' : ''));
+});
+
+// --- Fare/dokunmatik ile bakma (VR dışında) ---
+let lon = 0, lat = 0, drag = null;
+renderer.domElement.addEventListener('pointerdown', e => (drag = { x: e.clientX, y: e.clientY, lon, lat }));
+addEventListener('pointerup', () => (drag = null));
+addEventListener('pointermove', e => {
+  if (!drag) return;
+  lon = drag.lon + (drag.x - e.clientX) * 0.2;
+  lat = Math.max(-89, Math.min(89, drag.lat + (e.clientY - drag.y) * 0.2));
+});
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+renderer.setAnimationLoop(() => {
+  if (!renderer.xr.isPresenting) {
+    const phi = THREE.MathUtils.degToRad(90 - lat), th = THREE.MathUtils.degToRad(lon);
+    camera.lookAt(Math.sin(phi) * Math.sin(th), Math.cos(phi), -Math.sin(phi) * Math.cos(th));
+  }
+  renderer.render(scene, camera);
+});
+
+// --- Kaynaklar ---
+let pc = null, oturum = null;
+async function durdur() {
+  if (pc) { pc.close(); pc = null; }
+  if (oturum) { fetch(oturum, { method: 'DELETE' }).catch(() => {}); oturum = null; }
+  const s = video.srcObject; if (s) s.getTracks().forEach(t => t.stop());
+  video.srcObject = null;
+}
+
+async function whepBaslat() {
+  const yol = encodeURIComponent($('yol').value.trim() || 'osmo');
+  pc = new RTCPeerConnection();
+  pc.addTransceiver('video', { direction: 'recvonly' });
+  pc.addTransceiver('audio', { direction: 'recvonly' });
+  const ms = new MediaStream();
+  pc.ontrack = e => { ms.addTrack(e.track); video.srcObject = ms; video.play().catch(() => {}); };
+  pc.onconnectionstatechange = () => {
+    if (pc && ['failed', 'disconnected'].includes(pc.connectionState)) {
+      durum('Bağlantı koptu, 2 sn sonra yeniden deneniyor…');
+      setTimeout(baslat, 2000);
+    }
+  };
+  // Gecikmeyi en aza indir
+  pc.getReceivers().forEach(r => { try { r.playoutDelayHint = 0; r.jitterBufferTarget = 0; } catch {} });
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  const r = await fetch(`/whep/${yol}`, { method: 'POST', headers: { 'Content-Type': 'application/sdp' }, body: offer.sdp });
+  if (r.status === 404) throw new Error('Yayın yok. Mimo\'da canlı yayını başlattın mı? (rtmp://PC-IP:1935/' + decodeURIComponent(yol) + ')');
+  if (!r.ok) throw new Error('Sunucu hatası ' + r.status + ': ' + (await r.text()));
+  oturum = r.headers.get('location');
+  await pc.setRemoteDescription({ type: 'answer', sdp: await r.text() });
+  durum('Bağlandı, görüntü bekleniyor…');
+}
+
+async function kameraBaslat() {
+  const s = await navigator.mediaDevices.getUserMedia({
+    video: { width: { ideal: 3840 }, height: { ideal: 1920 }, frameRate: { ideal: 30 } }, audio: false,
+  });
+  video.srcObject = s; await video.play();
+}
+
+async function baslat() {
+  kaydet();
+  await durdur();
+  durum('Başlatılıyor…');
+  try {
+    if ($('kaynak').value === 'cam') await kameraBaslat(); else await whepBaslat();
+  } catch (e) { durum('Hata: ' + e.message); }
+}
+$('baslat').addEventListener('click', baslat);
+$('gizle').addEventListener('click', () => {
+  const p = $('panel'); p.hidden = !p.hidden; $('gizle').textContent = p.hidden ? 'Paneli göster' : 'Paneli gizle';
+});
+ayarUygula();
+</script>
+</body>
+</html>

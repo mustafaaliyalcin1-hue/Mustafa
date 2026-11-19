@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Konuşma Bozucu</title>
+<style>
+  :root { color-scheme: dark; --a: #ff5a3c; }
+  body { margin: 0; min-height: 100vh; background: #121216; color: #eee; font: 16px system-ui, sans-serif;
+         display: grid; place-items: center; padding: 16px; box-sizing: border-box; }
+  .kart { width: min(440px, 100%); background: #1c1c23; border-radius: 16px; padding: 22px; }
+  h1 { margin: 0 0 4px; font-size: 22px; } p { margin: 0 0 16px; opacity: .75; font-size: 14px; }
+  .buyuk { font-size: 44px; font-weight: 800; text-align: center; margin: 10px 0; font-variant-numeric: tabular-nums; }
+  input[type=range] { width: 100%; accent-color: var(--a); }
+  .hazir { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 10px 0 14px; }
+  button { padding: 10px; border: 0; border-radius: 10px; background: #2c2c36; color: #eee; font: inherit; cursor: pointer; }
+  button.aktif { outline: 2px solid var(--a); }
+  #ac { width: 100%; padding: 16px; font-size: 18px; font-weight: 700; background: var(--a); }
+  #ac.calisiyor { background: #444; }
+  label { display: flex; justify-content: space-between; font-size: 14px; margin-top: 12px; opacity: .85; }
+  #seviye { height: 8px; background: #2c2c36; border-radius: 4px; overflow: hidden; margin-top: 14px; }
+  #seviye i { display: block; height: 100%; width: 0; background: var(--a); transition: width .05s; }
+  .not { font-size: 12px; opacity: .6; margin-top: 12px; line-height: 1.4; }
+</style>
+</head>
+<body>
+<div class="kart">
+  <h1>🎧 Konuşma Bozucu</h1>
+  <p>Kulaklığı tak, başlat, konuşmaya çalış. Sesin gecikmeli geri gelince beyin şaşırır.</p>
+
+  <div class="buyuk"><span id="ms">200</span> ms</div>
+  <input id="gecikme" type="range" min="0" max="1000" step="10" value="200">
+  <div class="hazir">
+    <button data-ms="200">200 ms<br><small>en etkili</small></button>
+    <button data-ms="300">300 ms</button>
+    <button data-ms="500">500 ms<br><small>yarım sn</small></button>
+    <button data-ms="2000">2 sn</button>
+  </div>
+
+  <label>Ses yüksekliği <span id="kazV">150%</span></label>
+  <input id="kazanc" type="range" min="0" max="400" value="150">
+  <label>Yankı (çift gecikme) <span id="yankiV">kapalı</span></label>
+  <input id="yanki" type="range" min="0" max="80" value="0">
+
+  <div id="seviye"><i></i></div>
+  <button id="ac" style="margin-top:16px">▶ Başlat</button>
+  <div class="not" id="bilgi">
+    Mutlaka <b>kulaklık</b> kullan (hoparlörde ses mikrofona geri döner, cızırtı yapar).
+    Araştırmalara göre yetişkinlerde en çok bozan gecikme ~200 ms, çocuklarda ~400–500 ms.
+    Sesini konuşmanın üstünde duyacak kadar yüksek aç.
+  </div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+let ctx, src, delay, gain, fb, fbGain, analyser, stream;
+
+function guncelle() {
+  const ms = +$('gecikme').value;
+  $('ms').textContent = ms;
+  document.querySelectorAll('[data-ms]').forEach(b => b.classList.toggle('aktif', +b.dataset.ms === ms));
+  $('kazV').textContent = $('kazanc').value + '%';
+  const y = +$('yanki').value;
+  $('yankiV').textContent = y ? y + '%' : 'kapalı';
+  if (!ctx) return;
+  // Tarayıcının kendi gecikmesini düş, toplam gecikme ayarla tam tutsun
+  const sistem = (ctx.baseLatency || 0) + (ctx.outputLatency || 0);
+  const t = Math.max(0, ms / 1000 - sistem);
+  delay.delayTime.setTargetAtTime(t, ctx.currentTime, 0.01);
+  gain.gain.setTargetAtTime($('kazanc').value / 100, ctx.currentTime, 0.01);
+  fbGain.gain.setTargetAtTime(y / 100, ctx.currentTime, 0.01);
+  $('bilgi').dataset.sistem = Math.round(sistem * 1000);
+}
+
+async function baslat() {
+  stream = await navigator.mediaDevices.getUserMedia({
+    audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, latency: 0 },
+  });
+  ctx = new AudioContext({ latencyHint: 'interactive' });
+  src = ctx.createMediaStreamSource(stream);
+  delay = ctx.createDelay(5);
+  gain = ctx.createGain();
+  fbGain = ctx.createGain();       // geri besleme: gecikmiş sesi tekrar gecikmeye sok (yankı)
+  analyser = ctx.createAnalyser(); analyser.fftSize = 512;
+  src.connect(analyser);
+  src.connect(delay);
+  delay.connect(fbGain); fbGain.connect(delay);
+  delay.connect(gain); gain.connect(ctx.destination);
+  guncelle();
+  const buf = new Uint8Array(analyser.fftSize);
+  (function ciz() {
+    if (!ctx) return;
+    analyser.getByteTimeDomainData(buf);
+    let m = 0; for (const v of buf) m = Math.max(m, Math.abs(v - 128));
+    $('seviye').firstElementChild.style.width = Math.min(100, m / 1.28) + '%';
+    requestAnimationFrame(ciz);
+  })();
+}
+
+function durdur() {
+  stream?.getTracks().forEach(t => t.stop());
+  ctx?.close(); ctx = null;
+  $('seviye').firstElementChild.style.width = 0;
+}
+
+$('ac').onclick = async () => {
+  if (ctx) { durdur(); $('ac').textContent = '▶ Başlat'; $('ac').classList.remove('calisiyor'); return; }
+  try { await baslat(); $('ac').textContent = '■ Durdur'; $('ac').classList.add('calisiyor'); }
+  catch (e) { alert('Mikrofon açılamadı: ' + e.message); }
+};
+document.querySelectorAll('[data-ms]').forEach(b => b.onclick = () => { $('gecikme').value = b.dataset.ms; guncelle(); });
+['gecikme', 'kazanc', 'yanki'].forEach(id => $(id).oninput = guncelle);
+guncelle();
+</script>
+</body>
+</html>

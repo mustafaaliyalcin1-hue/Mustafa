@@ -1,0 +1,20 @@
+# MediaMTX ayarı — Osmo 360 (DJI Mimo RTMP) → WebRTC
+# mediamtx.exe ile aynı klasöre koy (eskisinin üstüne yaz) ve mediamtx.exe'yi çalıştır.
+logLevel: info
+
+rtmp: yes
+rtmpAddress: :1935
+
+webrtc: yes
+webrtcAddress: :8889
+webrtcLocalUDPAddress: :8189
+# VR gözlük PC'ye bu adresle ulaşacak. Kendi PC'nin IP'sini yaz (server.js açılınca gösterir):
+webrtcAdditionalHosts: [192.168.1.100]
+webrtcICEServers2: []
+
+rtsp: no
+hls: no
+srt: no
+
+paths:
+  all_others:

@@ -1,0 +1,1 @@
+{ "name": "osmo360-vr", "private": true, "type": "commonjs", "scripts": { "start": "node server.js" } }
