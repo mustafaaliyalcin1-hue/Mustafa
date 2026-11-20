@@ -109,7 +109,7 @@
       '  <div class="tt-view"></div>' +
       '  <div class="tt-banner"></div>' +
       '  <div class="tt-overlay"></div>' +
-      '  <div class="tt-homebar" title="Ana ekran / cebe koy"><i></i></div>' +
+      '  <div class="tt-homebar" data-a="homebar" title="Ana ekran / cebe koy"><i></i></div>' +
       ' </div>' +
       '</div>';
     this.$phone = this.host.querySelector('.tt-phone');
@@ -118,13 +118,32 @@
     this.$over = this.host.querySelector('.tt-overlay');
     this.$isl = this.host.querySelector('.tt-isl');
     var self = this;
-    this.host.addEventListener('click', function (e) { self.onClick(e); });
-    this.host.querySelector('.tt-homebar').addEventListener('click', function (e) {
-      e.stopPropagation();
-      if (self.pocket) { self.setPocket(false); return; }
-      if (self.screen === 'home' && !self.call) self.setPocket(true); else self.go('home', true);
-    });
-    this.$phone.addEventListener('click', function () { if (self.pocket) self.setPocket(false); }, true);
+    // Dokunma: basılan düğmeyi hatırla, bırakınca çalıştır. Arada ekran yenilense bile tıklama kaybolmaz.
+    function xy(e) { var t = e.changedTouches ? e.changedTouches[0] : e; return [t.clientX, t.clientY]; }
+    function down(e) {
+      if (e.button != null && e.button !== 0) return;
+      if (self.pocket) { self.setPocket(false); self.press = null; e.preventDefault(); return; }
+      var t = e.target.closest ? e.target.closest('[data-a]') : null;
+      if (!t || !self.host.contains(t)) { self.press = null; return; }
+      var p = xy(e);
+      self.press = { a: t.getAttribute('data-a'), v: t.getAttribute('data-v'), el: t, x: p[0], y: p[1], ts: Date.now() };
+      t.classList.add('tt-pressed');
+    }
+    function up(e) {
+      var pr = self.press; self.press = null;
+      if (!pr) return;
+      if (pr.el) pr.el.classList.remove('tt-pressed');
+      var p = xy(e);
+      if (Math.abs(p[0] - pr.x) > 14 || Math.abs(p[1] - pr.y) > 14) return;   // kaydırma, tıklama değil
+      if (pr.el.disabled) return;
+      self.runAction(pr.a, pr.v, pr.el);
+      if (self._deferred) { self._deferred = false; self.render(true); }
+    }
+    this.host.addEventListener('mousedown', down);
+    window.addEventListener('mouseup', up);
+    this.host.addEventListener('touchstart', function (e) { down(e); }, { passive: true });
+    this.host.addEventListener('touchend', function (e) { up(e); e.preventDefault(); });
+    this._winUp = up;
   };
 
   PR.fit = function () {
@@ -144,13 +163,10 @@
   };
   PR.back = function () { this.screen = this.stack.pop() || 'home'; this.render(); };
 
-  PR.onClick = function (e) {
-    var t = e.target.closest('[data-a]');
-    if (!t || !this.host.contains(t)) return;
-    e.stopPropagation();
-    var a = t.getAttribute('data-a'), v = t.getAttribute('data-v');
+  PR.runAction = function (a, v, t) {
     var h = this.actions[a];
-    if (h) h.call(this, v, t);
+    if (!h) return;
+    try { h.call(this, v, t); } catch (err) { if (window.console) console.error('TepeTelefon', a, err); this.banner('Tepe Telefon', 'Bir hata oldu: ' + (err && err.message), 'gear'); }
   };
 
   // ---------- Lua olayları ----------
@@ -163,9 +179,10 @@
   PR.lua = {
     state: function (d) {
       this.live = d;
+      this.lastLua = Date.now();
       if (d.crash != null && this.crash) this.crash.left = d.crash;
       this.updIsland();
-      if (/^(home|track|taxi|med|duty)$/.test(this.screen) && !this.call) this.render(true);
+      if (/^(home|track|taxi|med|duty|settings)$/.test(this.screen) && !this.call) this.render(true);
       if (this.crash) this.renderCrash();
     },
     toggle: function () { this.setPocket(!this.pocket); },
@@ -290,13 +307,17 @@
   // =====================================================================
   // ekranlar
   PR.render = function (soft) {
-    if (soft === 'live' ) soft = true;
     if (soft && this._lastScreen === this.screen && (this.screen === 'call' || this.screen === 'statement')) return;
+    // parmak basılıyken yeniden çizme; bırakınca çizilir
+    if (soft && this.press) { this._deferred = true; return; }
     var fn = this.screens[this.screen] || this.screens.home;
+    var html = fn.call(this);
+    if (soft && this._lastScreen === this.screen && html === this._lastHtml) return;   // değişiklik yok
+    this._lastHtml = html;
     var keepScroll = soft && this._lastScreen === this.screen;
     var sc = this.$view.querySelector('.tt-scroll');
     var st = keepScroll && sc ? sc.scrollTop : 0;
-    this.$view.innerHTML = fn.call(this);
+    this.$view.innerHTML = html;
     this.$view.className = 'tt-view s-' + this.screen;
     this.$view.parentNode.setAttribute('data-theme', /^(dialer|messages|thread|taxi|med|wallet|settings|statement)$/.test(this.screen) ? 'light' : 'dark');
     if (keepScroll) { var ns = this.$view.querySelector('.tt-scroll'); if (ns) ns.scrollTop = st; }
@@ -539,7 +560,9 @@
       sw('autoOpen', s.autoOpen, 'Telefonu otomatik çıkar', 'Ekip gelince ya da kazada ekrana gelir') +
       '</div><div class="tt-sec">CÜZDAN</div><div class="tt-list grp"><button class="tt-row set" data-a="resetWallet"><span class="tt-rt"><b class="blue">Bakiyeyi 15.000 ₺ yap</b><small>İşlem geçmişi silinir</small></span></button>' +
       '<button class="tt-row set" data-a="clearMsgs"><span class="tt-rt"><b class="red">Mesajları ve aramaları sil</b></span></button></div>' +
-      '<div class="tt-sec">HAKKINDA</div><div class="tt-list grp"><div class="tt-row set"><span class="tt-rt"><b>Tepe Telefon</b><small>Sürüm 1.0 · Tuş ataması: Ayarlar › Kontroller › “Tepe Telefon”</small></span></div></div>' +
+      '<div class="tt-sec">HAKKINDA</div><div class="tt-list grp"><div class="tt-row set"><span class="tt-rt"><b>Oyun bağlantısı</b><small>' +
+      (this.lastLua && Date.now() - this.lastLua < 3000 ? 'Bağlı · oyundan veri geliyor' : 'BAĞLI DEĞİL · oyundan veri gelmiyor (mod Lua tarafı yüklenmemiş olabilir)') + '</small></span><span class="tt-dotc ' + (this.lastLua && Date.now() - this.lastLua < 3000 ? 'ok' : '') + '"></span></div>' +
+      '<div class="tt-row set"><span class="tt-rt"><b>Tepe Telefon</b><small>Sürüm 1.1 · Tuş ataması: Options › Controls › Bindings › “Tepe”</small></span></div></div>' +
       '</div></div>';
   };
 
@@ -570,6 +593,11 @@
   // eylemler
   PR.actions = {
     go: function (v) { if (v === 'messages') this.thread = null; this.go(v); },
+    homebar: function () {
+      if (this.screen === 'home' && !this.call) this.setPocket(true);
+      else if (this.call && this.screen === 'call') this.go('home');
+      else this.go('home', true);
+    },
     back: function () { this.back(); },
     bannerTap: function (v) {
       this.$banner.classList.remove('show'); this.setPocket(false);
@@ -1300,6 +1328,7 @@
 
   PR.destroy = function () {
     clearInterval(this.tick);
+    if (this._winUp) window.removeEventListener('mouseup', this._winUp);
     this.timers.forEach(clearTimeout);
     if (this.ro) this.ro.disconnect();
   };
@@ -1323,7 +1352,8 @@
           var api = {
             send: function (cmd, data) {
               var code = 'extensions.tepeTelefon.ui(' + luaStr(cmd) + ',' + luaStr(JSON.stringify(data || {})) + ')';
-              if (window.bngApi) bngApi.engineLua(code);
+              if (window.bngApi && bngApi.engineLua) bngApi.engineLua(code);
+              else if (window.beamng && beamng.sendEngineLua) beamng.sendEngineLua(code);
             }
           };
           var ph = window.TepeTelefonMount(element[0], api);

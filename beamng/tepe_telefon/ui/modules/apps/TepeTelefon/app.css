@@ -350,3 +350,6 @@
 .tt-pay .tot{background:#141c2c}.tt-pay .tot b{font-size:1.2em;color:#ffcc00}
 .tt-grid{gap:1.4em .6em}
 .tt-lights button{white-space:nowrap;font-size:.98em;gap:.2em}.tt-lights .ic{width:1.15em;height:1.15em}
+.tt-pressed{filter:brightness(.82);transform:scale(.97)}
+.tt-homebar{height:3.4em}
+.tt-dotc{width:1.1em;height:1.1em;border-radius:50%;background:#ff3b30;flex:none}.tt-dotc.ok{background:#34c759}
