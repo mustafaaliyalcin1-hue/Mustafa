@@ -1,0 +1,8 @@
+{
+  "domElement": "<tepe-telefon></tepe-telefon>",
+  "name": "Tepe Telefon",
+  "types": ["ui.apps.categories.gameplay"],
+  "description": "Akıllı telefon: 112, 155, 188, taksi, ekip takibi, kaza algılama, polis ifadesi ve cüzdan.",
+  "directive": "tepeTelefon",
+  "css": { "width": "330px", "height": "700px", "right": "24px", "bottom": "0px" }
+}

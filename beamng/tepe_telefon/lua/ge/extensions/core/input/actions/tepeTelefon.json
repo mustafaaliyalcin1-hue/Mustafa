@@ -1,0 +1,10 @@
+{
+  "tepeTelefon_toggle": {
+    "cat": "gameplay",
+    "order": 90,
+    "ctx": "tlua",
+    "onDown": "extensions.tepeTelefon.togglePhone()",
+    "title": "Tepe Telefon: telefonu çıkar / cebe koy",
+    "desc": "Tepe Telefon uygulamasını açar ya da cebe koyar."
+  }
+}
