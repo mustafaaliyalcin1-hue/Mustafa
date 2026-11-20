@@ -170,8 +170,24 @@
   };
 
   // ---------- Lua olayları ----------
+  // Lua boş tabloyu JSON'da {} (nesne) olarak yollar; liste beklenen alanları diziye çevir.
+  var LIST_KEYS = { units: 1, patients: 1, cars: 1 };
+  function fixLists(o, depth) {
+    if (!o || typeof o !== 'object' || depth > 5) return o;
+    for (var k in o) {
+      var v = o[k];
+      if (LIST_KEYS[k]) {
+        if (!Array.isArray(v)) v = (v && typeof v === 'object') ? Object.keys(v).map(function (i) { return v[i]; }) : [];
+        o[k] = v;
+      }
+      if (v && typeof v === 'object') fixLists(v, depth + 1);
+    }
+    return o;
+  }
+
   PR.onLua = function (d) {
     if (!d || !d.t) return;
+    fixLists(d, 0);
     var f = this.lua[d.t];
     if (f) f.call(this, d);
   };
