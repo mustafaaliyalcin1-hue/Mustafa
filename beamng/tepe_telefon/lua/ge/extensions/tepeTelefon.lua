@@ -344,9 +344,7 @@ local function makeIncident(pos, ev)
     id = math.random(10000, 99999), pos = vec3(pos), t = simT, solo = ev.solo, ev = ev,
     patients = {}, dispatched = false, statementDone = false, medDone = false, dead = false,
   }
-  local pSev = rollSeverity(ev.playerDv or 0)
-  if pSev == 'olu' then pSev = 'agir' end
-  table.insert(incident.patients, {who='sen', name='Sen', sev=pSev, state='bekliyor', p=0})
+  -- yalnızca çarpılan araçtaki kişi muayene edilir (oyuncu değil)
   if not ev.solo and ev.occupied then
     table.insert(incident.patients, {who='karsi', name='Karşı sürücü', sev=rollSeverity(ev.otherDv or 0), state='bekliyor', p=0})
   end
@@ -371,9 +369,10 @@ local DUR = {none=10, hafif=16, orta=26, agir=36, olu=30}
 local TRIAGE = {none='yesil', hafif='yesil', orta='sari', agir='kirmizi', olu='kirmizi'}
 
 local function startTreatment(u)
-  if not incident then
-    notify('112 Ambulans', 'Sağlık ekibi geldi. Seni kontrol ettiler, sağlığın yerinde.', 'med')
+  if not incident or #incident.patients == 0 then
+    notify('112 Ambulans', 'Sağlık ekibi olay yerini kontrol etti. Yaralı ya da müdahale gereken kimse yok.', 'med')
     u.leaveAt = simT + 12
+    if incident then incident.medDone = true end
     return
   end
   local start = simT + 4
@@ -391,7 +390,8 @@ end
 
 local function finishPatient(pt)
   local s, r = pt.sev, math.random()
-  if s == 'none' then pt.outcome = 'saglam'
+  if pt.force then pt.outcome = pt.force
+  elseif s == 'none' then pt.outcome = 'saglam'
   elseif s == 'hafif' then pt.outcome = 'yerinde'
   elseif s == 'orta' then pt.outcome = (r < 0.7) and 'yerinde' or 'hastane'
   elseif s == 'agir' then
@@ -400,7 +400,10 @@ local function finishPatient(pt)
   elseif s == 'olu' then pt.outcome = (r < 0.85) and 'vefat' or 'kurtarildi' end
   pt.state = 'bitti'
   pt.p = 1
-  if pt.outcome == 'vefat' then pt.triage = 'siyah'; incident.dead = true end
+  if pt.outcome == 'vefat' then
+    pt.triage = 'siyah'; incident.dead = true
+    if not incident.hearseCalled then incident.hearseCalled = true; incident.hearseAt = simT + 6 end
+  end
   local TXT = {
     saglam = 'kontrol edildi, sağlığı yerinde.',
     yerinde = 'olay yerinde tedavi edildi.',
@@ -409,7 +412,9 @@ local function finishPatient(pt)
     vefat = 'tüm müdahaleye rağmen hayatını kaybetti.',
     kurtarildi = 'ekip son anda hayata döndürdü, hastaneye kaldırılıyor.',
   }
-  notify('112 Ambulans', pt.name..' '..TXT[pt.outcome], 'med')
+  local txt = TXT[pt.outcome]
+  if pt.atCheck then txt = 'nabız ve solunum yok. Olay yerinde ölüm tespit edildi.' end
+  notify('112 Ambulans', pt.name..' '..txt, 'med')
 end
 
 local function updateTreatment()
@@ -419,9 +424,26 @@ local function updateTreatment()
     if pt.state ~= 'bitti' then
       all = false
       if pt.startAt and simT >= pt.startAt then
-        pt.state = 'mudahale'
-        pt.p = clamp((simT - pt.startAt) / pt.dur, 0, 1)
-        if pt.p >= 1 then finishPatient(pt) end
+        if not pt.checked then
+          -- önce hayati belirtiler: nabız, solunum, bilinç
+          pt.state = 'kontrol'
+          pt.p = 0
+          if simT - pt.startAt >= 7 then
+            pt.checked = true
+            if pt.sev == 'olu' and math.random() < 0.85 then
+              pt.force = 'vefat'; pt.atCheck = true
+              finishPatient(pt)   -- ölüm tespit edildi -> cenaze aracı otomatik
+            else
+              if pt.sev == 'olu' then pt.sev = 'agir'; pt.dur = DUR.agir end
+              notify('112 Ambulans', pt.name..' yaşıyor. Hayati belirtiler alındı, müdahaleye başlandı.', 'med')
+              pt.startAt = simT
+            end
+          end
+        else
+          pt.state = 'mudahale'
+          pt.p = clamp((simT - pt.startAt) / pt.dur, 0, 1)
+          if pt.p >= 1 then finishPatient(pt) end
+        end
       end
     end
   end
@@ -437,9 +459,9 @@ local function updateTreatment()
     if transport then u.leaveAt = simT + 6; u.leaveSiren = true
     else u.leaveAt = simT + (dead and 25 or 10) end
   end
-  if dead then
-    sms('112 Acil', 'Olay yerindeki karşı sürücü hayatını kaybetti. Başınız sağ olsun. Savcılık ve 188 Cenaze Hizmetleri bilgilendirildi; cenaze aracı yönlendiriliyor.')
-    incident.hearseAt = simT + 18
+  if dead and not incident.hearseSms then
+    incident.hearseSms = true
+    sms('112 Acil', 'Olay yerindeki karşı sürücü hayatını kaybetti. Savcılık ve 188 Cenaze Hizmetleri bilgilendirildi; cenaze aracı otomatik olarak yönlendirildi.')
   end
 end
 
@@ -465,6 +487,74 @@ local function policeArrived(u)
     send('police_ask', {officer=pick(DRIVERS)..' '..pick(SURN), unit=u.id})
     notify(u.name, 'Polis ekibi yanına geldi.', 'police')
     u.timeoutAt = simT + 240
+  end
+end
+
+-- karşı araç: dörtlüleri yak, dur, ileride sağa çek -------------------------------
+local function startPullOver(vid, canDrive)
+  local veh = getVeh(vid)
+  if not veh then return end
+  incident.pull = {vid = vid, phase = 'hazard', t = simT, canDrive = canDrive}
+  q("pcall(electrics.set_warn_signal, true) ai.setMode('stop')", veh)
+end
+
+local function updatePullOver()
+  local pl = incident and incident.pull
+  if not pl or pl.phase == 'parked' then
+    -- park halindeyken trafik sistemi aracı yeniden sürmesin
+    if pl and simT - (pl.holdT or 0) > 5 then
+      pl.holdT = simT
+      q("ai.setMode('disabled') input.event('throttle', 0, 2) input.event('parkingbrake', 1, 2) pcall(electrics.set_warn_signal, true)", getVeh(pl.vid))
+    end
+    return
+  end
+  local veh = getVeh(pl.vid)
+  if not veh then incident.pull = nil return end
+  local p, spd = vpos(veh), hlen(vvel(veh))
+  if pl.phase == 'hazard' and simT - pl.t > 3.5 then
+    if not pl.canDrive then
+      pl.phase = 'parked'
+      notify('Kaza yeri', 'Çarptığın araç dörtlülerini yaktı ve olduğu yerde kaldı. Sürücü hareket edemiyor.', 'police')
+      return
+    end
+    pl.phase = 'pulling'
+    pl.t = simT
+    -- ileride, aynı yön üzerinde 45-110 m'de uygun bir yol noktası
+    local d = vdir(veh); d.z = 0; d = d:normalized()
+    local nodes, best, bs = roadNodes(), nil, -math.huge
+    for name, n in pairs(nodes) do
+      local r = n.pos - p; r.z = 0
+      local L = r:length()
+      if L > 45 and L < 110 then
+        local al = r:normalized():dot(d)
+        if al > 0.85 then
+          local sc = al * 2 - math.abs(L - 70) / 40 + ((n.radius or 3) > 3.5 and 0.3 or 0)
+          if sc > bs then best, bs = name, sc end
+        end
+      end
+    end
+    local cmd = "pcall(electrics.set_warn_signal, true) input.event('parkingbrake', 0, 2)"
+    if best then
+      pl.dest = vec3(nodes[best].pos)
+      cmd = cmd .. string.format(" ai.setMode('manual') ai.setTarget(%q) ai.setSpeedMode('limit') ai.setSpeed(6) ai.driveInLane('on') ai.setAvoidCars('on')", best)
+    end
+    -- BeamNG'nin kendi kenara çekme davranışı varsa onu da kullan
+    cmd = cmd .. " if ai.setPullOver then pcall(ai.setPullOver, true) end"
+    q(cmd, veh)
+  elseif pl.phase == 'pulling' then
+    if spd < 0.8 then pl.slowT = pl.slowT or simT else pl.slowT = nil end
+    local near = pl.dest and hdist(p, pl.dest) < 14
+    if (near and spd < 3) or (pl.slowT and simT - pl.slowT > 2.5 and simT - pl.t > 6) or simT - pl.t > 30 then
+      pl.phase = 'parked'
+      q("ai.setMode('stop')", veh)
+      pl.holdT = simT - 2
+      incident.pos = vec3(p)
+      -- yoldaki ekipleri yeni konuma yönlendir
+      for _, u in pairs(units) do
+        if u.status == 'enroute' and not u.follow and u.kind ~= 'taxi' then driveTo(u, incident.pos) end
+      end
+      notify('Kaza yeri', 'Çarptığın araç dörtlülerini yakıp ileride sağa çekti. Ekipler oraya geliyor.', 'police')
+    end
   end
 end
 
@@ -517,6 +607,11 @@ local function onCrash(pv, pp, vNow, vBefore, dv)
   end
   -- önceki olay açıksa kapat (ekipler kalırsa yeni olaya bağlanır)
   makeIncident(pp, ev)
+  if other and ev.occupied then
+    incident.otherVid = other
+    local sev = ev.otherSev
+    startPullOver(other, sev ~= 'agir' and sev ~= 'olu')
+  end
   if not CFG.crashDetect then return end
   crashPending = {deadline = simT + CFG.sosDelay}
   send('crash', {countdown = CFG.sosDelay, speed = math.floor(ev.speed), solo = ev.solo})
@@ -555,7 +650,7 @@ local function dispatch(services, reason)
     makeIncident(pp, ev)
   end
   local target, follow = pp, true
-  if incident and (reason == 'kaza' or reason == 'saglik' or reason == 'auto') and simT - incident.t < CFG.incidentLife then
+  if incident and (reason == 'kaza' or reason == 'saglik' or reason == 'auto' or reason == 'cenaze') and simT - incident.t < CFG.incidentLife then
     target, follow = incident.pos, false
     incident.dispatched = true
   end
@@ -762,6 +857,7 @@ local function onUpdate(dtReal, dtSim)
 
   updateUnits(pv)
   updateTreatment()
+  updatePullOver()
   updateRide()
 
   if incident and incident.hearseAt and simT > incident.hearseAt then

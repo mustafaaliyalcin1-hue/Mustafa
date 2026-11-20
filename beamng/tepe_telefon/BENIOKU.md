@@ -14,8 +14,11 @@ kaza algılama (otomatik 112), olay yeri tedavisi, cenaze aracı, polis ifadesi 
 ## Kullanım
 - Alt çizgiye (ana ekran çubuğu) bas: ana ekrana döner, ana ekrandayken telefonu cebe koyar.
 - Ciddi kazada 10 sn geri sayım çıkar; iptal etmezsen 112 aranır, ambulans ve trafik polisi gelir.
-- Ambulans yaralıları sırayla tedavi eder; sonuç tedavi bitene kadar belli olmaz.
-  Karşı sürücü ölürse 188 haber alır ve cenaze aracı gelip naaşı alır.
+- Bir araca çarpınca o araç hemen dörtlülerini yakıp durur, sonra ileride uygun bir yerde sağa çeker
+  (sürücüsü ağır yaralı ya da ölüyse olduğu yerde kalır). Ambulans ve polis oraya gelir.
+- Ambulans yalnızca çarptığın kişiye bakar: önce hayati belirtileri kontrol eder; ölüm tespit ederse
+  cenaze aracı otomatik çağrılır. Yaşıyorsa tedavi eder; sonuç tedavi bitene kadar belli olmaz.
+- Cenaze aracını istediğin an çağırabilirsin: 188'i ara ya da Acil SOS › "Cenaze aracı".
 - Polis gelince ifade alır, karşı tarafı da dinler, hasarı inceler; tutanakta kusur oranı ve ceza çıkar.
   Hapis yok; ceza Cüzdan'dan ödenir ya da itiraz edilir.
 - Taksi: çağır, gelince "Bin", hedef seç, taksimetre çalışır; inince ücret Cüzdan'dan alınır.

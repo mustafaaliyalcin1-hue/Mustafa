@@ -492,18 +492,22 @@
     var OUT = { saglam: 'Sağlığı yerinde', yerinde: 'Olay yerinde tedavi edildi', hastane: 'Hastaneye kaldırıldı', ambulansta: 'Ambulansta tedavi edildi', vefat: 'Hayatını kaybetti', kurtarildi: 'Hayata döndürüldü, hastanede' };
     var amb = (this.live.units || []).filter(function (u) { return u.kind === 'ambulance'; })[0];
     var body;
-    if (!inc || !inc.patients || !inc.patients.length) {
-      body = '<div class="tt-empty">' + ic('med') + '<br>Aktif sağlık kaydı yok.<br><small>Kaza olursa yaralıların durumu burada görünür.</small></div>';
+    if (inc && inc.patients && !inc.patients.length) {
+      body = '<div class="tt-empty">' + ic('med') + '<br>Olay ' + inc.id + ': müdahale gereken kimse yok.<br><small>' + (inc.solo ? 'Tek taraflı kaza.' : 'Çarptığın araç park halindeydi, içinde kimse yoktu.') + '</small></div>';
+    } else if (!inc || !inc.patients) {
+      body = '<div class="tt-empty">' + ic('med') + '<br>Aktif sağlık kaydı yok.<br><small>Bir araca çarparsan, ambulans karşı sürücüye bakar; durumu burada görünür.</small></div>';
     } else {
       body = '<div class="tt-medh"><b>Olay ' + inc.id + '</b><span>' + (amb ? (amb.status === 'enroute' ? 'Ambulans yolda · ' + dist(amb.dist) + ' · ' + eta(amb.eta) : amb.status === 'onscene' ? 'Sağlık ekibi olay yerinde' : 'Ambulans ayrıldı') : (inc.dispatched ? 'Ekip bekleniyor' : '112 aranmadı')) + '</span></div>' +
         inc.patients.map(function (p) {
           var tri = TR[p.triage] || ['—', '#8e8e93'];
-          var st = p.state === 'bitti' ? (OUT[p.outcome] || '') : p.state === 'mudahale' ? 'Müdahale ediliyor' : (amb && amb.status === 'onscene' ? 'Sırada' : 'Ekip bekleniyor');
+          var st = p.state === 'bitti' ? (OUT[p.outcome] || '') : p.state === 'mudahale' ? 'Müdahale ediliyor' : p.state === 'kontrol' ? 'Hayati belirtiler kontrol ediliyor…' : (amb && amb.status === 'onscene' ? 'Sırada' : 'Ekip bekleniyor');
+          if (p.outcome === 'vefat') st = 'Ölüm tespit edildi · cenaze aracı çağrıldı';
           return '<div class="tt-pat ' + (p.outcome === 'vefat' ? 'dead' : '') + '"><div class="tt-path"><span class="tt-av" style="background:#e9e9ee;color:#333">' + ic('user') + '</span><span class="tt-rt"><b>' + esc(p.name) + '</b><small>' + esc(st) + '</small></span>' +
             '<span class="tt-tri" style="background:' + tri[1] + '">' + tri[0] + '</span></div>' +
+            (p.state === 'kontrol' ? '<div class="tt-chk"><span class="tt-ecg"></span><span>Nabız · solunum · bilinç</span></div>' : '') +
             (p.state === 'mudahale' ? '<i class="tt-prog big"><i style="width:' + p.p + '%"></i></i><div class="tt-vit"><span>Nabız <b>' + Math.round(rnd(68, 128)) + '</b></span><span>SpO₂ <b>%' + Math.round(rnd(88, 99)) + '</b></span><span>Tansiyon <b>' + Math.round(rnd(95, 140)) + '/' + Math.round(rnd(55, 90)) + '</b></span></div>' : '') +
             '</div>';
-        }).join('') + '<p class="tt-note">Triyaj: yeşil hafif · sarı orta · kırmızı ağır. Sonuç müdahale bitene kadar belli olmaz.</p>';
+        }).join('') + '<p class="tt-note">Ambulans önce çarptığın kişinin hayati belirtilerine bakar. Ölüm tespit edilirse cenaze aracı otomatik gelir. Triyaj: yeşil hafif · sarı orta · kırmızı ağır · siyah vefat.</p>';
     }
     return '<div class="tt-page light">' + header('Sağlık', { back: 'Ana ekran' }) + '<div class="tt-scroll tt-med">' + body + '</div></div>';
   };
@@ -540,7 +544,7 @@
   S.sos = function () {
     return '<div class="tt-page dark sos">' + header('Acil SOS', { back: 'Ana ekran' }) +
       '<div class="tt-sosb"><button data-a="callNum" data-v="112" class="b112"><b>112</b><span>Acil Çağrı</span></button>' +
-      '<div class="tt-sos2"><button data-a="quick" data-v="ambulance">' + ic('amb') + '<span>Ambulans</span></button><button data-a="quick" data-v="police">' + ic('shield') + '<span>Polis</span></button></div>' +
+      '<div class="tt-sos2 three"><button data-a="quick" data-v="ambulance">' + ic('amb') + '<span>Ambulans</span></button><button data-a="quick" data-v="police">' + ic('shield') + '<span>Polis</span></button><button data-a="quick" data-v="hearse">' + ic('hearse') + '<span>Cenaze aracı</span></button></div>' +
       '<div class="tt-sos2"><button data-a="callNum" data-v="155">' + ic('shield') + '<span>155 Polis</span></button><button data-a="callNum" data-v="188">' + ic('flower') + '<span>188 Cenaze</span></button></div>' +
       '<p class="tt-note">Gereksiz yere acil hatları meşgul etmek idari para cezası gerektirir.</p></div></div>';
   };
@@ -576,6 +580,7 @@
     dialCall: function () { if (this.dial) this.startCall(this.dial); },
     callNum: function (v) { this.startCall(v); },
     quick: function (v) {
+      if (v === 'hearse') return this.startCall('188', 'cenaze');
       this.startCall('112', v === 'police' ? 'polis' : 'saglik');
     },
     callOpt: function (v) { var o = this.call && this.call.opts && this.call.opts[+v]; if (o) { this.call.opts = []; this.call.lines.push({ me: true, text: o.l }); this.render(); o.f.call(this); } },
@@ -691,17 +696,26 @@
       { l: 'Yanlışlıkla aradım', f: function () { self.say('Tamam, iyi günler.'); self.hangSoon(2500); } }
     ]);
   };
-  SCRIPTS['188'] = function () {
+  SCRIPTS['188'] = function (preset) {
     var self = this;
     var dead = this.live.incident && this.live.incident.dead;
-    var hearse = (this.live.units || []).some(function (u) { return u.kind === 'hearse'; });
-    this.say('Belediye Cenaze Hizmetleri, buyurun. Nasıl yardımcı olabilirim?', [
+    var hearse = (this.live.units || []).some(function (u) { return u.kind === 'hearse' && u.status !== 'leaving'; });
+    function send(text) {
+      if (hearse) { self.say('Başınız sağ olsun. Cenaze aracımız zaten yönlendirildi, Ekip Takip’ten izleyebilirsiniz.'); return self.hangSoon(4500); }
+      self.say(text);
+      self.later(function () { self.send('dispatch', { services: ['hearse'], reason: 'cenaze' }); }, 900);
+      self.hangSoon(5000);
+    }
+    if (preset === 'cenaze') {
+      self.call.lines.push({ me: true, text: 'Bulunduğum yere cenaze aracı lazım.' });
+      return send('Başınız sağ olsun. Konumunuzu aldım: ' + self.locText() + '. Cenaze aracı yola çıktı.');
+    }
+    this.say('Belediye Cenaze Hizmetleri, başınız sağ olsun. Nasıl yardımcı olabilirim?', [
+      { l: 'Cenaze aracı gönderin', f: function () { send('Başınız sağ olsun. Konumunuzu aldım, cenaze aracı yola çıktı.'); } },
       { l: 'Kazada vefat eden biri var', f: function () {
-        if (hearse) { self.say('Başınız sağ olsun. Cenaze aracımız zaten yönlendirildi, birazdan olay yerinde olacak.'); self.hangSoon(4000); }
-        else if (dead) { self.say('Başınız sağ olsun. Doktor raporu sisteme düştü. Cenaze aracı yönlendiriliyor.'); self.later(function () { self.send('dispatch', { services: ['hearse'], reason: 'cenaze' }); }, 900); self.hangSoon(4500); }
-        else { self.say('Başınız sağ olsun. Ancak sistemde bu konuma ait bir ölüm tespiti yok. Önce 112’yi aramanız gerekiyor; ölümü bir doktorun tespit etmesi lazım.'); self.hangSoon(6000); }
+        send(dead ? 'Başınız sağ olsun. Doktorun ölüm tespiti sisteme düştü, cenaze aracı yönlendirildi.' : 'Başınız sağ olsun. Cenaze aracı yönlendirildi. Ölüm tespiti için 112’nin de olay yerine gelmesi gerekiyor.');
       } },
-      { l: 'Bilgi almak istiyorum', f: function () { self.say('Cenaze nakil hizmetimiz 7/24 ücretsizdir. Vefat halinde önce 112’yi arayın, gerisini biz hallederiz.'); self.hangSoon(5000); } }
+      { l: 'Bilgi almak istiyorum', f: function () { self.say('Cenaze nakil hizmetimiz 7/24 ücretsizdir. Kazalarda ambulans ölüm tespit ederse cenaze aracı otomatik gönderilir.'); self.hangSoon(5000); } }
     ]);
   };
   SCRIPTS['4448294'] = function () {
