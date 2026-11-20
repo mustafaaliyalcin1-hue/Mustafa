@@ -186,7 +186,7 @@ local function findRoadSpot(target, minD, maxD, towardTarget)
       local right = bestDir:cross(vec3(0, 0, 1)):normalized()
       local off = math.min((n.radius or 4) * 0.45, 2.2)
       local p = n.pos + right * off + vec3(0, 0, 0.4)
-      if spotFree(p) then return p, quatFromDir(bestDir, vec3(0, 0, 1)), name end
+      if spotFree(p) then return p, quatFromDir(bestDir, vec3(0, 0, 1)), name, bestDir end
     end
   end
   return nil
@@ -490,72 +490,89 @@ local function policeArrived(u)
   end
 end
 
--- karşı araç: dörtlüleri yak, dur, ileride sağa çek -------------------------------
-local function startPullOver(vid, canDrive)
+-- araç sağa çekme (kazada karşı araç, polis çevirmesi) ---------------------------
+local pulls = {}   -- araç id -> durum
+
+local function startPullOver(vid, canDrive, onParked, delay)
   local veh = getVeh(vid)
   if not veh then return end
-  incident.pull = {vid = vid, phase = 'hazard', t = simT, canDrive = canDrive}
+  pulls[vid] = {vid = vid, phase = 'hazard', t = simT, canDrive = canDrive, onParked = onParked, delay = delay or 3.5}
   q("pcall(electrics.set_warn_signal, true) ai.setMode('stop')", veh)
 end
 
-local function updatePullOver()
-  local pl = incident and incident.pull
-  if not pl or pl.phase == 'parked' then
-    -- park halindeyken trafik sistemi aracı yeniden sürmesin
-    if pl and simT - (pl.holdT or 0) > 5 then
-      pl.holdT = simT
-      q("ai.setMode('disabled') input.event('throttle', 0, 2) input.event('parkingbrake', 1, 2) pcall(electrics.set_warn_signal, true)", getVeh(pl.vid))
-    end
-    return
-  end
-  local veh = getVeh(pl.vid)
-  if not veh then incident.pull = nil return end
-  local p, spd = vpos(veh), hlen(vvel(veh))
-  if pl.phase == 'hazard' and simT - pl.t > 3.5 then
-    if not pl.canDrive then
-      pl.phase = 'parked'
-      notify('Kaza yeri', 'Çarptığın araç dörtlülerini yaktı ve olduğu yerde kaldı. Sürücü hareket edemiyor.', 'police')
-      return
-    end
-    pl.phase = 'pulling'
-    pl.t = simT
-    -- ileride, aynı yön üzerinde 45-110 m'de uygun bir yol noktası
-    local d = vdir(veh); d.z = 0; d = d:normalized()
-    local nodes, best, bs = roadNodes(), nil, -math.huge
-    for name, n in pairs(nodes) do
-      local r = n.pos - p; r.z = 0
-      local L = r:length()
-      if L > 45 and L < 110 then
-        local al = r:normalized():dot(d)
-        if al > 0.85 then
-          local sc = al * 2 - math.abs(L - 70) / 40 + ((n.radius or 3) > 3.5 and 0.3 or 0)
-          if sc > bs then best, bs = name, sc end
+local function releasePull(vid)
+  pulls[vid] = nil
+  q("pcall(electrics.set_warn_signal, false) input.event('brake', 0, 2) input.event('parkingbrake', 0, 2) ai.setMode('traffic') ai.setSpeedMode('legal')", getVeh(vid))
+end
+
+local function updatePulls()
+  for vid, pl in pairs(pulls) do
+    local veh = getVeh(vid)
+    if not veh then
+      pulls[vid] = nil
+    elseif pl.phase == 'parked' then
+      -- park halindeyken trafik sistemi aracı yeniden sürmesin
+      if simT - (pl.holdT or 0) > 5 then
+        pl.holdT = simT
+        q("ai.setMode('disabled') input.event('throttle', 0, 2) input.event('parkingbrake', 1, 2) pcall(electrics.set_warn_signal, true)", veh)
+      end
+    else
+      local p, spd = vpos(veh), hlen(vvel(veh))
+      if pl.phase == 'hazard' and simT - pl.t > pl.delay then
+        if not pl.canDrive then
+          pl.phase = 'parked'
+          if pl.onParked then pl.onParked(p, false) end
+        else
+          pl.phase = 'pulling'
+          pl.t = simT
+          -- ileride, aynı yön üzerinde 45-110 m'de uygun bir yol noktası
+          local d = vdir(veh); d.z = 0; d = d:normalized()
+          local nodes, best, bs = roadNodes(), nil, -math.huge
+          for name, n in pairs(nodes) do
+            local r = n.pos - p; r.z = 0
+            local L = r:length()
+            if L > 45 and L < 110 then
+              local al = r:normalized():dot(d)
+              if al > 0.85 then
+                local sc = al * 2 - math.abs(L - 70) / 40 + ((n.radius or 3) > 3.5 and 0.3 or 0)
+                if sc > bs then best, bs = name, sc end
+              end
+            end
+          end
+          local cmd = "pcall(electrics.set_warn_signal, true) input.event('parkingbrake', 0, 2)"
+          if best then
+            pl.dest = vec3(nodes[best].pos)
+            cmd = cmd .. string.format(" ai.setMode('manual') ai.setTarget(%q) ai.setSpeedMode('limit') ai.setSpeed(6) ai.driveInLane('on') ai.setAvoidCars('on')", best)
+          end
+          -- BeamNG'nin kendi kenara çekme davranışı varsa onu da kullan
+          cmd = cmd .. " if ai.setPullOver then pcall(ai.setPullOver, true) end"
+          q(cmd, veh)
+        end
+      elseif pl.phase == 'pulling' then
+        if spd < 0.8 then pl.slowT = pl.slowT or simT else pl.slowT = nil end
+        local near = pl.dest and hdist(p, pl.dest) < 14
+        if (near and spd < 3) or (pl.slowT and simT - pl.slowT > 2.5 and simT - pl.t > 6) or simT - pl.t > 30 then
+          pl.phase = 'parked'
+          q("ai.setMode('stop')", veh)
+          pl.holdT = simT - 2
+          if pl.onParked then pl.onParked(vec3(p), true) end
         end
       end
     end
-    local cmd = "pcall(electrics.set_warn_signal, true) input.event('parkingbrake', 0, 2)"
-    if best then
-      pl.dest = vec3(nodes[best].pos)
-      cmd = cmd .. string.format(" ai.setMode('manual') ai.setTarget(%q) ai.setSpeedMode('limit') ai.setSpeed(6) ai.driveInLane('on') ai.setAvoidCars('on')", best)
-    end
-    -- BeamNG'nin kendi kenara çekme davranışı varsa onu da kullan
-    cmd = cmd .. " if ai.setPullOver then pcall(ai.setPullOver, true) end"
-    q(cmd, veh)
-  elseif pl.phase == 'pulling' then
-    if spd < 0.8 then pl.slowT = pl.slowT or simT else pl.slowT = nil end
-    local near = pl.dest and hdist(p, pl.dest) < 14
-    if (near and spd < 3) or (pl.slowT and simT - pl.slowT > 2.5 and simT - pl.t > 6) or simT - pl.t > 30 then
-      pl.phase = 'parked'
-      q("ai.setMode('stop')", veh)
-      pl.holdT = simT - 2
-      incident.pos = vec3(p)
-      -- yoldaki ekipleri yeni konuma yönlendir
-      for _, u in pairs(units) do
-        if u.status == 'enroute' and not u.follow and u.kind ~= 'taxi' then driveTo(u, incident.pos) end
-      end
-      notify('Kaza yeri', 'Çarptığın araç dörtlülerini yakıp ileride sağa çekti. Ekipler oraya geliyor.', 'police')
-    end
   end
+end
+
+local function incidentPullParked(p, moved)
+  if not incident then return end
+  if not moved then
+    notify('Kaza yeri', 'Çarptığın araç dörtlülerini yaktı ve olduğu yerde kaldı. Sürücü hareket edemiyor.', 'police')
+    return
+  end
+  incident.pos = vec3(p)
+  for _, u in pairs(units) do
+    if u.status == 'enroute' and not u.follow and u.kind ~= 'taxi' then driveTo(u, incident.pos) end
+  end
+  notify('Kaza yeri', 'Çarptığın araç dörtlülerini yakıp ileride sağa çekti. Ekipler oraya geliyor.', 'police')
 end
 
 -- kaza algılama ------------------------------------------------------------------
@@ -610,7 +627,7 @@ local function onCrash(pv, pp, vNow, vBefore, dv)
   if other and ev.occupied then
     incident.otherVid = other
     local sev = ev.otherSev
-    startPullOver(other, sev ~= 'agir' and sev ~= 'olu')
+    startPullOver(other, sev ~= 'agir' and sev ~= 'olu', incidentPullParked)
   end
   if not CFG.crashDetect then return end
   crashPending = {deadline = simT + CFG.sosDelay}
@@ -766,6 +783,261 @@ local function updateRide()
   end
 end
 
+-- =====================================================================
+-- MESLEK: POLİS / AMBULANS olarak oynama
+-- Dünya işleri burada (araçlar, işaret, kovalamaca, nakil); puan ve para arayüzde.
+-- =====================================================================
+local duty = {role = 'sivil', lights = 0, nextCallAt = nil}
+local job = nil
+local offer = nil
+local leftovers = {}   -- görev bitince temizlenecek araçlar
+local CIV = {'midsize', 'pessima', 'covet', 'fullsize', 'sunburst', 'vivace', 'etk800', 'legran', 'pickup', 'van', 'bluebuck', 'moonhawk'}
+local STREETS = {'Atatürk Cd.', 'Cumhuriyet Blv.', 'İnönü Cd.', 'Sahil Yolu', 'Fevzi Çakmak Cd.', 'Gazi Blv.', 'Mimar Sinan Cd.', 'Lale Sk.', 'Çevre Yolu', 'Sanayi Cd.'}
+local HOSPITALS = {'Devlet Hastanesi Acil', 'Şehir Hastanesi Acil', 'Eğitim ve Araştırma Hastanesi', 'Üniversite Hastanesi Acil'}
+
+local function civModel()
+  for _ = 1, 12 do local m = pick(CIV); if modelInfo(m) then return m end end
+  return 'pickup'
+end
+
+local function setMarker(pos)
+  if not core_groundMarkers then return end
+  if core_groundMarkers.setPath then pcall(core_groundMarkers.setPath, pos)
+  elseif core_groundMarkers.setFocus then pcall(core_groundMarkers.setFocus, pos) end
+end
+
+local function rotDir(d, deg)
+  local a = math.rad(deg)
+  return vec3(d.x * math.cos(a) - d.y * math.sin(a), d.x * math.sin(a) + d.y * math.cos(a), 0)
+end
+
+local function spawnProp(pos, dir, park)
+  local pv = playerVeh()
+  local opts = {pos = pos, rot = quatFromDir(dir, vec3(0, 0, 1)), autoEnterVehicle = false, cling = true}
+  local model = civModel()
+  local ok, veh = pcall(core_vehicles.spawnNewVehicle, model, opts)
+  if pv and playerVeh() ~= pv then pcall(be.enterVehicle, be, 0, pv) end
+  if not ok or not veh then return nil end
+  local vid = veh:getID()
+  local pl = plate('civ')
+  if core_vehicles.setPlateText then pcall(core_vehicles.setPlateText, pl, vid) end
+  if park ~= false then
+    q("ai.setMode('disabled') input.event('parkingbrake', 1, 2) pcall(electrics.set_warn_signal, true)", veh)
+  end
+  return vid, pl, model
+end
+
+local function cleanupJob(mode)
+  if not job then return end
+  for _, vid in ipairs(job.props or {}) do
+    leftovers[#leftovers + 1] = {vid = vid, t = simT, mode = mode or 'delete'}
+    if mode == 'release' then releasePull(vid) end
+  end
+  setMarker(nil)
+  job = nil
+  duty.nextCallAt = simT + rnd(25, 50)
+end
+
+local function updateLeftovers(pp)
+  for i = #leftovers, 1, -1 do
+    local l = leftovers[i]
+    local veh = getVeh(l.vid)
+    if not veh then table.remove(leftovers, i)
+    elseif (pp and hdist(vpos(veh), pp) > 220) or simT - l.t > 180 then
+      pcall(function() veh:delete() end)
+      table.remove(leftovers, i)
+    end
+  end
+end
+
+local function jobVehicleFor(role)
+  return chooseVehicle(role == 'polis' and 'police' or 'ambulance')
+end
+
+local function setRole(role)
+  local pv = playerVeh()
+  if role == duty.role then return end
+  if job then cleanupJob('delete') end
+  offer = nil
+  if role == 'sivil' then
+    duty.role = 'sivil'
+    if duty.prevModel and core_vehicles.replaceVehicle then
+      pcall(core_vehicles.replaceVehicle, duty.prevModel, {config = duty.prevConfig})
+    end
+    send('duty', {role = 'sivil'})
+    return
+  end
+  if duty.role == 'sivil' and pv then
+    duty.prevModel = pv.getJBeamFilename and pv:getJBeamFilename() or nil
+    duty.prevConfig = pv.partConfig
+  end
+  duty.role = role
+  duty.lights = 0
+  local c = jobVehicleFor(role)
+  if core_vehicles.replaceVehicle then
+    local ok = pcall(core_vehicles.replaceVehicle, c.model, {config = c.config})
+    if not ok then send('error', {text = 'Görev aracı yüklenemedi, mevcut aracınla devam ediyorsun.'}) end
+  end
+  local nv = playerVeh()
+  local pl = plate(role == 'polis' and 'police' or 'ambulance')
+  if nv and core_vehicles.setPlateText then pcall(core_vehicles.setPlateText, pl, nv:getID()) end
+  duty.nextCallAt = simT + 12
+  send('duty', {role = role, plate = pl})
+end
+
+local function setLights(n)
+  duty.lights = n
+  q(string.format("pcall(electrics.set_lightbar_signal, %d)", n), playerVeh())
+end
+
+local function makeOffer(pp)
+  local p, _, _, dir = findRoadSpot(pp, 450, 1300, false)
+  if not p then p, _, _, dir = findRoadSpot(pp, 150, 2500, false) end
+  if not p then return end
+  local kinds = duty.role == 'polis' and {'kaza', 'kaza', 'kacak'} or {'kaza', 'kaza', 'fenalik'}
+  local kind = pick(kinds)
+  offer = {kind = kind, pos = p, dir = dir or vec3(0, 1, 0), t = simT, address = pick(STREETS)..' No:'..math.random(2, 180),
+           dist = math.floor(hdist(p, pp))}
+  send('job_offer', {kind = kind, role = duty.role, address = offer.address, dist = offer.dist, level = levelName()})
+end
+
+local function acceptOffer()
+  if not offer then return end
+  local o = offer
+  offer = nil
+  job = {kind = o.kind, role = duty.role, pos = o.pos, phase = 'goto', t0 = simT, props = {}, cars = {}, address = o.address}
+  local d = o.dir:normalized()
+  if o.kind == 'kaza' then
+    -- iki araç: biri yola çapraz, diğeri önünde
+    local v1, p1, m1 = spawnProp(o.pos, rotDir(d, 28), true)
+    local v2, p2, m2 = spawnProp(o.pos + d * 6.5 + rotDir(d, 90) * 0.8, rotDir(d, -12), true)
+    for _, e in ipairs({{v1, p1, m1}, {v2, p2, m2}}) do
+      if e[1] then table.insert(job.props, e[1]); table.insert(job.cars, {plate = e[2], model = e[3]}) end
+    end
+  elseif o.kind == 'fenalik' then
+    local right = d:cross(vec3(0, 0, 1)):normalized()
+    local v1, p1, m1 = spawnProp(o.pos + right * 1.2, d, true)
+    if v1 then table.insert(job.props, v1); table.insert(job.cars, {plate = p1, model = m1}) end
+  elseif o.kind == 'kacak' then
+    local v1, p1, m1 = spawnProp(o.pos, d, false)
+    if v1 then
+      table.insert(job.props, v1); table.insert(job.cars, {plate = p1, model = m1})
+      job.target = v1
+      q("ai.setMode('random') ai.setSpeedMode('limit') ai.setSpeed(22) ai.setAggression(0.6)", getVeh(v1))
+    end
+  end
+  setMarker(job.pos)
+  send('job_start', {kind = job.kind, role = job.role, address = job.address, cars = job.cars})
+end
+
+local function updateDuty(pv, pp)
+  updateLeftovers(pp)
+  if duty.role == 'sivil' or not pp then return end
+  if offer and simT - offer.t > 35 then
+    offer = nil
+    send('job_offer_expired', {})
+    duty.nextCallAt = simT + rnd(20, 40)
+  end
+  if not job and not offer and duty.nextCallAt and simT > duty.nextCallAt then makeOffer(pp) end
+  if not job then return end
+
+  local spd = hlen(vvel(pv))
+  if job.kind == 'kacak' then
+    local tv = getVeh(job.target)
+    if not tv then send('job_failed', {reason = 'Şüpheli araç kayboldu.'}) cleanupJob('delete') return end
+    local tp, ts = vpos(tv), hlen(vvel(tv))
+    local d = hdist(tp, pp)
+    job.dist = d
+    if simT - (job.mkT or 0) > 1 then job.mkT = simT; setMarker(tp) end
+    if job.phase == 'goto' and d < 150 then
+      job.phase = 'chase'
+      job.tChase = simT
+      q(string.format("ai.setMode('flee') if ai.setTargetObjectID then pcall(ai.setTargetObjectID, %d) end ai.setSpeedMode('off') ai.setAggression(0.85)", pv:getID()), tv)
+      notify('Telsiz', 'Şüpheli seni fark etti ve kaçıyor! Sirenleri aç, aracı durdur.', 'police')
+    elseif job.phase == 'chase' then
+      if d < 16 and ts < 3 then job.slowT = job.slowT or simT else job.slowT = nil end
+      if job.slowT and simT - job.slowT > 3 then
+        job.phase = 'caught'
+        q("ai.setMode('disabled') input.event('throttle', 0, 2) input.event('brake', 1, 2) input.event('parkingbrake', 1, 2) pcall(electrics.set_warn_signal, true)", tv)
+        setMarker(nil)
+        send('job_caught', {secs = math.floor(simT - job.tChase), plate = job.cars[1] and job.cars[1].plate, model = job.cars[1] and job.cars[1].model})
+      end
+      if d > 1100 then job.farT = job.farT or simT else job.farT = nil end
+      if (job.farT and simT - job.farT > 25) or simT - job.tChase > 360 then
+        send('job_failed', {reason = 'Şüpheli gözden kayboldu. Ekipler aramaya devam edecek.'})
+        cleanupJob('delete')
+      end
+    end
+    return
+  end
+
+  if job.phase == 'goto' then
+    job.dist = hdist(job.pos, pp)
+    if job.dist < 30 and spd < 2.5 then
+      job.phase = 'scene'
+      setMarker(nil)
+      send('job_scene', {kind = job.kind, role = job.role, cars = job.cars, secs = math.floor(simT - job.t0)})
+    end
+  elseif job.phase == 'transport' then
+    job.dist = hdist(job.hospital, pp)
+    if job.dist < 25 and spd < 2 then
+      job.phase = 'delivered'
+      setMarker(nil)
+      send('job_hospital', {secs = math.floor(simT - job.tTransport), limit = job.limit, name = job.hospitalName})
+    end
+  end
+end
+
+local function jobLoad()
+  -- ambulans: hasta(lar) ambulansa alındı, en yakın hastaneye
+  if not job then return end
+  local pv = playerVeh()
+  if not pv then return end
+  local pp = vpos(pv)
+  local p = findRoadSpot(pp, 900, 2200, false) or findRoadSpot(pp, 300, 4000, false)
+  if not p then send('job_hospital', {secs = 0, limit = 1, name = pick(HOSPITALS)}) return end
+  job.hospital = p
+  job.hospitalName = pick(HOSPITALS)
+  job.phase = 'transport'
+  job.tTransport = simT
+  job.limit = math.floor(hdist(p, pp) * 1.4 / 13 + 45)
+  setMarker(p)
+  send('job_transport', {name = job.hospitalName, dist = math.floor(hdist(p, pp)), limit = job.limit})
+end
+
+local function policePullover()
+  local pv = playerVeh()
+  if not pv then return end
+  local pp, fwd = vpos(pv), vdir(pv)
+  fwd.z = 0; fwd = fwd:normalized()
+  local best, bd = nil, 70
+  for oid, o in pairs(map.objects or {}) do
+    if oid ~= pv:getID() and o.pos and not vidToUnit[oid] and not pulls[oid] then
+      local r = o.pos - pp; r.z = 0
+      local L = r:length()
+      if L < bd and L > 3 and r:normalized():dot(fwd) > 0.6 then best, bd = oid, L end
+    end
+  end
+  if not best then send('error', {text = 'Önünde durdurulacak araç yok. 70 m içinde, tam önündeki araca bak.'}) return end
+  duty.stopVid = best
+  setLights(2)
+  local mdl = getVeh(best).getJBeamFilename and getVeh(best):getJBeamFilename() or 'araç'
+  send('stop_wait', {model = mdl})
+  startPullOver(best, true, function(p)
+    send('stop_ready', {model = mdl, plate = plate('civ')})
+  end, 1.2)
+end
+
+local function dutyPublic(pp)
+  local o = {role = duty.role, lights = duty.lights}
+  if offer then o.offer = {kind = offer.kind, address = offer.address, dist = offer.dist, left = math.max(0, math.floor(35 - (simT - offer.t)))} end
+  if job then
+    o.job = {kind = job.kind, phase = job.phase, address = job.address, dist = job.dist and math.floor(job.dist) or nil,
+             tleft = job.phase == 'transport' and math.floor(job.limit - (simT - job.tTransport)) or nil}
+  end
+  return o
+end
+
 -- ana döngü -------------------------------------------------------------------
 local function sendState()
   local pv = playerVeh()
@@ -786,7 +1058,7 @@ local function sendState()
          rem = ride.rem and math.floor(ride.rem) or nil, going = ride.dest ~= nil}
   end
   local spd = pv and math.floor(hlen(vvel(pv)) * 3.6) or 0
-  send('state', {units = list, incident = incidentPublic(), ride = r, level = levelName(), speed = spd,
+  send('state', {units = list, incident = incidentPublic(), ride = r, level = levelName(), speed = spd, duty = dutyPublic(pp),
                  x = pp and math.floor(pp.x) or 0, y = pp and math.floor(pp.y) or 0,
                  crash = crashPending and math.max(0, math.ceil(crashPending.deadline - simT)) or nil})
 end
@@ -857,8 +1129,9 @@ local function onUpdate(dtReal, dtSim)
 
   updateUnits(pv)
   updateTreatment()
-  updatePullOver()
+  updatePulls()
   updateRide()
+  updateDuty(pv, pv and vpos(pv))
 
   if incident and incident.hearseAt and simT > incident.hearseAt then
     incident.hearseAt = nil
@@ -918,6 +1191,33 @@ function M.ui(cmd, json)
     if incident then incident.statementDone = true end
     local u = (incident and incident.policeUnit and units[incident.policeUnit]) or findUnit('police', true)
     if u then u.leaveAt = simT + 7; u.timeoutAt = nil end
+  elseif cmd == 'role' then
+    setRole(d.role or 'sivil')
+  elseif cmd == 'lights' then
+    setLights(tonumber(d.n) or 0)
+  elseif cmd == 'job_accept' then
+    acceptOffer()
+  elseif cmd == 'job_decline' then
+    offer = nil
+    duty.nextCallAt = simT + rnd(20, 40)
+  elseif cmd == 'job_load' then
+    jobLoad()
+  elseif cmd == 'job_hearse' then
+    local pos = job and job.pos
+    if not pos then local pv = playerVeh(); pos = pv and vpos(pv) end
+    if pos then
+      local u = spawnUnit('hearse', pos, false)
+      if u then send('dispatched', {units = {unitPublic(u)}, reason = 'cenaze'}) end
+    end
+  elseif cmd == 'job_finish' then
+    cleanupJob(d.release and 'release' or 'delete')
+  elseif cmd == 'job_cancel' then
+    cleanupJob('delete')
+  elseif cmd == 'pol_pullover' then
+    policePullover()
+  elseif cmd == 'stop_release' then
+    if duty.stopVid then releasePull(duty.stopVid); duty.stopVid = nil end
+    if job and job.kind == 'kacak' then cleanupJob('release') end
   elseif cmd == 'taxi_call' then
     dispatch({'taxi'}, 'taksi')
   elseif cmd == 'taxi_board' then
@@ -947,6 +1247,8 @@ function M.onVehicleSwitched() hist = {} end
 function M.onClientEndMission()
   for _, u in pairs(units) do despawn(u) end
   units, vidToUnit, hist, incident, crashPending, ride = {}, {}, {}, nil, nil, nil
+  job, offer, pulls, leftovers = nil, nil, {}, {}
+  duty.role, duty.stopVid = 'sivil', nil
 end
 function M.onExtensionLoaded()
   math.randomseed(os.time())
