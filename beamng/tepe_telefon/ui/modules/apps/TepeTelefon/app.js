@@ -109,6 +109,7 @@
       '  <div class="tt-view"></div>' +
       '  <div class="tt-banner"></div>' +
       '  <div class="tt-overlay"></div>' +
+      '  <button class="tt-more" data-a="scrollDown" title="Aşağı kaydır"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>' +
       '  <div class="tt-homebar" data-a="homebar" title="Ana ekran / cebe koy"><i></i></div>' +
       ' </div>' +
       '</div>';
@@ -117,12 +118,46 @@
     this.$banner = this.host.querySelector('.tt-banner');
     this.$over = this.host.querySelector('.tt-overlay');
     this.$isl = this.host.querySelector('.tt-isl');
+    this.$more = this.host.querySelector('.tt-more');
     var self = this;
+    // kaydırılabilir ata: içerik taşıyorsa ve overflow auto ise
+    function scroller(el) {
+      while (el && el !== self.host) {
+        if (el.scrollHeight > el.clientHeight + 2) {
+          var oy = getComputedStyle(el).overflowY;
+          if (oy === 'auto' || oy === 'scroll') return el;
+        }
+        el = el.parentNode;
+      }
+      return self.mainScroller();
+    }
+    // fare tekerleği: telefonu kaydırsın, oyuna (kameraya) gitmesin
+    this.host.addEventListener('wheel', function (e) {
+      if (!self.$phone.contains(e.target)) return;
+      var sc = scroller(e.target);
+      if (sc) sc.scrollTop += e.deltaY * (e.deltaMode === 1 ? 32 : 1);
+      e.preventDefault(); e.stopPropagation();
+    }, { passive: false });
+    // sürükleyerek kaydırma
+    window.addEventListener('mousemove', function (e) {
+      var dr = self.drag; if (!dr) return;
+      if (!e.buttons) { self.drag = null; return; }
+      var dy = e.clientY - dr.y;
+      if (!dr.on && Math.abs(dy) > 7) {
+        dr.on = true;
+        if (self.press && self.press.el) self.press.el.classList.remove('tt-pressed');
+        self.press = null;
+      }
+      if (dr.on && dr.el) { dr.el.scrollTop = dr.st - dy; self.updMore(); }
+    });
+    this.host.addEventListener('scroll', function () { self.updMore(); }, true);
     // Dokunma: basılan düğmeyi hatırla, bırakınca çalıştır. Arada ekran yenilense bile tıklama kaybolmaz.
     function xy(e) { var t = e.changedTouches ? e.changedTouches[0] : e; return [t.clientX, t.clientY]; }
     function down(e) {
       if (e.button != null && e.button !== 0) return;
       if (self.pocket) { self.setPocket(false); self.press = null; e.preventDefault(); return; }
+      var p0 = xy(e), sc0 = scroller(e.target);
+      self.drag = sc0 ? { el: sc0, y: p0[1], st: sc0.scrollTop, on: false } : null;
       var t = e.target.closest ? e.target.closest('[data-a]') : null;
       if (!t || !self.host.contains(t)) { self.press = null; return; }
       var p = xy(e);
@@ -130,7 +165,9 @@
       t.classList.add('tt-pressed');
     }
     function up(e) {
+      var wasDrag = self.drag && self.drag.on; self.drag = null;
       var pr = self.press; self.press = null;
+      if (wasDrag) { if (self._deferred) { self._deferred = false; self.render(true); } return; }
       if (!pr) return;
       if (pr.el) pr.el.classList.remove('tt-pressed');
       var p = xy(e);
@@ -325,7 +362,7 @@
   PR.render = function (soft) {
     if (soft && this._lastScreen === this.screen && (this.screen === 'call' || this.screen === 'statement')) return;
     // parmak basılıyken yeniden çizme; bırakınca çizilir
-    if (soft && this.press) { this._deferred = true; return; }
+    if (soft && (this.press || (this.drag && this.drag.on))) { this._deferred = true; return; }
     var fn = this.screens[this.screen] || this.screens.home;
     var html = fn.call(this);
     if (soft && this._lastScreen === this.screen && html === this._lastHtml) return;   // değişiklik yok
@@ -340,6 +377,23 @@
     this._lastScreen = this.screen;
     this.onTick();
     this.updIsland();
+    this.updMore();
+  };
+
+  PR.mainScroller = function () {
+    var best = null, bh = 0;
+    var els = this.$view.querySelectorAll('.tt-scroll,.tt-copts,.tt-sopts,.tt-taxi');
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      if (el.scrollHeight > el.clientHeight + 4 && el.clientHeight > bh) { best = el; bh = el.clientHeight; }
+    }
+    return best;
+  };
+  PR.updMore = function () {
+    if (!this.$more) return;
+    var sc = this.mainScroller();
+    var show = sc && sc.scrollTop + sc.clientHeight < sc.scrollHeight - 8 && !this.crash;
+    this.$more.classList.toggle('show', !!show);
   };
 
   function header(title, opts) {
@@ -522,7 +576,7 @@
         '<div class="tt-stars">' + [1, 2, 3, 4, 5].map(function (i) { return '<button data-a="rate" data-v="' + i + '" class="' + ((t.rate || 0) >= i ? 'on' : '') + '">' + ic('star') + '</button>'; }).join('') + '</div>' +
         '<button class="tt-big y" data-a="taxiReset">Tamam</button></div>';
     }
-    return '<div class="tt-page light">' + header('Taksi', { back: 'Ana ekran' }) + '<div class="tt-taxi">' + body + '</div></div>';
+    return '<div class="tt-page light">' + header('Taksi', { back: 'Ana ekran' }) + '<div class="tt-taxi tt-scroll">' + body + '</div></div>';
   };
 
   // ---- sağlık ----
@@ -609,6 +663,12 @@
   // eylemler
   PR.actions = {
     go: function (v) { if (v === 'messages') this.thread = null; this.go(v); },
+    scrollDown: function () {
+      var sc = this.mainScroller(); if (!sc) return;
+      var to = Math.min(sc.scrollHeight, sc.scrollTop + sc.clientHeight * 0.75);
+      if (sc.scrollTo) sc.scrollTo({ top: to, behavior: 'smooth' }); else sc.scrollTop = to;
+      var self = this; setTimeout(function () { self.updMore(); }, 450);
+    },
     homebar: function () {
       if (this.screen === 'home' && !this.call) this.setPocket(true);
       else if (this.call && this.screen === 'call') this.go('home');
@@ -652,7 +712,7 @@
     stmtOpt: function (v) { var s = this.stmt, o = s && s.opts && s.opts[+v]; if (o) { s.opts = []; if (!o.silent) s.lines.push({ me: true, text: o.l }); this.render(); this.scrollEnd(); o.f.call(this); } }
   };
 
-  PR.scrollEnd = function () { var sc = this.$view.querySelector('.tt-scroll'); if (sc) sc.scrollTop = 1e6; };
+  PR.scrollEnd = function () { var a = this.$view.querySelectorAll('.tt-scroll'); for (var i = 0; i < a.length; i++) a[i].scrollTop = 1e6; this.updMore(); };
 
   // =====================================================================
   // arama senaryoları

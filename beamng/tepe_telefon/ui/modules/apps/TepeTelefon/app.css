@@ -353,3 +353,16 @@
 .tt-pressed{filter:brightness(.82);transform:scale(.97)}
 .tt-homebar{height:3.4em}
 .tt-dotc{width:1.1em;height:1.1em;border-radius:50%;background:#ff3b30;flex:none}.tt-dotc.ok{background:#34c759}
+
+/* kaydırma */
+.tt-scroll,.tt-taxi,.tt-copts,.tt-sopts{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tt-taxi::-webkit-scrollbar,.tt-copts::-webkit-scrollbar,.tt-sopts::-webkit-scrollbar{display:none}
+.tt-taxi{padding-bottom:1em}.tt-taxi>*{flex-shrink:0}
+.tt-copts{max-height:34%;flex-shrink:0}
+.tt-sopts{max-height:38%;flex-shrink:0}
+.tt-bubbles,.tt-ctr{min-height:0}
+.tt-more{position:absolute;z-index:38;right:1.3em;bottom:3.6em;width:3.6em;height:3.6em;border-radius:50%;background:rgba(10,124,255,.92);color:#fff;
+  display:grid;place-items:center;box-shadow:0 .4em 1.2em rgba(0,0,0,.35);opacity:0;pointer-events:none;transform:translateY(.6em) scale(.9);transition:opacity .2s,transform .2s}
+.tt-more svg{width:2.1em;height:2.1em}
+.tt-more.show{opacity:1;pointer-events:auto;transform:none;animation:tt-bob 1.6s ease-in-out infinite}
+@keyframes tt-bob{50%{transform:translateY(.25em)}}
