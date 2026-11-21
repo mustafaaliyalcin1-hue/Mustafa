@@ -370,3 +370,6 @@
 .tt-pit svg{width:7em;height:4.2em;flex:none}.tt-pit p{margin:0!important;font-size:1.05em!important;line-height:1.4}
 .tt-mcard.chase{animation:tt-chase 1s steps(1) infinite}
 @keyframes tt-chase{0%{border-color:#e5322d;box-shadow:0 0 1.4em rgba(229,50,45,.3)}50%{border-color:#2f6fe4;box-shadow:0 0 1.4em rgba(47,111,228,.3)}}
+.tt-cuff{display:inline-flex;align-items:center;gap:.4em;margin:.4em 0;padding:.35em .8em;border-radius:1em;background:#3a2a05;color:#ffcc00;font-weight:700;font-size:1em}
+.tt-cuff .ic{width:1.4em;height:1.4em}.tt-cuff.big{font-size:1.25em;margin:.6em 0}
+.tt-pay b{white-space:nowrap;padding-left:.5em}

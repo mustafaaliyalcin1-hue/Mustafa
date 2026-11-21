@@ -48,3 +48,5 @@ Hasta olay yerinde ölürse 188'den cenaze aracı çağırabilirsin.
   alkolmetre yap, araç içine bak; bulduğun ihlalleri işaretleyip ceza yaz ya da uyarıp bırak. Haksız ceza şikâyet getirir.
   Çevrilen araçların yaklaşık üçte biri önce yavaşlar, sonra kaçar. PIT manevrasıyla (arka tekerleğin arkasına yandan
   hafifçe vurup döndürerek) ya da önünü kesip sıkıştırarak durdur. PIT ile durdurmak ekstra kazandırır.
+  Kaçan araçlar en fazla ~72 km/s gider. Yakalanan şüpheli hemen kelepçelenir. Ağır suçta (aranma kaydı, alkol,
+  kaçarken ehliyetsiz) ceza yazınca ekip aracı gelir, şüpheliyi götürür; aracı çekiciyle kaldırılır.

@@ -32,6 +32,7 @@
     car: '<path d="M5 11 6.8 6.6A2 2 0 0 1 8.7 5.3h6.6a2 2 0 0 1 1.9 1.3L19 11v6a1 1 0 0 1-1 1h-1.5a1 1 0 0 1-1-1v-1h-7v1a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z" fill="currentColor"/>',
     check: '<path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>',
     fire: '<path d="M12 2.5c1 3.2 4.8 5.3 4.8 10a4.8 4.8 0 0 1-9.6 0c0-2.2 1-3.6 2.2-4.6.1 1.6.8 2.8 2 3.3-.6-3.4.2-6 .6-8.7z" fill="currentColor"/><path d="M12 21.5a3 3 0 0 1-3-3c0-1.6 1.5-2.6 2-4 .9 1.1 4 2.2 4 4a3 3 0 0 1-3 3z" fill="#fff" opacity=".55"/>',
+    cuff: '<circle cx="7" cy="15" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17" cy="15" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9.5 11.5 12 8l2.5 3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="10.5" y="5" width="3" height="3.4" rx="1" fill="currentColor"/>',
     star: '<path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z" fill="currentColor"/>'
   };
   function ic(n, cls) { return '<svg class="ic ' + (cls || '') + '" viewBox="0 0 24 24" aria-hidden="true">' + P[n] + '</svg>'; }
@@ -544,7 +545,7 @@
       if (u.world) st = 'Başka bir kaza · ' + st;
       return '<div class="tt-unit"><span class="tt-av" style="background:' + k.color + '">' + ic(k.icon) + '</span><span class="tt-rt"><b>' + esc(u.name) + '</b><small>' + esc(u.plate) + ' · ' + esc(st) + '</small>' +
         (u.status === 'enroute' ? '<i class="tt-prog"><i style="width:' + Math.max(6, Math.min(100, 100 - (u.dist || 0) / 5)) + '%;background:' + k.color + '"></i></i>' : '') + '</span>' +
-        (u.status === 'enroute' && u.kind !== 'hearse' && !u.world ? '<button class="tt-x" data-a="cancelUnit" data-v="' + u.id + '">İptal</button>' : '') + '</div>';
+        (u.status === 'enroute' && u.kind !== 'hearse' && !u.world && !u.transport ? '<button class="tt-x" data-a="cancelUnit" data-v="' + u.id + '">İptal</button>' : '') + '</div>';
     }).join('') : '<div class="tt-empty">Yolda ekip yok.<br><small>112, 155 veya taksi çağırdığında burada canlı izlersin.</small></div>';
     return '<div class="tt-page dark">' + header('Ekip Takip', { back: 'Ana ekran' }) +
       '<div class="tt-radar"><div class="tt-rring r1"></div><div class="tt-rring r2"></div><div class="tt-rsweep"></div>' +
@@ -1195,6 +1196,7 @@
   PR.lua.job_caught = function (d) {
     var pr = makeProfile(true);
     pr.seen.hiz = true; pr.plate = d.plate; pr.model = d.model; pr.secs = d.secs; pr.kacak = true; pr.pit = !!d.pit;
+    pr.cuffed = true; pr.steps.push(['Gözaltı', 'Şüpheli araçtan indirildi, üstü arandı ve kelepçelendi.']);
     this.stop = { phase: 'check', p: pr };
     this.jw = null;
     this.banner('Telsiz', 'Şüpheli araç durduruldu (' + mmss(d.secs) + ' kovalamaca). Sürücüyü kontrol et.', 'police');
@@ -1206,6 +1208,7 @@
     var pr = makeProfile(!!d.suspect); pr.plate = d.plate; pr.model = d.model;
     if (d.suspect) {
       pr.kacak = true; pr.pit = !!d.pit; pr.secs = d.secs || 0; pr.seen.hiz = true;
+      pr.cuffed = true; pr.steps.push(['Gözaltı', 'Şüpheli araçtan indirildi, üstü arandı ve kelepçelendi.']);
       this.banner('Telsiz', d.pit ? 'PIT manevrası başarılı! Araç döndü ve durdu. Sürücüyü kontrol et.' : 'Şüpheli sıkıştırıldı ve durdu. Sürücüyü kontrol et.', 'police');
       this.raise();
     }
@@ -1214,6 +1217,10 @@
   PR.lua.stop_flee = function (d) {
     this.stop = { phase: 'flee', model: d.model, plate: d.plate, t0: Date.now() };
     this.raise(); this.vibrate(); this.go('duty');
+  };
+  PR.lua.transport_arrived = function () { this.vibrate(); this.render(true); };
+  PR.lua.transport_done = function () {
+    if (this.stop && this.stop.phase === 'transport') { this.stop.phase = 'result'; this.raise(); this.vibrate(); this.go('duty'); }
   };
   PR.lua.stop_escaped = function (d) { this.stop = { phase: 'escaped', reason: d.reason }; this.raise(); this.go('duty'); };
 
@@ -1337,14 +1344,22 @@
         '<p><b>PIT manevrası:</b> şüphelinin yanına geç, ön tamponunla <b>arka tekerleğinin hemen arkasına</b> yandan hafifçe vur ve direksiyonu onun tarafına kır. Araç döner, durur.</p></div>' +
         '<p class="tt-mhint">Ya da önünü kesip sıkıştır: 18 m içinde 3 sn dursun. Yerdeki oklar şüpheliyi gösterir. 1 km’den fazla açılırsa kaçar.</p></div>';
     }
+    if (s.phase === 'transport') {
+      var tu = (this.live.units || []).filter(function (u) { return u.transport && u.status !== 'leaving'; })[0];
+      var st = !tu ? 'Ekip aracı çağrılıyor…' : tu.status === 'enroute' ? 'Ekip aracı yolda · ' + dist(tu.dist) + ' · ' + eta(tu.eta) : 'Ekip aracı geldi, şüpheli araca bindiriliyor…';
+      return '<div class="tt-mcard hot"><div class="tt-mlbl">GÖZALTI · NAKİL</div><div class="tt-cuff big">' + ic('cuff') + '<span>' + esc(s.p.name) + ' kelepçeli</span></div>' +
+        '<p>' + esc(st) + '</p><p class="tt-mhint">Şüpheliyle bekle. Ekip aracı gelip şüpheliyi alacak, aracı çekiciyle otoparka çekilecek.</p>' +
+        '<div class="tt-radio"><i></i><i></i><i></i><span>Telsiz: nakil ekibi yönlendirildi</span></div></div>';
+    }
     if (s.phase === 'escaped') return '<div class="tt-mcard"><div class="tt-mlbl">ŞÜPHELİ KAÇTI</div><p>' + esc(s.reason || '') + '</p><button class="tt-big ghost w" data-a="stopClear">Tamam</button></div>';
     if (s.phase === 'wait') return '<div class="tt-mcard hot"><div class="tt-mlbl">ÇEVİRME</div><h3>Araç sağa çekiyor…</h3><p>' + esc(s.model) + ' dörtlülerini yaktı. Arkasında dur.</p><div class="tt-radio"><i></i><i></i><i></i><span>Bekleniyor</span></div></div>';
     var p = s.p;
     if (s.phase === 'result') {
-      return '<div class="tt-mcard"><div class="tt-mlbl">KONTROL SONUCU</div><p>' + esc(s.summary) + '</p>' + payTable(s.res, s.pay) + '<button class="tt-big y" data-a="stopDone">Aracı bırak</button></div>';
+      return '<div class="tt-mcard"><div class="tt-mlbl">KONTROL SONUCU</div><p>' + esc(s.summary) + '</p>' + payTable(s.res, s.pay) + '<button class="tt-big y" data-a="stopDone">' + (s.transported ? 'Tamam' : 'Aracı bırak') + '</button></div>';
     }
     var acts = [['belge', 'Ehliyet ve ruhsat iste'], ['gbt', 'GBT sorgula'], ['alkol', 'Alkolmetre'], ['goz', 'Araç içini gözle kontrol et']];
     var h = '<div class="tt-mcard"><div class="tt-mlbl">' + (p.kacak ? 'ŞÜPHELİ · KOVALAMACA ' + mmss(p.secs) + (p.pit ? ' · PIT' : '') : 'YOL KONTROLÜ') + '</div>' +
+      (p.cuffed ? '<div class="tt-cuff">' + ic('cuff') + '<span>Kelepçeli · gözaltında</span></div>' : '') +
       '<div class="tt-mcars"><span><small>' + esc(p.model || '') + '</small><span class="tt-plate">' + esc(p.plate || '') + '</span></span></div>' +
       '<div class="tt-macts">' + acts.map(function (a) { return '<button data-a="sAct" data-v="' + a[0] + '" class="' + (p.seen['a_' + a[0]] ? 'done' : '') + '">' + (p.seen['a_' + a[0]] ? ic('check') : '') + a[1] + '</button>'; }).join('') + '</div>' +
       (p.steps.length ? '<div class="tt-mlog">' + p.steps.map(function (l) { return '<div><i>' + esc(l[0]) + '</i>' + esc(l[1]) + '</div>'; }).join('') + '</div>' : '') +
@@ -1433,16 +1448,21 @@
     if (right) res.push(['Doğru tespit (' + right + ')', right * 350]);
     if (p.has.aranan && v === 'fine' && p.ticks.aranan) res.push(['Aranan kişiyi ekiplere teslim', 1200]);
     if (p.pit) res.push(['PIT manevrasıyla durdurma', 600]);
+    var heavy = v === 'fine' && ((p.has.aranan && p.ticks.aranan) || (p.has.alkol && p.ticks.alkol) || (p.kacak && p.has.ehliyet && p.ticks.ehliyet));
+    if (heavy) res.push(['Şüpheliyi gözaltına alıp teslim etme', 800]);
     if (wrong) res.push(['Haksız ceza şikâyeti (' + wrong + ')', -300 * wrong]);
     var pay = res.reduce(function (a, b) { return a + b[1]; }, 0);
-    s.res = res; s.pay = pay; s.phase = 'result';
+    s.res = res; s.pay = pay; s.phase = heavy ? 'transport' : 'result';
     s.summary = (v === 'fine' && fineSum ? 'Sürücüye toplam ' + tl(fineSum) + ' ceza yazıldı. ' : v === 'warn' ? 'Sürücü sözlü uyarıyla bırakıldı. ' : '') +
+      (heavy ? 'Ağır suç nedeniyle gözaltına alındı ve emniyete götürüldü. ' : (p.cuffed ? 'Kelepçesi çözüldü, serbest bırakıldı. ' : '')) +
       (missed ? 'Gözden kaçan ' + missed + ' ihlal vardı.' : wrong ? '' : 'Kontrol eksiksiz.');
+    if (heavy) { p.cuffed = true; s.transported = true; this.send('pol_transport'); }
     this.dutyPay(pay, p.kacak ? 'Polis görev ücreti · kovalamaca' : 'Polis görev ücreti · yol kontrolü');
     this.render(true);
   };
   A.stopClear = function () { this.stop = null; this.render(true); };
-  A.stopDone = function () { this.send('stop_release'); this.stop = null; this.render(true); };
+  A.stopDone = function () {
+    if (this.stop && this.stop.transported) { this.stop = null; this.render(true); return; } this.send('stop_release'); this.stop = null; this.render(true); };
 
   // ---- kaza geri sayımı ----
   PR.renderCrash = function () {

@@ -10,6 +10,8 @@ local CFG = {
   worldAcc = true,        -- oyuncudan bağımsız kazalar
   worldEvery = 300,       -- sn (ortalama)
   fleeChance = 0.3,       -- çevrilen aracın kaçma olasılığı
+  fleeSpeed = 20,         -- m/s (~72 km/s): kaçan araçların azami hızı
+  fleeAggression = 0.45,
   crashDv = 7.0,          -- m/s: kısa sürede yatay hız değişimi (~25 km/s) = kaza
   crashWindow = 0.2,      -- sn
   crashCooldown = 25,     -- sn
@@ -228,7 +230,7 @@ end
 
 -- birimler -------------------------------------------------------------------
 local function unitPublic(u, pp, fwd, right)
-  local o = {id=u.id, kind=u.kind, name=u.name, plate=u.plate, driver=u.driver, status=u.status, world=u.world and true or nil,
+  local o = {id=u.id, kind=u.kind, name=u.name, plate=u.plate, driver=u.driver, status=u.status, world=u.world and true or nil, transport=u.transport and true or nil,
              dist=u.dist and math.floor(u.dist) or nil, eta=u.eta and math.floor(u.eta) or nil}
   if u.pos and pp then
     local r = u.pos - pp
@@ -290,7 +292,7 @@ end
 
 local function findUnit(kind, active)
   for _, u in pairs(units) do
-    if u.kind == kind and not u.world and (not active or u.status == 'enroute' or u.status == 'onscene' or u.status == 'ride' or u.status == 'board') then return u end
+    if u.kind == kind and not u.world and not u.transport and (not active or u.status == 'enroute' or u.status == 'onscene' or u.status == 'ride' or u.status == 'board') then return u end
   end
   return nil
 end
@@ -815,6 +817,13 @@ local function unitArrived(u)
   u.status = 'onscene'
   u.arriveT = simT
   stopUnit(u)
+  if u.transport then
+    lights(u, 1, false)
+    u.leaveAt = simT + 14
+    notify(u.name, 'Ekip aracı geldi. Kelepçeli şüpheli araca bindiriliyor.', 'police')
+    send('transport_arrived', {})
+    return
+  end
   if u.world and worldArrived and u.kind ~= 'fire' then worldArrived(u) return end
   if u.kind == 'police' then
     policeArrived(u)
@@ -1079,7 +1088,7 @@ local function acceptOffer()
     if v1 then
       table.insert(job.props, v1); table.insert(job.cars, {plate = p1, model = m1})
       job.target = v1
-      q("ai.setMode('random') ai.setSpeedMode('limit') ai.setSpeed(22) ai.setAggression(0.6)", getVeh(v1))
+      q("ai.setMode('random') ai.setSpeedMode('limit') ai.setSpeed(15) ai.setAggression(0.4)", getVeh(v1))
     end
   end
   setMarker(job.pos)
@@ -1108,7 +1117,7 @@ local function updateDuty(pv, pp)
     if job.phase == 'goto' and d < 150 then
       job.phase = 'chase'
       job.tChase = simT
-      q(string.format("ai.setMode('flee') if ai.setTargetObjectID then pcall(ai.setTargetObjectID, %d) end ai.setSpeedMode('off') ai.setAggression(0.85)", pv:getID()), tv)
+      q(string.format("ai.setMode('flee') if ai.setTargetObjectID then pcall(ai.setTargetObjectID, %d) end ai.setSpeedMode('limit') ai.setSpeed(%.1f) ai.setAggression(%.2f)", pv:getID(), CFG.fleeSpeed, CFG.fleeAggression), tv)
       notify('Telsiz', 'Şüpheli seni fark etti ve kaçıyor! Sirenleri aç, aracı durdur.', 'police')
     elseif job.phase == 'chase' then
       job.pit = job.pit or {}
@@ -1200,7 +1209,7 @@ local function updateStopChase(pv)
   if c.phase == 'fake' and simT > c.fleeAt then
     c.phase = 'flee'
     c.t0 = simT
-    q(string.format("pcall(electrics.set_warn_signal, false) input.event('parkingbrake', 0, 2) ai.setMode('flee') if ai.setTargetObjectID then pcall(ai.setTargetObjectID, %d) end ai.setSpeedMode('off') ai.setAggression(0.9) ai.setAvoidCars('on')", pv:getID()), tv)
+    q(string.format("pcall(electrics.set_warn_signal, false) input.event('parkingbrake', 0, 2) ai.setMode('flee') if ai.setTargetObjectID then pcall(ai.setTargetObjectID, %d) end ai.setSpeedMode('limit') ai.setSpeed(%.1f) ai.setAggression(%.2f) ai.setAvoidCars('on')", pv:getID(), CFG.fleeSpeed, CFG.fleeAggression), tv)
     send('stop_flee', {model = c.model, plate = c.plate})
     notify('Telsiz', c.model..' dur ihtarına uymadı ve kaçıyor! PIT manevrasıyla durdur.', 'police')
   elseif c.phase == 'flee' then
@@ -1471,6 +1480,18 @@ local function updateUnits(pv)
           send('taxi_left', {})
         elseif u.timeoutAt and simT > u.timeoutAt then
           sendAway(u, false)
+        elseif u.transport and u.leaveAt and simT > u.leaveAt then
+          -- şüpheli götürüldü: aracı çekiciyle kaldırılır (sahneden silinir)
+          u.leaveAt = nil
+          if u.suspectVid then
+            pulls[u.suspectVid] = nil
+            leftovers[#leftovers + 1] = {vid = u.suspectVid, t = simT - 170, mode = 'delete'}
+          end
+          if job and job.kind == 'kacak' and job.target == u.suspectVid then job.props = {}; cleanupJob('delete') end
+          if duty.stopVid == u.suspectVid then duty.stopVid = nil end
+          sendAway(u, true)
+          send('transport_done', {})
+          sms('Emniyet', 'Şüpheli ekip aracıyla emniyete götürüldü. Aracı çekiciyle otoparka çekiliyor.')
         elseif u.leaveAt and simT > u.leaveAt then
           if u.kind == 'hearse' then sms('188 Cenaze Hizmetleri', 'Naaş teslim alındı ve morga götürülüyor. Başınız sağ olsun.') end
           sendAway(u, u.leaveSiren)
@@ -1613,6 +1634,19 @@ function M.ui(cmd, json)
     cleanupJob('delete')
   elseif cmd == 'pol_pullover' then
     if duty.chase then send('error', {text = 'Önce kaçan aracı durdur.'}) else policePullover() end
+  elseif cmd == 'pol_transport' then
+    local vid = duty.stopVid or (job and job.target)
+    local sv = getVeh(vid)
+    local pos = sv and vpos(sv) or (playerVeh() and vpos(playerVeh()))
+    if pos then
+      local u = spawnUnit('police', pos, false)
+      if u then
+        u.transport = true
+        u.suspectVid = vid
+        u.name = 'Nakil Ekibi '..math.random(10, 99)
+        send('dispatched', {units = {unitPublic(u)}, reason = 'nakil'})
+      end
+    end
   elseif cmd == 'stop_release' then
     if duty.stopVid then releasePull(duty.stopVid); duty.stopVid = nil end
     if job and job.kind == 'kacak' then cleanupJob('release') end
