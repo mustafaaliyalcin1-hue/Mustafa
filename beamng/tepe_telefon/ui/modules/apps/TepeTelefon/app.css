@@ -366,3 +366,7 @@
 .tt-more svg{width:2.1em;height:2.1em}
 .tt-more.show{opacity:1;pointer-events:auto;transform:none;animation:tt-bob 1.6s ease-in-out infinite}
 @keyframes tt-bob{50%{transform:translateY(.25em)}}
+.tt-pit{display:flex;gap:.8em;align-items:center;margin:.6em 0;padding:.8em;border-radius:1.1em;background:#0b0f18}
+.tt-pit svg{width:7em;height:4.2em;flex:none}.tt-pit p{margin:0!important;font-size:1.05em!important;line-height:1.4}
+.tt-mcard.chase{animation:tt-chase 1s steps(1) infinite}
+@keyframes tt-chase{0%{border-color:#e5322d;box-shadow:0 0 1.4em rgba(229,50,45,.3)}50%{border-color:#2f6fe4;box-shadow:0 0 1.4em rgba(47,111,228,.3)}}

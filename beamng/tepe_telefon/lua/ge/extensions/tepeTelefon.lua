@@ -9,6 +9,7 @@ local CFG = {
   fireOnCrash = true,     -- sert kazada araç yanabilir
   worldAcc = true,        -- oyuncudan bağımsız kazalar
   worldEvery = 300,       -- sn (ortalama)
+  fleeChance = 0.3,       -- çevrilen aracın kaçma olasılığı
   crashDv = 7.0,          -- m/s: kısa sürede yatay hız değişimi (~25 km/s) = kaza
   crashWindow = 0.2,      -- sn
   crashCooldown = 25,     -- sn
@@ -873,6 +874,33 @@ end
 -- MESLEK: POLİS / AMBULANS olarak oynama
 -- Dünya işleri burada (araçlar, işaret, kovalamaca, nakil); puan ve para arayüzde.
 -- =====================================================================
+-- PIT / sıkıştırma algılama --------------------------------------------------
+-- st: takip durumu tablosu. 'pit' = araç kısa sürede 65°+ döndü ve az önce temas vardı,
+-- 'stop' = 18 m içinde 3 sn neredeyse durdu (önü kesildi / sıkıştırıldı).
+local function yawOf(v) local d = vdir(v) return math.atan2(d.y, d.x) end
+local function pitCheck(st, tv, pv)
+  local tp, ts = vpos(tv), hlen(vvel(tv))
+  local d = hdist(tp, vpos(pv))
+  st.yh = st.yh or {}
+  table.insert(st.yh, {simT, yawOf(tv)})
+  while #st.yh > 2 and simT - st.yh[1][1] > 1.6 do table.remove(st.yh, 1) end
+  if d < 7.5 then st.contactT = simT end
+  local old = st.yh[1]
+  if old and simT - old[1] > 0.6 then
+    local dy = math.abs(st.yh[#st.yh][2] - old[2])
+    if dy > math.pi then dy = 2 * math.pi - dy end
+    if dy > math.rad(65) and st.contactT and simT - st.contactT < 2.5 then return 'pit', d end
+  end
+  if d < 18 and ts < 3 then st.slowT = st.slowT or simT else st.slowT = nil end
+  if st.slowT and simT - st.slowT > 3 then return 'stop', d end
+  return nil, d
+end
+
+local function holdStopped(vid)
+  q("ai.setMode('disabled') input.event('throttle', 0, 2) input.event('brake', 1, 2) input.event('parkingbrake', 1, 2) pcall(electrics.set_warn_signal, true)", getVeh(vid))
+  pulls[vid] = {vid = vid, phase = 'parked', holdT = simT, t = simT}   -- trafik sistemi yeniden sürmesin
+end
+
 local duty = {role = 'sivil', lights = 0, nextCallAt = nil}
 local job = nil
 local offer = nil
@@ -1041,12 +1069,13 @@ local function updateDuty(pv, pp)
       q(string.format("ai.setMode('flee') if ai.setTargetObjectID then pcall(ai.setTargetObjectID, %d) end ai.setSpeedMode('off') ai.setAggression(0.85)", pv:getID()), tv)
       notify('Telsiz', 'Şüpheli seni fark etti ve kaçıyor! Sirenleri aç, aracı durdur.', 'police')
     elseif job.phase == 'chase' then
-      if d < 16 and ts < 3 then job.slowT = job.slowT or simT else job.slowT = nil end
-      if job.slowT and simT - job.slowT > 3 then
+      job.pit = job.pit or {}
+      local how = pitCheck(job.pit, tv, pv)
+      if how then
         job.phase = 'caught'
-        q("ai.setMode('disabled') input.event('throttle', 0, 2) input.event('brake', 1, 2) input.event('parkingbrake', 1, 2) pcall(electrics.set_warn_signal, true)", tv)
+        holdStopped(job.target)
         setMarker(nil)
-        send('job_caught', {secs = math.floor(simT - job.tChase), plate = job.cars[1] and job.cars[1].plate, model = job.cars[1] and job.cars[1].model})
+        send('job_caught', {secs = math.floor(simT - job.tChase), plate = job.cars[1] and job.cars[1].plate, model = job.cars[1] and job.cars[1].model, pit = how == 'pit'})
       end
       if d > 1100 then job.farT = job.farT or simT else job.farT = nil end
       if (job.farT and simT - job.farT > 25) or simT - job.tChase > 360 then
@@ -1108,14 +1137,56 @@ local function policePullover()
   duty.stopVid = best
   setLights(2)
   local mdl = getVeh(best).getJBeamFilename and getVeh(best):getJBeamFilename() or 'araç'
+  local pl = plate('civ')
   send('stop_wait', {model = mdl})
+  if math.random() < (CFG.fleeChance or 0.3) then
+    -- önce uyuyormuş gibi yavaşlar, sonra gaza basıp kaçar
+    q("pcall(electrics.set_warn_signal, true) ai.setMode('stop')", getVeh(best))
+    duty.chase = {vid = best, phase = 'fake', fleeAt = simT + rnd(2, 4.5), model = mdl, plate = pl}
+    return
+  end
   startPullOver(best, true, function(p)
-    send('stop_ready', {model = mdl, plate = plate('civ')})
+    send('stop_ready', {model = mdl, plate = pl})
   end, 1.2)
+end
+
+local function updateStopChase(pv)
+  local c = duty.chase
+  if not c or not pv then return end
+  local tv = getVeh(c.vid)
+  if not tv then duty.chase = nil send('stop_escaped', {reason = 'Araç gözden kayboldu.'}) setMarker(nil) return end
+  if c.phase == 'fake' and simT > c.fleeAt then
+    c.phase = 'flee'
+    c.t0 = simT
+    q(string.format("pcall(electrics.set_warn_signal, false) input.event('parkingbrake', 0, 2) ai.setMode('flee') if ai.setTargetObjectID then pcall(ai.setTargetObjectID, %d) end ai.setSpeedMode('off') ai.setAggression(0.9) ai.setAvoidCars('on')", pv:getID()), tv)
+    send('stop_flee', {model = c.model, plate = c.plate})
+    notify('Telsiz', c.model..' dur ihtarına uymadı ve kaçıyor! PIT manevrasıyla durdur.', 'police')
+  elseif c.phase == 'flee' then
+    local how, d = pitCheck(c, tv, pv)
+    c.dist = d
+    c.spd = hlen(vvel(tv)) * 3.6
+    if simT - (c.mkT or 0) > 1 then c.mkT = simT; setMarker(vpos(tv)) end
+    if how then
+      holdStopped(c.vid)
+      setMarker(nil)
+      send('stop_ready', {model = c.model, plate = c.plate, suspect = true, pit = how == 'pit', secs = math.floor(simT - c.t0)})
+      duty.chase = nil
+      return
+    end
+    if d > 1000 then c.farT = c.farT or simT else c.farT = nil end
+    if (c.farT and simT - c.farT > 20) or simT - c.t0 > 300 then
+      q("ai.setMode('traffic') ai.setSpeedMode('legal')", tv)
+      setMarker(nil)
+      duty.chase = nil
+      duty.stopVid = nil
+      send('stop_escaped', {reason = 'Şüpheli araç gözden kayboldu. Plakası tüm ekiplere bildirildi.'})
+    end
+  end
 end
 
 local function dutyPublic(pp)
   local o = {role = duty.role, lights = duty.lights}
+  if duty.chase and duty.chase.phase == 'flee' then o.chase = {dist = duty.chase.dist and math.floor(duty.chase.dist) or nil, spd = duty.chase.spd and math.floor(duty.chase.spd) or nil} end
   if offer then o.offer = {kind = offer.kind, address = offer.address, dist = offer.dist, left = math.max(0, math.floor(35 - (simT - offer.t)))} end
   if job then
     o.job = {kind = job.kind, phase = job.phase, address = job.address, dist = job.dist and math.floor(job.dist) or nil,
@@ -1388,6 +1459,7 @@ local function onUpdate(dtReal, dtSim)
   updateRide()
   updateDuty(pv, pv and vpos(pv))
   updateWorld(pv and vpos(pv))
+  updateStopChase(pv)
 
   if incident and incident.hearseAt and simT > incident.hearseAt then
     incident.hearseAt = nil
@@ -1456,6 +1528,7 @@ function M.ui(cmd, json)
     local u = (incident and incident.policeUnit and units[incident.policeUnit]) or findUnit('police', true)
     if u then u.leaveAt = simT + 7; u.timeoutAt = nil end
   elseif cmd == 'role' then
+    if duty.chase then setMarker(nil); duty.chase = nil end
     setRole(d.role or 'sivil')
   elseif cmd == 'lights' then
     setLights(tonumber(d.n) or 0)
@@ -1478,7 +1551,7 @@ function M.ui(cmd, json)
   elseif cmd == 'job_cancel' then
     cleanupJob('delete')
   elseif cmd == 'pol_pullover' then
-    policePullover()
+    if duty.chase then send('error', {text = 'Önce kaçan aracı durdur.'}) else policePullover() end
   elseif cmd == 'stop_release' then
     if duty.stopVid then releasePull(duty.stopVid); duty.stopVid = nil end
     if job and job.kind == 'kacak' then cleanupJob('release') end
@@ -1513,7 +1586,7 @@ function M.onClientEndMission()
   units, vidToUnit, hist, incident, crashPending, ride = {}, {}, {}, nil, nil, nil
   job, offer, pulls, leftovers = nil, nil, {}, {}
   worldEv, nextWorldAt, burning, igniteQueue = nil, nil, {}, {}
-  duty.role, duty.stopVid = 'sivil', nil
+  duty.role, duty.stopVid, duty.chase = 'sivil', nil, nil
 end
 function M.onExtensionLoaded()
   math.randomseed(os.time())

@@ -46,3 +46,5 @@ Hasta olay yerinde ölürse 188'den cenaze aracı çağırabilirsin.
 - *Kaçan araç:* şüpheli seni görünce kaçar. Yanına gelip durmaya zorla (15 m içinde 3 sn yavaş kalsın).
 - *Çevirme:* "Öndeki aracı çevir" ile önündeki araç dörtlülerini yakıp sağa çeker. Belge iste, GBT sorgula,
   alkolmetre yap, araç içine bak; bulduğun ihlalleri işaretleyip ceza yaz ya da uyarıp bırak. Haksız ceza şikâyet getirir.
+  Çevrilen araçların yaklaşık üçte biri önce yavaşlar, sonra kaçar. PIT manevrasıyla (arka tekerleğin arkasına yandan
+  hafifçe vurup döndürerek) ya da önünü kesip sıkıştırarak durdur. PIT ile durdurmak ekstra kazandırır.
