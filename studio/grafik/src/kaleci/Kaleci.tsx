@@ -14,7 +14,7 @@ const ara = (t: number, a: number, b: number, x = 0, y = 1, e = Easing.inOut(Eas
 const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
 
 /* saha ölçüleri */
-const KX0 = 240, KX1 = 840, UST = 600, ZEMIN = 1000;   // kale: direkler, üst direk, zemin çizgisi
+export const KX0 = 240, KX1 = 840, UST = 600, ZEMIN = 1000;   // kale: direkler, üst direk, zemin çizgisi
 const HEDEF = [  // zor şutlar: kale köşeleri (ÇATAL / 90 / üst köşe)
   { x: 285, y: 640, etiket: "ÇATAL!", poz: "solUc" as const },
   { x: 795, y: 640, etiket: "90'A!", poz: "sagUc" as const },
@@ -23,7 +23,7 @@ const HEDEF = [  // zor şutlar: kale köşeleri (ÇATAL / 90 / üst köşe)
 const SUT = 0.5;  // şutun kaleye varış süresi
 
 /* ---------------- sahne arka planı: gece halı sahası ---------------- */
-const Saha: React.FC<{ t: number }> = ({ t }) => (
+export const Saha: React.FC<{ t: number }> = ({ t }) => (
   <svg width={1080} height={1920} style={{ position: "absolute" }}>
     <defs>
       <linearGradient id="gok" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#070d22" /><stop offset="1" stopColor="#17305c" /></linearGradient>
@@ -65,7 +65,7 @@ const Saha: React.FC<{ t: number }> = ({ t }) => (
     <polygon points={`${KX1},${UST} ${KX1 - 50},${UST + 60} ${KX1 - 50},${ZEMIN} ${KX1},${ZEMIN}`} fill="url(#file)" />
   </svg>
 );
-const Direkler = () => (
+export const Direkler = () => (
   <svg width={1080} height={1920} style={{ position: "absolute" }}>
     <rect x={KX0 - 16} y={UST - 16} width={16} height={ZEMIN - UST + 16} fill="#f4f4f4" />
     <rect x={KX1} y={UST - 16} width={16} height={ZEMIN - UST + 16} fill="#f4f4f4" />
@@ -75,8 +75,8 @@ const Direkler = () => (
 );
 
 /* ---------------- kaleci karakteri (poz parametreli) ---------------- */
-type Poz = { x: number; y: number; don: number; kolSol: number; kolSag: number; bacak: number; comel: number; yuz: "normal" | "uzgun" | "saskin" };
-const Kaleci: React.FC<{ p: Poz; olcek?: number }> = ({ p, olcek = 1 }) => {
+export type Poz = { x: number; y: number; don: number; kolSol: number; kolSag: number; bacak: number; comel: number; yuz: "normal" | "uzgun" | "saskin" | "kizgin" };
+export const Kaleci: React.FC<{ p: Poz; olcek?: number }> = ({ p, olcek = 1 }) => {
   const kol = (aci: number, isaret: number) => (
     <g transform={`translate(${isaret * 52},-190) rotate(${aci * isaret})`}>
       <rect x={-13} y={0} width={26} height={110} rx={13} fill="#ff8a1f" />
@@ -102,6 +102,9 @@ const Kaleci: React.FC<{ p: Poz; olcek?: number }> = ({ p, olcek = 1 }) => {
         <path d="M -48 -282 Q 0 -340 48 -282 Q 30 -300 0 -300 Q -30 -300 -48 -282 Z" fill="#4a2e1c" />
         {p.yuz === "uzgun" ? (<g stroke="#111" strokeWidth={5} strokeLinecap="round" fill="none">
           <path d="M -24 -272 l 12 6 M 24 -272 l -12 6" /><path d="M -16 -240 q 16 -12 32 0" /></g>)
+          : p.yuz === "kizgin" ? (<g><path d="M -30 -290 l 22 12 M 30 -290 l -22 12" stroke="#111" strokeWidth={7} strokeLinecap="round" />
+            <circle cx={-16} cy={-270} r={6} fill="#111" /><circle cx={16} cy={-270} r={6} fill="#111" />
+            <path d="M -18 -240 q 18 -10 36 0" stroke="#111" strokeWidth={5} fill="none" strokeLinecap="round" /></g>)
           : p.yuz === "saskin" ? (<g><circle cx={-16} cy={-272} r={7} fill="#111" /><circle cx={16} cy={-272} r={7} fill="#111" />
             <ellipse cx={0} cy={-244} rx={9} ry={12} fill="#111" /></g>)
             : (<g><circle cx={-16} cy={-272} r={6} fill="#111" /><circle cx={16} cy={-272} r={6} fill="#111" />
@@ -110,8 +113,8 @@ const Kaleci: React.FC<{ p: Poz; olcek?: number }> = ({ p, olcek = 1 }) => {
     </g>
   );
 };
-const BEKLE = (t: number): Poz => ({ x: 540, y: ZEMIN + 6 + Math.abs(Math.sin(t * 6)) * -8, don: 0, kolSol: 35, kolSag: 35, bacak: 10, comel: 0.25, yuz: "normal" });
-const karis = (a: Poz, b: Poz, k: number): Poz => ({ x: lerp(a.x, b.x, k), y: lerp(a.y, b.y, k), don: lerp(a.don, b.don, k),
+export const BEKLE = (t: number): Poz => ({ x: 540, y: ZEMIN + 6 + Math.abs(Math.sin(t * 6)) * -8, don: 0, kolSol: 35, kolSag: 35, bacak: 10, comel: 0.25, yuz: "normal" });
+export const karis = (a: Poz, b: Poz, k: number): Poz => ({ x: lerp(a.x, b.x, k), y: lerp(a.y, b.y, k), don: lerp(a.don, b.don, k),
   kolSol: lerp(a.kolSol, b.kolSol, k), kolSag: lerp(a.kolSag, b.kolSag, k), bacak: lerp(a.bacak, b.bacak, k), comel: lerp(a.comel, b.comel, k),
   yuz: k > 0.5 ? b.yuz : a.yuz });
 const UC: Record<string, Poz> = {
@@ -121,7 +124,7 @@ const UC: Record<string, Poz> = {
 };
 
 /* ---------------- top ---------------- */
-const Top: React.FC<{ x: number; y: number; r: number; don: number }> = ({ x, y, r, don }) => (
+export const Top: React.FC<{ x: number; y: number; r: number; don: number }> = ({ x, y, r, don }) => (
   <g transform={`translate(${x},${y}) rotate(${don})`}>
     <circle r={r} fill="#fff" stroke="#111" strokeWidth={Math.max(2, r * 0.08)} />
     <polygon points={[0, 1, 2, 3, 4].map((i) => `${Math.cos(i * 1.2566 - 1.57) * r * 0.42},${Math.sin(i * 1.2566 - 1.57) * r * 0.42}`).join(" ")} fill="#111" />
