@@ -15,7 +15,7 @@ local CFG = {
   crashCooldown = 25,     -- sn
   sosDelay = 10,          -- sn: otomatik 112 geri sayımı
   spawnMin = 220, spawnMax = 480,
-  arriveDist = 24,
+  arriveDist = 15,
   emergencySpeed = 27,    -- m/s (~97 km/s) acil araç azami hız
   normalSpeed = 16,       -- m/s (~58 km/s)
   stuckTime = 150,        -- sn: bu süre içinde gelemezse yakına alınır
@@ -194,6 +194,38 @@ local function findRoadSpot(target, minD, maxD, towardTarget, maxDz)
   return nil
 end
 
+-- kameradan görünmeyen nokta ----------------------------------------------------
+local function camInfo()
+  local cp, cf
+  pcall(function() if core_camera and core_camera.getPosition then cp = vec3(core_camera.getPosition()) end end)
+  pcall(function() if core_camera and core_camera.getForward then cf = vec3(core_camera.getForward()) end end)
+  if not cp then pcall(function() cp = vec3(getCameraPosition()) end) end
+  if not cf then pcall(function() cf = quat(getCameraQuat()) * vec3(0, 1, 0) end) end
+  local pv = playerVeh()
+  if not cp and pv then cp = vpos(pv) + vec3(0, 0, 2) end
+  if not cf and pv then cf = vdir(pv) end
+  return cp, cf
+end
+
+-- kameranın arkasında/yanındaysa ya da arada bina/engel varsa görünmez sayılır
+local function hiddenFromCam(p, cp, cf)
+  if not cp then return true end
+  local to = p + vec3(0, 0, 1.2) - cp
+  local L = to:length()
+  if L < 1 then return false end
+  local dir = to / L
+  if cf then
+    local f = vec3(cf.x, cf.y, 0)
+    local h = vec3(dir.x, dir.y, 0)
+    if f:length() > 0.01 and h:length() > 0.01 and f:normalized():dot(h:normalized()) < 0.15 then return true end
+  end
+  if castRayStatic then
+    local ok, hit = pcall(castRayStatic, cp, dir, L)
+    if ok and type(hit) == 'number' and hit < L - 4 then return true end
+  end
+  return false
+end
+
 -- birimler -------------------------------------------------------------------
 local function unitPublic(u, pp, fwd, right)
   local o = {id=u.id, kind=u.kind, name=u.name, plate=u.plate, driver=u.driver, status=u.status, world=u.world and true or nil,
@@ -268,7 +300,18 @@ local function spawnUnit(kind, target, follow)
   local tgt = target or (pv and vpos(pv))
   if not tgt then return nil end
   local choice = chooseVehicle(kind)
-  local p, rot = findRoadSpot(tgt, CFG.spawnMin, CFG.spawnMax, true)
+  -- önce yakında (70-200 m) ve kameradan görünmeyen bir yol noktası ara
+  local p, rot
+  local cp, cf = camInfo()
+  for _, r in ipairs({{70, 160, 18}, {150, 260, 14}, {240, 420, 10}}) do
+    for _ = 1, r[3] do
+      local sp, srot = findRoadSpot(tgt, r[1], r[2], true, 10)
+      if not sp then break end
+      if hiddenFromCam(sp, cp, cf) then p, rot = sp, srot break end
+    end
+    if p then break end
+  end
+  if not p then p, rot = findRoadSpot(tgt, CFG.spawnMin, CFG.spawnMax, true) end
   if not p then p, rot = findRoadSpot(tgt, 80, 1500, true) end
   if not p then
     local d = pv and vdir(pv) or vec3(0, 1, 0)
@@ -779,13 +822,12 @@ local function unitArrived(u)
     startTreatment(u)
   elseif u.kind == 'fire' then
     local at = u.targetPos or u.pos
-    if anyBurningNear(at, 60) then
-      u.extUntil = simT + rnd(14, 22)
-      notify(u.name, 'İtfaiye olay yerinde. Yangına köpükle müdahale ediliyor…', 'fire')
-    else
-      u.leaveAt = simT + 12
-      notify(u.name, 'İtfaiye olay yerini kontrol etti. Yangın ya da sızıntı yok.', 'fire')
-    end
+    -- oyunun kendi yangınlarını bilemeyiz: ihbar varsa ya da biz yaktıysak yangın var say; her durumda söndür
+    local reported = u.reason == 'yangin' or anyBurningNear(at, 80) or anyBurningNear(vpos(getVeh(u.vid)), 80)
+      or (incident and (incident.fire or incident.fireSoon) and hdist(incident.pos, at) < 120)
+    u.reported = reported
+    u.extUntil = simT + (reported and rnd(14, 22) or 8)
+    notify(u.name, reported and 'İtfaiye olay yerinde. Yangına köpükle müdahale ediliyor…' or 'İtfaiye olay yerinde. Araçlar kontrol ediliyor, soğutma yapılıyor…', 'fire')
   elseif u.kind == 'hearse' then
     lights(u, 0, true)
     u.leaveAt = simT + 28
@@ -1379,29 +1421,48 @@ local function updateUnits(pv)
         local est = d * 1.25 / math.max(spd, u.emergency and 13 or 8)
         u.eta = u.eta and (u.eta * 0.9 + est * 0.1) or est
         if spd < 1 then u.slowT = u.slowT or simT else u.slowT = nil end
+        -- son 60 m: yavaşla, yanına sakin yanaşsın
+        if d < 60 and not u.near then u.near = true; q("ai.setSpeed(7)", veh) end
+        if d >= 60 and u.near and d > 90 then u.near = false; q("ai.setSpeed("..(u.emergency and CFG.emergencySpeed or CFG.normalSpeed)..")", veh) end
         if d < CFG.arriveDist then
           unitArrived(u)
+        elseif u.slowT and simT - u.slowT > 5 and d < 35 and simT - u.t0 > 10 then
+          unitArrived(u)      -- yol bitti, yeterince yakın
         elseif u.slowT and simT - u.slowT > 10 and simT - u.t0 > 15 then
           u.slowT = nil
+          local moved = false
           if d < 160 then
-            -- yapay zekâ yolun sonunda durdu ama hedefe varamadı: hedefin hemen yanına yanaştır
-            local sp, srot = findRoadSpot(tgt, 6, 32, true, 4)
-            if sp then
-              if spawn and spawn.safeTeleport then pcall(spawn.safeTeleport, veh, sp, srot)
-              else pcall(function() veh:setPosRot(sp.x, sp.y, sp.z, srot.x, srot.y, srot.z, srot.w) end) end
+            -- yolun sonunda takıldı: yalnızca kameradan görünmüyorsa hedefin yanına yanaştır
+            local cp, cf = camInfo()
+            for _ = 1, 8 do
+              local sp, srot = findRoadSpot(tgt, 12, 40, true, 4)
+              if sp and hiddenFromCam(sp, cp, cf) and hiddenFromCam(p, cp, cf) then
+                if spawn and spawn.safeTeleport then pcall(spawn.safeTeleport, veh, sp, srot)
+                else pcall(function() veh:setPosRot(sp.x, sp.y, sp.z, srot.x, srot.y, srot.z, srot.w) end) end
+                moved = true
+                break
+              end
             end
-            unitArrived(u)
-          else
-            driveTo(u, tgt)   -- rotayı kaybetmiş olabilir, yeniden ver
           end
+          if moved then unitArrived(u) else driveTo(u, tgt) end
         elseif simT - u.t0 > CFG.stuckTime then
           teleportNear(u, tgt)
         end
       elseif u.status == 'onscene' then
         if u.kind == 'fire' and u.extUntil and simT > u.extUntil then
           u.extUntil = nil
-          local n = extinguishNear(u.targetPos or p, 60)
-          notify(u.name, n > 0 and 'Yangın söndürüldü. Soğutma yapıldı, olay yeri güvenli.' or 'Yangın kendiliğinden sönmüş, soğutma yapıldı.', 'fire')
+          local n = extinguishNear(u.targetPos or p, 70) + extinguishNear(p, 70)
+          -- listede olmayan (oyunun kendi) yangınlar için: çevredeki tüm araçlara söndürme uygula
+          local centers = {p, u.targetPos}
+          for oid, o in pairs(map.objects or {}) do
+            if o.pos and not vidToUnit[oid] then
+              for _, c in ipairs(centers) do
+                if c and hdist(o.pos, c) < 70 then q("if fire and fire.extinguishVehicle then fire.extinguishVehicle() end", getVeh(oid)) break end
+              end
+            end
+          end
+          if incident then incident.fire = nil; incident.fireSoon = nil end
+          notify(u.name, (n > 0 or u.reported) and 'Yangın söndürüldü. Soğutma yapıldı, olay yeri güvenli.' or 'Araçlar kontrol edildi ve soğutuldu. Olay yeri güvenli.', 'fire')
           u.leaveAt = simT + 14
         end
         if u.kind == 'taxi' and u.waitUntil and simT > u.waitUntil and not ride then
