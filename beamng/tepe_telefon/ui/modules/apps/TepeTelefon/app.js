@@ -31,6 +31,7 @@
     amb: '<path d="M2.5 16.5V8.5a1.5 1.5 0 0 1 1.5-1.5h10v9.5zM14 9.5h3.8l3.7 3.7v3.3H14z" fill="currentColor"/><circle cx="7" cy="17" r="2" fill="currentColor"/><circle cx="17.5" cy="17" r="2" fill="currentColor"/><path d="M8.3 9v5M5.8 11.5h5" stroke="#000" stroke-width="1.5" opacity=".45"/>',
     car: '<path d="M5 11 6.8 6.6A2 2 0 0 1 8.7 5.3h6.6a2 2 0 0 1 1.9 1.3L19 11v6a1 1 0 0 1-1 1h-1.5a1 1 0 0 1-1-1v-1h-7v1a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z" fill="currentColor"/>',
     check: '<path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>',
+    fire: '<path d="M12 2.5c1 3.2 4.8 5.3 4.8 10a4.8 4.8 0 0 1-9.6 0c0-2.2 1-3.6 2.2-4.6.1 1.6.8 2.8 2 3.3-.6-3.4.2-6 .6-8.7z" fill="currentColor"/><path d="M12 21.5a3 3 0 0 1-3-3c0-1.6 1.5-2.6 2-4 .9 1.1 4 2.2 4 4a3 3 0 0 1-3 3z" fill="#fff" opacity=".55"/>',
     star: '<path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z" fill="currentColor"/>'
   };
   function ic(n, cls) { return '<svg class="ic ' + (cls || '') + '" viewBox="0 0 24 24" aria-hidden="true">' + P[n] + '</svg>'; }
@@ -39,12 +40,14 @@
     police: { label: 'Polis', icon: 'shield', color: '#2f6fe4' },
     ambulance: { label: 'Ambulans', icon: 'amb', color: '#e5322d' },
     taxi: { label: 'Taksi', icon: 'taxi', color: '#f2b705' },
-    hearse: { label: 'Cenaze aracı', icon: 'hearse', color: '#6e6e78' }
+    hearse: { label: 'Cenaze aracı', icon: 'hearse', color: '#6e6e78' },
+    fire: { label: 'İtfaiye', icon: 'fire', color: '#ff6a00' }
   };
 
   var CONTACTS = [
     { num: '112', name: '112 Acil Çağrı', sub: 'Ambulans · Polis · Jandarma', color: '#e5322d', icon: 'sos' },
     { num: '155', name: '155 Polis İmdat', sub: 'Emniyet Genel Müdürlüğü', color: '#2f6fe4', icon: 'shield' },
+    { num: '110', name: '110 İtfaiye', sub: 'Yangın · kurtarma', color: '#ff6a00', icon: 'fire' },
     { num: '188', name: '188 Cenaze Hizmetleri', sub: 'Belediye', color: '#55555f', icon: 'flower' },
     { num: '4448294', name: 'Durak Taksi', sub: '7/24 sarı taksi', color: '#f2b705', icon: 'taxi', fmt: '444 82 94' },
     { num: '05321234567', name: 'Annem', sub: 'Mobil', color: '#c2559a', icon: 'user', fmt: '0532 123 45 67' }
@@ -96,7 +99,13 @@
   PR.save = function () { try { localStorage.setItem(STORE_KEY, JSON.stringify(this.db)); } catch (e) { } };
   PR.send = function (cmd, data) { try { this.api.send(cmd, data || {}); } catch (e) { } };
   PR.later = function (fn, ms) { var self = this; var t = setTimeout(function () { fn.call(self); }, ms); this.timers.push(t); return t; };
-  PR.pushSettings = function () { this.send('settings', { crash: this.db.settings.crash, delay: this.db.settings.delay }); };
+  PR.pushSettings = function () {
+    var st = this.db.settings;
+    if (st.fire == null) st.fire = true;
+    if (st.world == null) st.world = true;
+    if (st.sens == null) st.sens = 1;
+    this.send('settings', { crash: st.crash, delay: st.delay, fire: st.fire, world: st.world, sens: st.sens });
+  };
 
   PR.build = function () {
     this.host.classList.add('tt-host');
@@ -231,6 +240,7 @@
 
   PR.lua = {
     state: function (d) {
+      if (!this.lastLua) this.pushSettings();
       this.live = d;
       this.lastLua = Date.now();
       if (d.crash != null && this.crash) this.crash.left = d.crash;
@@ -282,21 +292,26 @@
       if (d.fare > 0) this.pay(d.fare, 'Taksi yolculuğu · ' + String(d.km).replace('.', ',') + ' km', 'taxi');
       this.raise(); this.go('taxi');
     },
+    traffic: function (d) {
+      var t = d.address + ' üzerinde iki araç çarpıştı (' + dist(d.dist) + ' uzakta).' + (d.fire ? ' Araçlardan biri yanıyor.' : '') + ' Ekipler yönlendirildi, yavaşla.';
+      this.addMsg('Trafik Bilgi', t, false);
+      this.banner('Trafik · kaza', t, 'traffic');
+    },
     med_open: function () { this.raise(); if (!this.call && !this.stmt) this.go('med'); },
     statement: function (d) { this.startStatement(d); },
     police_ask: function (d) { this.startPoliceAsk(d); }
   };
 
   function threadFor(app) {
-    return { police: 'Emniyet Trafik', med: '112 Acil', ambulance: '112 Acil', hearse: '188 Cenaze Hizmetleri', taxi: 'Durak Taksi' }[app] || null;
+    return { police: 'Emniyet Trafik', med: '112 Acil', ambulance: '112 Acil', hearse: '188 Cenaze Hizmetleri', taxi: 'Durak Taksi', fire: '110 İtfaiye', traffic: 'Trafik Bilgi' }[app] || null;
   }
 
   // ---------- bildirim, titreşim, mesaj ----------
   PR.banner = function (title, text, app) {
     var self = this, b = this.$banner;
     var k = KIND[app] || null;
-    var iconName = k ? k.icon : ({ med: 'med', msg: 'msg', gear: 'gear', police: 'shield' }[app] || 'msg');
-    var col = k ? k.color : ({ med: '#e5322d', msg: '#34c759', gear: '#8e8e93', police: '#2f6fe4' }[app] || '#34c759');
+    var iconName = k ? k.icon : ({ med: 'med', msg: 'msg', gear: 'gear', police: 'shield', traffic: 'car' }[app] || 'msg');
+    var col = k ? k.color : ({ med: '#e5322d', msg: '#34c759', gear: '#8e8e93', police: '#2f6fe4', traffic: '#ff9500' }[app] || '#34c759');
     b.innerHTML = '<div class="tt-bn" data-a="bannerTap" data-v="' + esc(app || '') + '"><span class="tt-bni" style="background:' + col + '">' + ic(iconName) + '</span>' +
       '<div class="tt-bnt"><b>' + esc(title) + '</b><span>' + esc(text) + '</span></div><em>şimdi</em></div>';
     b.classList.remove('show'); void b.offsetWidth; b.classList.add('show');
@@ -341,7 +356,7 @@
   };
 
   PR.updIsland = function () {
-    var u = (this.live.units || []).filter(function (x) { return x.status === 'enroute'; });
+    var u = (this.live.units || []).filter(function (x) { return x.status === 'enroute' && !x.world; });
     var c = this.$isl.querySelector('.tt-islc');
     var r = this.live.ride;
     var html = '';
@@ -407,7 +422,7 @@
 
   S.home = function () {
     var d = new Date();
-    var units = (this.live.units || []).filter(function (u) { return u.status !== 'leaving'; });
+    var units = (this.live.units || []).filter(function (u) { return u.status !== 'leaving' && !u.world; });
     var unread = 0, th = this.db.threads; for (var k in th) unread += th[k].unread || 0;
     var widget = '';
     if (units.length) {
@@ -526,9 +541,10 @@
     var list = units.length ? units.map(function (u) {
       var k = KIND[u.kind] || {};
       var st = u.status === 'enroute' ? ('Yolda · ' + dist(u.dist) + ' · ' + eta(u.eta)) : u.status === 'onscene' ? 'Olay yerinde' : u.status === 'leaving' ? 'Ayrılıyor' : 'Yolculukta';
+      if (u.world) st = 'Başka bir kaza · ' + st;
       return '<div class="tt-unit"><span class="tt-av" style="background:' + k.color + '">' + ic(k.icon) + '</span><span class="tt-rt"><b>' + esc(u.name) + '</b><small>' + esc(u.plate) + ' · ' + esc(st) + '</small>' +
         (u.status === 'enroute' ? '<i class="tt-prog"><i style="width:' + Math.max(6, Math.min(100, 100 - (u.dist || 0) / 5)) + '%;background:' + k.color + '"></i></i>' : '') + '</span>' +
-        (u.status === 'enroute' && u.kind !== 'hearse' ? '<button class="tt-x" data-a="cancelUnit" data-v="' + u.id + '">İptal</button>' : '') + '</div>';
+        (u.status === 'enroute' && u.kind !== 'hearse' && !u.world ? '<button class="tt-x" data-a="cancelUnit" data-v="' + u.id + '">İptal</button>' : '') + '</div>';
     }).join('') : '<div class="tt-empty">Yolda ekip yok.<br><small>112, 155 veya taksi çağırdığında burada canlı izlersin.</small></div>';
     return '<div class="tt-page dark">' + header('Ekip Takip', { back: 'Ana ekran' }) +
       '<div class="tt-radar"><div class="tt-rring r1"></div><div class="tt-rring r2"></div><div class="tt-rsweep"></div>' +
@@ -627,6 +643,9 @@
       '<div class="tt-sec">ACİL DURUM</div><div class="tt-list grp">' +
       sw('crash', s.crash, 'Kaza Algılama', 'Ciddi kazada 112’yi otomatik arar') +
       '<div class="tt-row set"><span class="tt-rt"><b>Geri sayım</b><small>Otomatik aramadan önce</small></span><span class="tt-seg">' + [5, 10, 20].map(function (n) { return '<button data-a="setDelay" data-v="' + n + '" class="' + (s.delay === n ? 'on' : '') + '">' + n + ' sn</button>'; }).join('') + '</span></div>' +
+      '<div class="tt-row set"><span class="tt-rt"><b>Algılama hassasiyeti</b><small>Hafif kazaları kaçırıyorsa “Yüksek” seç</small></span><span class="tt-seg">' + [[1.3, 'Düşük'], [1, 'Orta'], [0.75, 'Yüksek']].map(function (x) { return '<button data-a="setSens" data-v="' + x[0] + '" class="' + (s.sens === x[0] ? 'on' : '') + '">' + x[1] + '</button>'; }).join('') + '</span></div>' +
+      sw('fire', s.fire !== false, 'Sert kazada araç yanabilir', 'Yüksek hızda çarpışmada duman, sonra alev') +
+      sw('world', s.world !== false, 'Bağımsız kazalar', 'Şehirde başka araçlar da kaza yapar, ekipler gider') +
       sw('autoOpen', s.autoOpen, 'Telefonu otomatik çıkar', 'Ekip gelince ya da kazada ekrana gelir') +
       '</div><div class="tt-sec">CÜZDAN</div><div class="tt-list grp"><button class="tt-row set" data-a="resetWallet"><span class="tt-rt"><b class="blue">Bakiyeyi 15.000 ₺ yap</b><small>İşlem geçmişi silinir</small></span></button>' +
       '<button class="tt-row set" data-a="clearMsgs"><span class="tt-rt"><b class="red">Mesajları ve aramaları sil</b></span></button></div>' +
@@ -640,8 +659,8 @@
   S.sos = function () {
     return '<div class="tt-page dark sos">' + header('Acil SOS', { back: 'Ana ekran' }) +
       '<div class="tt-sosb"><button data-a="callNum" data-v="112" class="b112"><b>112</b><span>Acil Çağrı</span></button>' +
-      '<div class="tt-sos2 three"><button data-a="quick" data-v="ambulance">' + ic('amb') + '<span>Ambulans</span></button><button data-a="quick" data-v="police">' + ic('shield') + '<span>Polis</span></button><button data-a="quick" data-v="hearse">' + ic('hearse') + '<span>Cenaze aracı</span></button></div>' +
-      '<div class="tt-sos2"><button data-a="callNum" data-v="155">' + ic('shield') + '<span>155 Polis</span></button><button data-a="callNum" data-v="188">' + ic('flower') + '<span>188 Cenaze</span></button></div>' +
+      '<div class="tt-sos2 three"><button data-a="quick" data-v="ambulance">' + ic('amb') + '<span>Ambulans</span></button><button data-a="quick" data-v="police">' + ic('shield') + '<span>Polis</span></button><button data-a="quick" data-v="fire">' + ic('fire') + '<span>İtfaiye</span></button></div>' +
+      '<div class="tt-sos2 three"><button data-a="quick" data-v="hearse">' + ic('hearse') + '<span>Cenaze aracı</span></button><button data-a="callNum" data-v="155">' + ic('shield') + '<span>155 Polis</span></button><button data-a="callNum" data-v="110">' + ic('fire') + '<span>110 İtfaiye</span></button></div>' +
       '<p class="tt-note">Gereksiz yere acil hatları meşgul etmek idari para cezası gerektirir.</p></div></div>';
   };
 
@@ -689,6 +708,7 @@
     callNum: function (v) { this.startCall(v); },
     quick: function (v) {
       if (v === 'hearse') return this.startCall('188', 'cenaze');
+      if (v === 'fire') return this.startCall('110', 'yangin');
       this.startCall('112', v === 'police' ? 'polis' : 'saglik');
     },
     callOpt: function (v) { var o = this.call && this.call.opts && this.call.opts[+v]; if (o) { this.call.opts = []; this.call.lines.push({ me: true, text: o.l }); this.render(); o.f.call(this); } },
@@ -703,7 +723,8 @@
     taxiExit: function () { this.send('taxi_exit'); },
     taxiReset: function () { this.taxi = { phase: 'idle' }; this.go('home', true); },
     rate: function (v) { this.taxi.rate = +v; this.render(); },
-    setTgl: function (v) { this.db.settings[v] = !this.db.settings[v]; this.save(); this.pushSettings(); this.render(); },
+    setTgl: function (v) { var cur = this.db.settings[v]; if (cur == null && (v === 'fire' || v === 'world')) cur = true; this.db.settings[v] = !cur; this.save(); this.pushSettings(); this.render(); },
+    setSens: function (v) { this.db.settings.sens = +v; this.save(); this.pushSettings(); this.render(); },
     setDelay: function (v) { this.db.settings.delay = +v; this.save(); this.pushSettings(); this.render(); },
     resetWallet: function () { this.db.wallet = 15000; this.db.tx = []; this.save(); this.render(); },
     clearMsgs: function () { this.db.threads = {}; this.db.recents = []; this.save(); this.render(); },
@@ -791,6 +812,7 @@
           { l: 'Bilinci kapalı', f: function () { done(['ambulance'], 'saglik', 'Ambulans öncelikli yönlendirildi. Hava yolunun açık olduğundan emin olun, ekip 112 talimatlarıyla sizi arayacak.'); } }
         ]);
       } },
+      { l: 'Araç yanıyor', f: function () { done(['fire', 'ambulance', 'police'], 'yangin', 'İtfaiye, ambulans ve polis yönlendirildi. Araçtan uzaklaşın, içeride kimse kaldıysa ekibe söyleyin.'); } },
       { l: 'Polise ihtiyacım var', f: function () { done(['police'], 'polis', 'Sizi polis birimine bağladım. Ekip konumunuza yönlendirildi.'); } },
       { l: 'Yanlışlıkla aradım', f: function () { self.say('Anlaşıldı. Lütfen acil hatları gereksiz meşgul etmeyin. İyi günler.'); self.hangSoon(3500); } }
     ]);
@@ -824,6 +846,16 @@
         send(dead ? 'Başınız sağ olsun. Doktorun ölüm tespiti sisteme düştü, cenaze aracı yönlendirildi.' : 'Başınız sağ olsun. Cenaze aracı yönlendirildi. Ölüm tespiti için 112’nin de olay yerine gelmesi gerekiyor.');
       } },
       { l: 'Bilgi almak istiyorum', f: function () { self.say('Cenaze nakil hizmetimiz 7/24 ücretsizdir. Kazalarda ambulans ölüm tespit ederse cenaze aracı otomatik gönderilir.'); self.hangSoon(5000); } }
+    ]);
+  };
+  SCRIPTS['110'] = function (preset) {
+    var self = this;
+    function send(kinds, text) { self.say(text); self.later(function () { self.send('dispatch', { services: kinds, reason: 'yangin' }); }, 900); self.hangSoon(5200); }
+    if (preset === 'yangin') { self.call.lines.push({ me: true, text: 'Araç yanıyor!' }); return send(['fire'], '110 İtfaiye, konumunuzu aldım: ' + self.locText() + '. Ekip yola çıktı. Araçtan uzaklaşın, kimseyi yaklaştırmayın.'); }
+    this.say('110 İtfaiye, dinliyorum.', [
+      { l: 'Araç yanıyor', f: function () { send(['fire'], 'Ekip yola çıktı. Araçtan en az 30 metre uzaklaşın, yangını kendiniz söndürmeye çalışmayın.'); } },
+      { l: 'Kazada araçta sıkışan var', f: function () { send(['fire', 'ambulance'], 'Kurtarma ekibi ve ambulans yönlendirildi. Yaralıyı hareket ettirmeyin.'); } },
+      { l: 'Yanlışlıkla aradım', f: function () { self.say('Tamam, iyi günler.'); self.hangSoon(2500); } }
     ]);
   };
   SCRIPTS['4448294'] = function () {

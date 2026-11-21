@@ -6,6 +6,9 @@ local TAG = 'tepeTelefon'
 
 local CFG = {
   crashDetect = true,
+  fireOnCrash = true,     -- sert kazada araç yanabilir
+  worldAcc = true,        -- oyuncudan bağımsız kazalar
+  worldEvery = 300,       -- sn (ortalama)
   crashDv = 7.0,          -- m/s: kısa sürede yatay hız değişimi (~25 km/s) = kaza
   crashWindow = 0.2,      -- sn
   crashCooldown = 25,     -- sn
@@ -26,11 +29,12 @@ local FLEET = {
   police    = { {model='fullsize', cfg='police'}, {model='bastion', cfg='police'}, {model='midsize', cfg='police'}, {model='fullsize'} },
   ambulance = { {model='van', cfg='ambulance'}, {model='md_series', cfg='ambulance'}, {model='van'} },
   taxi      = { {model='fullsize', cfg='taxi'}, {model='midsize', cfg='taxi'}, {model='midsize'} },
+  fire      = { {model='md_series', cfg='fire'}, {model='us_semi', cfg='fire'}, {model='van', cfg='fire'}, {model='pickup', cfg='fire'}, {model='md_series', red=true}, {model='van', red=true} },
   hearse    = { {model='lansdale', cfg='hearse'}, {model='fullsize', cfg='hearse'}, {model='lansdale', black=true}, {model='van', black=true} },
 }
 
 local NAMES = {
-  police = 'Trafik Ekibi', ambulance = '112 Ambulans', taxi = 'Taksi', hearse = 'Cenaze Aracı',
+  police = 'Trafik Ekibi', ambulance = '112 Ambulans', taxi = 'Taksi', hearse = 'Cenaze Aracı', fire = 'İtfaiye',
 }
 local DRIVERS = {'Mehmet', 'Hüseyin', 'Hasan', 'Murat', 'Kemal', 'Erkan', 'Serkan', 'Yusuf', 'Ramazan', 'Cengiz'}
 local SURN = {'K.', 'Y.', 'D.', 'Ş.', 'A.', 'Ö.', 'T.', 'Ç.'}
@@ -83,6 +87,7 @@ local function plate(kind)
   if kind == 'police' then return il..' A '..math.random(1000, 9999) end
   if kind == 'taxi' then return il..' T '..math.random(1000, 9999) end
   if kind == 'hearse' then return il..' BLD '..math.random(100, 999) end
+  if kind == 'fire' then return il..' İTF '..math.random(10, 99) end
   return il..' '..pick(L)..pick(L)..pick(L)..' '..math.random(100, 999)
 end
 
@@ -115,9 +120,9 @@ local function chooseVehicle(kind)
     if m then
       if c.cfg then
         local k = findConfig(m, c.cfg)
-        if k then return {model=c.model, config='vehicles/'..c.model..'/'..k..'.pc', black=c.black} end
+        if k then return {model=c.model, config='vehicles/'..c.model..'/'..k..'.pc', black=c.black, red=c.red} end
       else
-        return {model=c.model, black=c.black}
+        return {model=c.model, black=c.black, red=c.red}
       end
     end
   end
@@ -131,18 +136,14 @@ local function roadNodes()
   return (md and md.nodes) or {}
 end
 
+-- Hedefe en yakın yol noktası: yatay uzaklık + yükseklik farkı cezası
+-- (üst geçit / alt yol / paralel yoldaki noktayı seçmesin)
 local function closestNode(pos)
   local nodes = roadNodes()
-  if map and map.findClosestRoad then
-    local ok, n1, n2 = pcall(map.findClosestRoad, pos)
-    if ok and n1 then
-      if n2 and nodes[n1] and nodes[n2] and hdist(nodes[n2].pos, pos) < hdist(nodes[n1].pos, pos) then return n2 end
-      return n1
-    end
-  end
   local best, bd = nil, math.huge
   for name, n in pairs(nodes) do
-    local d = hdist(n.pos, pos)
+    local dz = math.abs(n.pos.z - pos.z)
+    local d = hdist(n.pos, pos) + (dz > 3 and dz * 8 or 0)
     if d < bd then best, bd = name, d end
   end
   return best
@@ -156,12 +157,12 @@ local function spotFree(p)
 end
 
 -- target çevresinde minD..maxD uzaklıkta bir yol noktası ve hedefe dönük yön bulur
-local function findRoadSpot(target, minD, maxD, towardTarget)
+local function findRoadSpot(target, minD, maxD, towardTarget, maxDz)
   local nodes = roadNodes()
   local cands = {}
   for name, n in pairs(nodes) do
     local d = hdist(n.pos, target)
-    if d > minD and d < maxD and (n.radius or 3) >= 2 then cands[#cands + 1] = name end
+    if d > minD and d < maxD and (n.radius or 3) >= 2 and (not maxDz or math.abs(n.pos.z - target.z) < maxDz) then cands[#cands + 1] = name end
   end
   if #cands == 0 then return nil end
   for _ = 1, 12 do
@@ -194,7 +195,7 @@ end
 
 -- birimler -------------------------------------------------------------------
 local function unitPublic(u, pp, fwd, right)
-  local o = {id=u.id, kind=u.kind, name=u.name, plate=u.plate, driver=u.driver, status=u.status,
+  local o = {id=u.id, kind=u.kind, name=u.name, plate=u.plate, driver=u.driver, status=u.status, world=u.world and true or nil,
              dist=u.dist and math.floor(u.dist) or nil, eta=u.eta and math.floor(u.eta) or nil}
   if u.pos and pp then
     local r = u.pos - pp
@@ -256,7 +257,7 @@ end
 
 local function findUnit(kind, active)
   for _, u in pairs(units) do
-    if u.kind == kind and (not active or u.status == 'enroute' or u.status == 'onscene' or u.status == 'ride' or u.status == 'board') then return u end
+    if u.kind == kind and not u.world and (not active or u.status == 'enroute' or u.status == 'onscene' or u.status == 'ride' or u.status == 'board') then return u end
   end
   return nil
 end
@@ -275,6 +276,12 @@ local function spawnUnit(kind, target, follow)
   end
   local opts = {pos=p, rot=rot, autoEnterVehicle=false, cling=true}
   if choice.config then opts.config = choice.config end
+  if choice.red and createVehiclePaint then
+    pcall(function()
+      local paint = createVehiclePaint({x=0.75, y=0.04, z=0.03, w=1}, {0.3, 0.4, 0.9, 0.1})
+      opts.paint, opts.paint2, opts.paint3 = paint, paint, paint
+    end)
+  end
   if choice.black and createVehiclePaint then
     pcall(function()
       local paint = createVehiclePaint({x=0.02, y=0.02, z=0.025, w=1}, {0.6, 0.3, 0.9, 0.1})
@@ -293,11 +300,12 @@ local function spawnUnit(kind, target, follow)
   unitSeq = unitSeq + 1
   local u = {
     id=unitSeq, kind=kind, vid=veh:getID(), t0=simT, status='enroute',
-    emergency=(kind == 'police' or kind == 'ambulance'), follow=follow,
+    emergency=(kind == 'police' or kind == 'ambulance' or kind == 'fire'), follow=follow,
     plate=plate(kind), driver=pick(DRIVERS)..' '..pick(SURN),
   }
   u.name = NAMES[kind]..' '..math.random(2, 48)
   if kind == 'police' then u.name = 'Trafik Ekibi '..math.random(10, 99)..'-'..math.random(1, 9) end
+  if kind == 'fire' then u.name = 'İtfaiye '..math.random(1, 24)..'. Grup' end
   units[u.id] = u
   vidToUnit[u.vid] = u.id
   if core_vehicles.setPlateText then pcall(core_vehicles.setPlateText, u.plate, u.vid) end
@@ -309,7 +317,7 @@ end
 local function teleportNear(u, tgt)
   local veh = getVeh(u.vid)
   if not veh then return end
-  local p, rot = findRoadSpot(tgt, 40, 120, true)
+  local p, rot = findRoadSpot(tgt, 40, 120, true, 6)
   if not p then return end
   if spawn and spawn.safeTeleport then
     pcall(spawn.safeTeleport, veh, p, rot)
@@ -318,6 +326,38 @@ local function teleportNear(u, tgt)
   end
   u.t0 = simT - CFG.stuckTime + 60
   driveTo(u, tgt)
+end
+
+-- yangın ---------------------------------------------------------------------
+local burning = {}       -- araç id -> {t}
+local igniteQueue = {}   -- {vid, at}
+local worldArrived       -- aşağıda tanımlanır (bağımsız kazalar)
+local dispatch           -- aşağıda tanımlanır
+
+local function igniteLater(vid, delay)
+  if vid then igniteQueue[#igniteQueue + 1] = {vid = vid, at = simT + delay} end
+end
+
+local function extinguishNear(pos, radius)
+  local n = 0
+  for vid, _ in pairs(burning) do
+    local v = getVeh(vid)
+    if not v then burning[vid] = nil
+    elseif hdist(vpos(v), pos) < radius then
+      q("if fire and fire.extinguishVehicle then fire.extinguishVehicle() end", v)
+      burning[vid] = nil
+      n = n + 1
+    end
+  end
+  return n
+end
+
+local function anyBurningNear(pos, radius)
+  for vid, _ in pairs(burning) do
+    local v = getVeh(vid)
+    if v and hdist(vpos(v), pos) < radius then return true end
+  end
+  return false
 end
 
 -- yaralanma modeli -------------------------------------------------------------
@@ -624,6 +664,31 @@ local function onCrash(pv, pp, vNow, vBefore, dv)
   end
   -- önceki olay açıksa kapat (ekipler kalırsa yeni olaya bağlanır)
   makeIncident(pp, ev)
+  -- sert kazada araç(lar) yanabilir
+  if CFG.fireOnCrash then
+    local imp = math.max(ev.playerDv or 0, ev.otherDv or 0)
+    local chance = imp > 100 and 0.7 or imp > 75 and 0.45 or imp > 58 and 0.2 or 0
+    if math.random() < chance then
+      incident.fireSoon = true
+      local victims = {}
+      if other and math.random() < 0.8 then victims[#victims + 1] = other end
+      if #victims == 0 or math.random() < 0.45 then victims[#victims + 1] = pv:getID() end
+      for _, vid in ipairs(victims) do
+        igniteQueue[#igniteQueue + 1] = {vid = vid, at = simT + rnd(4, 11), onFire = function()
+          if incident then
+            incident.fire = true
+            -- alevler yaralının durumunu kötüleştirebilir
+            for _, pt in ipairs(incident.patients) do
+              if pt.state == 'bekliyor' and math.random() < 0.4 then
+                pt.sev = ({none='hafif', hafif='orta', orta='agir', agir='olu', olu='olu'})[pt.sev]
+              end
+            end
+            if incident.dispatched and not findUnit('fire', true) then dispatch({'fire'}, 'yangin') end
+          end
+        end}
+      end
+    end
+  end
   if other and ev.occupied then
     incident.otherVid = other
     local sev = ev.otherSev
@@ -634,22 +699,33 @@ local function onCrash(pv, pp, vNow, vBefore, dv)
   send('crash', {countdown = CFG.sosDelay, speed = math.floor(ev.speed), solo = ev.solo})
 end
 
+-- Darbe farklı sürelerde emilebilir: kısa/orta/uzun pencerelerde yatay hız değişimine bak.
+-- Eşikler sert frenden (≈1 g) çok yüksek, gerçek çarpışmadan düşük seçildi.
+local CRASH_WIN = { {0.12, 6.0}, {0.25, 7.5}, {0.45, 10.5} }
+
 local function checkCrash(pv)
   local pid = pv:getID()
   local v = vvel(pv)
   pushHist(pid, v)
   if crashPending or simT - lastCrashT < CFG.crashCooldown then return end
-  if incident and incident.dispatched and simT - incident.t < CFG.incidentLife then return end
-  local before = velAgo(pid, CFG.crashWindow)
-  if not before then return end
-  local dv = hlen(v - before)
-  if dv > CFG.crashDv and hlen(before) > 4 or dv > CFG.crashDv * 1.4 then
-    onCrash(pv, vpos(pv), v, before, dv)
+  -- ekipler hâlâ önceki kaza için yoldaysa/oradaysa yeni olay açma
+  if incident and incident.dispatched and simT - incident.t < 90 then return end
+  local best, bestBefore = 0, nil
+  for _, w in ipairs(CRASH_WIN) do
+    local before = velAgo(pid, w[1])
+    if before then
+      local dv = hlen(v - before)
+      local need = w[2] * (CFG.crashSens or 1)
+      if dv > need and hlen(before) > 3 and dv / need > best then best, bestBefore = dv / need, before end
+    end
+  end
+  if bestBefore then
+    onCrash(pv, vpos(pv), v, bestBefore, hlen(v - bestBefore))
   end
 end
 
 -- çağrılar --------------------------------------------------------------------
-local function dispatch(services, reason)
+function dispatch(services, reason)   -- yukarıda local olarak bildirildi
   local pv = playerVeh()
   if not pv then return end
   local pp = vpos(pv)
@@ -667,7 +743,7 @@ local function dispatch(services, reason)
     makeIncident(pp, ev)
   end
   local target, follow = pp, true
-  if incident and (reason == 'kaza' or reason == 'saglik' or reason == 'auto' or reason == 'cenaze') and simT - incident.t < CFG.incidentLife then
+  if incident and (reason == 'kaza' or reason == 'saglik' or reason == 'auto' or reason == 'cenaze' or reason == 'yangin') and simT - incident.t < CFG.incidentLife then
     target, follow = incident.pos, false
     incident.dispatched = true
   end
@@ -695,10 +771,20 @@ local function unitArrived(u)
   u.status = 'onscene'
   u.arriveT = simT
   stopUnit(u)
+  if u.world and worldArrived and u.kind ~= 'fire' then worldArrived(u) return end
   if u.kind == 'police' then
     policeArrived(u)
   elseif u.kind == 'ambulance' then
     startTreatment(u)
+  elseif u.kind == 'fire' then
+    local at = u.targetPos or u.pos
+    if anyBurningNear(at, 60) then
+      u.extUntil = simT + rnd(14, 22)
+      notify(u.name, 'İtfaiye olay yerinde. Yangına köpükle müdahale ediliyor…', 'fire')
+    else
+      u.leaveAt = simT + 12
+      notify(u.name, 'İtfaiye olay yerini kontrol etti. Yangın ya da sızıntı yok.', 'fire')
+    end
   elseif u.kind == 'hearse' then
     lights(u, 0, true)
     u.leaveAt = simT + 28
@@ -1038,6 +1124,141 @@ local function dutyPublic(pp)
   return o
 end
 
+-- =====================================================================
+-- OYUNCUDAN BAĞIMSIZ KAZALAR
+-- Bir araç şeritte durur, arkadan gelen araç (yapay zekâ, araçlardan kaçmıyor) ona gerçekten çarpar.
+-- Ardından ekipler (ambulans, polis, gerekirse itfaiye, nadiren cenaze aracı) olay yerine gider.
+-- =====================================================================
+local worldEv = nil
+local worldSeq = 0
+local nextWorldAt = nil
+
+local function nodeAhead(p, dir, minA, maxA)
+  local best, bs = nil, math.huge
+  for name, n in pairs(roadNodes()) do
+    local r = n.pos - p; r.z = 0
+    local along = r:dot(dir)
+    if along > minA and along < maxA then
+      local lat = (r - dir * along):length()
+      if lat < 7 and lat < bs then best, bs = name, lat end
+    end
+  end
+  return best
+end
+
+local function roadNear(p, maxD)
+  for _, n in pairs(roadNodes()) do
+    if hdist(n.pos, p) < maxD and math.abs(n.pos.z - p.z) < 3 then return true end
+  end
+  return false
+end
+
+local function startWorldAccident(pp)
+  for _ = 1, 10 do
+    local p, _, _, dir = findRoadSpot(pp, 280, 750, false)
+    if not p or not dir then return end
+    local back = p - dir * 55
+    if roadNear(back, 7) and spotFree(back) then
+      local ahead = nodeAhead(p, dir, 25, 90)
+      local bVid, bPlate = spawnProp(p, dir, false)
+      if not bVid then return end
+      q("ai.setMode('disabled') input.event('parkingbrake', 1, 2)", getVeh(bVid))
+      local aVid, aPlate = spawnProp(back + vec3(0, 0, 0.2), dir, false)
+      if not aVid then pcall(function() getVeh(bVid):delete() end) return end
+      local speed = rnd(13, 22)   -- ~47-80 km/s
+      local cmd = string.format("ai.setMode('manual') ai.setSpeedMode('set') ai.setSpeed(%.1f) ai.setAvoidCars('off') ai.driveInLane('on') ai.setAggression(0.9)", speed)
+      if ahead then cmd = cmd .. string.format(" ai.setTarget(%q)", ahead) end
+      q(cmd, getVeh(aVid))
+      worldSeq = worldSeq + 1
+      worldEv = {id = worldSeq, pos = vec3(p), a = aVid, b = bVid, phase = 'approach', t = simT,
+                 address = pick(STREETS), plates = {aPlate, bPlate}}
+      return
+    end
+  end
+end
+
+local function worldDispatch(ev, kinds)
+  for _, k in ipairs(kinds) do
+    local u = spawnUnit(k, ev.pos, false)
+    if u then u.world = ev.id; u.reason = 'dunya' end
+  end
+end
+
+worldArrived = function(u)
+  local ev = worldEv
+  lights(u, u.emergency and 2 or 0, not u.emergency)
+  if u.kind == 'police' then
+    u.leaveAt = simT + rnd(55, 85)
+  elseif u.kind == 'ambulance' then
+    u.leaveAt = simT + rnd(30, 45)
+    if ev and ev.death and not ev.hearseSent then
+      ev.hearseAt = simT + 35
+    elseif ev and math.random() < 0.55 then
+      u.leaveSiren = true   -- yaralıyı hastaneye götürüyor
+    end
+  elseif u.kind == 'hearse' then
+    u.leaveAt = simT + 28
+  end
+end
+
+local function updateWorld(pp)
+  if not CFG.worldAcc or not pp then return end
+  if not worldEv then
+    if not nextWorldAt then nextWorldAt = simT + rnd(120, 200) end
+    if simT > nextWorldAt and duty.role == 'sivil' then
+      nextWorldAt = simT + CFG.worldEvery * rnd(0.7, 1.4)
+      startWorldAccident(pp)
+    end
+    return
+  end
+  local ev = worldEv
+  local av, bv = getVeh(ev.a), getVeh(ev.b)
+  if ev.phase == 'approach' then
+    if not av or not bv then worldEv = nil return end
+    local aspd = hlen(vvel(av))
+    ev.maxSpd = math.max(ev.maxSpd or 0, aspd)
+    local before = velAgo(ev.a, 0.25)
+    local hit = before and hlen(vvel(av) - before) > 5
+    local close = hdist(vpos(av), vpos(bv)) < 6.5
+    if hit or (close and aspd < 2) or simT - ev.t > 30 then
+      ev.phase = 'crashed'
+      ev.tCrash = simT
+      local imp = (ev.maxSpd or 0) * 3.6
+      for _, vid in ipairs({ev.a, ev.b}) do
+        q("ai.setMode('disabled') input.event('throttle', 0, 2) input.event('brake', 1, 2) input.event('parkingbrake', 1, 2) pcall(electrics.set_warn_signal, true)", getVeh(vid))
+      end
+      local fireChance = imp > 70 and 0.45 or imp > 55 and 0.22 or 0
+      ev.fire = math.random() < fireChance
+      ev.death = imp > 60 and math.random() < 0.12
+      if ev.fire then igniteLater(ev.a, rnd(4, 9)) end
+      ev.dispatchAt = simT + rnd(3, 6)
+    end
+  elseif ev.phase == 'crashed' then
+    if ev.dispatchAt and simT > ev.dispatchAt then
+      ev.dispatchAt = nil
+      local kinds = {'ambulance', 'police'}
+      if ev.fire then kinds[#kinds + 1] = 'fire' end
+      worldDispatch(ev, kinds)
+      local d = math.floor(hdist(ev.pos, pp))
+      send('traffic', {address = ev.address, dist = d, fire = ev.fire})
+    end
+    if ev.hearseAt and simT > ev.hearseAt then
+      ev.hearseAt = nil; ev.hearseSent = true
+      worldDispatch(ev, {'hearse'})
+    end
+    -- bitti mi? bu olayın ekipleri gittiyse araçları temizlik listesine al
+    local busy = false
+    for _, u in pairs(units) do if u.world == ev.id then busy = true end end
+    if not ev.dispatchAt and not ev.hearseAt and not busy and simT - ev.tCrash > 40 then
+      leftovers[#leftovers + 1] = {vid = ev.a, t = simT, mode = 'delete'}
+      leftovers[#leftovers + 1] = {vid = ev.b, t = simT, mode = 'delete'}
+      worldEv = nil
+    elseif simT - ev.tCrash > 600 then
+      worldEv = nil
+    end
+  end
+end
+
 -- ana döngü -------------------------------------------------------------------
 local function sendState()
   local pv = playerVeh()
@@ -1087,12 +1308,31 @@ local function updateUnits(pv)
         local est = d * 1.25 / math.max(spd, u.emergency and 13 or 8)
         u.eta = u.eta and (u.eta * 0.9 + est * 0.1) or est
         if spd < 1 then u.slowT = u.slowT or simT else u.slowT = nil end
-        if d < CFG.arriveDist or (d < 80 and u.slowT and simT - u.slowT > 4 and simT - u.t0 > 15) then
+        if d < CFG.arriveDist then
           unitArrived(u)
+        elseif u.slowT and simT - u.slowT > 10 and simT - u.t0 > 15 then
+          u.slowT = nil
+          if d < 160 then
+            -- yapay zekâ yolun sonunda durdu ama hedefe varamadı: hedefin hemen yanına yanaştır
+            local sp, srot = findRoadSpot(tgt, 6, 32, true, 4)
+            if sp then
+              if spawn and spawn.safeTeleport then pcall(spawn.safeTeleport, veh, sp, srot)
+              else pcall(function() veh:setPosRot(sp.x, sp.y, sp.z, srot.x, srot.y, srot.z, srot.w) end) end
+            end
+            unitArrived(u)
+          else
+            driveTo(u, tgt)   -- rotayı kaybetmiş olabilir, yeniden ver
+          end
         elseif simT - u.t0 > CFG.stuckTime then
           teleportNear(u, tgt)
         end
       elseif u.status == 'onscene' then
+        if u.kind == 'fire' and u.extUntil and simT > u.extUntil then
+          u.extUntil = nil
+          local n = extinguishNear(u.targetPos or p, 60)
+          notify(u.name, n > 0 and 'Yangın söndürüldü. Soğutma yapıldı, olay yeri güvenli.' or 'Yangın kendiliğinden sönmüş, soğutma yapıldı.', 'fire')
+          u.leaveAt = simT + 14
+        end
         if u.kind == 'taxi' and u.waitUntil and simT > u.waitUntil and not ride then
           u.waitUntil = nil
           sendAway(u, false)
@@ -1124,7 +1364,22 @@ local function onUpdate(dtReal, dtSim)
     crashPending = nil
     send('crash_off', {auto = true})
     sms('112 Acil', 'Telefonun kaza algıladı ve 112 otomatik arandı. Konumun ekiplerle paylaşıldı.')
-    dispatch({'ambulance', 'police'}, 'auto')
+    dispatch((incident and incident.fireSoon) and {'ambulance', 'police', 'fire'} or {'ambulance', 'police'}, 'auto')
+  end
+
+  for i = #igniteQueue, 1, -1 do
+    local it = igniteQueue[i]
+    if simT >= it.at then
+      table.remove(igniteQueue, i)
+      local v = getVeh(it.vid)
+      if v then
+        q("if fire and fire.igniteVehicle then fire.igniteVehicle() end", v)
+        burning[it.vid] = {t = simT}
+        local mine = pv and it.vid == pv:getID()
+        if it.onFire then it.onFire(it.vid) end
+        if mine then notify('Tepe Telefon', 'Aracın alev aldı! Hemen uzaklaş.', 'fire') end
+      end
+    end
   end
 
   updateUnits(pv)
@@ -1132,12 +1387,18 @@ local function onUpdate(dtReal, dtSim)
   updatePulls()
   updateRide()
   updateDuty(pv, pv and vpos(pv))
+  updateWorld(pv and vpos(pv))
 
   if incident and incident.hearseAt and simT > incident.hearseAt then
     incident.hearseAt = nil
     dispatch({'hearse'}, 'cenaze')
   end
-  if incident and simT - incident.t > CFG.incidentLife and not next(units) then incident = nil end
+  if incident and incident.dispatched and simT - incident.t > 60 then
+    local busy = false
+    for _, u in pairs(units) do if not u.world and u.kind ~= 'taxi' and u.status ~= 'leaving' then busy = true end end
+    if not busy then incident = nil end
+  end
+  if incident and simT - incident.t > CFG.incidentLife then incident = nil end
 
   stateTimer = stateTimer + dtReal
   if uiReady and stateTimer > 0.4 then
@@ -1158,13 +1419,16 @@ function M.ui(cmd, json)
     sendState()
   elseif cmd == 'settings' then
     if d.crash ~= nil then CFG.crashDetect = d.crash and true or false end
+    if d.fire ~= nil then CFG.fireOnCrash = d.fire and true or false end
+    if tonumber(d.sens) then CFG.crashSens = clamp(tonumber(d.sens), 0.5, 1.6) end
+    if d.world ~= nil then CFG.worldAcc = d.world and true or false end
     if tonumber(d.delay) then CFG.sosDelay = clamp(tonumber(d.delay), 3, 60) end
   elseif cmd == 'dispatch' then
     dispatch(d.services or {}, d.reason or 'genel')
   elseif cmd == 'sos' then
     if crashPending then crashPending = nil end
     send('crash_off', {})
-    dispatch({'ambulance', 'police'}, 'auto')
+    dispatch((incident and incident.fireSoon) and {'ambulance', 'police', 'fire'} or {'ambulance', 'police'}, 'auto')
   elseif cmd == 'sos_cancel' then
     crashPending = nil
     send('crash_off', {cancel = true})
@@ -1248,6 +1512,7 @@ function M.onClientEndMission()
   for _, u in pairs(units) do despawn(u) end
   units, vidToUnit, hist, incident, crashPending, ride = {}, {}, {}, nil, nil, nil
   job, offer, pulls, leftovers = nil, nil, {}, {}
+  worldEv, nextWorldAt, burning, igniteQueue = nil, nil, {}, {}
   duty.role, duty.stopVid = 'sivil', nil
 end
 function M.onExtensionLoaded()

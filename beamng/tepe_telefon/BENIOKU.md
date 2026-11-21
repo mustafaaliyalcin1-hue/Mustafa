@@ -23,6 +23,14 @@ kaza algılama (otomatik 112), olay yeri tedavisi, cenaze aracı, polis ifadesi 
   Hapis yok; ceza Cüzdan'dan ödenir ya da itiraz edilir.
 - Taksi: çağır, gelince "Bin", hedef seç, taksimetre çalışır; inince ücret Cüzdan'dan alınır.
 
+## İtfaiye, yangın ve bağımsız kazalar
+- 110'u ara ya da Acil SOS › İtfaiye: itfaiye gelir, yanan araçları söndürür.
+- Sert kazada (yaklaşık 60 km/s üstü darbe) araç(lar) önce duman çıkarır, birkaç saniye sonra alev alır;
+  112 otomatik aranırsa itfaiye de gelir. Ayarlar'dan kapatılabilir.
+- Şehirde senden bağımsız kazalar olur: bir araç öndekine gerçekten çarpar, telefona trafik bildirimi gelir,
+  ambulans, polis ve gerekirse itfaiye oraya gider. Ayarlar › "Bağımsız kazalar".
+- Kaza algılama bazı kazaları kaçırıyorsa: Ayarlar › Algılama hassasiyeti › Yüksek.
+
 ## Polis ya da ambulans ol (Görev uygulaması)
 Telefonda **Görev** uygulamasını aç, meslek seç. Aracın yerinde polis aracına ya da ambulansa dönüşür.
 Tepe lambası ve siren telefondan açılır. Çağrılar telsizden düşer; kabul edince yerdeki oklar yolu gösterir.
