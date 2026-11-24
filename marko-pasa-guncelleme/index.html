@@ -1,0 +1,650 @@
+<!doctype html><html lang="tr"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Marko Paşa">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+</head><body>
+<title>Marko Paşa</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: tek ekran uygulama; kurulum ekranı (tema uyumlu) + arama ekranları (her zaman koyu, iOS benzeri) */
+:root{
+  --bg:#f3f5f2; --surface:#ffffff; --fg:#17201b; --muted:#5f6b64; --line:#dde3de;
+  --accent:#1f8f4e; --accent-ink:#ffffff; --sel:#e3f3e9;
+  --call-green:#30d158; --call-red:#ff3b30;
+  --display:"Bricolage Grotesque",ui-rounded,system-ui,sans-serif;
+  --body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1411; --surface:#18201b; --fg:#e8eee9; --muted:#93a198; --line:#28322c;
+  --accent:#34c06d; --accent-ink:#04140a; --sel:#173323; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1411; --surface:#18201b; --fg:#e8eee9; --muted:#93a198; --line:#28322c;
+  --accent:#34c06d; --accent-ink:#04140a; --sel:#173323; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---------- Kurulum ---------- */
+#setup{max-width:520px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 120px;display:flex;flex-direction:column;gap:22px}
+header h1{font-family:var(--display);font-weight:800;font-size:30px;margin:0;letter-spacing:-.02em}
+header p{margin:4px 0 0;color:var(--muted)}
+h2{font-family:var(--display);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.who{display:flex;gap:10px;align-items:center;text-align:left;padding:12px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);min-width:0}
+.who[aria-pressed="true"]{border-color:var(--accent);background:var(--sel)}
+.who b{display:block;font-weight:600;font-size:15px}
+.who .txt span{display:block;font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who .txt{min-width:0}
+.av{flex:none;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-weight:600;color:#fff;font-size:16px}
+.scen{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sc{padding:12px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);text-align:left}
+.sc[aria-pressed="true"]{border-color:var(--accent);background:var(--sel)}
+.sc b{display:block;font-weight:600}
+.sc span{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg button{padding:9px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);font-weight:500;font-variant-numeric:tabular-nums}
+.seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.note{font-size:12.5px;color:var(--muted);line-height:1.5;margin:0}
+.note.warn{color:#b4531a}
+.dock{position:fixed;left:0;right:0;bottom:0;padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:linear-gradient(transparent,var(--bg) 35%)}
+.dock button{display:block;width:100%;max-width:520px;margin:0 auto;padding:16px;border:0;border-radius:16px;background:var(--accent);color:var(--accent-ink);font-family:var(--display);font-weight:800;font-size:19px}
+
+/* ---------- Arama ekranları (her zaman koyu) ---------- */
+.phone{position:fixed;inset:0;z-index:20;color:#fff;background:radial-gradient(120% 70% at 50% 0%,#3a4a5c 0%,#1b2330 45%,#0b0e13 100%);display:flex;flex-direction:column;align-items:center;padding:calc(56px + env(safe-area-inset-top,0px)) max(24px,env(safe-area-inset-right,0px)) calc(40px + env(safe-area-inset-bottom,0px)) max(24px,env(safe-area-inset-left,0px));font-family:-apple-system,"SF Pro Display",var(--body)}
+.phone .nm{font-size:34px;font-weight:400;letter-spacing:-.01em;margin-top:14px;text-align:center}
+.phone .sub{font-size:17px;color:rgba(255,255,255,.7);margin-top:6px;font-variant-numeric:tabular-nums}
+.phone .bigav{width:110px;height:110px;border-radius:50%;display:grid;place-items:center;font-size:44px;font-weight:500;background:linear-gradient(#a3abb6,#6d7580)}
+.spacer{flex:1}
+.ans{display:flex;justify-content:space-between;width:100%;max-width:320px}
+.rb{display:flex;flex-direction:column;align-items:center;gap:10px;background:none;border:0;font-size:15px}
+.rb i{width:76px;height:76px;border-radius:50%;display:grid;place-items:center}
+.rb.red i{background:var(--call-red)} .rb.green i{background:var(--call-green)}
+.rb.green i{animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.07)}}
+@media (prefers-reduced-motion:reduce){.rb.green i{animation:none}}
+.rb svg{width:34px;height:34px;fill:#fff}
+.rb.red svg{transform:rotate(135deg)}
+.keys{display:grid;grid-template-columns:repeat(3,76px);gap:22px 30px;margin-top:40px}
+.k{display:flex;flex-direction:column;align-items:center;gap:8px;background:none;border:0;font-size:13px}
+.k i{width:76px;height:76px;border-radius:50%;background:rgba(255,255,255,.16);display:grid;place-items:center}
+.k[aria-pressed="true"] i{background:#fff}
+.k[aria-pressed="true"] svg{fill:#111}
+.k svg{width:30px;height:30px;fill:#fff}
+.tr{max-width:360px;width:100%;margin-top:18px;font-size:15px;line-height:1.5;color:rgba(255,255,255,.85);background:rgba(0,0,0,.35);border-radius:14px;padding:12px 14px;max-height:30vh;overflow:auto}
+.tr p{margin:0 0 6px}.tr p.now{color:#fff;font-weight:600}.tr p.you{color:rgba(255,255,255,.45);font-style:italic}
+.tr p.me{color:#9fe3b6}
+.sw{display:flex;gap:10px;align-items:center;padding:12px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);font-weight:500}
+.sw input{width:20px;height:20px;accent-color:var(--accent);flex:none}
+.ai{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.ai label{display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--muted);font-weight:500}
+.ai input[type=text],.ai input[type=password]{font:inherit;font-size:16px;color:var(--fg);background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
+.ai details{border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;background:var(--surface)}
+.ai summary{cursor:pointer;font-weight:500}
+.ai details > div,.ai details > label{margin-top:10px}
+.ai .vgrid{display:flex;flex-direction:column;gap:8px}
+.ai .btn{padding:11px 14px;border-radius:12px;border:1.5px solid var(--accent);background:var(--sel);font-weight:600;color:var(--fg)}
+.wait{background:#000}
+.wait .sub{font-size:14px;color:rgba(255,255,255,.35)}
+.wait button{margin-top:22px;background:none;border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.6);border-radius:999px;padding:8px 18px}
+</style>
+
+<main id="setup">
+  <header>
+    <h1>Marko Paşa</h1>
+    <p>Bir yerden kibarca kaçman mı lazım? Biri seni arasın.</p>
+  </header>
+
+  <section>
+    <h2>Kim arasın?</h2>
+    <div class="grid" id="whoGrid"></div>
+  </section>
+
+  <section>
+    <h2>Ne bahanesi?</h2>
+    <div class="scen" id="scenGrid"></div>
+  </section>
+
+  <section>
+    <h2>Ne zaman?</h2>
+    <div class="seg" id="delaySeg"></div>
+  </section>
+
+  <section>
+    <h2>Canlı konuşma</h2>
+    <label class="sw"><input type="checkbox" id="aiOn"><span>Yapay zekâ ile gerçek sohbet<br><span class="note">Sen konuşursun, o sana cevap verir (Groq + ElevenLabs)</span></span></label>
+    <div class="ai" id="aiBox" hidden>
+      <label>Groq anahtarı <input type="password" id="aiGroq" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="gsk_…"></label>
+      <label>ElevenLabs anahtarı <input type="password" id="aiEl" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="sk_…"></label>
+      <details id="aiVoiceBox"><summary>Kişilerin ElevenLabs sesleri (Voice ID)</summary><div class="vgrid" id="aiVoices"></div></details>
+      <details><summary>Gelişmiş</summary><label>Groq modeli <input type="text" id="aiModel" autocomplete="off" autocapitalize="off" spellcheck="false"></label></details>
+      <button class="btn" type="button" id="aiTest">Bağlantıyı dene</button>
+      <p class="note" id="aiNote">Anahtarlar sadece bu telefonda saklanır, başka yere gönderilmez.</p>
+    </div>
+  </section>
+
+  <section>
+    <p class="note" id="voiceNote">Sesler yükleniyor…</p>
+    <p class="note">Canlı konuşma kapalıyken konuşmalar hazır şablonlardan seçilir ve ElevenLabs sesleriyle çalar. Aramada isme dokunursan konuşma metni görünür. Gecikmeli aramada ekranı kilitleme.</p>
+  </section>
+</main>
+<div class="dock"><button id="callBtn" type="button">Ara</button></div>
+
+<!-- Bekleme -->
+<div class="phone wait" id="waitScr" hidden>
+  <div class="spacer"></div>
+  <div class="sub" id="waitTxt"></div>
+  <button id="cancelBtn" type="button">İptal</button>
+  <div class="spacer"></div>
+</div>
+
+<!-- Gelen arama -->
+<div class="phone" id="ringScr" hidden>
+  <div class="sub" style="font-size:15px">mobil</div>
+  <div class="nm" id="ringName"></div>
+  <div class="spacer"></div>
+  <div class="ans">
+    <button class="rb red" id="declineBtn" type="button"><i><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/></svg></i>Reddet</button>
+    <button class="rb green" id="answerBtn" type="button"><i><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/></svg></i>Aç</button>
+  </div>
+</div>
+
+<!-- Görüşme -->
+<div class="phone" id="talkScr" hidden>
+  <button id="nameTap" type="button" style="background:none;border:0;padding:0;display:flex;flex-direction:column;align-items:center">
+    <div class="bigav" id="talkAv"></div>
+    <div class="nm" id="talkName"></div>
+  </button>
+  <div class="sub" id="timer">0:00</div>
+  <div class="tr" id="trBox" hidden></div>
+  <div class="keys">
+    <button class="k" type="button" data-t id="muteBtn"><i><svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-3.1A7 7 0 0 0 19 11z"/></svg></i>sessiz</button>
+    <button class="k" type="button"><i><svg viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="18" cy="5" r="2"/><circle cx="6" cy="11" r="2"/><circle cx="12" cy="11" r="2"/><circle cx="18" cy="11" r="2"/><circle cx="6" cy="17" r="2"/><circle cx="12" cy="17" r="2"/><circle cx="18" cy="17" r="2"/><circle cx="12" cy="22" r="1.6"/></svg></i>tuş takımı</button>
+    <button class="k" type="button" data-t id="spkBtn"><i><svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg></i>hoparlör</button>
+    <button class="k" type="button"><i><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg></i>arama ekle</button>
+    <button class="k" type="button"><i><svg viewBox="0 0 24 24"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11z"/></svg></i>FaceTime</button>
+    <button class="k" type="button"><i><svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z"/></svg></i>kişiler</button>
+  </div>
+  <div class="spacer"></div>
+  <button class="rb red" id="hangBtn" type="button"><i><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/></svg></i></button>
+</div>
+
+<script>
+"use strict";
+/* ---------------- Veriler ---------------- */
+const DATA = {"slots": {"erkek": ["Hakan", "Murat", "Kemal", "Serkan", "Emre", "Cem", "Tarık"], "kadin": ["Zeynep", "Ayten", "Gül", "Sevgi", "Nermin", "Dilek"], "yerde": ["Kadıköy'de", "Beşiktaş'ta", "Nişantaşı'nda", "Bağdat Caddesi'nde", "Moda'da", "Bebek'te", "sahilde"], "hastanede": ["Şehir Hastanesi'nde", "devlet hastanesinde", "Acıbadem'de", "üniversite hastanesinde"], "saatte": ["yedide", "sekizde", "sekiz buçukta", "dokuzda"], "yemek": ["mantı", "sarma", "karnıyarık", "içli köfte", "kuru fasulye"]}, "people": [{"id": "anne", "name": "Annem", "tag": "Ayşe · 58", "trait": "telaşlı, şefkatli", "f": true, "hue": "#d0607a,#a43d5a", "rate": 1.05, "pitch": 1.05, "open": [[{"t": "Alo? kuzum? Alo, duyuyor musun beni?", "a": "audio/8d363c97648a208d.mp3"}, "~", {"t": "Ha, tamam tamam, şimdi duydum.", "a": "audio/8671bcf7f6aabcb3.mp3"}], [{"t": "Alo, canım, neredesin sen?", "a": "audio/0d2da89653c9e4fe.mp3"}, "~", {"t": "Hıı... Dinle bak, iyi ki açtın.", "a": "audio/1fb040c6da3283a6.mp3"}]], "close": [[{"t": "Hadi kuzum, bekliyorum, çabuk ol. Tamam mı?", "a": "audio/1b1f302be61025d6.mp3"}, "~", {"t": "Tamam, öptüm, hadi.", "a": "audio/5a222dba8b2dee25.mp3"}], [{"t": "Hadi kapatıyorum, yolda dikkat et. Bekliyorum.", "a": "audio/4f6291c2402fcf49.mp3"}]], "davet": [[{"t": "Teyzenler habersiz geldi, kapıda belirdiler valla. Herkes seni soruyor.", "a": "audio/155855f7755aac6d.mp3"}, "~", {"t": "Yok yok, olmaz öyle. Sofrayı kurdum, kuru fasulye yaptım, sen gelmeden başlamıyoruz. Hemen gel yavrum, ayıp olur.", "a": "audio/4d2afe794effb47e.mp3"}], [{"t": "Gül teyzen kızını istemeye geliyormuş, akşam bizde toplanıyoruz. Ben de şimdi öğrendim, inanır mısın?", "a": "audio/8c50242fb23b6e91.mp3"}, "~", {"t": "Ne demek işim var? Herkes burada, bir tek sen yoksun. Saat sekizde burada ol.", "a": "audio/4f4d52b66d34e45e.mp3"}]], "acil": [[{"t": "Canım, bak telaşlanma ama, baban merdivende ayağını burktu. Şişti, yürüyemiyor, hastaneye götürmemiz lazım.", "a": "audio/c09cc0e5baf9aab8.mp3"}, "~", {"t": "Ben arabayı kullanamıyorum biliyorsun. Hemen gelmen lazım, ne olur.", "a": "audio/6330f2f7a33db523.mp3"}], [{"t": "Kapıda kaldım kuzum! Anahtarı içeride unuttum, ocakta da yemek var.", "a": "audio/c3644d636055d2c9.mp3"}, "~", {"t": "Yedek anahtar sende ya! Hemen getirmen lazım, ödüm kopuyor.", "a": "audio/815effef4e550996.mp3"}]], "kotu": [[{"t": "Canım... Bir şey söyleyeceğim ama sakin ol.", "a": "audio/364ec11f5b5476a1.mp3"}, "~", {"t": "Tarık amcan... Bu sabah kalp krizi geçirmiş. Kurtaramamışlar.", "a": "audio/35bf700772b323ac.mp3"}, "~", {"t": "Evet... Herkes evde toplanıyor. Sen de gel, yanımda ol, ne olur.", "a": "audio/c2763ae78e3e9a51.mp3"}], [{"t": "Kuzum, dedeni hastaneye kaldırdılar. Sabah fenalaşmış, şimdi Şehir Hastanesi'nde, acilde.", "a": "audio/22afee09d4bd7135.mp3"}, "~", {"t": "Doktorlar bir şey demiyor, çok korkuyorum. Gel ne olur.", "a": "audio/4cf8c277e59ede51.mp3"}]]}, {"id": "elif", "name": "Elif", "tag": "Kardeş · 24", "trait": "enerjik, hızlı konuşur", "f": true, "hue": "#e0913a,#c0632a", "rate": 1.18, "pitch": 1.15, "open": [[{"t": "Alooo! Neredesin ya?", "a": "audio/f74e9f63c53208aa.mp3"}, "~", {"t": "Tamam tamam, dinle, çok önemli!", "a": "audio/f8f4705299a5862f.mp3"}], [{"t": "Alo! Açtın şükür! Üç kere aradım seni!", "a": "audio/10c3f3de1a6452f7.mp3"}, "~", {"t": "Neyse, dinle!", "a": "audio/3e27139f7db19c37.mp3"}]], "close": [[{"t": "Hadi bekliyorum, kapatıyorum. Çabuk ol!", "a": "audio/8d147c5c700d0e29.mp3"}], [{"t": "Tamam mı? Söz mü?", "a": "audio/4a9f41ad08b709c3.mp3"}, "~", {"t": "Hadi bay bay!", "a": "audio/20b822dd56bf72f0.mp3"}]], "davet": [[{"t": "Hepimiz Moda'da toplandık! Zeynep için doğum günü sürprizi yapıyoruz, haberin yok mu?", "a": "audio/078aef846e088722.mp3"}, "~", {"t": "Pastayı sen getireceksin diye konuşmuştuk ya! Herkes seni bekliyor, hemen gel!", "a": "audio/98faeb3eabac62b6.mp3"}], [{"t": "İki konser biletim var, arkadaşım son dakika ekti beni. Saat dokuzda başlıyor, kapıda buluşalım!", "a": "audio/9a0ef102ceff014a.mp3"}, "~", {"t": "Ya lütfen, tek başıma gidemem. Hemen çık, ben de yoldayım!", "a": "audio/d2d7914fc03b624b.mp3"}]], "acil": [[{"t": "Ya felaket, telefonum da bitmek üzere. Arabamı Bağdat Caddesi'nde çekiciye çektiler, param da yetmiyor!", "a": "audio/c9f985950ca661e7.mp3"}, "~", {"t": "Kartımı evde unuttum. Ne olur gel, burada tek başımayım.", "a": "audio/79905dfe5e5b123f.mp3"}], [{"t": "Kapıda kaldım, kilit bozuldu, anahtar dönmüyor! Kedi içeride, ocak açık mı onu da bilmiyorum!", "a": "audio/15547dac51d96965.mp3"}, "~", {"t": "Yedek anahtar sende! Lütfen hemen gel!", "a": "audio/cdb7cb63db1e540c.mp3"}]], "kotu": [[{"t": "Ya... Pamuk kaçmış. Kapı açık kalmış, sabahtan beri yok.", "a": "audio/6624639e22daef0e.mp3"}, "~", {"t": "Bütün sokağı aradım, yok. Ağlamaktan gözüm şişti. Gel beraber arayalım, ne olur.", "a": "audio/30dd61e5ccedf4dd.mp3"}], [{"t": "Ya... Ayrıldık.", "a": "audio/f225e3e4a7c51050.mp3"}, "~", {"t": "Serkan bıraktı beni. Az önce. Mesajla! Düşünebiliyor musun?", "a": "audio/59f1ad54408e3459.mp3"}, "~", {"t": "Gerçekten iyi değilim. Gelebilir misin? Lütfen.", "a": "audio/b06b867a919ac92d.mp3"}]]}, {"id": "selin", "name": "Selin Hanım", "tag": "Patron · 41", "trait": "resmi, net", "f": true, "hue": "#5b6fd6,#3b4bab", "rate": 1, "pitch": 0.95, "open": [[{"t": "Alo, merhaba. Selin ben.", "a": "audio/dc09695b2df2bee1.mp3"}, "~", {"t": "Rahatsız ediyorum ama acil bir durum var.", "a": "audio/85cc2d710f09009d.mp3"}], [{"t": "Merhaba, müsait misin? Kısa tutacağım.", "a": "audio/051de4cbdb867f48.mp3"}]], "close": [[{"t": "Tamam, seni bekliyorum. Teşekkürler.", "a": "audio/358a0fb9ee886dc2.mp3"}, "~", {"t": "Görüşürüz.", "a": "audio/8d9184a18bb8ff33.mp3"}], [{"t": "Yola çıkınca yaz lütfen. Görüşmek üzere.", "a": "audio/15e7028b58304a32.mp3"}]], "davet": [[{"t": "Genel müdür bugün habersiz geldi, ekiple tanışmak istiyor. Akşam yemeğine davet etti, Beşiktaş'ta.", "a": "audio/b5e90c2db6cc2480.mp3"}, "~", {"t": "Senin projeni özellikle sordu. Gelmen çok önemli. Saat sekiz buçukta oradayız.", "a": "audio/eecac2b1e1c026ee.mp3"}], [{"t": "Kemal Bey'in veda yemeği bugünmüş, organizasyonda karışıklık olmuş. Herkes orada, sen de listedesin.", "a": "audio/00bdb572a37db646.mp3"}, "~", {"t": "Ayıp olmasın, kısa da olsa uğra. Konum atıyorum.", "a": "audio/f9786a8e955769e7.mp3"}]], "acil": [[{"t": "Müşteriyle sorun var. Murat Bey sunumdaki rakamlara itiraz ediyor. Dosyayı en iyi sen biliyorsun.", "a": "audio/316ca87acae8baee.mp3"}, "~", {"t": "Bir saat içinde ofiste olabilir misin? Toplantıyı ancak o kadar tutabilirim.", "a": "audio/9f7aa3c9be19733a.mp3"}], [{"t": "Sistem çöktü, bilgi işlem kimseye ulaşamıyor. Yönetici şifreleri sendeydi.", "a": "audio/bf9b2f95ec7ae648.mp3"}, "~", {"t": "Hemen gelmen lazım, müşteriler arıyor. Taksiye bin, ücretini şirket öder.", "a": "audio/008c37a04bb05c2b.mp3"}]], "kotu": [[{"t": "Kötü bir haber vermem lazım.", "a": "audio/9d4b136be18d2e9e.mp3"}, "~", {"t": "Emre Bey'i kaybettik. Bu sabah trafik kazası.", "a": "audio/82621c1892a89bad.mp3"}, "~", {"t": "Herkes ofiste toplandı, ailesine gideceğiz. Sen de gelirsen iyi olur.", "a": "audio/fc9ff002de680921.mp3"}], [{"t": "Bunu telefonda söylemek istemezdim ama... Yeni yapılanmada bizim departman kapatılıyor.", "a": "audio/2b2be7f4bcdf676d.mp3"}, "~", {"t": "Yarına kalmadan seninle yüz yüze konuşmam lazım. Ofise gelebilir misin?", "a": "audio/1523c38a764167ff.mp3"}]]}, {"id": "baba", "name": "Babam", "tag": "Mehmet · 62", "trait": "sakin, az ve öz", "f": false, "hue": "#4b8a72,#2f6552", "rate": 0.92, "pitch": 0.8, "open": [[{"t": "Alo, yavrum.", "a": "audio/1f5b306d9e2cb57f.mp3"}, "~", {"t": "Müsait misin? Bir dakika dinle.", "a": "audio/cb7237358bd01856.mp3"}], [{"t": "Alo... Duyuyor musun?", "a": "audio/931e9e898ac5f931.mp3"}, "~", {"t": "Tamam. Kısa konuşacağım.", "a": "audio/63b3dcce0ea50c61.mp3"}]], "close": [[{"t": "Hadi, bekliyorum. Fazla oyalanma.", "a": "audio/772e41a5fefd83bf.mp3"}, "~", {"t": "Tamam. Hadi.", "a": "audio/deb1b287873d9c4e.mp3"}], [{"t": "Hadi bakalım. Gelince konuşuruz.", "a": "audio/82cdd1a207cf3ffe.mp3"}]], "davet": [[{"t": "Annen sürpriz yaptı, bütün aileyi topladı. Evlilik yıldönümümüzü kutluyoruz. Bir tek sen eksiksin.", "a": "audio/1eb47c3640c8ae46.mp3"}, "~", {"t": "Bahane istemem. Annen üzülür. Yarım saate burada ol.", "a": "audio/740860c97b766fe3.mp3"}], [{"t": "Murat amcan Almanya'dan geldi, bir günlüğüne. Yarın sabah dönüyor. Seni görmek istiyor.", "a": "audio/fab01831c5f0e5dc.mp3"}, "~", {"t": "Bu fırsat bir daha ne zaman gelir bilmiyorum. Gel, bekliyoruz.", "a": "audio/e3a9f63b445423d9.mp3"}]], "acil": [[{"t": "Araba yolda kaldı yavrum. Kadıköy'de kaldım. Akü bitti galiba, çalışmıyor.", "a": "audio/cf863e6df6b27d41.mp3"}, "~", {"t": "Takviye kablosu sendeydi. Hemen gelebilir misin? Burada uzun bekleyemem.", "a": "audio/66e442d3ccaea9ae.mp3"}], [{"t": "Evde su borusu patladı. Her yer su. Vanayı kapattım ama tamirci gelene kadar eşyaları kaldırmamız lazım.", "a": "audio/efd8f9aceb5efaa3.mp3"}, "~", {"t": "Annen tek başına uğraşamaz. Hemen gel.", "a": "audio/973dcae7860ac341.mp3"}]], "kotu": [[{"t": "Yavrum... Kötü bir haber var.", "a": "audio/d7805064b24d41b6.mp3"}, "~", {"t": "Kemal amcan vefat etmiş. Biraz önce haber geldi.", "a": "audio/7367680d349d37f0.mp3"}, "~", {"t": "Cenaze yarın öğlen. Evde toplanıyoruz, annenin yanında olman lazım.", "a": "audio/37df6c232e7ceec6.mp3"}], [{"t": "Anneanneni hastaneye kaldırdık. Durumu iyi değil.", "a": "audio/0784369198818f28.mp3"}, "~", {"t": "Şu an Şehir Hastanesi'nde. Doktorlar aileyi çağırın dedi. Gel yavrum. Hemen.", "a": "audio/c2328f6f12cd959c.mp3"}]]}, {"id": "kaan", "name": "Kaan", "tag": "Arkadaş · 29", "trait": "şakacı, rahat", "f": false, "hue": "#d9534f,#a83532", "rate": 1.12, "pitch": 0.9, "open": [[{"t": "Kanka! Alo! Duyuyor musun?", "a": "audio/faeab812fe2f372f.mp3"}, "~", {"t": "Tamam, dinle, dinle!", "a": "audio/24b8d74df483ceef.mp3"}], [{"t": "Alo, dostum, nerelerdesin?", "a": "audio/92ccc8204868b7e2.mp3"}, "~", {"t": "Neyse boşver, dinle bak.", "a": "audio/5f8eebb4a5454971.mp3"}]], "close": [[{"t": "Hadi bekliyorum kanka, salla her şeyi gel!", "a": "audio/63fad743fa8e91a9.mp3"}], [{"t": "Hadi, yoldayken yaz bana. Bekliyorum!", "a": "audio/95587b7e6b1bd5a5.mp3"}]], "davet": [[{"t": "Halı sahada bir kişi eksiğiz, maç dokuzda! Rakip takım geldi bile, iptal edersek rezil oluruz.", "a": "audio/f2ddd06836bf4307.mp3"}, "~", {"t": "Krampon bende var, sen sadece gel. Hemen!", "a": "audio/31aa00f69957af72.mp3"}], [{"t": "Beşiktaş'ta bütün eski tayfa toplandı! Kemal askerden döndü, sürpriz yaptık!", "a": "audio/4d6cc63fb71a3fed.mp3"}, "~", {"t": "İlk iş seni sordu. Gel, yoksa küseriz valla.", "a": "audio/df37141aeec67646.mp3"}]], "acil": [[{"t": "Kanka şaka değil, bugün taşınıyorum, kamyoncu ekti! Eşyalar kaldırımda, yağmur da başlamak üzere.", "a": "audio/e22f1d057a7bf660.mp3"}, "~", {"t": "İki el lazım, ne olur gel. Pizza benden.", "a": "audio/1037fb8e03816269.mp3"}], [{"t": "Kanka Bebek'te arabam yolda kaldı, lastik patladı. Stepne var ama bijon anahtarı yok.", "a": "audio/59ea1da229068034.mp3"}, "~", {"t": "Sende vardı ya. Hemen gelebilir misin? Burası çok ıssız.", "a": "audio/7ae5d71bedf27212.mp3"}]], "kotu": [[{"t": "Kanka... Cem var ya, babası vefat etmiş.", "a": "audio/4b1cd15a7b45a2c3.mp3"}, "~", {"t": "Evet, az önce öğrendim. Çocuk perişan. Hepimiz yanına gidiyoruz, sen de gel.", "a": "audio/dd61ff5b6a7fe1fc.mp3"}], [{"t": "Kanka kötü haber. Emre motorla kaza yapmış.", "a": "audio/f86b8cf84f44ba36.mp3"}, "~", {"t": "Şu an üniversite hastanesinde, ameliyata alıyorlar. Kan lazımmış, gelebilir misin hemen?", "a": "audio/077a99f31e1af401.mp3"}]]}, {"id": "burak", "name": "Burak", "tag": "Kuzen · 33", "trait": "pratik, telaşlı", "f": false, "hue": "#8a63c9,#6542a0", "rate": 1.05, "pitch": 0.85, "open": [[{"t": "Alo kuzen! Müsait misin?", "a": "audio/c64a1328db2a3ef8.mp3"}, "~", {"t": "İyi, dinle bak.", "a": "audio/d9e48cd4796a1319.mp3"}], [{"t": "Alo, kuzen, bir saniye... Tamam, duyuyor musun?", "a": "audio/54f56d0c2e73748e.mp3"}, "~", {"t": "Tamam, dinle.", "a": "audio/4e3b3e025ff1c5c8.mp3"}]], "close": [[{"t": "Hadi kuzen, bekliyorum, haber ver.", "a": "audio/3e77291d460fd25c.mp3"}], [{"t": "Tamam, konum atıyorum. Hadi.", "a": "audio/e2d214feedc2ff58.mp3"}]], "davet": [[{"t": "Dilek teyzemin bahçesinde mangal yakıyoruz, bütün kuzenler burada. Babam da 'o nerede' diye durmadan soruyor.", "a": "audio/cfd6c96dd527e3ee.mp3"}, "~", {"t": "Etler pişiyor, sen gelmeden başlamıyoruz. Hadi kuzen, bekliyoruz.", "a": "audio/bff7333b5785871f.mp3"}], [{"t": "Bugün nişan yüzüğü almaya gidiyoruz, sahilde. Sen de gel, fikrin lazım.", "a": "audio/5ff4a16e2fd956af.mp3"}, "~", {"t": "Söz vermiştin ama! Yarım saate oradayız.", "a": "audio/ddcccce9e3aff383.mp3"}]], "acil": [[{"t": "Kuzen, babaannemin evinde elektrik gitti, sigorta attı. Kadın karanlıkta yalnız, ben de şehir dışındayım.", "a": "audio/2791f050902d3fa1.mp3"}, "~", {"t": "En yakın sensin. Hemen bir uğrayabilir misin?", "a": "audio/d350ec14a4db1d89.mp3"}], [{"t": "Kuzen başım dertte. Nişantaşı'nda küçük bir kaza yaptım. Yaralı yok ama tutanak tutulacak, yanımda biri lazım.", "a": "audio/fdd2878a80ce2385.mp3"}, "~", {"t": "Ne olur gel, tek başıma ne yapacağımı bilmiyorum.", "a": "audio/ed2b4fea32767ee4.mp3"}]], "kotu": [[{"t": "Kuzen... Dedemi kaybettik.", "a": "audio/6c150ed6247a1879.mp3"}, "~", {"t": "Bir saat önce... Uykusunda gitmiş. Herkes köye gidiyor. Akşam yola çıkıyoruz, hazırlan.", "a": "audio/7a5d4c0741c6f7af.mp3"}], [{"t": "Kuzen, teyzemi hastaneye kaldırdılar, felç geçirmiş.", "a": "audio/9a707811106db31b.mp3"}, "~", {"t": "Şu an devlet hastanesinde, durumu ağır. Annem orada yalnız, ben yetişemiyorum. Sen gidebilir misin hemen? Ne olur.", "a": "audio/0ea6823a0dd14869.mp3"}]]}]};
+const SLOTS = DATA.slots;
+// "~" = karşı tarafın (senin) cevap vermen için duraklama
+const PEOPLE = DATA.people;
+const SCEN = [
+  {id:"davet",t:"Davet",d:"Hemen gel, herkes seni bekliyor"},
+  {id:"acil",t:"Acil iş",d:"Acil yardım lazım"},
+  {id:"kotu",t:"Kötü haber",d:"Üzücü bir gelişme"},
+  {id:"rast",t:"Rastgele",d:"Senaryoyu sistem seçsin"}
+];
+const DELAYS = [[3,"Hemen"],[10,"10 sn"],[30,"30 sn"],[60,"1 dk"],[180,"3 dk"],[300,"5 dk"]];
+
+/* ---------------- Durum ---------------- */
+const $ = id => document.getElementById(id);
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const store = {get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+let sel = {who: store.get("mp_who")||"anne", scen: store.get("mp_scen")||"davet", delay: +(store.get("mp_delay")||10)};
+let voices = [], audio = null, ringTimer = null, waitTimer = null, timerInt = null, script = [], talkGen = 0, wakeLock = null, current = null, chain = null;
+// Telefon hattı etkisi: 300-3400 Hz bant. "hoparlör" açıkken filtre kalkar.
+function phoneOut(){
+  if(!chain){
+    const hp=audio.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=300;
+    const lp=audio.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=3400;
+    const g=audio.createGain(); g.gain.value=1.4;
+    hp.connect(lp); lp.connect(g); g.connect(audio.destination);
+    chain={hp,lp,g};
+  }
+  const spk = $("spkBtn").getAttribute("aria-pressed")==="true";
+  chain.hp.frequency.value = spk ? 20 : 300; chain.lp.frequency.value = spk ? 18000 : 3400; chain.g.gain.value = spk ? 1.0 : 1.4;
+  return chain.hp;
+}
+
+function initials(n){return n.split(" ")[0].slice(0,1).toUpperCase()}
+function render(){
+  $("whoGrid").innerHTML = PEOPLE.map(p=>`<button class="who" type="button" id="who-${p.id}" data-who="${p.id}" aria-pressed="${sel.who===p.id}">
+    <span class="av" style="background:linear-gradient(135deg,${p.hue})">${initials(p.name)}</span>
+    <span class="txt"><b>${p.name}</b><span>${p.tag}</span><span>${p.trait}</span></span></button>`).join("");
+  $("scenGrid").innerHTML = SCEN.map(s=>`<button class="sc" type="button" id="sc-${s.id}" data-scen="${s.id}" aria-pressed="${sel.scen===s.id}"><b>${s.t}</b><span>${s.d}</span></button>`).join("");
+  $("delaySeg").innerHTML = DELAYS.map(([s,l])=>`<button type="button" id="dl-${s}" data-delay="${s}" aria-pressed="${sel.delay===s}">${l}</button>`).join("");
+}
+document.addEventListener("click", e=>{
+  const b = e.target.closest("[data-who],[data-scen],[data-delay]"); if(!b) return;
+  if(b.dataset.who){sel.who=b.dataset.who; store.set("mp_who",sel.who)}
+  if(b.dataset.scen){sel.scen=b.dataset.scen; store.set("mp_scen",sel.scen)}
+  if(b.dataset.delay){sel.delay=+b.dataset.delay; store.set("mp_delay",sel.delay)}
+  render();
+});
+
+/* ---------------- Ses (tarayıcının kendi TTS'i) ---------------- */
+const FEMALE = /yelda|seda|emel|filiz|female|kadın/i, MALE = /tolga|cem|ahmet|male|erkek/i;
+function loadVoices(){
+  if(!("speechSynthesis" in window)){ $("voiceNote").textContent="Bu tarayıcı seslendirmeyi desteklemiyor."; $("voiceNote").className="note warn"; return; }
+  voices = speechSynthesis.getVoices().filter(v=>/^tr/i.test(v.lang));
+  const n = $("voiceNote");
+  if(voices.length){ n.className="note"; n.textContent = "Türkçe ses: " + voices.map(v=>v.name).join(", "); }
+  else { n.className="note warn"; n.textContent = "Telefonunda Türkçe ses bulunamadı. Ayarlar → Erişilebilirlik → Seslendirme'den Türkçe ses indirebilirsin."; }
+}
+function voiceFor(p){
+  if(!voices.length) return null;
+  const m = voices.filter(v=>(p.f?FEMALE:MALE).test(v.name));
+  return m[0] || voices.find(v=>v.localService) || voices[0];
+}
+function fill(line, p){
+  return line.replace(/\{(\w+)\}/g,(_,k)=> k==="h" ? pick(p.h) : (SLOTS[k] ? pick(SLOTS[k]) : ""))
+             .replace(/\s+([,.!?])/g,"$1").replace(/^,\s*/,"").replace(/\s{2,}/g," ").trim();
+}
+// Öğeler: "~" (duraklama) ya da {t: metin, a: ses data URI}. Ses yoksa telefonun TTS'i okur.
+let parts = null; // canlı konuşma için: {s, open, story, close}
+function buildScript(p, scenId){
+  const s = scenId==="rast" ? pick(["davet","acil","kotu"]) : scenId;
+  const norm = a => a.map(x => typeof x==="string" ? (x==="~" ? "~" : {t: fill(x, p)}) : x);
+  parts = {s, open: norm(pick(p.open)), story: norm(pick(p[s])), close: norm(pick(p.close))};
+  return [...parts.open, ...parts.story, ...parts.close];
+}
+// Seçilen konuşmanın seslerini önceden çöz (bekleme/zil sırasında)
+const bufCache = new Map();
+function b64ToBuf(uri){ const s=atob(uri.slice(uri.indexOf(",")+1)); const u=new Uint8Array(s.length); for(let i=0;i<s.length;i++) u[i]=s.charCodeAt(i); return u.buffer; }
+function prepare(items){
+  return Promise.all(items.filter(x=>x!=="~" && x.a).map(x=>{
+    if(bufCache.has(x.a)) return bufCache.get(x.a);
+    const raw = x.a.startsWith("data:") ? Promise.resolve(b64ToBuf(x.a)) : fetch(x.a).then(r=>{ if(!r.ok) throw 0; return r.arrayBuffer(); });
+    const pr = raw.then(ab=>new Promise((res,rej)=>audio.decodeAudioData(ab,res,rej))).catch(()=>null);
+    bufCache.set(x.a, pr); return pr;
+  }));
+}
+
+/* ---------------- Zil sesi (WebAudio ile sentezlenir) ---------------- */
+function ensureAudio(){
+  // iOS 17+: sessiz moddayken de çalsın
+  try{ if(navigator.audioSession) navigator.audioSession.type="playback"; }catch(e){}
+  try{ audio = audio || new (window.AudioContext||window.webkitAudioContext)(); audio.resume(); }catch(e){ audio=null; }
+}
+function marimba(t, f){
+  const o=audio.createOscillator(), o2=audio.createOscillator(), g=audio.createGain();
+  o.type="sine"; o.frequency.value=f; o2.type="sine"; o2.frequency.value=f*4;
+  const g2=audio.createGain(); g2.gain.value=.15;
+  o.connect(g); o2.connect(g2); g2.connect(g); g.connect(audio.destination);
+  g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(.35,t+.008); g.gain.exponentialRampToValueAtTime(.0001,t+.45);
+  o.start(t); o2.start(t); o.stop(t+.5); o2.stop(t+.5);
+}
+function ringPattern(){
+  if(!audio) return;
+  const t=audio.currentTime+.05, seq=[1318.5,1568,1975.5,1568,1318.5,1568,1975.5,2637];
+  seq.forEach((f,i)=>marimba(t+i*.14+(i>3?.12:0), f));
+}
+function vibrate(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
+
+/* ---------------- Ekran akışı ---------------- */
+function show(id){ ["waitScr","ringScr","talkScr"].forEach(x=>$(x).hidden = x!==id); $("setup").hidden = !!id; document.querySelector(".dock").hidden = !!id; }
+async function keepAwake(on){
+  try{ if(on && "wakeLock" in navigator){ wakeLock = await navigator.wakeLock.request("screen"); } else if(!on && wakeLock){ await wakeLock.release(); wakeLock=null; } }catch(e){}
+}
+$("callBtn").onclick = ()=>{
+  ensureAudio();
+  // iOS: seslendirmeyi kullanıcı dokunuşuyla "aç"
+  try{ const u=new SpeechSynthesisUtterance(" "); u.volume=0; speechSynthesis.speak(u); }catch(e){}
+  const p = PEOPLE.find(x=>x.id===sel.who);
+  script = buildScript(p, sel.scen);
+  if(audio) prepare(script);
+  keepAwake(true);
+  let left = sel.delay;
+  show("waitScr");
+  const tick = ()=>{ $("waitTxt").textContent = left>3 ? `Arama ${fmt(left)} sonra` : ""; };
+  tick();
+  waitTimer = setInterval(()=>{ left--; tick(); if(left<=0){ clearInterval(waitTimer); ring(p); } },1000);
+};
+$("cancelBtn").onclick = ()=>{ clearInterval(waitTimer); keepAwake(false); show(null); };
+
+function ring(p){
+  $("ringName").textContent = p.name;
+  show("ringScr");
+  ensureAudio(); ringPattern(); vibrate([900,500,900]);
+  let n=0;
+  ringTimer = setInterval(()=>{ n++; if(n>12){ stopRing(); show(null); keepAwake(false); return; } ringPattern(); vibrate([900,500,900]); },2600);
+}
+function stopRing(){ clearInterval(ringTimer); vibrate(0); }
+$("declineBtn").onclick = ()=>{ stopRing(); keepAwake(false); show(null); };
+
+$("answerBtn").onclick = ()=>{
+  stopRing(); ensureAudio();
+  const p = PEOPLE.find(x=>x.id===sel.who);
+  $("talkName").textContent = p.name;
+  $("talkAv").textContent = initials(p.name);
+  $("trBox").innerHTML = script.map((l,i)=>`<p id="ln${i}" class="${l==="~"?"you":""}">${l==="~"?"(sen cevap ver…)":l.t}</p>`).join("");
+  show("talkScr");
+  const start = Date.now();
+  $("timer").textContent="0:00";
+  timerInt = setInterval(()=>{ $("timer").textContent = fmt(Math.floor((Date.now()-start)/1000)); },500);
+  if(aiReady()){ $("trBox").innerHTML = ""; liveTalk(p, ++talkGen); }
+  else talk(p, ++talkGen);
+};
+$("nameTap").onclick = ()=>{ $("trBox").hidden = !$("trBox").hidden; };
+document.querySelectorAll("[data-t]").forEach(b=>b.addEventListener("click",()=>b.setAttribute("aria-pressed", b.getAttribute("aria-pressed")!=="true")));
+$("hangBtn").onclick = endCall;
+
+function talk(p, gen){
+  const v = voiceFor(p);
+  // Kadın/erkek ayrı ses yoksa erkekler için perdeyi düşür
+  const pitchFix = (!p.f && v && !MALE.test(v.name)) ? 0.75 : 1;
+  let i = 0;
+  const next = ()=>{
+    if(gen!==talkGen) return;
+    document.querySelectorAll("#trBox p").forEach(x=>x.classList.remove("now"));
+    if(i>=script.length){ setTimeout(()=>{ if(gen===talkGen) endCall(); },1200); return; }
+    const line = script[i], el = $("ln"+i); i++;
+    if(el){ el.classList.add("now"); el.scrollIntoView({block:"nearest"}); }
+    if(line==="~"){ setTimeout(next, 1700+Math.random()*1300); return; }
+    if(line.a && audio && bufCache.has(line.a)){
+      bufCache.get(line.a).then(buf=>{
+        if(gen!==talkGen) return;
+        if(!buf){ speakTTS(line.t); return; }
+        const src = audio.createBufferSource(); src.buffer = buf;
+        src.connect(phoneOut());
+        src.onended = ()=>setTimeout(next, 200+Math.random()*300);
+        current = src; src.start();
+      });
+      return;
+    }
+    speakTTS(line.t);
+  };
+  const speakTTS = text=>{
+    let u;
+    try{
+      u = new SpeechSynthesisUtterance(text);
+      u.lang="tr-TR"; if(v) u.voice=v;
+      u.rate=p.rate; u.pitch=Math.max(.1,Math.min(2,p.pitch*pitchFix));
+      u.onend = ()=>setTimeout(next, 250+Math.random()*350);
+      u.onerror = ()=>setTimeout(next, 300);
+      speechSynthesis.speak(u);
+    }catch(e){ setTimeout(next, 1500); }
+  };
+  try{ speechSynthesis.cancel(); }catch(e){}
+  next();
+}
+function endCall(){
+  talkGen++;
+  try{ if(aiAbort) aiAbort.abort(); }catch(e){} aiAbort=null;
+  try{ if(rec) rec.abort(); }catch(e){} rec=null;
+  try{ if(current) current.stop(); }catch(e){} current=null;
+  try{ speechSynthesis.cancel(); }catch(e){}
+  clearInterval(timerInt);
+  $("timer").textContent = "Arama bitti";
+  keepAwake(false);
+  setTimeout(()=>{ show(null); $("trBox").hidden=true;
+    const err = store.get("mp_ai_err"); if(err){ aiNote(err, true); store.set("mp_ai_err",""); } },1100);
+}
+function fmt(s){ return Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); }
+
+/* ---------------- Canlı konuşma: tarayıcı ses tanıma → Groq → ElevenLabs ---------------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const DEF_MODEL = "llama-3.3-70b-versatile";
+const REL = {anne:"annesisin", elif:"kız kardeşisin", selin:"iş yerindeki patronusun", baba:"babasısın", kaan:"yakın arkadaşısın", burak:"kuzenisin"};
+const AI = {
+  get on(){ return store.get("mp_ai")==="1"; },
+  get groq(){ return (store.get("mp_groq")||"").trim(); },
+  get el(){ return (store.get("mp_el")||"").trim(); },
+  get model(){ return (store.get("mp_model")||"").trim() || DEF_MODEL; },
+  voice(p){ return (store.get("mp_v_"+p.id)||"").trim(); }
+};
+let rec = null, aiAbort = null;
+function aiReady(){ return AI.on && !!AI.groq && !!SR; }
+function aiNote(t, warn){ const n=$("aiNote"); n.textContent=t; n.className = warn ? "note warn" : "note"; }
+
+function setupAI(){
+  $("aiOn").checked = AI.on; $("aiBox").hidden = !AI.on;
+  $("aiGroq").value = store.get("mp_groq")||""; $("aiEl").value = store.get("mp_el")||"";
+  $("aiModel").value = store.get("mp_model")||""; $("aiModel").placeholder = DEF_MODEL;
+  $("aiVoices").innerHTML = PEOPLE.map(p=>`<label>${p.name} <input type="text" data-voice="${p.id}" value="${(store.get("mp_v_"+p.id)||"").replace(/"/g,"")}" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Voice ID"></label>`).join("");
+  $("aiOn").onchange = ()=>{ store.set("mp_ai", $("aiOn").checked?"1":"0"); $("aiBox").hidden = !$("aiOn").checked; checkAI(); };
+  $("aiGroq").oninput = e=>store.set("mp_groq", e.target.value.trim());
+  $("aiEl").oninput = e=>store.set("mp_el", e.target.value.trim());
+  $("aiModel").oninput = e=>store.set("mp_model", e.target.value.trim());
+  $("aiVoices").oninput = e=>{ const id=e.target.dataset.voice; if(id) store.set("mp_v_"+id, e.target.value.trim()); };
+  $("aiTest").onclick = testAI;
+  const err = store.get("mp_ai_err"); if(err){ aiNote(err, true); store.set("mp_ai_err",""); } else checkAI();
+}
+function checkAI(){
+  if(!AI.on) return;
+  if(!SR) aiNote("Bu tarayıcı konuşmayı yazıya çeviremiyor. Android'de Chrome, iPhone'da Safari kullan.", true);
+  else if(!AI.groq) aiNote("Groq anahtarını gir (console.groq.com → API Keys). Anahtarlar sadece bu telefonda saklanır.", true);
+  else aiNote("Hazır. Anahtarlar sadece bu telefonda saklanır, başka yere gönderilmez.");
+}
+
+function groqErr(e){
+  if(e && e.name==="AbortError") return "";
+  const s = e && e.status;
+  if(s===401) return "Groq anahtarı geçersiz. Yeniden kopyalayıp yapıştır.";
+  if(s===429) return "Groq'un ücretsiz sınırı doldu, biraz sonra tekrar dene. Bu arada hazır konuşmalar çalar.";
+  if(s) return "Groq hatası ("+s+"). Hazır konuşmalara geçildi.";
+  return "Groq'a bağlanılamadı (internet?). Hazır konuşmalara geçildi.";
+}
+// Model kapatılmışsa Groq'un listesinden çalışan bir model seç
+async function pickModel(signal){
+  const r = await fetch("https://api.groq.com/openai/v1/models",{headers:{Authorization:"Bearer "+AI.groq}, signal});
+  if(!r.ok) return null;
+  const ids = ((await r.json()).data||[]).map(m=>m.id).filter(id=>!/whisper|guard|tts|orpheus|playai|vision|embed/i.test(id));
+  const pref = [/llama-3\.3-70b/i, /gpt-oss-120b/i, /llama-4/i, /llama/i, /gpt-oss/i, /qwen/i];
+  for(const re of pref){ const m = ids.find(id=>re.test(id)); if(m) return m; }
+  return ids[0] || null;
+}
+async function groqStream(msgs, onDelta, signal, retried){
+  const r = await fetch("https://api.groq.com/openai/v1/chat/completions",{
+    method:"POST", signal,
+    headers:{Authorization:"Bearer "+AI.groq, "Content-Type":"application/json"},
+    body: JSON.stringify({model: AI.model, messages: msgs, stream: true, temperature: 0.8, max_tokens: 200})
+  });
+  if(!r.ok){
+    const body = await r.text().catch(()=> "");
+    if(!retried && (r.status===400 || r.status===404) && /model/i.test(body)){
+      const m = await pickModel(signal).catch(()=>null);
+      if(m && m!==AI.model){ store.set("mp_model", m); if($("aiModel")) $("aiModel").value = m; return groqStream(msgs, onDelta, signal, true); }
+    }
+    const e = new Error("groq "+r.status); e.status = r.status; throw e;
+  }
+  const rd = r.body.getReader(), dec = new TextDecoder(); let buf = "";
+  for(;;){
+    const {done, value} = await rd.read(); if(done) break;
+    buf += dec.decode(value, {stream:true});
+    let i;
+    while((i = buf.indexOf("\n")) >= 0){
+      const line = buf.slice(0,i).trim(); buf = buf.slice(i+1);
+      if(!line.startsWith("data:")) continue;
+      const d = line.slice(5).trim(); if(d==="[DONE]") return;
+      try{ const c = JSON.parse(d).choices?.[0]?.delta?.content; if(c) onDelta(c); }catch(e){}
+    }
+  }
+}
+
+let elErr = "";
+async function ttsEleven(p, text, signal){
+  const vid = AI.voice(p);
+  if(!AI.el || !vid || !audio) return null;
+  const go = lang => fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(vid)}/stream?output_format=mp3_44100_64`,{
+    method:"POST", signal,
+    headers:{"xi-api-key":AI.el, "Content-Type":"application/json", Accept:"audio/mpeg"},
+    body: JSON.stringify(Object.assign({text, model_id:"eleven_flash_v2_5"}, lang ? {language_code:"tr"} : {}))
+  });
+  try{
+    let r = await go(true);
+    if(r.status===400 || r.status===422) r = await go(false);
+    if(!r.ok){
+      elErr = r.status===401 ? "ElevenLabs anahtarı geçersiz." : r.status===404 ? "ElevenLabs ses kimliği (Voice ID) bulunamadı." :
+              (r.status===402 || r.status===429) ? "ElevenLabs kredisi/sınırı doldu, telefonun sesi kullanıldı." : "ElevenLabs hatası ("+r.status+").";
+      return null;
+    }
+    const ab = await r.arrayBuffer();
+    return await new Promise((res,rej)=>audio.decodeAudioData(ab,res,rej));
+  }catch(e){ if(e.name!=="AbortError") elErr = "ElevenLabs'a bağlanılamadı."; return null; }
+}
+
+function trLine(cls, text){
+  const box = $("trBox"), el = document.createElement("p");
+  if(cls) el.className = cls; el.textContent = text; box.appendChild(el);
+  el.scrollIntoView({block:"nearest"}); return el;
+}
+// Tek bir cümleyi çal: ElevenLabs sesi geldiyse onu, gelmediyse telefonun sesini kullan
+function playLine(p, text, bufP, gen){
+  return Promise.resolve(bufP).then(buf => new Promise(done=>{
+    if(gen!==talkGen) return done();
+    document.querySelectorAll("#trBox p").forEach(x=>x.classList.remove("now"));
+    trLine("now", text);
+    if(buf && audio){
+      const src = audio.createBufferSource(); src.buffer = buf; src.connect(phoneOut());
+      src.onended = ()=>done(); current = src; src.start(); return;
+    }
+    try{
+      const v = voiceFor(p), u = new SpeechSynthesisUtterance(text);
+      const pitchFix = (!p.f && v && !MALE.test(v.name)) ? 0.75 : 1;
+      u.lang="tr-TR"; if(v) u.voice=v; u.rate=p.rate; u.pitch=Math.max(.1,Math.min(2,p.pitch*pitchFix));
+      u.onend = ()=>done(); u.onerror = ()=>done(); speechSynthesis.speak(u);
+    }catch(e){ done(); }
+  }));
+}
+
+function systemPrompt(p){
+  const story = parts.story.filter(x=>x!=="~").map(x=>x.t).join(" ");
+  const close = parts.close.filter(x=>x!=="~").map(x=>x.t).join(" ");
+  const scen = {davet:"onu hemen bir yere çağırıyorsun, herkes onu bekliyor", acil:"acil yardımına ihtiyacın var", kotu:"üzücü bir haber veriyorsun ve yanına gelmesini istiyorsun"}[parts.s];
+  return `Sen ${p.name} adlı karaktersin (${p.tag}; kişiliğin: ${p.trait}). Şu an telefonda konuştuğun kişinin ${REL[p.id]||"yakınısın"}. Onu sen aradın.
+Aramanın sebebi: ${scen}. Anlatacağın hikâye şu: "${story}"
+Konuşmayı bitirirken şuna benzer bir şey diyebilirsin: "${close}"
+
+Kurallar:
+- Bu gerçek bir telefon görüşmesi. Her cevabın en fazla 1-2 kısa cümle olsun, günlük konuşma Türkçesiyle konuş.
+- Hikâyeyi bir anda değil, konuşmanın akışına göre anlat. Sorulara bu hikâyeyle tutarlı, inandırıcı ayrıntılarla cevap ver; gerekirse ayrıntı uydur ama çelişme.
+- Amacın karşındakinin hemen gelmesini sağlamak. Israr et ama karakterine uygun ol.
+- Asla yapay zekâ ya da bir oyun olduğunu söyleme, karakterden hiç çıkma.
+- Sadece söyleyeceğin sözleri yaz: emoji, yıldız, parantez, sahne tarifi yok. Sayıları ve saatleri yazıyla yaz (ör. "sekiz buçuk").
+- Karşındakinin sözleri ses tanımadan geliyor, bazı kelimeler yanlış yazılmış olabilir; ne demek istediğini tahmin et.
+- "(sessizlik)" gelirse karşı taraf konuşmuyor demektir: "Alo? Duyuyor musun?" gibi tepki ver.
+- Karşındaki gelmeyi kabul ederse ya da konuşma doğal olarak biterse kısa bir vedayla bitir ve cevabının en sonuna [KAPAT] yaz.`;
+}
+
+function liveTalk(p, gen){
+  const msgs = [{role:"system", content: systemPrompt(p)}];
+  const first = parts.open.find(x=>x!=="~");
+  const bufP = (first.a && bufCache.has(first.a)) ? bufCache.get(first.a) : null;
+  msgs.push({role:"assistant", content:first.t});
+  // Açılış hazır kayıttan: hiç beklemeden başlar
+  playLine(p, first.t, bufP, gen).then(()=>listen(p, gen, msgs, 0));
+}
+
+function fallbackScript(p, gen, msg){
+  if(gen!==talkGen) return;
+  if(msg) store.set("mp_ai_err", msg);
+  script = [...parts.story, ...parts.close];
+  $("trBox").insertAdjacentHTML("beforeend", script.map((l,i)=>`<p id="ln${i}" class="${l==="~"?"you":""}">${l==="~"?"(sen cevap ver…)":l.t}</p>`).join(""));
+  talk(p, gen);
+}
+
+function listen(p, gen, msgs, quiet){
+  if(gen!==talkGen) return;
+  if($("muteBtn").getAttribute("aria-pressed")==="true"){ setTimeout(()=>listen(p, gen, msgs, quiet), 400); return; }
+  let r;
+  try{ r = new SR(); }catch(e){ return fallbackScript(p, gen, "Ses tanıma başlatılamadı."); }
+  r.lang = "tr-TR"; r.interimResults = true; r.continuous = false; r.maxAlternatives = 1;
+  rec = r;
+  let heard = "", err = "";
+  const el = trLine("you", "…");
+  r.onresult = e=>{ let t=""; for(let k=0;k<e.results.length;k++) t += e.results[k][0].transcript; heard = t; el.textContent = t; };
+  r.onerror = e=>{ err = e.error || "x"; };
+  r.onend = ()=>{
+    if(rec===r) rec = null;
+    if(gen!==talkGen) return;
+    const said = heard.trim();
+    if(!said){
+      el.remove();
+      if(err==="not-allowed" || err==="service-not-allowed" || err==="audio-capture")
+        return fallbackScript(p, gen, "Mikrofon izni verilmedi. Tarayıcı ayarlarından mikrofona ve konuşma tanımaya izin ver.");
+      if(quiet >= 1){ msgs.push({role:"user", content:"(sessizlik)"}); return aiTurn(p, gen, msgs); }
+      return setTimeout(()=>listen(p, gen, msgs, quiet+1), 150);
+    }
+    el.className = "me";
+    msgs.push({role:"user", content: said});
+    aiTurn(p, gen, msgs);
+  };
+  try{ r.start(); }catch(e){ fallbackScript(p, gen, "Ses tanıma başlatılamadı."); }
+}
+
+async function aiTurn(p, gen, msgs){
+  if(gen!==talkGen) return;
+  const ctl = new AbortController(); aiAbort = ctl;
+  let chain = Promise.resolve(), pend = "", full = "", hang = false, spoke = false;
+  const say = raw=>{
+    let t = raw.replace(/\*+|#+/g,"").replace(/\s+/g," ");
+    if(/\[\s*KAPAT\s*\]/i.test(t)){ hang = true; t = t.replace(/\[\s*KAPAT\s*\]/ig,""); }
+    t = t.trim(); if(!t) return;
+    spoke = true;
+    const bufP = ttsEleven(p, t, ctl.signal);          // seslendirme hemen başlar
+    chain = chain.then(()=>playLine(p, t, bufP, gen));  // sırayla çalınır
+  };
+  // Cümle bitince hemen seslendirmeye gönder (cevabın tamamını bekleme)
+  const flush = all=>{
+    let cut = -1, m; const re = /[.!?…]+["'”)]?(?=\s)/g;
+    while((m = re.exec(pend))) cut = m.index + m[0].length;
+    if(all) cut = pend.length;
+    if(cut > 0){ say(pend.slice(0, cut)); pend = pend.slice(cut); }
+  };
+  try{
+    await groqStream(msgs, d=>{ if(gen!==talkGen) return; full += d; pend += d; flush(false); }, ctl.signal);
+    flush(true);
+  }catch(e){
+    if(gen!==talkGen) return;
+    if(!spoke) return fallbackScript(p, gen, groqErr(e));
+    flush(true);
+  }
+  if(gen!==talkGen) return;
+  msgs.push({role:"assistant", content: full.replace(/\[\s*KAPAT\s*\]/ig,"").trim() || "..."});
+  await chain;
+  if(gen!==talkGen) return;
+  if(elErr){ store.set("mp_ai_err", elErr); elErr = ""; }
+  if(hang){ setTimeout(()=>{ if(gen===talkGen) endCall(); }, 700); return; }
+  listen(p, gen, msgs, 0);
+}
+
+async function testAI(){
+  ensureAudio();
+  if(!AI.groq){ aiNote("Önce Groq anahtarını gir.", true); return; }
+  aiNote("Deneniyor…");
+  const p = PEOPLE.find(x=>x.id===sel.who);
+  let txt = "";
+  const t0 = performance.now();
+  try{
+    await groqStream([{role:"system",content:`Sen ${p.name}'sın. Türkçe, tek kısa cümleyle cevap ver.`},{role:"user",content:"Alo, merhaba! Sesim geliyor mu?"}], d=>txt+=d);
+  }catch(e){ aiNote(groqErr(e).replace(" Hazır konuşmalara geçildi.",""), true); return; }
+  txt = txt.trim() || "Merhaba!";
+  const ms = Math.round(performance.now()-t0);
+  let msg = `Groq çalışıyor (${AI.model}, ${ms} ms): "${txt}"`;
+  if(!AI.el || !AI.voice(p)){
+    aiNote(msg + ` — ${p.name} için ElevenLabs anahtarı veya ses kimliği yok, telefonun sesi kullanılacak.`);
+    playLine(p, txt, null, talkGen); return;
+  }
+  elErr = "";
+  const buf = await ttsEleven(p, txt);
+  if(buf){ aiNote(msg + ` — ElevenLabs (${p.name}) çalışıyor.`); playLine(p, txt, buf, talkGen); }
+  else { aiNote(msg + " — " + (elErr||"ElevenLabs çalışmadı."), true); elErr = ""; }
+}
+
+render();
+setupAI();
+loadVoices();
+if("speechSynthesis" in window) speechSynthesis.onvoiceschanged = loadVoices;
+</script>
+
+<script>if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}</script>
+</body></html>
