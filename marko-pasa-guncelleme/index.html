@@ -394,15 +394,33 @@ function fmt(s){ return Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); }
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 const DEF_MODEL = "llama-3.3-70b-versatile";
 const REL = {anne:"annesisin", elif:"kız kardeşisin", selin:"iş yerindeki patronusun", baba:"babasısın", kaan:"yakın arkadaşısın", burak:"kuzenisin"};
+// Cloudflare Worker adresi: anahtarlar orada durur, hiçbir cihazda girmek gerekmez.
+const PROXY = "";   // ör. "https://marko-pasa.KULLANICI.workers.dev"
+// Kişilerin ElevenLabs sesleri (Voice ID). Ayarlardan girilen değer bunun önüne geçer.
+const VOICES = {anne:"", elif:"", selin:"", baba:"", kaan:"", burak:""};
 const AI = {
-  get on(){ return store.get("mp_ai")==="1"; },
+  get on(){ const v = store.get("mp_ai"); return v===null ? !!PROXY : v==="1"; },
   get groq(){ return (store.get("mp_groq")||"").trim(); },
   get el(){ return (store.get("mp_el")||"").trim(); },
   get model(){ return (store.get("mp_model")||"").trim() || DEF_MODEL; },
-  voice(p){ return (store.get("mp_v_"+p.id)||"").trim(); }
+  voice(p){ return (store.get("mp_v_"+p.id)||"").trim() || VOICES[p.id] || ""; }
 };
 let rec = null, aiAbort = null;
-function aiReady(){ return AI.on && !!AI.groq && !!SR; }
+function aiReady(){ return AI.on && !!(AI.groq || PROXY) && !!SR; }
+// Sunucuya istek; şifre (APP_PIN) istenirse bir kere sorar ve bu cihazda hatırlar
+async function proxyFetch(path, init){
+  const go = ()=>fetch(PROXY+path, Object.assign({}, init, {headers: Object.assign({}, init.headers, {"X-Pin": store.get("mp_pin")||""})}));
+  let r = await go();
+  if(r.status===401 && (await r.clone().text())==="pin"){
+    const pin = prompt("Marko Paşa şifresi:");
+    if(pin){ store.set("mp_pin", pin.trim()); r = await go(); }
+  }
+  return r;
+}
+function groqFetch(path, init){
+  if(AI.groq) return fetch("https://api.groq.com/openai/v1/"+path, Object.assign({}, init, {headers: Object.assign({}, init.headers, {Authorization:"Bearer "+AI.groq})}));
+  return proxyFetch(path==="models" ? "/groq/models" : "/groq/chat", init);
+}
 function aiNote(t, warn){ const n=$("aiNote"); n.textContent=t; n.className = warn ? "note warn" : "note"; }
 
 function setupAI(){
@@ -416,11 +434,13 @@ function setupAI(){
   $("aiModel").oninput = e=>store.set("mp_model", e.target.value.trim());
   $("aiVoices").oninput = e=>{ const id=e.target.dataset.voice; if(id) store.set("mp_v_"+id, e.target.value.trim()); };
   $("aiTest").onclick = testAI;
+  if(PROXY){ $("aiGroq").parentElement.hidden = true; $("aiEl").parentElement.hidden = true; }
   const err = store.get("mp_ai_err"); if(err){ aiNote(err, true); store.set("mp_ai_err",""); } else checkAI();
 }
 function checkAI(){
   if(!AI.on) return;
   if(!SR) aiNote("Bu tarayıcı konuşmayı yazıya çeviremiyor. Android'de Chrome, iPhone'da Safari kullan.", true);
+  else if(PROXY && !AI.groq) aiNote("Hazır. Anahtarlar sunucuda, bu cihazda bir şey girmene gerek yok.");
   else if(!AI.groq) aiNote("Groq anahtarını gir (console.groq.com → API Keys). Anahtarlar sadece bu telefonda saklanır.", true);
   else aiNote("Hazır. Anahtarlar sadece bu telefonda saklanır, başka yere gönderilmez.");
 }
@@ -435,7 +455,7 @@ function groqErr(e){
 }
 // Model kapatılmışsa Groq'un listesinden çalışan bir model seç
 async function pickModel(signal){
-  const r = await fetch("https://api.groq.com/openai/v1/models",{headers:{Authorization:"Bearer "+AI.groq}, signal});
+  const r = await groqFetch("models",{headers:{}, signal});
   if(!r.ok) return null;
   const ids = ((await r.json()).data||[]).map(m=>m.id).filter(id=>!/whisper|guard|tts|orpheus|playai|vision|embed/i.test(id));
   const pref = [/llama-3\.3-70b/i, /gpt-oss-120b/i, /llama-4/i, /llama/i, /gpt-oss/i, /qwen/i];
@@ -443,9 +463,9 @@ async function pickModel(signal){
   return ids[0] || null;
 }
 async function groqStream(msgs, onDelta, signal, retried){
-  const r = await fetch("https://api.groq.com/openai/v1/chat/completions",{
+  const r = await groqFetch("chat/completions",{
     method:"POST", signal,
-    headers:{Authorization:"Bearer "+AI.groq, "Content-Type":"application/json"},
+    headers:{"Content-Type":"application/json"},
     body: JSON.stringify({model: AI.model, messages: msgs, stream: true, temperature: 0.8, max_tokens: 200})
   });
   if(!r.ok){
@@ -473,12 +493,14 @@ async function groqStream(msgs, onDelta, signal, retried){
 let elErr = "";
 async function ttsEleven(p, text, signal){
   const vid = AI.voice(p);
-  if(!AI.el || !vid || !audio) return null;
-  const go = lang => fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(vid)}/stream?output_format=mp3_44100_64`,{
-    method:"POST", signal,
-    headers:{"xi-api-key":AI.el, "Content-Type":"application/json", Accept:"audio/mpeg"},
-    body: JSON.stringify(Object.assign({text, model_id:"eleven_flash_v2_5"}, lang ? {language_code:"tr"} : {}))
-  });
+  if(!(AI.el || PROXY) || !vid || !audio) return null;
+  const go = lang => {
+    const init = {method:"POST", signal, headers:{"Content-Type":"application/json"},
+      body: JSON.stringify(Object.assign({text, model_id:"eleven_flash_v2_5"}, lang ? {language_code:"tr"} : {}))};
+    const q = `${encodeURIComponent(vid)}/stream?output_format=mp3_44100_64`;
+    if(AI.el){ Object.assign(init.headers, {"xi-api-key":AI.el, Accept:"audio/mpeg"}); return fetch("https://api.elevenlabs.io/v1/text-to-speech/"+q, init); }
+    return proxyFetch(`/tts/${encodeURIComponent(vid)}?output_format=mp3_44100_64`, init);
+  };
   try{
     let r = await go(true);
     if(r.status===400 || r.status===422) r = await go(false);
@@ -619,7 +641,7 @@ async function aiTurn(p, gen, msgs){
 
 async function testAI(){
   ensureAudio();
-  if(!AI.groq){ aiNote("Önce Groq anahtarını gir.", true); return; }
+  if(!AI.groq && !PROXY){ aiNote("Önce Groq anahtarını gir.", true); return; }
   aiNote("Deneniyor…");
   const p = PEOPLE.find(x=>x.id===sel.who);
   let txt = "";
@@ -630,7 +652,7 @@ async function testAI(){
   txt = txt.trim() || "Merhaba!";
   const ms = Math.round(performance.now()-t0);
   let msg = `Groq çalışıyor (${AI.model}, ${ms} ms): "${txt}"`;
-  if(!AI.el || !AI.voice(p)){
+  if(!(AI.el || PROXY) || !AI.voice(p)){
     aiNote(msg + ` — ${p.name} için ElevenLabs anahtarı veya ses kimliği yok, telefonun sesi kullanılacak.`);
     playLine(p, txt, null, talkGen); return;
   }
