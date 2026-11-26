@@ -488,3 +488,51 @@ body.setup-dark .char-items button { transition: transform .2s cubic-bezier(.2,1
 body.setup-dark .char-items button:active { transform: scale(.94); }
 body.setup-dark .char-items button .lock { background: rgba(0,0,0,.5); color: #fff; }
 body.setup-dark .wel-cta { margin: 16px auto 0; max-width: 520px; }
+
+/* ================= Hızlı menü (☰) ================= */
+.menu-wrap { position: fixed; inset: 0; z-index: 50; }
+.menu-shade { position: absolute; inset: 0; background: rgba(10, 8, 30, .45); opacity: 0; transition: opacity .25s; }
+.menu { position: absolute; top: 0; right: 0; bottom: 0; width: min(340px, 88vw); overflow-y: auto;
+  background: var(--card); color: var(--ink); box-shadow: -10px 0 40px rgba(0,0,0,.25);
+  padding: max(14px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
+  transform: translateX(100%); transition: transform .28s cubic-bezier(.2,.9,.3,1); }
+.menu-wrap.open .menu-shade { opacity: 1; }
+.menu-wrap.open .menu { transform: none; }
+.menu-head { display: flex; align-items: center; justify-content: space-between; font-size: 22px; margin-bottom: 10px; }
+.menu-x { width: 44px; height: 44px; border-radius: 12px; border: 0; background: var(--soft); font-size: 20px; }
+.menu-links { display: grid; gap: 6px; margin-bottom: 14px; }
+.menu-links a { display: block; padding: 10px 12px; border-radius: 14px; background: var(--soft); font-weight: 700; text-decoration: none; }
+.menu-group { margin: 12px 0; }
+.menu-group p { margin: 0 0 6px; font-weight: 800; }
+.menu-group input[type="range"] { width: 100%; accent-color: var(--primary); }
+.menu-seg { display: flex; gap: 6px; }
+.menu-seg button { flex: 1; min-height: 44px; border-radius: 14px; border: 3px solid var(--soft); background: var(--bg); font-weight: 800; font-size: 15px; }
+.menu-seg button.on { border-color: var(--primary); background: var(--soft); }
+.menu-note { color: var(--muted); font-size: 14px; margin-top: 14px; }
+#menuBtn { margin-left: 4px; }
+
+/* Animasyonlar kapalı */
+html.no-anim *, html.no-anim *::before, html.no-anim *::after { animation: none !important; transition: none !important; }
+
+/* İlk giriş ve giydirme: aydınlık mod seçiliyse açık renkli uzay */
+html:not(.is-dark) body[data-screen="welcome"], html:not(.is-dark) body.setup-dark { background: #eef0ff; color: #221d4a; }
+html:not(.is-dark) body[data-screen="welcome"] .topbar, html:not(.is-dark) body.setup-dark .topbar { color: #221d4a; }
+html:not(.is-dark) body[data-screen="welcome"] .icon-btn, html:not(.is-dark) body.setup-dark .icon-btn { background: rgba(91,75,219,.12); }
+html:not(.is-dark) .wel-bg { background: radial-gradient(120% 80% at 50% 0%, #ffffff 0%, #e8e4ff 50%, #d9f3ff 100%); }
+html:not(.is-dark) .wel-bg .au { opacity: .35; }
+html:not(.is-dark) .wel-bg .sky { display: none; }
+html:not(.is-dark) .wel-bg .floor { background-image: linear-gradient(rgba(91,75,219,.18) 1px, transparent 1px), linear-gradient(90deg, rgba(91,75,219,.18) 1px, transparent 1px); }
+html:not(.is-dark) .wel-sub, html:not(.is-dark) body.setup-dark .muted { color: #5a5480 !important; }
+html:not(.is-dark) .wel-steps li { color: rgba(34,29,74,.5); }
+html:not(.is-dark) .wel-steps li.on { color: #221d4a; }
+html:not(.is-dark) .wel-steps b { border-color: rgba(34,29,74,.25); }
+html:not(.is-dark) .wel-steps li + li::before { background: rgba(34,29,74,.15); }
+html:not(.is-dark) .wel-card, html:not(.is-dark) body.setup-dark .card { background: rgba(255,255,255,.92); border-color: rgba(91,75,219,.18); color: #221d4a; box-shadow: 0 20px 50px -25px rgba(60,40,160,.45); }
+html:not(.is-dark) .wel-field, html:not(.is-dark) .wel-label { color: #221d4a; }
+html:not(.is-dark) .wel-field input, html:not(.is-dark) .wel-seg button, html:not(.is-dark) .wel-pick button, html:not(.is-dark) .wel-name button, html:not(.is-dark) .wel-back,
+html:not(.is-dark) body.setup-dark .char-tabs button, html:not(.is-dark) body.setup-dark .char-items button, html:not(.is-dark) body.setup-dark .btn {
+  background: #f6f4ff; border-color: rgba(91,75,219,.18); color: #221d4a; }
+html:not(.is-dark) .wel-field input::placeholder { color: rgba(34,29,74,.4); }
+html:not(.is-dark) .wel-seg button.on, html:not(.is-dark) .wel-pick button.on, html:not(.is-dark) body.setup-dark .char-tabs button.on, html:not(.is-dark) body.setup-dark .char-items button.on {
+  border-color: #00a8cc; background: rgba(0,200,240,.12); }
+html:not(.is-dark) body.setup-dark .char-items button .lock { background: #fff; color: #221d4a; }

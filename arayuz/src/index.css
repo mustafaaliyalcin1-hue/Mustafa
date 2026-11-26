@@ -278,3 +278,6 @@ body {
   :root { --card: rgba(255, 255, 255, 0.72); }
   .dark { --card: rgba(35, 34, 40, 0.66); }
 }
+
+/* Uygulama menüsünde "Animasyonlar: Kapalı" seçildiyse */
+html.no-anim *, html.no-anim *::before, html.no-anim *::after { animation: none !important; transition: none !important; }

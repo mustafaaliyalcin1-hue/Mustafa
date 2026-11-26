@@ -32,7 +32,12 @@ function useTheme() {
   const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
-    try { localStorage.setItem("panel:tema", dark ? "dark" : "light"); } catch { /* yok say */ }
+    try {
+      localStorage.setItem("panel:tema", dark ? "dark" : "light");
+      // Uygulamanın menüsündeki tema ayarını da güncelle (iki yer aynı kalsın)
+      const raw = JSON.parse(localStorage.getItem("konusan-baykus:v2") || "{}");
+      if (raw.profile) { raw.settings = { ...(raw.settings || {}), theme: dark ? "dark" : "light" }; localStorage.setItem("konusan-baykus:v2", JSON.stringify(raw)); }
+    } catch { /* yok say */ }
   }, [dark]);
   return [dark, () => setDark((d) => !d)] as const;
 }
