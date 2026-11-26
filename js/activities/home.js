@@ -2,7 +2,8 @@
 
 import { $app, route, go, mascot, owl, on, progressBar } from "../ui.js";
 import { say, canListen, missingVoice } from "../speech.js";
-import { THEMES, AVATARS, PICTURE_WORDS, EXTRA_WORDS } from "../content.js";
+import { THEMES, PICTURE_WORDS, EXTRA_WORDS } from "../content.js";
+import { BODIES, NAME_IDEAS, bodyOf, characterSVG } from "../character.js";
 import { EN_THEMES, EN_LETTERS, EN_SOUND_PAIRS } from "../content-en.js";
 import { EN_PATTERNS } from "../tips.js";
 import { startPractice } from "./practice.js";
@@ -15,37 +16,78 @@ const isEn = () => store.lang() === "en";
 export const themesFor = () => (isEn() ? EN_THEMES : THEMES);
 
 /* ---------- Karşılama (ilk açılış) ---------- */
+// 1) Çocuğun adı ve sınıfı → 2) karakterini seç ve ona isim koy → 3) giydir (Karakterim ekranı)
 route("welcome", () => {
-  let avatar = AVATARS[0];
+  let name = "";
   let g = 1;
-  $app.innerHTML = `
-    <div class="welcome">
-      ${owl("big")}
-      <h1>Merhaba! Ben Bilge Baykuş 🦉</h1>
-      <p>Birlikte dinleyip konuşarak Türkçeyi çok güzel söyleyeceğiz!</p>
-      <div class="card">
-        <label class="field">Adın ne?
-          <input id="name" maxlength="20" autocomplete="off" placeholder="Adını yaz">
-        </label>
-        <p class="label">Kaçıncı sınıftasın?</p>
-        <div class="seg" id="grade">
-          <button class="on" data-g="1">1. sınıf</button>
-          <button data-g="2">2. sınıf</button>
+  let body = BODIES[0].id;
+  let buddyName = NAME_IDEAS[Math.floor(Math.random() * NAME_IDEAS.length)];
+
+  const step1 = () => {
+    $app.innerHTML = `
+      <div class="welcome">
+        <div class="welcome-cast" aria-hidden="true">${BODIES.filter((b) => !b.stars).slice(0, 3).map((b) => characterSVG({ body: b.id }, "")).join("")}</div>
+        <h1>Merhaba! 👋</h1>
+        <p>Konuşan Arkadaşım'a hoş geldin! Birlikte dinleyip konuşarak çok güzel söyleyeceğiz.</p>
+        <div class="card">
+          <label class="field">Adın ne?
+            <input id="name" maxlength="20" autocomplete="off" placeholder="Adını yaz" value="${esc(name)}">
+          </label>
+          <p class="label">Kaçıncı sınıftasın?</p>
+          <div class="seg" id="grade">
+            <button class="${g === 1 ? "on" : ""}" data-g="1">1. sınıf</button>
+            <button class="${g === 2 ? "on" : ""}" data-g="2">2. sınıf</button>
+          </div>
+          <div class="row"><button class="btn primary big" id="next">Devam →</button></div>
         </div>
-        <p class="label">Bir arkadaş seç:</p>
-        <div class="avatars">${AVATARS.map((a, i) => `<button class="${i ? "" : "on"}" data-a="${a}" aria-label="${a}">${a}</button>`).join("")}</div>
-        <div class="row"><button class="btn primary big" id="start">Başlayalım! 🚀</button></div>
-      </div>
-    </div>`;
-  on("#grade button", (b) => { g = +b.dataset.g; $app.querySelectorAll("#grade button").forEach((x) => x.classList.toggle("on", x === b)); });
-  on(".avatars button", (b) => { avatar = b.dataset.a; $app.querySelectorAll(".avatars button").forEach((x) => x.classList.toggle("on", x === b)); });
-  on("#start", () => {
-    const name = $app.querySelector("#name").value.trim() || "Arkadaşım";
-    store.setProfile({ name, grade: g, avatar });
-    go("#/home");
-    // Sayfa geçişi (hashchange) bitince söyle; yoksa geçiş sesi keser.
-    setTimeout(() => say(`Merhaba ${name}! Hadi başlayalım.`), 60);
-  });
+      </div>`;
+    on("#grade button", (b) => { g = +b.dataset.g; $app.querySelectorAll("#grade button").forEach((x) => x.classList.toggle("on", x === b)); });
+    on("#next", () => { name = $app.querySelector("#name").value.trim() || "Arkadaşım"; step2(); });
+  };
+
+  const step2 = () => {
+    const free = BODIES.filter((b) => !b.stars);
+    $app.innerHTML = `
+      <div class="welcome">
+        <h1>Arkadaşını seç, ${esc(name)}!</h1>
+        <p>Seninle birlikte çalışacak karakterini seç ve ona bir isim koy.</p>
+        <div class="card">
+          <div class="char-stage" id="stage">${characterSVG({ body }, "happy")}</div>
+          <div class="char-items">
+            ${free.map((b) => `<button data-id="${b.id}" class="${b.id === body ? "on" : ""}">${characterSVG({ body: b.id })}${esc(b.name)}</button>`).join("")}
+          </div>
+          <label class="field" style="margin-top:14px">Arkadaşının adı
+            <span style="display:flex;gap:8px;align-items:center">
+              <input id="buddy" maxlength="16" autocomplete="off" value="${esc(buddyName)}" style="flex:1">
+              <button class="btn small" id="idea" aria-label="Başka isim öner">🎲</button>
+            </span>
+          </label>
+          <div class="row">
+            <button class="btn" id="back">← Geri</button>
+            <button class="btn primary big" id="next">Devam →</button>
+          </div>
+        </div>
+      </div>`;
+    on(".char-items button", (b) => {
+      body = b.dataset.id;
+      $app.querySelector("#stage").innerHTML = characterSVG({ body }, "happy");
+      $app.querySelectorAll(".char-items button").forEach((x) => x.classList.toggle("on", x === b));
+    });
+    on("#idea", () => {
+      const others = NAME_IDEAS.filter((n) => n !== $app.querySelector("#buddy").value);
+      $app.querySelector("#buddy").value = others[Math.floor(Math.random() * others.length)];
+    });
+    on("#back", () => { buddyName = $app.querySelector("#buddy").value; step1(); });
+    on("#next", () => {
+      buddyName = $app.querySelector("#buddy").value.trim() || bodyOf(body).name;
+      store.setWholeLook({ body });
+      store.setProfile({ name, grade: g, buddy: buddyName });
+      go("#/character/setup");
+      setTimeout(() => say(`Merhaba ${name}! Benim adım ${buddyName}. Hadi beni giydir!`), 60);
+    });
+  };
+
+  step1();
 });
 
 /* ---------- Ana sayfa ---------- */
@@ -57,9 +99,15 @@ route("home", () => {
   const st = store.streak();
   const weak = store.weakList(3);
   $app.innerHTML = `
-    ${mascot(en
-      ? `Hello <b>${esc(p.name)}</b> ${p.avatar}! Bugün biraz <b>İngilizce</b> çalışalım mı? 🇬🇧`
-      : `Merhaba <b>${esc(p.name)}</b> ${p.avatar}! Bugün ne çalışalım?`)}
+    <a class="hero card" href="#/character" aria-label="Karakterim: ${esc(store.buddy())}">
+      <div class="hero-char">${owl("big")}</div>
+      <div class="hero-text">
+        <div class="bubble">${en
+          ? `Hello <b>${esc(p.name)}</b>! Ben <b>${esc(store.buddy())}</b>. Bugün biraz <b>İngilizce</b> çalışalım mı? 🇬🇧`
+          : `Merhaba <b>${esc(p.name)}</b>! Ben <b>${esc(store.buddy())}</b>. Bugün ne çalışalım?`}</div>
+        <span class="btn small hero-btn">👕 Beni giydir</span>
+      </div>
+    </a>
     <div class="lang-switch" role="group" aria-label="Dil seçimi">
       <button data-lang="tr" class="${en ? "" : "on"}">🇹🇷 Türkçe<small>Telaffuz ve okuma</small></button>
       <button data-lang="en" class="${en ? "on" : ""}">🇬🇧 İngilizce<small>Başlangıç düzeyi</small></button>
@@ -73,14 +121,9 @@ route("home", () => {
     ${!canListen ? `<p class="notice">ℹ️ Bu tarayıcı ses tanımayı desteklemiyor. Konuşma etkinlikleri için Android'de veya bilgisayarda <b>Google Chrome</b> kullanın.</p>` : ""}
     ${missingVoice(en ? "en" : "tr") ? `<p class="notice">ℹ️ Cihazda ${en ? "İngilizce" : "Türkçe"} ses bulunamadı. Ayarlar → Metin okuma bölümünden ${en ? "İngilizce" : "Türkçe"} sesi yükleyin.</p>` : ""}
 
-    <a class="tile char-tile" href="#/character" style="flex-direction:row;align-items:center;gap:12px;margin-bottom:14px">
-      ${owl()}
-      <span class="t" style="flex:1">👕 Karakterim<br><span class="d">Karakterini seç, gözlük, şapka, forma ve ayakkabı giydir!</span></span>
-    </a>
-
     <h3 class="section">🗣️ Konuş</h3>
     <div class="grid">
-      ${tile("themes", "🎤", en ? "Listen & Say" : "Dinle ve Söyle", en ? "İngilizce kelime ve cümleleri dinle, sen de söyle." : "Kelime ve cümleleri söyle, baykuş seni dinlesin.")}
+      ${tile("themes", "🎤", en ? "Listen & Say" : "Dinle ve Söyle", en ? "İngilizce kelime ve cümleleri dinle, sen de söyle." : `Kelime ve cümleleri söyle, ${esc(store.buddy())} seni dinlesin.`)}
       ${tile("stories", "📚", en ? "Story Time" : "Hikâye Oku", en ? "Kısa İngilizce hikâyeyi dinle, sonra sen oku." : "Hikâyeyi dinle, cümle cümle sen oku.")}
       ${weak.length ? tile("weak", "🦸", "Zor Seslerim", `Senin için seçtim: ${weak.map(([c]) => `“${esc(c)}”`).join(", ")}`, "hot") : ""}
     </div>

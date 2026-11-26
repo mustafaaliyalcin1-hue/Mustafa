@@ -3,13 +3,10 @@
 // böylece her aksesuar her karaktere oturur. stars: açmak için gereken toplam yıldız.
 
 /* ---------- Gövdeler ---------- */
+// Karakter adı önerileri (ilk girişte çocuk değiştirebilir)
+export const NAME_IDEAS = ["Pıtırcık", "Bulut", "Zıpzıp", "Minnoş", "Şimşek", "Pamuk", "Fıstık", "Boncuk", "Tarçın", "Yıldız"];
+
 export const BODIES = [
-  {
-    id: "owl", name: "Baykuş", color: "#8f75ff", belly: "#efe9ff", feet: "#ffb020", stars: 0,
-    back: (c) => `<path d="M22 30 L38 44 L26 50 Z M98 30 L82 44 L94 50 Z" fill="${c}"/>`,
-    bellyMarks: `<path d="M44 84 q4 4 8 0 M56 92 q4 4 8 0 M68 84 q4 4 8 0" stroke="#c9bbff" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
-    face: `<path d="M54 66 L66 66 L60 75 Z" fill="#ffb020"/>`,
-  },
   {
     id: "cat", name: "Kedi", color: "#ffa94d", belly: "#fff1e0", feet: "#ffa94d", stars: 0,
     back: (c) => `<path d="M24 40 L30 12 L50 30 Z M96 40 L90 12 L70 30 Z" fill="${c}"/><path d="M30 34 L32 20 L43 30 Z M90 34 L88 20 L77 30 Z" fill="#ff8fab"/>`,
@@ -123,7 +120,7 @@ export const SLOTS = [
   },
 ];
 
-export const DEFAULT_LOOK = { body: "owl", glasses: "none", hat: "none", neck: "none", outfit: "none", shoes: "none" };
+export const DEFAULT_LOOK = { body: "cat", glasses: "none", hat: "none", neck: "none", outfit: "none", shoes: "none" };
 
 export const bodyOf = (id) => BODIES.find((b) => b.id === id) || BODIES[0];
 export const itemOf = (slot, id) => SLOTS.find((s) => s.id === slot).items.find((i) => i.id === id) || NONE;

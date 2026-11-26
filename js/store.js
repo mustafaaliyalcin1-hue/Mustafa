@@ -1,12 +1,12 @@
 // Cihazda saklanan profil, ayarlar ve ilerleme.
 
 import { BADGES } from "./content.js";
-import { DEFAULT_LOOK } from "./character.js";
+import { DEFAULT_LOOK, bodyOf } from "./character.js";
 
 const KEY = "konusan-baykus:v2";
 
 const DEFAULTS = () => ({
-  profile: null, // { name, grade: 1|2, avatar }
+  profile: null, // { name, grade: 1|2, buddy: karakterin adı }
   lang: "tr", // çalışılan dil: "tr" | "en"
   settings: { rate: 0.85, sfx: true },
   stars: 0,
@@ -48,6 +48,8 @@ export const today = () => {
 export const DAILY_GOAL = 15;
 
 export function setProfile(profile) { state.profile = { ...state.profile, ...profile }; changed(); }
+// Çocuğun karakterinin adı
+export const buddy = () => state.profile?.buddy || bodyOf(state.look?.body).name;
 export const lang = () => state.lang || "tr";
 export function setLang(l) { state.lang = l; changed(); }
 

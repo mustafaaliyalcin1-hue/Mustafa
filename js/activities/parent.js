@@ -2,7 +2,7 @@
 
 import { $app, route, go, on, toast, progressBar } from "../ui.js";
 import { say, elevenLabs as eleven } from "../speech.js";
-import { THEMES, STORIES, BADGES, AVATARS } from "../content.js";
+import { THEMES, STORIES, BADGES } from "../content.js";
 import { EN_THEMES, EN_STORIES } from "../content-en.js";
 import { esc } from "../text.js";
 import * as store from "../store.js";
@@ -112,8 +112,8 @@ function panel() {
       <label class="field">Ad <input id="name" value="${esc(p.name)}" maxlength="20"></label>
       <p class="label">Sınıf</p>
       <div class="seg" id="grade"><button data-g="1" class="${g === 1 ? "on" : ""}">1. sınıf</button><button data-g="2" class="${g === 2 ? "on" : ""}">2. sınıf</button></div>
-      <p class="label">Arkadaş</p>
-      <div class="avatars">${AVATARS.map((a) => `<button data-a="${a}" class="${a === p.avatar ? "on" : ""}">${a}</button>`).join("")}</div>
+      <label class="field">Karakterin adı <input id="buddy" value="${esc(store.buddy())}" maxlength="16"></label>
+      <div class="row" style="margin-top:0"><a class="btn" href="#/character">👕 Karakteri giydir</a></div>
       <label class="field">Okuma hızı: <span id="rateVal">${s.settings.rate.toFixed(2)}</span>
         <input type="range" id="rate" min="0.5" max="1.1" step="0.05" value="${s.settings.rate}">
       </label>
@@ -156,13 +156,13 @@ function panel() {
 
   $app.querySelector("#name").addEventListener("change", (e) => store.setProfile({ name: e.target.value.trim() || p.name }));
   on("#grade button", (b) => { store.setProfile({ grade: +b.dataset.g }); panel(); });
-  on(".avatars button", (b) => { store.setProfile({ avatar: b.dataset.a }); panel(); });
+  $app.querySelector("#buddy").addEventListener("change", (e) => store.setProfile({ buddy: e.target.value.trim() || store.buddy() }));
   $app.querySelector("#rate").addEventListener("input", (e) => {
     store.setSetting("rate", +e.target.value);
     $app.querySelector("#rateVal").textContent = (+e.target.value).toFixed(2);
   });
   $app.querySelector("#sfx").addEventListener("change", (e) => store.setSetting("sfx", e.target.checked));
-  on("#testVoice", () => say("Merhaba! Ben Bilge Baykuş. Seninle Türkçe çalışmayı çok seviyorum."));
+  on("#testVoice", () => say(`Merhaba! Ben ${store.buddy()}. Seninle Türkçe çalışmayı çok seviyorum.`));
   // --- ElevenLabs ---
   const $ = (q) => $app.querySelector(q);
   const status = (t) => { $("#elStatus").textContent = t; };
@@ -193,7 +193,7 @@ function panel() {
     const name = opt ? opt.textContent : voice;
     eleven.setCfg(eleven.server ? (voice ? { voice, voiceName: name } : null) : { key, voice, voiceName: name });
     status("Deneniyor…");
-    await say("Merhaba! Ben Bilge Baykuş. Seninle Türkçe çalışmayı çok seviyorum.");
+    await say(`Merhaba! Ben ${store.buddy()}. Seninle Türkçe çalışmayı çok seviyorum.`);
     status(eleven.enabled() ? "✅ " + (eleven.server ? "Sunucu sesi çalışıyor" : "Bağlı") + (voice ? ": " + name : "")
       : "❌ " + (eleven.lastError || "Ses üretilemedi.") + " Cihaz sesi kullanılıyor.");
   });

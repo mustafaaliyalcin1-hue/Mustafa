@@ -71,7 +71,7 @@ p { margin: 6px 0; }
 .center { text-align: center; }
 .section { margin: 22px 0 10px; }
 
-/* ---------- Baykuş ---------- */
+/* ---------- Karakter ---------- */
 .owl { width: 72px; height: 72px; flex: none; transform-origin: 50% 90%; }
 .owl.big { width: 130px; height: 130px; display: block; margin: 0 auto; }
 #avatar { display: inline-flex; vertical-align: middle; }
@@ -332,3 +332,17 @@ details.tips summary { font-weight: 700; cursor: pointer; }
 .boot-help { color: var(--muted); font-size: 16px; max-width: 420px; opacity: 0; animation: boot-show .3s ease 3s forwards; }
 @keyframes boot-show { to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .boot-help { opacity: 1; } }
+
+/* Ana ekran: büyük karakter */
+.hero { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; padding: 12px; margin-bottom: 14px;
+  background: radial-gradient(circle at 22% 60%, var(--soft), var(--card) 60%); }
+.hero-char .owl.big { width: 150px; height: 150px; }
+.hero-text { flex: 1; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.hero-text .bubble { position: relative; background: var(--bg); border-radius: 18px; padding: 10px 12px; font-size: 17px; line-height: 1.3; }
+.hero-btn { pointer-events: none; }
+.welcome-cast { display: flex; justify-content: center; gap: 0; margin-bottom: -6px; }
+.welcome-cast .owl { width: 96px; height: 96px; }
+.welcome-cast .owl:nth-child(2) { width: 120px; height: 120px; }
+@media (max-width: 380px) { .hero-char .owl.big { width: 120px; height: 120px; } .hero-text .bubble { font-size: 15px; } }
+.hero-text .bubble { box-shadow: none; }
+.hero-text .bubble::before { border-right-color: var(--bg); }

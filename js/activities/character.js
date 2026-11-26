@@ -1,6 +1,6 @@
 // Karakterim: gövdeyi, gözlüğü, şapkayı, boyun aksesuarını, kıyafeti ve ayakkabıyı seç.
 
-import { $app, route, on, toast } from "../ui.js";
+import { $app, route, on, toast, go } from "../ui.js";
 import { say } from "../speech.js";
 import { BODIES, SLOTS, characterSVG } from "../character.js";
 import { sfx, confetti } from "../fx.js";
@@ -9,10 +9,13 @@ import * as store from "../store.js";
 
 const TABS = [{ id: "body", name: "Karakter", icon: "🐾" }, ...SLOTS.map((s) => ({ id: s.id, name: s.name, icon: s.icon }))];
 let tab = "body";
+let setup = false; // ilk giriş: giydirme adımı
 
 const itemsOf = (t) => (t === "body" ? BODIES : SLOTS.find((s) => s.id === t).items);
 
-route("character", () => {
+route("character", (mode) => {
+  setup = mode === "setup";
+  if (setup) tab = "glasses";
   draw();
 });
 
@@ -21,6 +24,8 @@ function draw() {
   const look = s.look;
   const items = itemsOf(tab);
   $app.innerHTML = `
+    ${setup ? `<h2 style="text-align:center;margin:4px 0 10px">${esc(store.buddy())}'yi giydir! 👕</h2>
+      <p class="muted" style="text-align:center;margin-top:0">Gözlük, şapka, atkı, forma ve ayakkabı seç. Sonra da istediğin zaman değiştirebilirsin.</p>` : ""}
     <div class="card">
       <div class="char-stage" id="stage">${characterSVG(look, "happy")}</div>
       <div class="row" style="justify-content:center;margin-top:0">
@@ -42,7 +47,13 @@ function draw() {
         </button>`;
       }).join("")}
     </div>
-    <p class="muted small" style="text-align:center">⭐ Yıldız topladıkça kilitli parçalar açılır. Şu an: <b>${s.stars}</b> yıldız</p>`;
+    <p class="muted small" style="text-align:center">⭐ Yıldız topladıkça kilitli parçalar açılır. Şu an: <b>${s.stars}</b> yıldız</p>
+    ${setup ? `<div class="row" style="justify-content:center"><button class="btn primary big" id="done">Bitti, başlayalım! 🚀</button></div>` : ""}`;
+
+  on("#done", () => {
+    go("#/home");
+    setTimeout(() => say(`Harika görünüyorum! Hadi başlayalım ${s.profile.name}!`), 60);
+  });
 
   on(".char-tabs button", (b) => { tab = b.dataset.t; draw(); });
   on(".char-items button", (b) => {
@@ -54,7 +65,7 @@ function draw() {
     }
     store.setLook(tab, it.id);
     sfx.tap?.();
-    if (tab === "body") say(`Merhaba! Ben ${it.name}.`);
+    if (tab === "body") say(`Ben ${it.name}!`);
     const y = window.scrollY;
     draw();
     window.scrollTo(0, y);

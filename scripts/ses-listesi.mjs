@@ -33,12 +33,12 @@ export function collect() {
   [
     "Aferin!", "Harika!", "Süpersin!", "Mükemmel!", "Bravo!", "Çok güzel söyledin!", "Doğru!", "Süper!",
     "Bir daha dinle.", "Bir daha dene.", "Duyduğun kelime:", "Tekrar dinle.", "Tekrar dinle:", "Dikkatli dinle:",
-    "Haydi Türkçe çalışalım!", "Hadi başlayalım.", "Merhaba! Ben Bilge Baykuş. Seninle Türkçe çalışmayı çok seviyorum.",
+    "Haydi Türkçe çalışalım!", "Hadi başlayalım.", "Seninle Türkçe çalışmayı çok seviyorum.", "Hadi beni giydir!", "Harika görünüyorum!",
     "Muhteşem! Hepsini ilk seferde bildin!", "Tebrikler! Bölümü bitirdin!", "Hepsini ilk seferde bildin!", "Bölümü bitirdin!",
     "Çok yaklaştın!", "Hadi birlikte deneyelim.", "Doğru söyledin.", "Küçük bir ipucu:", "Güzel çalıştın!",
     "Bu kelimeyi dinle ve yavaşça tekrar et.", "Biraz daha yüksek sesle söyle.",
   ].forEach((t) => add(t));
-  BODIES.forEach((b) => add(`Merhaba! Ben ${b.name}.`));
+  BODIES.forEach((b) => add(`Ben ${b.name}!`));
   Object.values(SOUND_TIPS).forEach((t) => add(plain(t)));
   Object.values(PAIR_TIPS).forEach((t) => add(plain(t)));
 

@@ -1,4 +1,4 @@
-// Ekran yönetimi: yönlendirme, baykuş maskot, bildirimler.
+// Ekran yönetimi: yönlendirme, karakter maskot, bildirimler.
 
 import * as store from "./store.js";
 import { stopListening, stopSpeaking } from "./speech.js";
@@ -55,15 +55,17 @@ window.addEventListener("hashchange", render);
 /* ---------- Üst bilgi ---------- */
 const $stars = document.getElementById("starCount");
 const $avatar = document.getElementById("avatar");
+const $brand = document.getElementById("brandName");
 function paintHeader(s) {
   $stars.textContent = s.stars;
-  $avatar.innerHTML = characterSVG(s.look, "mini");
+  $avatar.innerHTML = s.profile ? characterSVG(s.look, "mini") : "✨";
+  $brand.textContent = s.profile ? store.buddy() : "Konuşan Arkadaşım";
 }
 store.onChange(paintHeader);
 paintHeader(store.get());
 
-/* ---------- Baykuş maskot ---------- */
-// Maskot: çocuğun özelleştirdiği karakter (varsayılan: baykuş).
+/* ---------- Karakter maskot ---------- */
+// Maskot: çocuğun seçip giydirdiği karakter.
 export function owl(mood = "") {
   return characterSVG(store.get().look, mood);
 }
@@ -107,7 +109,7 @@ export function showSoundHelp() {
   el.id = "soundHelp";
   el.className = "sound-help";
   el.setAttribute("role", "alert");
-  el.innerHTML = `<b>🔇 Baykuşun sesi gelmiyor mu?</b>
+  el.innerHTML = `<b>🔇 Arkadaşının sesi gelmiyor mu?</b>
     <ul>
       <li>Telefonun <b>sesini</b> açın. iPhone'da yan taraftaki <b>sessiz mod düğmesini</b> kapatın (turuncu görünmesin).</li>
       <li>iPhone'da uygulamayı <b>Safari</b> ile açın.</li>
