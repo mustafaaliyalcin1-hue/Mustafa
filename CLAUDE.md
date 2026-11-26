@@ -8,8 +8,8 @@
   videolar her zamanki gibi oyundan çekim + Remotion kurgusuyla yapılır.
 - İl simgeleri: `LANDM.defs` (plaka → yerler), modeller `LMK`. Diyarbakır'a (21) hiçbir şey konmayacak (kullanıcı istedi).
 - Fütüristik tasarım ana uygulamaya taşındı (kullanıcı ayrı panel istemedi): ana ekran "komuta merkezi" `js/activities/home.js`,
-  tema `styles.css` sonundaki "FÜTÜRİSTİK TEMA" bölümü (bulanıklık yok, iPhone siyah ekran yapıyordu). `panel/` yalnızca uygulamaya yönlendirir;
-  `arayuz/` (React + Tailwind v4 bileşenleri) kaynak olarak duruyor, derlemesi `arayuz/dist`.
+  tema `styles.css` sonundaki "FÜTÜRİSTİK TEMA" bölümü (bulanıklık yok, iPhone siyah ekran yapıyordu). Öğrenme paneli de
+  ayrıca duruyor (kullanıcı istedi, menüde "🚀 Öğrenme paneli"): kaynak `arayuz/` (React + Tailwind v4), `cd arayuz && npm run build` → `panel/` (commit edilir).
 - Hata Kumandası: `kumanda/index.html` (tek dosya) → localStorage `konusan-arkadasim:hatalar` ile ana uygulamada bilerek hata açar/kapatır;
   uygulama tarafı `js/chaos.js` + `styles.css` (bug-*). Uzaktan: Yönetim paneli (#/parent) en altındaki "Sürüm 2.4.0 · Yapı <kod>" satırındaki 6 haneli kod — sürüm kodu gibi görünür, kumanda
   geçmez (kullanıcı istedi; uygulamadan kumandaya bağlantı yok) → ntfy.sh konusu `ka-surum-<kod>` (kumanda POST eder, uygulama SSE ile dinler). Hatalar ilerlemeye dokunmaz. `main` dalı da proje dalıyla güncel tutulur.

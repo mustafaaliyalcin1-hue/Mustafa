@@ -30,6 +30,7 @@ function panelHTML() {
     <nav class="menu-links">
       <a href="#/home">🏠 Ana sayfa</a>
       <a href="#/character">👕 Karakterim</a>
+      <a href="panel/">🚀 Öğrenme paneli</a>
       <a href="#/parent">⚙️ Yönetim paneli</a>
     </nav>
     <div class="menu-group"><p>🌗 Görünüm</p>${seg("theme", s.theme || "auto", [["auto", "Otomatik"], ["light", "☀️ Aydınlık"], ["dark", "🌙 Koyu"]])}</div>
