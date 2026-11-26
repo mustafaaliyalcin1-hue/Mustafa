@@ -6,7 +6,7 @@ export const CHAOS_KEY = "konusan-arkadasim:hatalar";
 const CODE_KEY = "konusan-arkadasim:kod";
 // Uzaktan kumanda: hatalar ntfy.sh üzerinden (ücretsiz, hesapsız anlık mesaj) bu koda gönderilir.
 export const RELAY = "https://ntfy.sh";
-export const topicFor = (code) => `konusan-arkadasim-hata-${String(code).toLowerCase()}`;
+export const topicFor = (code) => `ka-surum-${String(code).toLowerCase()}`;
 
 /** Bu cihazın kumanda kodu (6 karakter, ilk açılışta üretilir). */
 export function pairCode() {

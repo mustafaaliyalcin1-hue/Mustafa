@@ -67,9 +67,9 @@
     <div class="status" id="status" role="status"><span class="dot"></span><span id="statusText">Uygulama sağlam, hiç hata açık değil</span></div>
 
     <div class="pair" id="pair">
-      <label for="code">📡 Uygulama kodu</label>
-      <div class="in"><input id="code" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="KOD"><button id="connect">Bağlan</button></div>
-      <small id="pairInfo">Kodu, bozmak istediğin telefondaki uygulamada <b>☰ Menü → 🐞 Kumanda kodu</b> bölümünde bulursun. Kod girilince başka telefondan da çalışır.</small>
+      <label for="code">📡 Sürüm (yapı) kodu</label>
+      <div class="in"><input id="code" maxlength="80" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="KOD"><button id="connect">Bağlan</button></div>
+      <small id="pairInfo">Kod, bozmak istediğin telefondaki uygulamada <b>☰ Menü → ⚙️ Yönetim paneli</b> sayfasının en altında yazar: “Sürüm 2.4.0 · Yapı <b>XXXXXX</b>”. Yapı kodunu buraya yaz.</small>
     </div>
 
     <div class="row">
@@ -122,7 +122,7 @@
     function read() { try { return JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { return {}; } }
     var RELAY = "https://ntfy.sh", CODE_KEY = "kumanda:kod";
     var code = ""; try { code = localStorage.getItem(CODE_KEY) || ""; } catch (e) {}
-    function topic() { return "konusan-arkadasim-hata-" + code.toLowerCase(); }
+    function topic() { return "ka-surum-" + code.toLowerCase(); }
     function info(t, ok) { document.getElementById("pairInfo").innerHTML = t; document.getElementById("pair").classList.toggle("ok", !!ok); }
     // Durumu uzaktaki uygulamaya gönder (ntfy.sh)
     function send(s) {
@@ -147,7 +147,9 @@
     var codeIn = document.getElementById("code");
     codeIn.value = code;
     function connect() {
-      var v = codeIn.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+      // Satırın tamamı ("… Sürüm 2.4.0 · Yapı ABC123") yapıştırılsa da en sondaki 6 haneli kod alınır
+      var m = codeIn.value.toUpperCase().match(/[A-Z0-9]{6}(?=[^A-Z0-9]*$)/);
+      var v = m ? m[0] : "";
       if (v.length !== 6) { info("Kod 6 karakter olmalı.", false); return; }
       code = v; codeIn.value = v;
       try { localStorage.setItem(CODE_KEY, v); } catch (e) {}

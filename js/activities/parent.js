@@ -17,7 +17,7 @@ route("parent", () => {
   const b = 6 + Math.floor(Math.random() * 4);
   $app.innerHTML = `
     <div class="card center">
-      <h2>👨‍👩‍👧 Veli / Öğretmen Girişi</h2>
+      <h2>⚙️ Yönetim Paneli</h2>
       <p>Devam etmek için işlemin sonucunu yazın:</p>
       <p class="target">${a} × ${b} = ?</p>
       <input id="ans" class="ans" inputmode="numeric" autocomplete="off" aria-label="Cevap">
@@ -151,15 +151,10 @@ function panel() {
       </div>
     </div>
 
-    <div class="card settings">
-      <h3>🐞 Kumanda kodu</h3>
-      <div class="code-box"><b>${pairCode()}</b></div>
-      <p class="muted small">Hata Kumandası'na bu kodu yazınca bu cihazdaki uygulamaya uzaktan hata açılabilir. Kodu çocuklarla paylaşmayın.</p>
-    </div>
-
     <p class="muted small">Gizlilik: Uygulama hesap açmaz, kişisel veri toplamaz; ilerleme yalnızca bu cihazda saklanır.
       Konuşma tanıma, cihazın/tarayıcının ses tanıma hizmetiyle yapılır ve ses kaydı uygulamada saklanmaz.
-      <a href="privacy.html">Gizlilik politikası</a></p>`;
+      <a href="privacy.html">Gizlilik politikası</a></p>
+    <p class="muted small app-build">Konuşan Arkadaşım · Sürüm 2.4.0 · Yapı ${pairCode()}</p>`;
 
   $app.querySelector("#name").addEventListener("change", (e) => store.setProfile({ name: e.target.value.trim() || p.name }));
   on("#grade button", (b) => { store.setProfile({ grade: +b.dataset.g }); panel(); });

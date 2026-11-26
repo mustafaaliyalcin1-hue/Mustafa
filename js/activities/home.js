@@ -197,7 +197,7 @@ route("home", () => {
     </div>
 
     <div class="row footer-row">
-      <button class="btn small" onclick="location.hash='#/parent'">👨‍👩‍👧 Veli / Öğretmen</button>
+      <button class="btn small" onclick="location.hash='#/parent'">⚙️ Yönetim paneli</button>
     </div>`;
   // Sayılar sayarak yükselir, hedef halkası dolar, karaktere dokununca zıplar
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.classList.contains("no-anim");
