@@ -116,6 +116,7 @@ route("home", () => {
       <div class="goal-top"><b>Günlük hedef</b><span>${Math.min(todays, store.DAILY_GOAL)} / ${store.DAILY_GOAL} ⭐ ${st > 0 ? `· 🔥 ${st} gün` : ""}</span></div>
       ${progressBar(Math.min(todays, store.DAILY_GOAL), store.DAILY_GOAL)}
       ${todays >= store.DAILY_GOAL ? `<p class="muted">🎉 Bugünkü hedefini tamamladın!</p>` : ""}
+      <a class="panel-link" href="panel/">🚀 Öğrenme paneli: ilerlemeni gör →</a>
     </div>
 
     ${!canListen ? `<p class="notice">ℹ️ Bu tarayıcı ses tanımayı desteklemiyor. Konuşma etkinlikleri için Android'de veya bilgisayarda <b>Google Chrome</b> kullanın.</p>` : ""}

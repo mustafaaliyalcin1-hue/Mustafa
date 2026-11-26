@@ -346,3 +346,4 @@ details.tips summary { font-weight: 700; cursor: pointer; }
 @media (max-width: 380px) { .hero-char .owl.big { width: 120px; height: 120px; } .hero-text .bubble { font-size: 15px; } }
 .hero-text .bubble { box-shadow: none; }
 .hero-text .bubble::before { border-right-color: var(--bg); }
+.panel-link { display: inline-block; margin-top: 10px; font-weight: 800; font-size: 15px; color: var(--primary); text-decoration: none; }

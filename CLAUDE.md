@@ -7,3 +7,5 @@
 - Dikey Instagram tanıtımı (1080x1920): `video/src/reels/TanitimReels.tsx`. Claude Stüdyo eklentileri kullanılmıyor (kullanıcı kapattırdı);
   videolar her zamanki gibi oyundan çekim + Remotion kurgusuyla yapılır.
 - İl simgeleri: `LANDM.defs` (plaka → yerler), modeller `LMK`. Diyarbakır'a (21) hiçbir şey konmayacak (kullanıcı istedi).
+- Öğrenme paneli (fütüristik arayüz): kaynak `arayuz/` (React + Tailwind v4, bileşenler `arayuz/src/components/ui/`),
+  `cd arayuz && npm install && npm run build` → çıktı `panel/` (commit edilir, GitHub Pages'te /panel/). İçeriği ana uygulamanın `js/` dosyalarından okur.
