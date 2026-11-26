@@ -1,6 +1,10 @@
-// ElevenLabs ile doğal ses (isteğe bağlı).
-// API anahtarı YALNIZCA bu cihazda (tarayıcının yerel deposunda) saklanır; koda/GitHub'a yazılmaz.
-// İstekler doğrudan cihazdan ElevenLabs'e gider. Aynı metin bir kez üretilir, sonra önbellekten çalınır.
+// ElevenLabs ile doğal ses.
+// 1) Merkezi sunucu (config.js → VOICE_SERVER): anahtar sunucuda durur, tüm cihazlar kullanır.
+// 2) Sunucu yoksa: veli ekranından bu cihaza özel anahtar girilebilir (yalnızca bu cihazda saklanır).
+// Aynı metin bir kez üretilir, sonra cihazdaki önbellekten çalınır.
+
+import { VOICE_SERVER } from "./config.js";
+export const server = VOICE_SERVER.replace(/\/+$/, "");
 
 const CFG_KEY = "konusan-baykus:elevenlabs";
 const API = "https://api.elevenlabs.io/v1";
@@ -19,10 +23,12 @@ export function setCfg(cfg) {
 }
 let failed = false; // bu açılışta ElevenLabs hata verdiyse cihaz sesine dönülür
 export let lastError = "";
-export const enabled = () => { const c = getCfg(); return !!(c.key && c.voice) && !failed; };
+export const enabled = () => { const c = getCfg(); return !!(server || (c.key && c.voice)) && !failed; };
 
 function errText(status, body) {
   if (status === 401) return "API anahtarı geçersiz ya da bu işlem için yetkisi yok.";
+  if (status === 403 && server) return "Ses sunucusu bu siteye izin vermiyor.";
+  if (status === 500 && /ELEVENLABS_API_KEY/.test(body)) return "Sunucuda API anahtarı tanımlı değil.";
   if (status === 429) return "Çok fazla istek ya da kota doldu. Biraz sonra tekrar deneyin.";
   if (/quota/i.test(body)) return "ElevenLabs karakter kotası doldu.";
   if (/voice_not_found|not found/i.test(body)) return "Seçilen ses bulunamadı.";
@@ -31,10 +37,15 @@ function errText(status, body) {
 
 // Hesaptaki sesleri listeler: [{ id, name }]
 export async function listVoices(key) {
-  const r = await fetch(`${API}/voices`, { headers: { "xi-api-key": key } });
+  const r = server
+    ? await fetch(`${server}/voices`)
+    : await fetch(`${API}/voices`, { headers: { "xi-api-key": key } });
   if (!r.ok) throw new Error(errText(r.status, await r.text().catch(() => "")));
   const j = await r.json();
-  return (j.voices || []).map((v) => ({ id: v.voice_id, name: v.name + (v.category === "premade" ? "" : " ★") }));
+  return (j.voices || []).map((v) => ({
+    id: v.voice_id || v.id,
+    name: v.name + (v.category === "premade" ? "" : " ★"),
+  }));
 }
 
 // --- Önbellek (bellek + kalıcı Cache Storage) ---
@@ -56,22 +67,29 @@ async function store(k, j) {
 
 async function synth(text, speed) {
   const { key, voice } = getCfg();
-  const k = `${voice}|${speed}|${text}`;
+  const k = `${server ? "srv" : "dev"}|${voice || ""}|${speed}|${text}`;
   const hit = await cached(k);
   if (hit) return hit;
-  const r = await fetch(`${API}/text-to-speech/${encodeURIComponent(voice)}/with-timestamps?output_format=mp3_44100_128`, {
-    method: "POST",
-    headers: { "xi-api-key": key, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      text,
-      model_id: MODEL,
-      voice_settings: { stability: 0.5, similarity_boost: 0.75, speed },
-    }),
-  });
-  if (!r.ok) throw new Error(errText(r.status, await r.text().catch(() => "")));
-  const j = await r.json();
-  const a = j.alignment || j.normalized_alignment || {};
-  const out = { audio: j.audio_base64, starts: a.character_start_times_seconds || [] };
+  let out;
+  if (server) {
+    const r = await fetch(`${server}/tts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, speed, voice: voice || undefined }),
+    });
+    if (!r.ok) throw new Error(errText(r.status, await r.text().catch(() => "")));
+    out = await r.json();
+  } else {
+    const r = await fetch(`${API}/text-to-speech/${encodeURIComponent(voice)}/with-timestamps?output_format=mp3_44100_128`, {
+      method: "POST",
+      headers: { "xi-api-key": key, "Content-Type": "application/json" },
+      body: JSON.stringify({ text, model_id: MODEL, voice_settings: { stability: 0.5, similarity_boost: 0.75, speed } }),
+    });
+    if (!r.ok) throw new Error(errText(r.status, await r.text().catch(() => "")));
+    const j = await r.json();
+    const a = j.alignment || j.normalized_alignment || {};
+    out = { audio: j.audio_base64, starts: a.character_start_times_seconds || [] };
+  }
   await store(k, out);
   return out;
 }

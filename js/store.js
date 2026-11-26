@@ -1,6 +1,7 @@
 // Cihazda saklanan profil, ayarlar ve ilerleme.
 
 import { BADGES } from "./content.js";
+import { DEFAULT_LOOK } from "./character.js";
 
 const KEY = "konusan-baykus:v2";
 
@@ -16,6 +17,7 @@ const DEFAULTS = () => ({
   weak: {}, // { "ş": 3, "en:th": 2, ... } zorlanılan sesler (İngilizce olanlar "en:" ile başlar)
   days: {}, // { "2026-10-13": yıldız }
   badges: [],
+  look: { ...DEFAULT_LOOK }, // karakter: gövde ve aksesuarlar
 });
 
 let state = load();
@@ -48,6 +50,9 @@ export const DAILY_GOAL = 15;
 export function setProfile(profile) { state.profile = { ...state.profile, ...profile }; changed(); }
 export const lang = () => state.lang || "tr";
 export function setLang(l) { state.lang = l; changed(); }
+
+export function setLook(slot, id) { state.look = { ...DEFAULT_LOOK, ...state.look, [slot]: id }; changed(); }
+export function setWholeLook(look) { state.look = { ...DEFAULT_LOOK, ...look }; changed(); }
 
 export function setSetting(k, v) { state.settings = { ...state.settings, [k]: v }; changed(); }
 
@@ -121,7 +126,7 @@ export function checkBadges(extra = {}) {
 }
 
 export function reset() {
-  const keep = { profile: state.profile, settings: state.settings, lang: state.lang };
+  const keep = { profile: state.profile, settings: state.settings, lang: state.lang, look: state.look };
   state = { ...DEFAULTS(), ...keep };
   changed();
 }

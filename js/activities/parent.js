@@ -126,22 +126,27 @@ function panel() {
 
     <div class="card settings" id="elevenCard">
       <h3>🎙️ Doğal ses (ElevenLabs)</h3>
-      <p class="muted small">Robotik ses yerine ElevenLabs sesi kullanılır. API anahtarı <b>yalnızca bu cihazda</b> saklanır,
-        başka hiçbir yere gönderilmez (sadece ElevenLabs'e). Bağlı değilse cihazın kendi sesi kullanılır.</p>
+      ${eleven.server ? `
+      <p class="muted small">Doğal ses <b>merkezi sunucudan</b> geliyor: API anahtarı sunucuda saklanır, cihazlara anahtar girmek gerekmez.
+        Sunucuya ulaşılamazsa cihazın kendi sesi kullanılır.</p>` : `
+      <p class="muted small">Robotik ses yerine ElevenLabs sesi kullanılır. Merkezi ses sunucusu kurulmadıysa anahtar buraya girilir;
+        <b>yalnızca bu cihazda</b> saklanır (sadece ElevenLabs'e gönderilir). Bağlı değilse cihazın kendi sesi kullanılır.</p>
       <label class="field">API anahtarı
         <input type="password" id="elKey" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="sk_..." value="${esc(eleven.getCfg().key || "")}">
-      </label>
-      <div class="row"><button class="btn" id="elConnect">🔗 Bağlan ve sesleri getir</button></div>
-      <label class="field" id="elVoiceWrap" ${eleven.getCfg().key ? "" : "hidden"}>Ses
+      </label>`}
+      <div class="row"><button class="btn" id="elConnect">🔗 ${eleven.server ? "Sesleri getir" : "Bağlan ve sesleri getir"}</button></div>
+      <label class="field" id="elVoiceWrap" ${eleven.getCfg().voice ? "" : "hidden"}>Ses
         <select id="elVoice">${eleven.getCfg().voice ? `<option value="${esc(eleven.getCfg().voice)}">${esc(eleven.getCfg().voiceName || eleven.getCfg().voice)}</option>` : ""}</select>
       </label>
-      <label class="field">Ses kimliği (Voice ID, listede yoksa elle yazın)
+      ${eleven.server ? "" : `<label class="field">Ses kimliği (Voice ID, listede yoksa elle yazın)
         <input type="text" id="elVoiceId" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(eleven.getCfg().voice || "")}">
-      </label>
-      <p class="small" id="elStatus">${eleven.enabled() ? "✅ Bağlı: " + esc(eleven.getCfg().voiceName || eleven.getCfg().voice) : "Bağlı değil (cihaz sesi kullanılıyor)."}</p>
+      </label>`}
+      <p class="small" id="elStatus">${eleven.server
+        ? "✅ Merkezi ses sunucusu kullanılıyor" + (eleven.getCfg().voice ? " · Ses: " + esc(eleven.getCfg().voiceName || "") : " · Varsayılan ses")
+        : eleven.enabled() ? "✅ Bağlı: " + esc(eleven.getCfg().voiceName || eleven.getCfg().voice) : "Bağlı değil (cihaz sesi kullanılıyor)."}</p>
       <div class="row">
         <button class="btn" id="elSave">💾 Kaydet ve dene</button>
-        <button class="btn danger" id="elRemove">✖️ Bağlantıyı kaldır</button>
+        <button class="btn danger" id="elRemove">✖️ ${eleven.server ? "Varsayılan sese dön" : "Bağlantıyı kaldır"}</button>
       </div>
     </div>
 
@@ -161,37 +166,43 @@ function panel() {
   // --- ElevenLabs ---
   const $ = (q) => $app.querySelector(q);
   const status = (t) => { $("#elStatus").textContent = t; };
+  const keyVal = () => ($("#elKey")?.value || "").trim();
+  const voiceVal = () => ($("#elVoiceId") ? $("#elVoiceId").value : $("#elVoice").value || "").trim();
   on("#elConnect", async (b) => {
-    const key = $("#elKey").value.trim();
-    if (!key) return status("Önce API anahtarını yazın.");
+    const key = keyVal();
+    if (!eleven.server && !key) return status("Önce API anahtarını yazın.");
     b.disabled = true; status("Bağlanılıyor…");
     try {
       const voices = await eleven.listVoices(key);
-      const cur = $("#elVoiceId").value.trim();
-      $("#elVoice").innerHTML = voices.map((v) => `<option value="${esc(v.id)}" ${v.id === cur ? "selected" : ""}>${esc(v.name)}</option>`).join("");
+      const cur = voiceVal();
+      $("#elVoice").innerHTML = (eleven.server ? `<option value="">Varsayılan ses</option>` : "") +
+        voices.map((v) => `<option value="${esc(v.id)}" ${v.id === cur ? "selected" : ""}>${esc(v.name)}</option>`).join("");
       $("#elVoiceWrap").hidden = false;
-      if (!cur && voices[0]) $("#elVoiceId").value = voices[0].id;
+      if ($("#elVoiceId") && !cur && voices[0]) $("#elVoiceId").value = voices[0].id;
       status(`${voices.length} ses bulundu. Birini seçip "Kaydet ve dene"ye basın.`);
     } catch (e) {
-      status("❌ " + (e.message || "Bağlanılamadı") + " Ses kimliğini elle yazıp yine kaydedebilirsiniz.");
+      status("❌ " + (e.message || "Bağlanılamadı") + (eleven.server ? "" : " Ses kimliğini elle yazıp yine kaydedebilirsiniz."));
     } finally { b.disabled = false; }
   });
-  $("#elVoice").addEventListener("change", (e) => { $("#elVoiceId").value = e.target.value; });
+  $("#elVoice").addEventListener("change", (e) => { if ($("#elVoiceId")) $("#elVoiceId").value = e.target.value; });
   on("#elSave", async () => {
-    const key = $("#elKey").value.trim();
-    const voice = $("#elVoiceId").value.trim();
-    if (!key || !voice) return status("API anahtarı ve ses gerekli.");
+    const key = keyVal();
+    const voice = voiceVal();
+    if (!eleven.server && (!key || !voice)) return status("API anahtarı ve ses gerekli.");
     const opt = [...$("#elVoice").options].find((o) => o.value === voice);
-    eleven.setCfg({ key, voice, voiceName: opt ? opt.textContent : voice });
+    const name = opt ? opt.textContent : voice;
+    eleven.setCfg(eleven.server ? (voice ? { voice, voiceName: name } : null) : { key, voice, voiceName: name });
     status("Deneniyor…");
     await say("Merhaba! Ben Bilge Baykuş. Seninle Türkçe çalışmayı çok seviyorum.");
-    status(eleven.enabled() ? "✅ Bağlı: " + (opt ? opt.textContent : voice)
+    status(eleven.enabled() ? "✅ " + (eleven.server ? "Sunucu sesi çalışıyor" : "Bağlı") + (voice ? ": " + name : "")
       : "❌ " + (eleven.lastError || "Ses üretilemedi.") + " Cihaz sesi kullanılıyor.");
   });
   on("#elRemove", () => {
     eleven.setCfg(null);
-    $("#elKey").value = ""; $("#elVoiceId").value = ""; $("#elVoice").innerHTML = ""; $("#elVoiceWrap").hidden = true;
-    status("Bağlantı kaldırıldı (cihaz sesi kullanılıyor).");
+    if ($("#elKey")) $("#elKey").value = "";
+    if ($("#elVoiceId")) $("#elVoiceId").value = "";
+    $("#elVoice").innerHTML = ""; $("#elVoiceWrap").hidden = true;
+    status(eleven.server ? "Varsayılan sese dönüldü." : "Bağlantı kaldırıldı (cihaz sesi kullanılıyor).");
   });
   // Tarayıcı onay penceresi bazı ortamlarda çalışmaz; onayı sayfada iste.
   on("#reset", (b) => {

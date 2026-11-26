@@ -4,6 +4,7 @@ import * as store from "./store.js";
 import { stopListening, stopSpeaking } from "./speech.js";
 import { sfx, confetti } from "./fx.js";
 import { esc } from "./text.js";
+import { characterSVG } from "./character.js";
 
 export const $app = document.getElementById("app");
 const $back = document.getElementById("backBtn");
@@ -56,26 +57,15 @@ const $stars = document.getElementById("starCount");
 const $avatar = document.getElementById("avatar");
 function paintHeader(s) {
   $stars.textContent = s.stars;
-  $avatar.textContent = s.profile?.avatar || "🦉";
+  $avatar.innerHTML = characterSVG(s.look, "mini");
 }
 store.onChange(paintHeader);
 paintHeader(store.get());
 
 /* ---------- Baykuş maskot ---------- */
+// Maskot: çocuğun özelleştirdiği karakter (varsayılan: baykuş).
 export function owl(mood = "") {
-  return `<svg class="owl ${mood}" viewBox="0 0 120 120" aria-hidden="true">
-    <path d="M22 30 L38 44 L26 50 Z M98 30 L82 44 L94 50 Z" fill="#8f75ff"/>
-    <ellipse cx="60" cy="70" rx="40" ry="44" fill="#8f75ff"/>
-    <ellipse cx="60" cy="82" rx="25" ry="28" fill="#efe9ff"/>
-    <path d="M44 84 q4 4 8 0 M56 92 q4 4 8 0 M68 84 q4 4 8 0" stroke="#c9bbff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-    <g class="eyes">
-      <circle cx="44" cy="54" r="15" fill="#fff"/><circle cx="76" cy="54" r="15" fill="#fff"/>
-      <circle class="pupil" cx="45" cy="55" r="7.5" fill="#2b2550"/><circle class="pupil" cx="75" cy="55" r="7.5" fill="#2b2550"/>
-      <circle cx="47" cy="52" r="2.2" fill="#fff"/><circle cx="77" cy="52" r="2.2" fill="#fff"/>
-    </g>
-    <path d="M54 66 L66 66 L60 75 Z" fill="#ffb020"/>
-    <ellipse cx="44" cy="110" rx="8" ry="4" fill="#ffb020"/><ellipse cx="76" cy="110" rx="8" ry="4" fill="#ffb020"/>
-  </svg>`;
+  return characterSVG(store.get().look, mood);
 }
 
 export function mascot(text, mood = "") {

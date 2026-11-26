@@ -7,6 +7,7 @@ import "./activities/home.js";
 import "./activities/stories.js";
 import "./activities/games.js";
 import "./activities/parent.js";
+import "./activities/character.js";
 
 render();
 

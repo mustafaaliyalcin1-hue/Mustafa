@@ -73,6 +73,11 @@ route("home", () => {
     ${!canListen ? `<p class="notice">ℹ️ Bu tarayıcı ses tanımayı desteklemiyor. Konuşma etkinlikleri için Android'de veya bilgisayarda <b>Google Chrome</b> kullanın.</p>` : ""}
     ${missingVoice(en ? "en" : "tr") ? `<p class="notice">ℹ️ Cihazda ${en ? "İngilizce" : "Türkçe"} ses bulunamadı. Ayarlar → Metin okuma bölümünden ${en ? "İngilizce" : "Türkçe"} sesi yükleyin.</p>` : ""}
 
+    <a class="tile char-tile" href="#/character" style="flex-direction:row;align-items:center;gap:12px;margin-bottom:14px">
+      ${owl()}
+      <span class="t" style="flex:1">👕 Karakterim<br><span class="d">Karakterini seç, gözlük, şapka, forma ve ayakkabı giydir!</span></span>
+    </a>
+
     <h3 class="section">🗣️ Konuş</h3>
     <div class="grid">
       ${tile("themes", "🎤", en ? "Listen & Say" : "Dinle ve Söyle", en ? "İngilizce kelime ve cümleleri dinle, sen de söyle." : "Kelime ve cümleleri söyle, baykuş seni dinlesin.")}
