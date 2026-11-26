@@ -1,5 +1,6 @@
 // Dinleme ve oyun etkinlikleri: Harflerin Sesi, Benzer Sesler, Dinle Bul, Hece Yapbozu, Eksik Ses.
 
+import { icon } from "../icons.js";
 import { $app, route, go, mascot, owl, toast, progressBar, showBadges, onLeave, on } from "../ui.js";
 import { say, saySlow, listen, micAvailable, listenErrorMessage } from "../speech.js";
 import { evaluate } from "../coach.js";
@@ -20,9 +21,9 @@ function endScreen({ correct, total, again }) {
     <div class="card center finish">
       ${owl("happy big")}
       <h2>${great ? "Harikasın!" : "Güzel çalıştın!"}</h2>
-      <div class="summary"><div><b>🎯 ${correct} / ${total}</b><span>doğru</span></div></div>
+      <div class="summary"><div><b>${icon("target")} ${correct} / ${total}</b><span>doğru</span></div></div>
       <div class="row">
-        <button class="btn primary big" id="again">🔁 Tekrar oyna</button>
+        <button class="btn primary big" id="again">${icon("rotate-ccw")} Tekrar oyna</button>
         <button class="btn big" id="home">Ana sayfa</button>
       </div>
     </div>`;
@@ -47,9 +48,9 @@ route("letters", () => {
   const letters = en ? EN_LETTERS : LETTERS;
   $app.innerHTML = `
     ${mascot(en
-      ? "İngiliz alfabesi! Bir harfe dokun: harfin İngilizce adını ve örnek kelimeyi dinle. 🔤"
+      ? "İngiliz alfabesi! Bir harfe dokun: harfin İngilizce adını ve örnek kelimeyi dinle."
       : "Bir harfe dokun: sesini, örnek kelimesini ve ağzını nasıl kullanacağını öğren!")}
-    <div class="card center letter-detail" id="detail"><p class="muted">Bir harf seç 👇</p></div>
+    <div class="card center letter-detail" id="detail"><p class="muted">Bir harf seç.</p></div>
     <div class="letters">
       ${letters.map((x, i) => `<button class="letter" data-i="${i}">${x.l}<small>${lower(x.l, lang)}</small></button>`).join("")}
     </div>`;
@@ -64,8 +65,8 @@ route("letters", () => {
       <div class="target">${x.l} ${small} — ${esc(x.w)}</div>
       ${!en && SOUND_TIPS[small] ? `<p>${SOUND_TIPS[small]}</p>` : ""}
       <div class="row">
-        <button class="btn" id="again">🔊 Dinle</button>
-        ${micAvailable() ? `<button class="btn primary" id="try">🎤 Ben söyleyeyim</button>` : ""}
+        <button class="btn" id="again">${icon("volume-2")} Dinle</button>
+        ${micAvailable() ? `<button class="btn primary" id="try">${icon("mic")} Ben söyleyeyim</button>` : ""}
       </div>
       <p class="interim" id="res"></p>`;
     detail.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -80,7 +81,7 @@ route("letters", () => {
       if (!alts.length) { res.textContent = ""; return; }
       const fb = evaluate(x.w, alts, { lang });
       if (fb.level === "ok" || fb.level === "almost") {
-        res.innerHTML = `🎉 Doğru! “${esc(x.w)}”`;
+        res.innerHTML = `Doğru! “${esc(x.w)}”`;
         sfx.success();
         reward(1);
         say(en ? "Great job!" : "Aferin!", { lang });
@@ -109,7 +110,7 @@ route("pairs", (idx) => {
   const TIPS = en ? EN_SOUND_TIPS : SOUND_TIPS;
   if (idx === undefined) {
     $app.innerHTML = `
-      ${mascot(en ? "İngilizcede bazı sesler bize çok benzer gelir. Dikkatli dinle! 🎧" : "Bazı sesler birbirine çok benzer. Dikkatli dinle! Hangisini çalışalım?")}
+      ${mascot(en ? "İngilizcede bazı sesler bize çok benzer gelir. Dikkatli dinle!" : "Bazı sesler birbirine çok benzer. Dikkatli dinle! Hangisini çalışalım?")}
       <div class="grid">
         ${PAIRS.map((p, i) => `<a class="tile" href="#/pairs/${i}">
           <span class="t big-pair">${p.a} – ${p.b}</span>
@@ -131,16 +132,16 @@ route("pairs", (idx) => {
     const [w1, w2] = shuffle(pair.words[round % pair.words.length]);
     const answer = Math.random() < 0.5 ? w1 : w2;
     $app.innerHTML = `
-      <div class="practice-head"><h2>🎧 “${pair.a}” mı, “${pair.b}” mi?</h2><span class="muted">${round + 1} / ${ROUNDS}</span></div>
+      <div class="practice-head"><h2>“${pair.a}” mı, “${pair.b}” mi?</h2><span class="muted">${round + 1} / ${ROUNDS}</span></div>
       ${progressBar(round, ROUNDS)}
       <div class="card">
-        <div class="row"><button class="btn primary big" id="hear">🔊 Dinle</button></div>
+        <div class="row"><button class="btn primary big" id="hear">${icon("volume-2")} Dinle</button></div>
         <p class="center muted">Hangi kelimeyi duydun?</p>
         <div class="pair">
           <button class="btn choice-word" data-w="${esc(w1)}">${esc(w1)}</button>
           <button class="btn choice-word" data-w="${esc(w2)}">${esc(w2)}</button>
         </div>
-        <details class="tips"><summary>💡 Bu sesler nasıl söylenir?</summary>
+        <details class="tips"><summary>${icon("lightbulb")} Bu sesler nasıl söylenir?</summary>
           <p>${TIPS[pair.a] || ""}</p><p>${TIPS[pair.b] || ""}</p>
         </details>
         <div id="turn"></div>
@@ -172,8 +173,8 @@ route("pairs", (idx) => {
     turn.innerHTML = `
       <div class="feedback close">
         <p class="title">Şimdi sen söyle: “${esc(word)}”</p>
-        ${micAvailable() ? `<button class="mic" id="mic" aria-label="Konuşmak için bas">🎤</button><p class="center" id="res"></p>` : ""}
-        <div class="row"><button class="btn" id="skip">Devam ➡️</button></div>
+        ${micAvailable() ? `<button class="mic" id="mic" aria-label="Konuşmak için bas">${icon("mic", 48)}</button><p class="center" id="res"></p>` : ""}
+        <div class="row"><button class="btn" id="skip">Devam ${icon("arrow-right")}</button></div>
       </div>`;
     on("#skip", () => { round++; q(); }, turn);
     const mic = turn.querySelector("#mic");
@@ -190,7 +191,7 @@ route("pairs", (idx) => {
       const res = turn.querySelector("#res");
       if (fb.level === "ok") {
         box.className = "feedback ok";
-        res.innerHTML = "🎉 Süper! Doğru söyledin!";
+        res.innerHTML = "Süper! Doğru söyledin!";
         sfx.success();
         reward(1);
         await say(en ? "Super!" : "Süper!", { lang });
@@ -229,9 +230,9 @@ route("listen", () => {
     const options = shuffle([target, ...shuffle(words.filter((x) => x.w !== target.w)).slice(0, 3)]);
     let firstTry = true;
     $app.innerHTML = `
-      <div class="practice-head"><h2>🖼️ ${en ? "Listen & Find" : "Dinle Bul"}</h2><span class="muted">${round + 1} / ${ROUNDS}</span></div>
+      <div class="practice-head"><h2>${en ? "Listen & Find" : "Dinle Bul"}</h2><span class="muted">${round + 1} / ${ROUNDS}</span></div>
       ${progressBar(round, ROUNDS)}
-      <div class="row" style="margin-bottom:14px"><button class="btn primary big" id="hear">🔊 Kelimeyi dinle</button></div>
+      <div class="row" style="margin-bottom:14px"><button class="btn primary big" id="hear">${icon("volume-2")} Kelimeyi dinle</button></div>
       <div class="choices">
         ${options.map((o) => `<button class="choice" data-w="${esc(o.w)}" aria-label="${esc(o.e)}">${o.e}<span hidden>${esc(o.w)}</span></button>`).join("")}
       </div>`;
@@ -290,11 +291,11 @@ route("syllables", () => {
 
     function draw() {
       $app.innerHTML = `
-        <div class="practice-head"><h2>🧩 Hece Yapbozu</h2><span class="muted">${round + 1} / ${ROUNDS}</span></div>
+        <div class="practice-head"><h2>Hece Yapbozu</h2><span class="muted">${round + 1} / ${ROUNDS}</span></div>
         ${progressBar(round, ROUNDS)}
         <div class="card center">
           <div class="pic">${item.e}</div>
-          <div class="row" style="margin:0 0 12px"><button class="btn" id="hear">🔊 Hece hece dinle</button></div>
+          <div class="row" style="margin:0 0 12px"><button class="btn" id="hear">${icon("volume-2")} Hece hece dinle</button></div>
           <div class="slot chips" id="slot">${built.map((b) => `<span class="chip placed">${esc(b.p)}</span>`).join("") || `<span class="muted">Heceleri sırayla buraya diz</span>`}</div>
           <div class="chips">
             ${chips.map((x, k) => `<button class="chip" data-k="${k}" ${built.includes(x) ? "hidden" : ""}>${esc(x.p)}</button>`).join("")}
@@ -310,7 +311,7 @@ route("syllables", () => {
           sfx.retry();
           say(x.p, { rate: 0.7 });
           setTimeout(() => b.classList.remove("shake"), 500);
-          toast(`Önce “${parts[built.length]}” sesini bul 🙂`);
+          toast(`Önce “${parts[built.length]}” sesini bul.`);
           return;
         }
         sfx.tap();
@@ -356,12 +357,12 @@ route("missing", () => {
     const opts = shuffle([answer, PARTNER[answer]]);
     let firstTry = true;
     $app.innerHTML = `
-      <div class="practice-head"><h2>🔍 Eksik Ses</h2><span class="muted">${round + 1} / ${ROUNDS}</span></div>
+      <div class="practice-head"><h2>Eksik Ses</h2><span class="muted">${round + 1} / ${ROUNDS}</span></div>
       ${progressBar(round, ROUNDS)}
       <div class="card center">
         <div class="pic">${item.e}</div>
         <div class="target gap-word">${letters.map((c, i) => (i === pos ? `<span class="gap">?</span>` : esc(c))).join("")}</div>
-        <div class="row"><button class="btn" id="hear">🔊 Dinle</button></div>
+        <div class="row"><button class="btn" id="hear">${icon("volume-2")} Dinle</button></div>
         <p class="muted">Hangi ses eksik?</p>
         <div class="pair">${opts.map((o) => `<button class="btn letter-opt" data-c="${esc(o)}">${esc(o)}</button>`).join("")}</div>
       </div>`;
@@ -411,13 +412,13 @@ function wordQuiz(mode) {
     const label = (o) => (mode === "meaning" ? o.w : o.en);
     let firstTry = true;
     $app.innerHTML = `
-      <div class="practice-head"><h2>${mode === "meaning" ? "🤔 Ne Demek?" : "🔤 Hangisi?"}</h2><span class="muted">${round + 1} / ${ROUNDS}</span></div>
+      <div class="practice-head"><h2>${mode === "meaning" ? "Ne Demek?" : "Hangisi?"}</h2><span class="muted">${round + 1} / ${ROUNDS}</span></div>
       ${progressBar(round, ROUNDS)}
       <div class="card center">
         ${mode === "meaning"
           ? `<div class="target">${esc(target.en)}</div><p class="muted">Bu İngilizce kelimenin Türkçesi hangisi?</p>`
           : `<div class="pic">${target.e}</div><p class="muted">Bunun İngilizcesi hangisi?</p>`}
-        <div class="row" style="margin:0 0 14px"><button class="btn" id="hear">🔊 Dinle</button></div>
+        <div class="row" style="margin:0 0 14px"><button class="btn" id="hear">${icon("volume-2")} Dinle</button></div>
         <div class="word-opts">
           ${options.map((o) => `<button class="btn word-opt" data-w="${esc(o.w)}">${esc(label(o))}</button>`).join("")}
         </div>

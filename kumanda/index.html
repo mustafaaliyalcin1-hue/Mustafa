@@ -5,18 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Hata Kumandası</title>
   <meta name="description" content="Konuşan Arkadaşım'a bilerek hata açıp kapatan kumanda">
-  <meta name="theme-color" content="#0b0b14">
+  <meta name="theme-color" content="#111118">
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%90%9E%3C/text%3E%3C/svg%3E">
   <style>
-    :root { --bg: #0b0b14; --panel: #151522; --line: #26263a; --ink: #f1f1ff; --muted: #9a9ab8; --on: #ff4d6d; --ok: #3ddc97; }
+    :root { --bg: #111118; --panel: #1b1b24; --line: #2d2c39; --ink: #f2f1f8; --muted: #a9a6bd; --on: #ef7a6b; --ok: #3cc9a2; }
     * { box-sizing: border-box; }
     body { margin: 0; min-height: 100dvh; background: var(--bg); color: var(--ink);
-      font-family: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent;
-      background-image: radial-gradient(circle at 20% -10%, rgba(255,77,109,.18), transparent 50%), radial-gradient(circle at 110% 30%, rgba(124,77,255,.15), transparent 50%); }
+      font-family: "Lexend", system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent;
+ }
     .wrap { max-width: 560px; margin: 0 auto; padding: max(16px, env(safe-area-inset-top)) 16px 40px; }
     header { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
     .logo { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; font-size: 28px;
-      background: linear-gradient(135deg, #ff4d6d, #7c4dff); box-shadow: 0 0 24px rgba(255,77,109,.45); }
+      background: #24232e; border: 1px solid var(--line); }
     h1 { margin: 0; font-size: 24px; }
     .sub { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
     .status { display: flex; align-items: center; gap: 8px; margin: 14px 0; padding: 12px 14px; border-radius: 16px;
@@ -28,7 +29,7 @@
     .row a, .row button { flex: 1; min-height: 50px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel);
       color: var(--ink); font: inherit; font-weight: 800; font-size: 15px; display: grid; place-items: center; text-decoration: none; cursor: pointer; }
     .row .danger { background: rgba(255,77,109,.14); border-color: rgba(255,77,109,.5); }
-    .row .open { background: linear-gradient(135deg, #7c4dff, #00c2ff); border: 0; }
+    .row .open { background: #8f88ff; color: #14122b; border: 0; }
     h2 { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 18px 4px 8px; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .bug { position: relative; text-align: left; padding: 14px 12px 12px; min-height: 104px; border-radius: 18px; cursor: pointer;
@@ -39,7 +40,7 @@
     .bug small { color: var(--muted); font-size: 12.5px; line-height: 1.25; display: block; }
     .bug .sw { position: absolute; top: 12px; right: 12px; width: 40px; height: 24px; border-radius: 99px; background: #2c2c42; transition: background .2s; }
     .bug .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .2s; }
-    .bug.on { border-color: var(--on); background: rgba(255,77,109,.1); box-shadow: 0 0 22px -6px var(--on); }
+    .bug.on { border: 2px solid var(--on); background: rgba(239,122,107,.08); }
     .bug.on .sw { background: var(--on); }
     .bug.on .sw::after { transform: translateX(16px); }
     .pair { margin: 0 0 14px; padding: 14px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); }
@@ -48,7 +49,7 @@
     .pair input { flex: 1; min-width: 0; min-height: 52px; border-radius: 14px; border: 2px solid var(--line); background: #0b0b14; color: var(--ink);
       font: inherit; font-size: 24px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; text-align: center; }
     .pair input:focus { outline: none; border-color: #00c2ff; }
-    .pair button { min-width: 96px; border-radius: 14px; border: 0; font: inherit; font-weight: 800; color: #07051a; background: linear-gradient(135deg, #00c2ff, #7c4dff); cursor: pointer; }
+    .pair button { min-width: 96px; border-radius: 14px; border: 0; font: inherit; font-weight: 600; color: #14122b; background: #8f88ff; cursor: pointer; }
     .pair small { display: block; margin-top: 8px; color: var(--muted); font-size: 13px; }
     .pair.ok { border-color: var(--ok); }
     .note { color: var(--muted); font-size: 13px; line-height: 1.4; margin-top: 18px; padding: 12px; border-radius: 14px; border: 1px dashed var(--line); }

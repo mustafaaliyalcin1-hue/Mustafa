@@ -2,6 +2,7 @@
 // Ayarlar anında uygulanır ve cihazda saklanır (GitHub'a gerek yok).
 import * as store from "./store.js";
 import { go } from "./ui.js";
+import { icon } from "./icons.js";
 
 const root = document.documentElement;
 const media = matchMedia("(prefers-color-scheme: dark)");
@@ -26,18 +27,18 @@ const seg = (key, value, options) => `
 function panelHTML() {
   const s = store.get().settings;
   return `
-    <div class="menu-head"><b>☰ Menü</b><button class="menu-x" aria-label="Menüyü kapat">✕</button></div>
+    <div class="menu-head"><b>Menü</b><button class="menu-x" aria-label="Menüyü kapat">${icon("x")}</button></div>
     <nav class="menu-links">
-      <a href="#/home">🏠 Ana sayfa</a>
-      <a href="#/character">👕 Karakterim</a>
-      <a href="panel/">🚀 Öğrenme paneli</a>
-      <a href="#/parent">⚙️ Yönetim paneli</a>
+      <a href="#/home">${icon("arrow-left", 20)} Ana sayfa</a>
+      <a href="#/character">${icon("shirt", 20)} Karakterim</a>
+      <a href="panel/">${icon("star", 20)} İlerlemem</a>
+      <a href="#/parent">${icon("settings", 20)} Yönetim paneli</a>
     </nav>
-    <div class="menu-group"><p>🌗 Görünüm</p>${seg("theme", s.theme || "auto", [["auto", "Otomatik"], ["light", "☀️ Aydınlık"], ["dark", "🌙 Koyu"]])}</div>
-    <div class="menu-group"><p>✨ Animasyonlar</p>${seg("anim", s.anim !== false, [[true, "Açık"], [false, "Kapalı"]])}</div>
-    <div class="menu-group"><p>🗣️ Doğal ses</p>${seg("natural", s.natural !== false, [[true, "Açık"], [false, "Kapalı"]])}</div>
-    <div class="menu-group"><p>🎵 Oyun sesleri</p>${seg("sfx", s.sfx !== false, [[true, "Açık"], [false, "Kapalı"]])}</div>
-    <div class="menu-group"><p>🐢 Okuma hızı: <span id="menuRate">${s.rate.toFixed(2)}</span></p>
+    <div class="menu-group"><p>Görünüm</p>${seg("theme", s.theme || "auto", [["auto", "Otomatik"], ["light", "Aydınlık"], ["dark", "Koyu"]])}</div>
+    <div class="menu-group"><p>Animasyonlar</p>${seg("anim", s.anim !== false, [[true, "Açık"], [false, "Kapalı"]])}</div>
+    <div class="menu-group"><p>Doğal ses</p>${seg("natural", s.natural !== false, [[true, "Açık"], [false, "Kapalı"]])}</div>
+    <div class="menu-group"><p>Oyun sesleri</p>${seg("sfx", s.sfx !== false, [[true, "Açık"], [false, "Kapalı"]])}</div>
+    <div class="menu-group"><p>Okuma hızı: <span id="menuRate">${s.rate.toFixed(2)}</span></p>
       <input type="range" id="menuRateIn" min="0.5" max="1.1" step="0.05" value="${s.rate}" aria-label="Okuma hızı"></div>
     <p class="menu-note">Ayarlar bu cihazda saklanır.</p>`;
 }

@@ -13,3 +13,6 @@
 - Hata Kumandası: `kumanda/index.html` (tek dosya) → localStorage `konusan-arkadasim:hatalar` ile ana uygulamada bilerek hata açar/kapatır;
   uygulama tarafı `js/chaos.js` + `styles.css` (bug-*). Uzaktan: Yönetim paneli (#/parent) en altındaki "Sürüm 2.4.0 · Yapı <kod>" satırındaki 6 haneli kod — sürüm kodu gibi görünür, kumanda
   geçmez (kullanıcı istedi; uygulamadan kumandaya bağlantı yok) → ntfy.sh konusu `ka-surum-<kod>` (kumanda POST eder, uygulama SSE ile dinler). Hatalar ilerlemeye dokunmaz. `main` dalı da proje dalıyla güncel tutulur.
+- Tasarım standardı (kullanıcı istedi, "yapay zeka şablonu" gibi görünmesin): sade, tutarlı, 6-8 yaş için okunaklı. Ana uygulamada
+  `styles.css` sonundaki "SADE TASARIM" katmanı, panelde `arayuz/src/index.css`. Kart köşesi 20px, kontrol 14px, iç boşluk 20/16px, Lexend 17px.
+  İkonlar tek set: Lucide (`js/icons.js`, panelde `lucide-react`). Süs emojisi/parlama/tarama ışığı ekleme; vurgu yalnızca ana aksiyonda.

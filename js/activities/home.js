@@ -1,5 +1,6 @@
 // Karşılama, ana sayfa, temalar ve kişisel "Zor Seslerim" çalışması.
 
+import { icon, topicIcon } from "../icons.js";
 import { $app, route, go, mascot, owl, on, progressBar } from "../ui.js";
 import { say, canListen, missingVoice } from "../speech.js";
 import { THEMES, PICTURE_WORDS, EXTRA_WORDS } from "../content.js";
@@ -40,8 +41,8 @@ route("welcome", () => {
         <i class="ring"></i><i class="ring r2"></i>
         ${free.map((b, i) => `<div class="c c${i}">${characterSVG({ body: b.id, hat: ["cap", "headphones", "bow", "none"][i] || "none" })}</div>`).join("")}
       </div>
-      <h1 class="wel-title"><span class="glow">Merhaba!</span> <span class="wave">👋</span></h1>
-      <p class="wel-sub">Konuşan Arkadaşım'a hoş geldin! Birlikte dinleyip konuşarak çok güzel söyleyeceğiz.</p>
+      <h1 class="wel-title">Merhaba!</h1>
+      <p class="wel-sub">Hoş geldin! Birlikte dinleyip konuşacağız.</p>
       <div class="wel-card">
         <label class="wel-field">Adın ne?
           <input id="name" maxlength="20" autocomplete="off" placeholder="Adını yaz" value="${esc(name)}">
@@ -51,7 +52,7 @@ route("welcome", () => {
           <button class="${g === 1 ? "on" : ""}" data-g="1">1. sınıf</button>
           <button class="${g === 2 ? "on" : ""}" data-g="2">2. sınıf</button>
         </div>
-        <button class="wel-cta" id="next">Devam <span>→</span></button>
+        <button class="wel-cta" id="next">Devam ${icon("arrow-right")}</button>
       </div>`);
     on("#grade button", (b) => { g = +b.dataset.g; $app.querySelectorAll("#grade button").forEach((x) => x.classList.toggle("on", x === b)); });
     const nameInput = $app.querySelector("#name");
@@ -61,22 +62,22 @@ route("welcome", () => {
 
   const step2 = () => {
     $app.innerHTML = shell(2, `
-      <h1 class="wel-title sm">Arkadaşını seç, <span class="glow">${esc(name)}</span>!</h1>
-      <p class="wel-sub">Seninle birlikte çalışacak karakterini seç ve ona bir isim koy.</p>
+      <h1 class="wel-title sm">Arkadaşını seç, ${esc(name)}!</h1>
+      <p class="wel-sub">Bir arkadaş seç ve ona bir ad ver.</p>
       <div class="wel-card">
         <div class="wel-stage"><i class="beam"></i><i class="pad"></i><div class="who pop" id="stage">${characterSVG({ body }, "happy")}</div></div>
         <div class="wel-pick">
           ${free.map((b) => `<button data-id="${b.id}" class="${b.id === body ? "on" : ""}" aria-pressed="${b.id === body}">${characterSVG({ body: b.id })}<span>${esc(b.name)}</span></button>`).join("")}
         </div>
-        <label class="wel-field">Arkadaşının adı
+        <label class="wel-field">Arkadaşının adı ne olsun?
           <span class="wel-name">
             <input id="buddy" maxlength="16" autocomplete="off" value="${esc(buddyName)}">
-            <button id="idea" aria-label="Başka isim öner">🎲</button>
+            <button id="idea" aria-label="Başka ad öner">${icon("shuffle")}</button>
           </span>
         </label>
         <div class="wel-row">
-          <button class="wel-back" id="back">←</button>
-          <button class="wel-cta" id="next">Devam <span>→</span></button>
+          <button class="wel-back" id="back" aria-label="Geri">${icon("arrow-left")}</button>
+          <button class="wel-cta" id="next">Devam ${icon("arrow-right")}</button>
         </div>
       </div>`);
     on(".wel-pick button", (b) => {
@@ -133,39 +134,31 @@ route("home", () => {
   const ringC = 2 * Math.PI * 38;
   $app.innerHTML = `
     <section class="fx-hero card">
-      <i class="hud-c tl"></i><i class="hud-c tr"></i><i class="hud-c bl"></i><i class="hud-c br"></i>
-      <button class="fx-buddy" id="buddy" aria-label="${esc(store.buddy())} zıplasın">
-        <i class="pad"></i><i class="orbit"></i><i class="orbit two"></i>
+      <button class="fx-buddy" id="buddy" aria-label="${esc(store.buddy())}">
         <span class="who">${owl("happy")}</span>
       </button>
       <div class="fx-copy">
-        <p class="fx-kicker">Komuta merkezi · ${en ? "English" : "Türkçe"}</p>
-        <h1 class="fx-hello">Merhaba <span class="fx-glow">${esc(p.name)}</span>!</h1>
-        <p class="fx-say">${en ? `Ben ${esc(store.buddy())}. Bugün biraz İngilizce çalışalım mı? 🇬🇧` : `Ben ${esc(store.buddy())}. ${next ? `Sıradaki görev: <b>${next.icon} ${esc(next.sub || next.title)}</b>` : "Bütün konuları bitirdin! 🎉"}`}</p>
-        <div class="fx-stats" style="margin-top:12px">
-          <div class="fx-ring" role="img" aria-label="Günlük hedef ${Math.min(todays, store.DAILY_GOAL)} / ${store.DAILY_GOAL} yıldız">
-            <svg viewBox="0 0 96 96" aria-hidden="true">
-              <defs><linearGradient id="ringG" x1="0" x2="1"><stop offset="0" stop-color="var(--neon-1)"/><stop offset="1" stop-color="var(--neon-3)"/></linearGradient></defs>
-              <circle cx="48" cy="48" r="38" fill="none" stroke="var(--soft)" stroke-width="8"/>
-              <circle class="val" cx="48" cy="48" r="38" fill="none" stroke="url(#ringG)" stroke-width="8" stroke-linecap="round"
-                stroke-dasharray="${ringC}" stroke-dashoffset="${ringC}" data-to="${ringC * (1 - Math.min(todays / store.DAILY_GOAL, 1))}"/>
-            </svg>
-            <div><b>${Math.min(todays, store.DAILY_GOAL)}</b><small>/ ${store.DAILY_GOAL} ⭐</small></div>
-          </div>
-          <div class="fx-stat card"><b data-count="${s.stars}">0</b><small>⭐ Yıldız</small></div>
-          <div class="fx-stat card"><b data-count="${st}">0</b><small>🔥 Seri</small></div>
-          <div class="fx-stat card"><b><span data-count="${finished}">0</span><small style="font-size:13px">/${allThemes.length}</small></b><small>✓ Biten</small></div>
+        <h1 class="fx-hello">Merhaba ${esc(p.name)}!</h1>
+        <p class="fx-say">${en ? "Bugün İngilizce çalışıyoruz." : next ? `Sıradaki konu: <b>${esc(next.sub || next.title)}</b>` : "Bütün konuları bitirdin. Harikasın!"}</p>
+        <div class="fx-goal">
+          <div class="fx-goal-top"><span>Bugünkü hedef</span><span class="muted">${Math.min(todays, store.DAILY_GOAL)} / ${store.DAILY_GOAL} yıldız</span></div>
+          ${progressBar(Math.min(todays, store.DAILY_GOAL), store.DAILY_GOAL)}
         </div>
-        <div class="fx-actions" style="margin-top:14px">
-          <a class="btn primary" href="${next ? `#/theme/${next.id}` : "#/themes"}">${todays ? "Devam et" : "Başla"} →</a>
-          <a class="btn" href="#/character">👕 Beni giydir</a>
+        <div class="fx-stats">
+          <div class="fx-stat"><span class="c-star">${icon("star")}</span><div><b>${s.stars}</b><small>yıldız</small></div></div>
+          <div class="fx-stat"><span class="c-flame">${icon("flame")}</span><div><b>${st}</b><small>gün seri</small></div></div>
+          <div class="fx-stat"><span class="c-check">${icon("check")}</span><div><b>${finished}/${allThemes.length}</b><small>konu</small></div></div>
+        </div>
+        <div class="fx-actions">
+          <a class="btn primary" href="${next ? `#/theme/${next.id}` : "#/themes"}">Devam et ${icon("arrow-right")}</a>
+          <a class="btn" href="#/character">${icon("shirt")} Kıyafet seç</a>
         </div>
       </div>
     </section>
 
     <section class="fx-week card">
-      <div class="fx-week-top"><b>Son 7 gün</b><span class="muted small">${week.reduce((a, d) => a + d.stars, 0)} ⭐ ${todays >= store.DAILY_GOAL ? "· 🎉 Bugünkü hedef tamam!" : ""}</span></div>
-      <div class="fx-bars">${week.map((d, i) => `<div class="col"><div class="bar-wrap"><i style="height:${Math.max(4, (d.stars / maxDay) * 100)}%;animation-delay:${200 + i * 70}ms;opacity:${d.stars ? 1 : 0.25}"></i></div><small>${d.label}</small></div>`).join("")}</div>
+      <div class="fx-week-top"><b>Bu hafta</b><span class="muted small">${(() => { const t = week.reduce((a, d) => a + d.stars, 0); return t ? `${t} yıldız topladın` : "Henüz yıldız yok"; })()}</span></div>
+      <div class="fx-bars">${week.map((d, i) => `<div class="col"><div class="bar-wrap"><i style="height:${Math.max(5, (d.stars / maxDay) * 100)}%;animation-delay:${120 + i * 40}ms;${d.stars ? "" : "background:var(--soft)"}"></i></div><small>${d.label}</small></div>`).join("")}</div>
     </section>
 
     <div class="lang-switch" role="group" aria-label="Dil seçimi">
@@ -175,29 +168,29 @@ route("home", () => {
     ${!canListen ? `<p class="notice">ℹ️ Bu tarayıcı ses tanımayı desteklemiyor. Konuşma etkinlikleri için Android'de veya bilgisayarda <b>Google Chrome</b> kullanın.</p>` : ""}
     ${missingVoice(en ? "en" : "tr") ? `<p class="notice">ℹ️ Cihazda ${en ? "İngilizce" : "Türkçe"} ses bulunamadı. Ayarlar → Metin okuma bölümünden ${en ? "İngilizce" : "Türkçe"} sesi yükleyin.</p>` : ""}
 
-    <h3 class="section">🗣️ Konuş</h3>
+    <h3 class="section">Konuş</h3>
     <div class="grid">
-      ${tile("themes", "🎤", en ? "Listen & Say" : "Dinle ve Söyle", en ? "İngilizce kelime ve cümleleri dinle, sen de söyle." : `Kelime ve cümleleri söyle, ${esc(store.buddy())} seni dinlesin.`)}
-      ${tile("stories", "📚", en ? "Story Time" : "Hikâye Oku", en ? "Kısa İngilizce hikâyeyi dinle, sonra sen oku." : "Hikâyeyi dinle, cümle cümle sen oku.")}
-      ${weak.length ? tile("weak", "🦸", "Zor Seslerim", `Senin için seçtim: ${weak.map(([c]) => `“${esc(c)}”`).join(", ")}`, "hot") : ""}
+      ${tile("themes", icon("mic", 26), en ? "Listen & Say" : "Dinle ve Söyle", en ? "İngilizce kelime ve cümleleri dinle, sen de söyle." : `Kelime ve cümleleri söyle, ${esc(store.buddy())} seni dinlesin.`)}
+      ${tile("stories", icon("book-open", 26), en ? "Story Time" : "Hikâye Oku", en ? "Kısa İngilizce hikâyeyi dinle, sonra sen oku." : "Hikâyeyi dinle, cümle cümle sen oku.")}
+      ${weak.length ? tile("weak", icon("sparkles", 26), "Zor Seslerim", `Senin için seçtim: ${weak.map(([c]) => `“${esc(c)}”`).join(", ")}`, "hot") : ""}
     </div>
 
-    <h3 class="section">👂 Dinle</h3>
+    <h3 class="section">Dinle</h3>
     <div class="grid">
-      ${tile("letters", "🔠", en ? "ABC" : "Harflerin Sesi", en ? "İngiliz alfabesi: harfi ve örnek kelimeyi dinle." : "Her harfin sesini ve örnek kelimesini dinle.")}
-      ${tile("pairs", "🎧", "Benzer Sesler", en ? "v-w, th-t, ship-sheep… Hangisini duydun?" : "ı-i, o-ö, s-ş, c-ç, r-l… Hangisini duydun?")}
-      ${tile("listen", "🖼️", en ? "Listen & Find" : "Dinle Bul", en ? "İngilizce kelimeyi dinle, doğru resmi bul." : "Kelimeyi dinle, doğru resmi bul.")}
+      ${tile("letters", icon("type", 26), en ? "ABC" : "Harflerin Sesi", en ? "İngiliz alfabesi: harfi ve örnek kelimeyi dinle." : "Her harfin sesini ve örnek kelimesini dinle.")}
+      ${tile("pairs", icon("headphones", 26), "Benzer Sesler", en ? "v-w, th-t, ship-sheep… Hangisini duydun?" : "ı-i, o-ö, s-ş, c-ç, r-l… Hangisini duydun?")}
+      ${tile("listen", icon("image", 26), en ? "Listen & Find" : "Dinle Bul", en ? "İngilizce kelimeyi dinle, doğru resmi bul." : "Kelimeyi dinle, doğru resmi bul.")}
     </div>
 
-    <h3 class="section">🧩 Oyna</h3>
+    <h3 class="section">Oyna</h3>
     <div class="grid">
       ${en
-        ? tile("meaning", "🤔", "Ne Demek?", "İngilizce kelimeyi dinle, Türkçesini bul.") + tile("which", "🔤", "Hangisi?", "Resme bak, doğru İngilizce kelimeyi seç.")
-        : tile("syllables", "🧩", "Hece Yapbozu", "Heceleri sırayla diz, kelimeyi kur.") + tile("missing", "🔍", "Eksik Ses", "Kelimede eksik olan sesi bul.")}
+        ? tile("meaning", icon("circle-help", 26), "Ne Demek?", "İngilizce kelimeyi dinle, Türkçesini bul.") + tile("which", icon("languages", 26), "Hangisi?", "Resme bak, doğru İngilizce kelimeyi seç.")
+        : tile("syllables", icon("puzzle", 26), "Hece Yapbozu", "Heceleri sırayla diz, kelimeyi kur.") + tile("missing", icon("search", 26), "Eksik Ses", "Kelimede eksik olan sesi bul.")}
     </div>
 
     <div class="row footer-row">
-      <button class="btn small" onclick="location.hash='#/parent'">⚙️ Yönetim paneli</button>
+      <button class="btn small" onclick="location.hash='#/parent'">${icon("settings")} Yönetim paneli</button>
     </div>`;
   // Sayılar sayarak yükselir, hedef halkası dolar, karaktere dokununca zıplar
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.classList.contains("no-anim");
@@ -240,11 +233,11 @@ route("themes", () => {
         const items = itemsFor(t);
         const n = items.filter((x) => store.isDone(t.id, x.t)).length;
         return `<a class="tile" href="#/theme/${t.id}">
-          <span class="ic">${t.icon}</span>
+          <span class="ic">${topicIcon(t.id, 26)}</span>
           <span class="t">${t.title}</span>
           ${t.sub ? `<span class="d">${esc(t.sub)}</span>` : ""}
           ${progressBar(n, items.length)}
-          <span class="d">${n === items.length ? "✅ Tamamlandı" : `${n} / ${items.length}`}</span>
+          <span class="d">${n === items.length ? "Bitti" : `${n} / ${items.length}`}</span>
         </a>`;
       }).join("")}
     </div>`;
@@ -257,7 +250,7 @@ route("theme", (id) => {
   const firstUndone = items.findIndex((x) => !store.isDone(theme.id, x.t));
   startPractice({
     title: theme.sub || theme.title,
-    icon: theme.icon,
+    icon: topicIcon(theme.id),
     items,
     lang: EN_THEMES.includes(theme) ? "en" : "tr",
     listId: theme.id,
@@ -299,7 +292,7 @@ route("weak", () => {
   if (!items.length) return go("#/home");
   startPractice({
     title: `Zor Seslerim: ${weak.join(", ")}`,
-    icon: "🦸",
+    icon: icon("sparkles", 24),
     items,
     lang: en ? "en" : "tr",
     listId: en ? "en-weak" : "weak",

@@ -1,6 +1,7 @@
 // Konuşma alıştırması: çocuk dinler, söyler; baykuş değerlendirip yönlendirir.
 // Temalar, hikâyeler ve "Zor Seslerim" bu ortak ekranı kullanır.
 
+import { icon } from "../icons.js";
 import { $app, mascot, owl, toast, progressBar, showBadges, go, onLeave } from "../ui.js";
 import { say, saySlow, listen, stopListening, micAvailable, listenErrorMessage } from "../speech.js";
 import { evaluate } from "../coach.js";
@@ -56,18 +57,18 @@ export function startPractice(o) {
         ${it.e ? `<div class="pic" aria-hidden="true">${it.e}</div>` : ""}
         <div class="target" id="target">${wordsHtml}</div>
         ${en
-          ? `<div class="meaning">${it.tr ? `<span class="tr">🇹🇷 ${esc(it.tr)}</span>` : ""}${it.p ? `<span class="say">🗣️ Okunuşu: <b>${esc(it.p)}</b></span>` : ""}</div>`
+          ? `<div class="meaning">${it.tr ? `<span class="tr">Türkçesi: ${esc(it.tr)}</span>` : ""}${it.p ? `<span class="say">Okunuşu: <b>${esc(it.p)}</b></span>` : ""}</div>`
           : `<div class="syll" aria-label="Heceler">${target.map((w) => syllabify(w).join("·")).join("   ")}</div>`}
         <div class="row">
-          <button class="btn" id="play">🔊 Dinle</button>
-          <button class="btn" id="slow">🐢 ${en ? "Yavaş" : "Hece hece"}</button>
+          <button class="btn" id="play">${icon("volume-2")} Dinle</button>
+          <button class="btn" id="slow">${icon("snail")} ${en ? "Yavaş" : "Hece hece"}</button>
         </div>
         ${micAvailable()
-          ? `<button class="mic" id="mic" aria-label="Konuşmak için bas">🎤</button>
+          ? `<button class="mic" id="mic" aria-label="Konuşmak için bas">${icon("mic", 48)}</button>
              <p class="center muted" id="hint">${hintText(fb)}</p>
              <p class="interim" id="interim" aria-live="polite"></p>`
           : `<p class="notice">Mikrofon kullanılamıyor. Cümleyi yüksek sesle oku; öğretmenin ya da velin dinleyip onaylasın.</p>
-             <div class="row"><button class="btn primary" id="selfOk">✅ Doğru okudu</button><button class="btn" id="selfAgain">🔁 Tekrar okusun</button></div>`}
+             <div class="row"><button class="btn primary" id="selfOk">${icon("check")} Doğru okudu</button><button class="btn" id="selfAgain">${icon("rotate-ccw")} Tekrar okusun</button></div>`}
         <div id="fb">${fb ? feedbackHtml(fb) : ""}</div>
       </div>`;
 
@@ -103,29 +104,29 @@ export function startPractice(o) {
 
   function hintText(fb) {
     if (!fb) return en ? "Dinle, sonra mikrofona bas ve İngilizce söyle" : "Dinle, sonra mikrofona bas ve söyle";
-    if (fb.level === "ok") return "Sıradakine geçiyoruz… ➡️";
+    if (fb.level === "ok") return "Sıradakine geçiyoruz…";
     if (fb.level === "almost") return "Devam etmek için “Devam”a bas";
     return "Bir daha denemek için mikrofona bas";
   }
 
   function feedbackHtml(fb) {
     if (fb.level === "ok") {
-      return `<div class="feedback ok">${mascot(`<b>🎉 ${esc(fb.praise)}</b> Doğru söyledin!`, "happy")}</div>`;
+      return `<div class="feedback ok">${mascot(`<b>${esc(fb.praise)}</b> Doğru söyledin!`, "happy")}</div>`;
     }
     if (fb.level === "almost") {
       return `<div class="feedback ok">
-        ${mascot(`<b>👏 ${esc(fb.praise)}</b> Doğru kabul ediyorum! Küçük bir ipucu:`, "happy")}
+        ${mascot(`<b>${esc(fb.praise)}</b> Doğru kabul ediyorum! Küçük bir ipucu:`, "happy")}
         ${fb.tips.length ? `<ul>${fb.tips.slice(0, 1).map((t) => `<li>${t.html}</li>`).join("")}</ul>` : ""}
-        <div class="row"><button class="btn primary big" data-act="next">Devam ➡️</button></div>
+        <div class="row"><button class="btn primary big" data-act="next">Devam ${icon("arrow-right")}</button></div>
       </div>`;
     }
-    const title = fb.level === "close" ? "Çok yaklaştın! Bir daha deneyelim. 💪" : "Hadi birlikte, yavaş yavaş deneyelim. 🙂";
+    const title = fb.level === "close" ? "Çok yaklaştın! Bir daha deneyelim." : "Hadi birlikte, yavaş yavaş deneyelim.";
     const firstWord = fb.tips[0]?.word || fb.aligned.find((a) => a.status !== "ok")?.word;
     return `<div class="feedback ${fb.level}">
       ${mascot(`<b>${title}</b><br><span class="muted">Duyduğum: “${esc(fb.heardText || "…")}”</span>`, "thinking")}
       ${fb.tips.length ? `<ul>${fb.tips.map((t) => `<li>${t.html}</li>`).join("")}</ul>` : ""}
       <div class="row">
-        ${firstWord ? `<button class="btn" data-act="model" data-word="${esc(firstWord)}">🔊 “${esc(firstWord)}” nasıl söylenir?</button>` : ""}
+        ${firstWord ? `<button class="btn" data-act="model" data-word="${esc(firstWord)}">${icon("volume-2")} “${esc(firstWord)}” nasıl söylenir?</button>` : ""}
         ${tries >= 2 ? `<button class="btn" data-act="next">⏭️ Sonrakine geç</button>` : ""}
       </div>
     </div>`;
@@ -138,7 +139,7 @@ export function startPractice(o) {
     mic.setAttribute("aria-label", "Dinliyorum, bitirmek için bas");
     const hint = $app.querySelector("#hint");
     const interim = $app.querySelector("#interim");
-    hint.textContent = "Dinliyorum… şimdi söyle! 👂";
+    hint.textContent = "Dinliyorum… şimdi söyle!";
     sfx.tap();
     let alts = [];
     try {
@@ -158,7 +159,7 @@ export function startPractice(o) {
     if (!alts.length) {
       hint.textContent = "Mikrofona bas ve söyle";
       interim.textContent = "";
-      toast("Sesini duyamadım. Mikrofona yakın ve biraz daha yüksek söyle 📢");
+      toast("Sesini duyamadım. Mikrofona yakın ve biraz daha yüksek söyle.");
       return;
     }
     tries++;
@@ -217,12 +218,12 @@ export function startPractice(o) {
         ${owl("happy big")}
         <h2>${perfect ? "Muhteşem! Hepsini ilk seferde bildin!" : "Tebrikler! Bölümü bitirdin!"}</h2>
         <div class="summary">
-          <div><b>⭐ ${sum.stars}</b><span>yıldız kazandın</span></div>
-          <div><b>🎯 ${sum.firstTry} / ${sum.total}</b><span>ilk denemede doğru</span></div>
+          <div><b>${icon("star")} ${sum.stars}</b><span>yıldız kazandın</span></div>
+          <div><b>${icon("target")} ${sum.firstTry} / ${sum.total}</b><span>ilk denemede doğru</span></div>
         </div>
         <div class="row">
-          <button class="btn primary big" id="again">🔁 Tekrar</button>
-          <button class="btn big" id="back">Devam ➡️</button>
+          <button class="btn primary big" id="again">${icon("rotate-ccw")} Tekrar</button>
+          <button class="btn big" id="back">Devam ${icon("arrow-right")}</button>
         </div>
       </div>`;
     confetti(40);

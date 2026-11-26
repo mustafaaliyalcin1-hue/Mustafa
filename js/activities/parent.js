@@ -1,5 +1,6 @@
 // Veli / Öğretmen paneli: basit bir ebeveyn kapısının arkasında ilerleme ve ayarlar.
 
+import { icon, topicIcon } from "../icons.js";
 import { $app, route, go, on, toast, progressBar } from "../ui.js";
 import { say, elevenLabs as eleven } from "../speech.js";
 import { THEMES, STORIES, BADGES } from "../content.js";
@@ -17,7 +18,7 @@ route("parent", () => {
   const b = 6 + Math.floor(Math.random() * 4);
   $app.innerHTML = `
     <div class="card center">
-      <h2>⚙️ Yönetim Paneli</h2>
+      <h2>Yönetim Paneli</h2>
       <p>Devam etmek için işlemin sonucunu yazın:</p>
       <p class="target">${a} × ${b} = ?</p>
       <input id="ans" class="ans" inputmode="numeric" autocomplete="off" aria-label="Cevap">
@@ -49,11 +50,11 @@ function panel() {
     themes.map((t) => {
       const items = t.items.filter((x) => x.g === g);
       const n = items.filter((x) => store.isDone(t.id, x.t)).length;
-      return `<div class="hrow"><span>${t.icon} ${esc(t.title)}</span>${progressBar(n, items.length)}<span>${n}/${items.length}</span></div>`;
+      return `<div class="hrow"><span>${topicIcon(t.id, 20)} ${esc(t.title)}</span>${progressBar(n, items.length)}<span>${n}/${items.length}</span></div>`;
     }).join("") +
     stories.map((st) => {
       const n = store.doneCount("story:" + st.id);
-      return `<div class="hrow"><span>${st.icon} ${esc(st.title)}</span>${progressBar(n, st.lines.length)}<span>${n}/${st.lines.length}</span></div>`;
+      return `<div class="hrow"><span>${icon("book-open", 20)} ${esc(st.title)}</span>${progressBar(n, st.lines.length)}<span>${n}/${st.lines.length}</span></div>`;
     }).join("");
 
   // Son 7 gün
@@ -66,14 +67,14 @@ function panel() {
   const maxDay = Math.max(store.DAILY_GOAL, ...days.map((d) => d.n));
 
   $app.innerHTML = `
-    <h2>👨‍👩‍👧 ${esc(p.name)} — İlerleme Raporu</h2>
+    <h2>${esc(p.name)}: ilerleme raporu</h2>
 
     <div class="stats">
-      <div class="stat"><b>⭐ ${s.stars}</b><span>toplam yıldız</span></div>
-      <div class="stat"><b>🗣️ ${s.correct}</b><span>doğru söylenen</span></div>
+      <div class="stat"><b>${icon("star")} ${s.stars}</b><span>toplam yıldız</span></div>
+      <div class="stat"><b>${icon("message-circle")} ${s.correct}</b><span>doğru söylenen</span></div>
       <div class="stat"><b>${acc}%</b><span>doğruluk</span></div>
       <div class="stat"><b>${first}%</b><span>ilk denemede</span></div>
-      <div class="stat"><b>🔥 ${store.streak()}</b><span>gün seri</span></div>
+      <div class="stat"><b>${icon("flame")} ${store.streak()}</b><span>gün seri</span></div>
     </div>
 
     <div class="card">
@@ -88,7 +89,7 @@ function panel() {
       ${weak.length
         ? `<p class="muted">Ses tanıma bu seslerde farklılık yakaladı. “Zor Seslerim” etkinliği bu seslere göre kelime seçer.</p>
            ${weak.map(([c, n, flag]) => `<div class="hbar"><span class="k">${flag}<br>${esc(c)}</span><div class="bar"><i style="width:${(n / maxWeak) * 100}%"></i></div><span>${n}</span></div>`).join("")}`
-        : `<p class="muted">Henüz belirgin bir zorluk görünmüyor. 👍</p>`}
+        : `<p class="muted">Henüz belirgin bir zorluk görünmüyor.</p>`}
     </div>
 
     <div class="card">
@@ -114,19 +115,19 @@ function panel() {
       <p class="label">Sınıf</p>
       <div class="seg" id="grade"><button data-g="1" class="${g === 1 ? "on" : ""}">1. sınıf</button><button data-g="2" class="${g === 2 ? "on" : ""}">2. sınıf</button></div>
       <label class="field">Karakterin adı <input id="buddy" value="${esc(store.buddy())}" maxlength="16"></label>
-      <div class="row" style="margin-top:0"><a class="btn" href="#/character">👕 Karakteri giydir</a></div>
+      <div class="row" style="margin-top:0"><a class="btn" href="#/character">${icon("shirt")} Kıyafet seç</a></div>
       <label class="field">Okuma hızı: <span id="rateVal">${s.settings.rate.toFixed(2)}</span>
         <input type="range" id="rate" min="0.5" max="1.1" step="0.05" value="${s.settings.rate}">
       </label>
       <label class="check"><input type="checkbox" id="sfx" ${s.settings.sfx ? "checked" : ""}> Oyun sesleri</label>
       <div class="row">
-        <button class="btn" id="testVoice">🔊 Sesi dene</button>
-        <button class="btn danger" id="reset">🗑️ İlerlemeyi sıfırla</button>
+        <button class="btn" id="testVoice">${icon("volume-2")} Sesi dene</button>
+        <button class="btn danger" id="reset">${icon("trash-2")} İlerlemeyi sıfırla</button>
       </div>
     </div>
 
     <div class="card settings" id="elevenCard" hidden>
-      <h3>🎙️ Ses ayarı</h3>
+      <h3>Ses ayarı</h3>
       ${eleven.server ? `
       <p class="muted small">Doğal ses <b>merkezi sunucudan</b> geliyor: API anahtarı sunucuda saklanır, cihazlara anahtar girmek gerekmez.
         Sunucuya ulaşılamazsa cihazın kendi sesi kullanılır.</p>` : `
@@ -135,7 +136,7 @@ function panel() {
       <label class="field">API anahtarı
         <input type="password" id="elKey" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="sk_..." value="${esc(eleven.getCfg().key || "")}">
       </label>`}
-      <div class="row"><button class="btn" id="elConnect">🔗 ${eleven.server ? "Sesleri getir" : "Bağlan ve sesleri getir"}</button></div>
+      <div class="row"><button class="btn" id="elConnect">${eleven.server ? "Sesleri getir" : "Bağlan ve sesleri getir"}</button></div>
       <label class="field" id="elVoiceWrap" ${eleven.getCfg().voice ? "" : "hidden"}>Ses
         <select id="elVoice">${eleven.getCfg().voice ? `<option value="${esc(eleven.getCfg().voice)}">${esc(eleven.getCfg().voiceName || eleven.getCfg().voice)}</option>` : ""}</select>
       </label>
@@ -143,11 +144,11 @@ function panel() {
         <input type="text" id="elVoiceId" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(eleven.getCfg().voice || "")}">
       </label>`}
       <p class="small" id="elStatus">${eleven.server
-        ? "✅ Merkezi ses sunucusu kullanılıyor" + (eleven.getCfg().voice ? " · Ses: " + esc(eleven.getCfg().voiceName || "") : " · Varsayılan ses")
-        : eleven.enabled() ? "✅ Bağlı: " + esc(eleven.getCfg().voiceName || eleven.getCfg().voice) : "Bağlı değil (cihaz sesi kullanılıyor)."}</p>
+        ? "Merkezi ses sunucusu kullanılıyor" + (eleven.getCfg().voice ? " · Ses: " + esc(eleven.getCfg().voiceName || "") : " · Varsayılan ses")
+        : eleven.enabled() ? "Bağlı: " + esc(eleven.getCfg().voiceName || eleven.getCfg().voice) : "Bağlı değil (cihaz sesi kullanılıyor)."}</p>
       <div class="row">
-        <button class="btn" id="elSave">💾 Kaydet ve dene</button>
-        <button class="btn danger" id="elRemove">✖️ ${eleven.server ? "Varsayılan sese dön" : "Bağlantıyı kaldır"}</button>
+        <button class="btn" id="elSave">Kaydet ve dene</button>
+        <button class="btn danger" id="elRemove">${eleven.server ? "Varsayılan sese dön" : "Bağlantıyı kaldır"}</button>
       </div>
     </div>
 
@@ -183,7 +184,7 @@ function panel() {
       if ($("#elVoiceId") && !cur && voices[0]) $("#elVoiceId").value = voices[0].id;
       status(`${voices.length} ses bulundu. Birini seçip "Kaydet ve dene"ye basın.`);
     } catch (e) {
-      status("❌ " + (e.message || "Bağlanılamadı") + (eleven.server ? "" : " Ses kimliğini elle yazıp yine kaydedebilirsiniz."));
+      status( (e.message || "Bağlanılamadı") + (eleven.server ? "" : " Ses kimliğini elle yazıp yine kaydedebilirsiniz."));
     } finally { b.disabled = false; }
   });
   $("#elVoice").addEventListener("change", (e) => { if ($("#elVoiceId")) $("#elVoiceId").value = e.target.value; });
@@ -196,8 +197,8 @@ function panel() {
     eleven.setCfg(eleven.server ? (voice ? { voice, voiceName: name } : null) : { key, voice, voiceName: name });
     status("Deneniyor…");
     await say("Merhaba! Seninle Türkçe çalışmayı çok seviyorum.");
-    status(eleven.enabled() ? "✅ " + (eleven.server ? "Sunucu sesi çalışıyor" : "Bağlı") + (voice ? ": " + name : "")
-      : "❌ " + (eleven.lastError || "Ses üretilemedi.") + " Cihaz sesi kullanılıyor.");
+    status(eleven.enabled() ? "" + (eleven.server ? "Sunucu sesi çalışıyor" : "Bağlı") + (voice ? ": " + name : "")
+      : "" + (eleven.lastError || "Ses üretilemedi.") + " Cihaz sesi kullanılıyor.");
   });
   on("#elRemove", () => {
     eleven.setCfg(null);
@@ -210,8 +211,8 @@ function panel() {
   on("#reset", (b) => {
     if (b.dataset.sure !== "1") {
       b.dataset.sure = "1";
-      b.textContent = "⚠️ Emin misiniz? Silmek için tekrar basın";
-      setTimeout(() => { b.dataset.sure = ""; b.textContent = "🗑️ İlerlemeyi sıfırla"; }, 4000);
+      b.textContent = "Emin misiniz? Silmek için tekrar basın";
+      setTimeout(() => { b.dataset.sure = ""; b.textContent = "İlerlemeyi sıfırla"; }, 4000);
       return;
     }
     store.reset();

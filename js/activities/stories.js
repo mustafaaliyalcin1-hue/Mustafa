@@ -1,6 +1,7 @@
 // Hikâye Oku: önce baykuş okur (kelime kelime vurgulanır), sonra çocuk cümle cümle okur.
 // İngilizce hikâyelerde her cümlenin altında Türkçe anlamı da yazar.
 
+import { icon } from "../icons.js";
 import { $app, route, go, mascot, onLeave, on } from "../ui.js";
 import { say, stopSpeaking } from "../speech.js";
 import { STORIES } from "../content.js";
@@ -22,10 +23,10 @@ route("stories", () => {
       ${list.map((s) => {
         const n = store.doneCount("story:" + s.id);
         return `<a class="tile" href="#/story/${s.id}">
-          <span class="ic">${s.icon}</span>
+          <span class="ic">${icon("book-open", 26)}</span>
           <span class="t">${esc(s.title)}</span>
           ${s.tr ? `<span class="d">${esc(s.tr)}</span>` : ""}
-          <span class="d">${s.lines.length} cümle · ${n === s.lines.length ? "✅ Okundu" : `${n} / ${s.lines.length}`}</span>
+          <span class="d">${s.lines.length} cümle · ${n === s.lines.length ? "Okundu" : `${n} / ${s.lines.length}`}</span>
           <span class="badge">${s.g}. sınıf</span>
         </a>`;
       }).join("")}
@@ -48,8 +49,8 @@ route("story", (id) => {
       ${lines.map((l, i) => `<p class="line" data-l="${i}">${l.t.split(/\s+/).map((w) => `<span class="w">${esc(w)}</span>`).join(" ")}${
         l.tr ? `<small class="line-tr">🇹🇷 ${esc(l.tr)}</small>` : ""}</p>`).join("")}
       <div class="row">
-        <button class="btn" id="listen">🔊 Hikâyeyi dinle</button>
-        <button class="btn primary big" id="read">🎤 Şimdi ben okuyayım</button>
+        <button class="btn" id="listen">${icon("volume-2")} Hikâyeyi dinle</button>
+        <button class="btn primary big" id="read">${icon("mic")} Şimdi ben okuyayım</button>
       </div>
     </div>`;
 
@@ -71,7 +72,7 @@ route("story", (id) => {
     stopSpeaking();
     startPractice({
       title: story.title,
-      icon: story.icon,
+      icon: icon("book-open", 24),
       items: lines,
       lang,
       listId: "story:" + story.id,
