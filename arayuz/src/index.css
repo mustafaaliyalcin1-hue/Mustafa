@@ -281,3 +281,71 @@ body {
 
 /* Uygulama menüsünde "Animasyonlar: Kapalı" seçildiyse */
 html.no-anim *, html.no-anim *::before, html.no-anim *::after { animation: none !important; transition: none !important; }
+
+/* ================= Telefonda da fütüristik (bulanıklık olmadan) ================= */
+/* Arka plandaki ışıklar görünsün diye yüzeyler daha saydam; okunurluk için koyu/açık katman korunur */
+:root { --card: rgba(255, 255, 255, 0.64); --hud: rgba(91, 61, 245, 0.55); --holo: rgba(91, 61, 245, 0.06); }
+.dark { --card: rgba(20, 18, 34, 0.58); --hud: rgba(34, 225, 255, 0.75); --holo: rgba(34, 225, 255, 0.05); }
+
+/* Hologram ızgarası + üst neon çizgi + iç parlama (ucuz CSS katmanları) */
+.glass {
+  background-color: var(--card);
+  background-image:
+    linear-gradient(90deg, transparent, var(--hud), transparent),
+    linear-gradient(var(--holo) 1px, transparent 1px),
+    linear-gradient(90deg, var(--holo) 1px, transparent 1px),
+    radial-gradient(120% 80% at 0% 0%, color-mix(in srgb, var(--neon-2) 16%, transparent), transparent 60%);
+  background-size: 100% 1px, 22px 22px, 22px 22px, 100% 100%;
+  background-repeat: no-repeat, repeat, repeat, no-repeat;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 20px 50px -30px color-mix(in srgb, var(--neon-2) 60%, transparent);
+}
+.card {
+  background-color: var(--card);
+  background-image:
+    linear-gradient(90deg, transparent, var(--accent), transparent),
+    linear-gradient(var(--holo) 1px, transparent 1px),
+    linear-gradient(90deg, var(--holo) 1px, transparent 1px),
+    linear-gradient(160deg, color-mix(in srgb, var(--accent) 14%, transparent), transparent 45%);
+  background-size: 100% 1.5px, 20px 20px, 20px 20px, 100% 100%;
+  background-repeat: no-repeat, repeat, repeat, no-repeat;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 14px 40px -24px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+/* HUD köşe çizgileri (bilim kurgu ekranı gibi) */
+.hud { position: relative; }
+.hud > .hud-c { position: absolute; width: 18px; height: 18px; border: 2px solid var(--hud); pointer-events: none; z-index: 3;
+  filter: drop-shadow(0 0 4px var(--hud)); animation: hud-blink 3.2s ease-in-out infinite; }
+.hud > .hud-c.tl { top: 8px; left: 8px; border-right: 0; border-bottom: 0; border-top-left-radius: 6px; }
+.hud > .hud-c.tr { top: 8px; right: 8px; border-left: 0; border-bottom: 0; border-top-right-radius: 6px; }
+.hud > .hud-c.bl { bottom: 8px; left: 8px; border-right: 0; border-top: 0; border-bottom-left-radius: 6px; }
+.hud > .hud-c.br { bottom: 8px; right: 8px; border-left: 0; border-top: 0; border-bottom-right-radius: 6px; }
+@keyframes hud-blink { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+
+/* Ekran tarama çizgileri ve yukarıdan aşağı geçen tarama ışığı */
+body::after { content: ""; position: fixed; inset: 0; z-index: 40; pointer-events: none;
+  background: repeating-linear-gradient(to bottom, rgba(255,255,255,.025) 0 1px, transparent 1px 3px); }
+.dark body::after { background: repeating-linear-gradient(to bottom, rgba(34,225,255,.035) 0 1px, transparent 1px 3px); }
+.scan-beam { position: fixed; left: 0; right: 0; top: -20vh; height: 18vh; z-index: 41; pointer-events: none;
+  background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--neon-1) 10%, transparent), transparent);
+  animation: scan-beam 7s linear infinite; }
+@keyframes scan-beam { to { transform: translateY(140vh); } }
+
+/* Karakterin altındaki ışık platformu */
+.buddy-pad { position: absolute; left: 12%; right: 12%; bottom: 2%; height: 16%; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(ellipse, color-mix(in srgb, var(--neon-1) 55%, transparent), transparent 70%);
+  border: 1.5px solid color-mix(in srgb, var(--neon-1) 60%, transparent); animation: pad-pulse 2.2s ease-in-out infinite; }
+@keyframes pad-pulse { 50% { transform: scale(1.08); opacity: .7; } }
+
+/* Telefon: daha büyük karakter, ortalanmış başlık, parlak istatistik kutuları */
+@media (max-width: 639px) {
+  .hero-char-wrap { width: 15rem !important; height: 15rem !important; }
+  .hero-copy { text-align: center; }
+  .hero-copy .hero-actions { justify-content: center; }
+  .hero-copy h1 { font-size: 2.1rem; }
+  .stat-box { border-color: color-mix(in srgb, var(--neon-1) 35%, transparent) !important;
+    box-shadow: inset 0 0 18px -8px var(--neon-1), 0 0 16px -10px var(--neon-1); }
+}
+@media (prefers-reduced-motion: reduce) { .scan-beam, .hud > .hud-c, .buddy-pad { animation: none !important; } }
+html.no-anim .scan-beam { display: none; }
+
+html, body { overflow-x: clip; }

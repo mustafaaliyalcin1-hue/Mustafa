@@ -42,12 +42,15 @@ function useTheme() {
   return [dark, () => setDark((d) => !d)] as const;
 }
 
+const HudCorners = () => (<><i className="hud-c tl" /><i className="hud-c tr" /><i className="hud-c bl" /><i className="hud-c br" /></>);
+
 function SpaceBackground() {
   return (
     <div className="space-bg" aria-hidden="true">
       <div className="aurora a" /><div className="aurora b" /><div className="aurora c" />
       <div className="stars" /><div className="grid-floor" />
       <i className="meteor m1" /><i className="meteor m2" /><i className="meteor m3" />
+      <i className="scan-beam" />
     </div>
   );
 }
@@ -97,7 +100,7 @@ function useCountUp(target: number, ms = 1200, delay = 0) {
 function Stat({ label, value, delay }: { label: string; value: number; delay: number; suffix?: string }) {
   const n = useCountUp(value, 1200, delay);
   return (
-    <div className="glass animate-in fade-in slide-in-from-bottom-2 fill-mode-both min-w-0 rounded-2xl px-3 py-2.5 duration-700 sm:px-4 sm:py-3" style={{ animationDelay: `${delay}ms` }}>
+    <div className="glass stat-box animate-in fade-in slide-in-from-bottom-2 fill-mode-both min-w-0 rounded-2xl px-3 py-2.5 duration-700 sm:px-4 sm:py-3" style={{ animationDelay: `${delay}ms` }}>
       <div className="truncate font-mono text-lg font-semibold sm:text-xl">{n}</div>
       <div className="text-xs text-muted-foreground">{label}</div>
     </div>
@@ -112,15 +115,16 @@ function Hero({ p, lang }: { p: Progress; lang: "tr" | "en" }) {
   const finished = all.filter((c) => c.total && c.done >= c.total).length;
   const next = all.find((c) => c.kind === "theme" && c.done < c.total);
   return (
-    <section className="glass neon-ring animate-in fade-in zoom-in-95 fill-mode-both grid gap-6 p-5 duration-700 sm:grid-cols-[auto_1fr] sm:p-7">
-      <div className="relative mx-auto size-40 sm:size-48">
-        <div className="orbit" /><div className="orbit two" />
+    <section className="glass neon-ring hud animate-in fade-in zoom-in-95 fill-mode-both grid gap-6 p-5 duration-700 sm:grid-cols-[auto_1fr] sm:p-7">
+      <HudCorners />
+      <div className="hero-char-wrap relative mx-auto size-40 sm:size-48">
+        <div className="buddy-pad" /><div className="orbit" /><div className="orbit two" />
         <button type="button" aria-label={`${buddy} zıplasın`} className="absolute inset-[14%] cursor-pointer border-0 bg-transparent p-0"
           onClick={(e) => { const el = e.currentTarget.firstElementChild as HTMLElement; el.classList.remove("jump"); void el.offsetWidth; el.classList.add("jump"); }}>
           <div className="float size-full"><div className="buddy size-full" dangerouslySetInnerHTML={{ __html: buddySVG(p) }} /></div>
         </button>
       </div>
-      <div className="flex flex-col justify-center gap-4">
+      <div className="hero-copy flex flex-col justify-center gap-4">
         <div>
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">Öğrenme paneli · {lang === "en" ? "English" : "Türkçe"}</p>
           <h1 className="mt-1 text-3xl font-bold leading-tight sm:text-4xl">
@@ -140,7 +144,7 @@ function Hero({ p, lang }: { p: Progress; lang: "tr" | "en" }) {
             <Stat label={`✓ Biten / ${all.length}`} value={finished} delay={350} />
           </div>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="hero-actions flex flex-wrap gap-2">
           <a href={next ? next.href : APP_URL} className={buttonVariants({ variant: "default", size: "lg", className: "group shadow-[0_0_24px_var(--glow)]" })}>
             {name ? "Devam et" : "Başla"}
             <span className="btn-icon-motion btn-icon-motion--arrow inline-flex"><Arrow /></span>
@@ -156,7 +160,8 @@ function WeekChart({ p }: { p: Progress }) {
   const week = lastWeek(p);
   const max = Math.max(DAILY_GOAL, ...week.map((d) => d.stars));
   return (
-    <section className="glass animate-in fade-in slide-in-from-bottom-4 fill-mode-both flex flex-col p-5 duration-700" style={{ animationDelay: "200ms" }}>
+    <section className="glass hud animate-in fade-in slide-in-from-bottom-4 fill-mode-both flex flex-col p-5 duration-700" style={{ animationDelay: "200ms" }}>
+      <HudCorners />
       <div className="mb-4 flex items-baseline justify-between">
         <h2 className="text-lg font-semibold">Son 7 gün</h2>
         <span className="font-mono text-xs text-muted-foreground">{week.reduce((a, d) => a + d.stars, 0)} ⭐</span>
