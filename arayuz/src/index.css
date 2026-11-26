@@ -240,6 +240,35 @@ body {
 .card.is-done .btn-countdown { color: #0b0b12; background: var(--accent); }
 
 /* Hareket azaltma tercihi */
+/* ---------- Telefonda da görünen sürekli hareketler ---------- */
+/* Kartın üzerinden belirli aralıklarla geçen tarama ışığı */
+.card::before { content: ""; position: absolute; z-index: 1; top: 0; bottom: 0; width: 45%; left: -70%; pointer-events: none;
+  transform: skewX(-18deg); background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 22%, transparent), rgba(255,255,255,.18), transparent);
+  animation: card-scan 6s ease-in-out infinite; animation-delay: calc(var(--i, 0) * 0.45s + 1.5s); }
+@keyframes card-scan { 0% { left: -70%; } 22%, 100% { left: 140%; } }
+.card .card-icon { animation: icon-bob 3.4s ease-in-out infinite; animation-delay: calc(var(--i, 0) * -0.4s); }
+@keyframes icon-bob { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-4px) rotate(-6deg); } }
+.card:active { transform: scale(0.98); }
+/* Sıradaki görev kartı: nabız gibi atan neon çerçeve */
+.card.is-next { border-color: color-mix(in srgb, var(--accent) 70%, transparent); animation: next-pulse 2.2s ease-in-out infinite !important; }
+@keyframes next-pulse { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent), 0 0 22px -6px var(--accent); }
+  50% { box-shadow: 0 0 0 8px transparent, 0 0 34px -2px var(--accent); } }
+.card .next-badge { position: absolute; top: 14px; right: 46px; z-index: 2; font-family: var(--font-mono); font-size: 10px; letter-spacing: .12em;
+  padding: 3px 8px; border-radius: 99px; color: #0b0b12; background: var(--accent); box-shadow: 0 0 14px var(--accent); animation: badge-blink 1.6s ease-in-out infinite; }
+@keyframes badge-blink { 50% { opacity: .55; } }
+/* Kayan yıldızlar */
+.space-bg .meteor { position: absolute; width: 120px; height: 2px; border-radius: 2px; opacity: 0;
+  background: linear-gradient(90deg, var(--neon-1), transparent); transform: rotate(-28deg); animation: meteor 7s linear infinite; }
+.space-bg .meteor.m1 { top: 12%; left: 70%; animation-delay: 1s; }
+.space-bg .meteor.m2 { top: 30%; left: 95%; animation-delay: 4s; background: linear-gradient(90deg, var(--neon-3), transparent); }
+.space-bg .meteor.m3 { top: 5%; left: 40%; animation-delay: 6s; }
+@keyframes meteor { 0% { opacity: 0; transform: rotate(-28deg) translateX(0); } 4% { opacity: 1; } 14% { opacity: 0; transform: rotate(-28deg) translateX(-420px); } 100% { opacity: 0; } }
+/* Karaktere dokununca zıplama */
+.buddy.jump { animation: jump .7s cubic-bezier(.2,1.6,.4,1); }
+@keyframes jump { 30% { transform: translateY(-26px) scale(1.06, .94); } 60% { transform: translateY(0) scale(.94, 1.06); } }
+
+/* Hareket azaltma tercihi: büyük hareketler durur, yumuşak geçişler kalır */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+  .space-bg *, .float, .orbit, .neon-ring::before, .card::before, .card .card-icon, .card.is-next, .text-glow, .meteor,
+  .card .progress-bar i::after, .next-badge { animation: none !important; }
 }

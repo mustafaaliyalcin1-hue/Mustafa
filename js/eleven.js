@@ -98,10 +98,25 @@ async function synth(text, speed) {
 // --- Çalma ---
 // iPhone sesi yalnızca dokunuşla açılmış bir oynatıcıda çalar: tek oynatıcı, ilk dokunuşta açılır.
 const player = typeof Audio !== "undefined" ? new Audio() : null;
-const SILENT = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=";
+// Gerçek (0,1 sn) sessiz WAV: boş dosya iPhone'da hata verip oynatıcıyı açmıyordu.
+const SILENT = (() => {
+  const n = 800, buf = new Uint8Array(44 + n), v = new DataView(buf.buffer);
+  const w = (o, s) => [...s].forEach((c, i) => (buf[o + i] = c.charCodeAt(0)));
+  w(0, "RIFF"); v.setUint32(4, 36 + n, true); w(8, "WAVE"); w(12, "fmt ");
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, 8000, true); v.setUint32(28, 8000, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true);
+  w(36, "data"); v.setUint32(40, n, true); buf.fill(128, 44);
+  let bin = ""; buf.forEach((b) => (bin += String.fromCharCode(b)));
+  return "data:audio/wav;base64," + btoa(bin);
+})();
+export let unlocked = false; // iPhone: oynatıcı bir dokunuşla açıldı mı
 export function unlock() {
   if (!player) return;
-  try { player.src = SILENT; player.play().catch(() => {}); } catch { /* yok say */ }
+  try {
+    player.src = SILENT;
+    const p = player.play();
+    p?.then(() => { unlocked = true; }).catch(() => {});
+  } catch { /* yok say */ }
 }
 
 let current = null; // çalan okumanın bitirme fonksiyonu
@@ -151,6 +166,7 @@ async function playParts(parts, { onWord, playbackRate = 1 } = {}) {
     try { player.playbackRate = playbackRate; player.preservesPitch = true; } catch { /* yok say */ }
     try {
       await player.play();
+      unlocked = true;
       try { player.playbackRate = playbackRate; } catch { /* yok say */ }
     } catch (e) {
       // Çalma engellendi (ör. dokunuş yok): çağıran cihaz sesine geçsin.

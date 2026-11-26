@@ -42,6 +42,7 @@ function SpaceBackground() {
     <div className="space-bg" aria-hidden="true">
       <div className="aurora a" /><div className="aurora b" /><div className="aurora c" />
       <div className="stars" /><div className="grid-floor" />
+      <i className="meteor m1" /><i className="meteor m2" /><i className="meteor m3" />
     </div>
   );
 }
@@ -70,10 +71,29 @@ function GoalRing({ value, goal }: { value: number; goal: number }) {
   );
 }
 
-function Stat({ label, value, delay }: { label: string; value: string; delay: number }) {
+/** Sayıyı 0'dan hedefe doğru sayarak gösterir */
+function useCountUp(target: number, ms = 1200, delay = 0) {
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) { setN(target); return; }
+    let raf = 0;
+    const t0 = performance.now() + delay;
+    const tick = (t: number) => {
+      const k = Math.min(1, Math.max(0, (t - t0) / ms));
+      setN(Math.round(target * (1 - Math.pow(1 - k, 3))));
+      if (k < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, ms, delay]);
+  return n;
+}
+
+function Stat({ label, value, delay }: { label: string; value: number; delay: number; suffix?: string }) {
+  const n = useCountUp(value, 1200, delay);
   return (
     <div className="glass animate-in fade-in slide-in-from-bottom-2 fill-mode-both min-w-0 rounded-2xl px-3 py-2.5 duration-700 sm:px-4 sm:py-3" style={{ animationDelay: `${delay}ms` }}>
-      <div className="truncate font-mono text-lg font-semibold sm:text-xl">{value}</div>
+      <div className="truncate font-mono text-lg font-semibold sm:text-xl">{n}</div>
       <div className="text-xs text-muted-foreground">{label}</div>
     </div>
   );
@@ -90,7 +110,10 @@ function Hero({ p, lang }: { p: Progress; lang: "tr" | "en" }) {
     <section className="glass neon-ring animate-in fade-in zoom-in-95 fill-mode-both grid gap-6 p-5 duration-700 sm:grid-cols-[auto_1fr] sm:p-7">
       <div className="relative mx-auto size-40 sm:size-48">
         <div className="orbit" /><div className="orbit two" />
-        <div className="buddy float absolute inset-[14%]" dangerouslySetInnerHTML={{ __html: buddySVG(p) }} />
+        <button type="button" aria-label={`${buddy} zıplasın`} className="absolute inset-[14%] cursor-pointer border-0 bg-transparent p-0"
+          onClick={(e) => { const el = e.currentTarget.firstElementChild as HTMLElement; el.classList.remove("jump"); void el.offsetWidth; el.classList.add("jump"); }}>
+          <div className="float size-full"><div className="buddy size-full" dangerouslySetInnerHTML={{ __html: buddySVG(p) }} /></div>
+        </button>
       </div>
       <div className="flex flex-col justify-center gap-4">
         <div>
@@ -107,9 +130,9 @@ function Hero({ p, lang }: { p: Progress; lang: "tr" | "en" }) {
         <div className="flex flex-wrap items-center gap-3">
           <GoalRing value={today} goal={DAILY_GOAL} />
           <div className="grid flex-1 grid-cols-3 gap-2 sm:gap-3">
-            <Stat label="Yıldız" value={`${p.stars}`} delay={150} />
-            <Stat label="Seri" value={`${streak(p)}🔥`} delay={250} />
-            <Stat label={`Biten / ${all.length}`} value={`${finished}`} delay={350} />
+            <Stat label="⭐ Yıldız" value={p.stars} delay={150} />
+            <Stat label="🔥 Seri" value={streak(p)} delay={250} />
+            <Stat label={`✓ Biten / ${all.length}`} value={finished} delay={350} />
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -150,7 +173,7 @@ function WeekChart({ p }: { p: Progress }) {
   );
 }
 
-function toCard(c: Course, i: number, p: Progress): CardData {
+function toCard(c: Course, i: number, p: Progress, nextId?: string): CardData {
   const pct = c.total ? Math.round((c.done / c.total) * 100) : 0;
   const left = c.total - c.done;
   return {
@@ -165,6 +188,7 @@ function toCard(c: Course, i: number, p: Progress): CardData {
     href: c.href,
     icon: c.icon,
     done: left <= 0,
+    isNext: c.id === nextId,
     avatars: p.profile ? [<span key="b" dangerouslySetInnerHTML={{ __html: buddySVG(p) }} />] : [],
   };
 }
@@ -185,6 +209,7 @@ export default function App() {
 
   const list = useMemo(() => courses(p, lang).filter((c) => c.kind === tab && c.total > 0), [p, lang, tab]);
   const switchLang = (l: "tr" | "en") => { setLang(l); saveLang(l); };
+  const nextId = p.profile ? list.find((c) => c.done < c.total)?.id : undefined;
 
   return (
     <>
@@ -225,13 +250,13 @@ export default function App() {
           {list.map((c, i) => (
             <CourseDesignCard
               key={c.id}
-              data={toCard(c, i, p)}
-              style={{ animation: `enter 0.6s var(--primitive-ease) both`, animationDelay: `${Math.min(i, 12) * 60}ms` }}
+              data={toCard(c, i, p, nextId)}
+              style={{ animation: `enter 0.7s var(--primitive-ease) both`, animationDelay: `${Math.min(i, 12) * 80}ms`, ["--i" as string]: i }}
             />
           ))}
         </section>
       </div>
-      <style>{`@keyframes enter { from { opacity: 0; transform: translateY(18px) scale(.98); filter: blur(6px); } }`}</style>
+      <style>{`@keyframes enter { from { opacity: 0; transform: translateY(40px) scale(.92) rotateX(12deg); filter: blur(10px); } 60% { opacity: 1; } }`}</style>
     </>
   );
 }

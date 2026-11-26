@@ -18,6 +18,7 @@ export interface CardData {
   icon?: React.ReactNode; // başlığın yanındaki simge
   avatars?: React.ReactNode[]; // resim yerine özel avatarlar (ör. karakter SVG'si)
   done?: boolean;
+  isNext?: boolean; // "sıradaki görev" vurgusu
 }
 
 export interface CardProps {
@@ -63,13 +64,15 @@ export const CourseDesignCard: React.FC<CardProps> = ({ data, style }) => {
     icon,
     avatars,
     done,
+    isNext,
   } = data;
 
   return (
     <article
-      className={`card ${colorClass} ${done ? "is-done" : ""}`}
+      className={`card ${colorClass} ${done ? "is-done" : ""} ${isNext ? "is-next" : ""}`}
       style={{ ...style, ["--progress" as string]: progressPercent }}
     >
+      {isNext ? <span className="next-badge">SIRADAKİ</span> : null}
       <div className="card-header">
         <div className="date">{date}</div>
         <span className="card-menu" aria-hidden="true"><EllipsisIcon /></span>

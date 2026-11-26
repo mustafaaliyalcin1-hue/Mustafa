@@ -162,7 +162,7 @@ function panel() {
     $app.querySelector("#rateVal").textContent = (+e.target.value).toFixed(2);
   });
   $app.querySelector("#sfx").addEventListener("change", (e) => store.setSetting("sfx", e.target.checked));
-  on("#testVoice", () => say(`Merhaba! Ben ${store.buddy()}. Seninle Türkçe çalışmayı çok seviyorum.`));
+  on("#testVoice", () => say("Merhaba! Seninle Türkçe çalışmayı çok seviyorum."));
   // --- ElevenLabs ---
   const $ = (q) => $app.querySelector(q);
   const status = (t) => { $("#elStatus").textContent = t; };
@@ -193,7 +193,7 @@ function panel() {
     const name = opt ? opt.textContent : voice;
     eleven.setCfg(eleven.server ? (voice ? { voice, voiceName: name } : null) : { key, voice, voiceName: name });
     status("Deneniyor…");
-    await say(`Merhaba! Ben ${store.buddy()}. Seninle Türkçe çalışmayı çok seviyorum.`);
+    await say("Merhaba! Seninle Türkçe çalışmayı çok seviyorum.");
     status(eleven.enabled() ? "✅ " + (eleven.server ? "Sunucu sesi çalışıyor" : "Bağlı") + (voice ? ": " + name : "")
       : "❌ " + (eleven.lastError || "Ses üretilemedi.") + " Cihaz sesi kullanılıyor.");
   });

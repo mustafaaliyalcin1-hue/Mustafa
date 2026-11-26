@@ -170,7 +170,8 @@ export function startPractice(o) {
     sfx.retry();
     // Baykuş ne yapılacağını sesli anlatır, sonra doğrusunu örnekler.
     const opener = fb.level === "close" ? "Çok yaklaştın!" : "Hadi birlikte deneyelim.";
-    await say(`${opener} ${fb.tips[0]?.speech || ""}`, { rate: 0.9 });
+    await say(opener, { rate: 0.9 });
+    if (alive && fb.tips[0]?.speech) await say(fb.tips[0].speech, { rate: 0.9 });
     if (alive && fb.tips[0]) await saySlow(fb.tips[0].word, { lang });
   }
 
@@ -190,9 +191,10 @@ export function startPractice(o) {
     showBadges(store.checkBadges());
     if (en) {
       await say(fb.praise, { lang: "en" });
-      if (alive && fb.level === "almost" && fb.tips[0]) await say(`Doğru! Küçük bir ipucu: ${fb.tips[0].speech}`);
+      if (alive && fb.level === "almost" && fb.tips[0]) { await say("Doğru! Küçük bir ipucu:"); if (alive) await say(fb.tips[0].speech); }
     } else {
-      await say(fb.level === "ok" ? `${fb.praise} Doğru söyledin.` : `${fb.praise} Doğru! ${fb.tips[0]?.speech || ""}`);
+      if (fb.level === "ok") await say(`${fb.praise} Doğru söyledin.`);
+      else { await say(`${fb.praise} Doğru!`); if (alive && fb.tips[0]?.speech) await say(fb.tips[0].speech); }
     }
     if (!alive) return;
     if (fb.level === "ok") setTimeout(() => alive && next(), 700);

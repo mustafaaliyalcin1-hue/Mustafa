@@ -28,7 +28,7 @@ function endScreen({ correct, total, again }) {
     </div>`;
   confetti(great ? 40 : 16);
   sfx.success();
-  say(great ? `Harikasın! ${total} sorudan ${correct} doğru.` : `Güzel çalıştın! ${correct} doğru.`);
+  say(great ? "Harikasın!" : "Güzel çalıştın!");
   showBadges(store.checkBadges());
   on("#again", again);
   on("#home", () => go("#/home"));

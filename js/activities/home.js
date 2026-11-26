@@ -22,60 +22,75 @@ route("welcome", () => {
   let g = 1;
   let body = BODIES[0].id;
   let buddyName = NAME_IDEAS[Math.floor(Math.random() * NAME_IDEAS.length)];
+  const free = BODIES.filter((b) => !b.stars);
+
+  // Hareketli uzay arka planı + adım göstergesi (3 adım: sen → arkadaşın → giydir)
+  const shell = (step, inner) => `
+    <div class="wel-bg" aria-hidden="true"><i class="au a"></i><i class="au b"></i><i class="au c"></i><i class="sky"></i><i class="floor"></i></div>
+    <div class="wel">
+      <ol class="wel-steps" aria-label="Adım ${step} / 3">
+        ${["Sen", "Arkadaşın", "Giydir"].map((t, i) => `<li class="${i + 1 < step ? "done" : i + 1 === step ? "on" : ""}"><b>${i + 1 < step ? "✓" : i + 1}</b><span>${t}</span></li>`).join("")}
+      </ol>
+      ${inner}
+    </div>`;
 
   const step1 = () => {
-    $app.innerHTML = `
-      <div class="welcome">
-        <div class="welcome-cast" aria-hidden="true">${BODIES.filter((b) => !b.stars).slice(0, 3).map((b) => characterSVG({ body: b.id }, "")).join("")}</div>
-        <h1>Merhaba! 👋</h1>
-        <p>Konuşan Arkadaşım'a hoş geldin! Birlikte dinleyip konuşarak çok güzel söyleyeceğiz.</p>
-        <div class="card">
-          <label class="field">Adın ne?
-            <input id="name" maxlength="20" autocomplete="off" placeholder="Adını yaz" value="${esc(name)}">
-          </label>
-          <p class="label">Kaçıncı sınıftasın?</p>
-          <div class="seg" id="grade">
-            <button class="${g === 1 ? "on" : ""}" data-g="1">1. sınıf</button>
-            <button class="${g === 2 ? "on" : ""}" data-g="2">2. sınıf</button>
-          </div>
-          <div class="row"><button class="btn primary big" id="next">Devam →</button></div>
+    $app.innerHTML = shell(1, `
+      <div class="wel-cast" aria-hidden="true">
+        <i class="ring"></i><i class="ring r2"></i>
+        ${free.map((b, i) => `<div class="c c${i}">${characterSVG({ body: b.id, hat: ["cap", "headphones", "bow", "none"][i] || "none" })}</div>`).join("")}
+      </div>
+      <h1 class="wel-title"><span class="glow">Merhaba!</span> <span class="wave">👋</span></h1>
+      <p class="wel-sub">Konuşan Arkadaşım'a hoş geldin! Birlikte dinleyip konuşarak çok güzel söyleyeceğiz.</p>
+      <div class="wel-card">
+        <label class="wel-field">Adın ne?
+          <input id="name" maxlength="20" autocomplete="off" placeholder="Adını yaz" value="${esc(name)}">
+        </label>
+        <p class="wel-label">Kaçıncı sınıftasın?</p>
+        <div class="wel-seg" id="grade">
+          <button class="${g === 1 ? "on" : ""}" data-g="1">1. sınıf</button>
+          <button class="${g === 2 ? "on" : ""}" data-g="2">2. sınıf</button>
         </div>
-      </div>`;
+        <button class="wel-cta" id="next">Devam <span>→</span></button>
+      </div>`);
     on("#grade button", (b) => { g = +b.dataset.g; $app.querySelectorAll("#grade button").forEach((x) => x.classList.toggle("on", x === b)); });
-    on("#next", () => { name = $app.querySelector("#name").value.trim() || "Arkadaşım"; step2(); });
+    const nameInput = $app.querySelector("#name");
+    on("#next", () => { name = nameInput.value.trim() || "Arkadaşım"; step2(); });
+    nameInput.addEventListener("keydown", (e) => e.key === "Enter" && $app.querySelector("#next").click());
   };
 
   const step2 = () => {
-    const free = BODIES.filter((b) => !b.stars);
-    $app.innerHTML = `
-      <div class="welcome">
-        <h1>Arkadaşını seç, ${esc(name)}!</h1>
-        <p>Seninle birlikte çalışacak karakterini seç ve ona bir isim koy.</p>
-        <div class="card">
-          <div class="char-stage" id="stage">${characterSVG({ body }, "happy")}</div>
-          <div class="char-items">
-            ${free.map((b) => `<button data-id="${b.id}" class="${b.id === body ? "on" : ""}">${characterSVG({ body: b.id })}${esc(b.name)}</button>`).join("")}
-          </div>
-          <label class="field" style="margin-top:14px">Arkadaşının adı
-            <span style="display:flex;gap:8px;align-items:center">
-              <input id="buddy" maxlength="16" autocomplete="off" value="${esc(buddyName)}" style="flex:1">
-              <button class="btn small" id="idea" aria-label="Başka isim öner">🎲</button>
-            </span>
-          </label>
-          <div class="row">
-            <button class="btn" id="back">← Geri</button>
-            <button class="btn primary big" id="next">Devam →</button>
-          </div>
+    $app.innerHTML = shell(2, `
+      <h1 class="wel-title sm">Arkadaşını seç, <span class="glow">${esc(name)}</span>!</h1>
+      <p class="wel-sub">Seninle birlikte çalışacak karakterini seç ve ona bir isim koy.</p>
+      <div class="wel-card">
+        <div class="wel-stage"><i class="beam"></i><i class="pad"></i><div class="who pop" id="stage">${characterSVG({ body }, "happy")}</div></div>
+        <div class="wel-pick">
+          ${free.map((b) => `<button data-id="${b.id}" class="${b.id === body ? "on" : ""}" aria-pressed="${b.id === body}">${characterSVG({ body: b.id })}<span>${esc(b.name)}</span></button>`).join("")}
         </div>
-      </div>`;
-    on(".char-items button", (b) => {
+        <label class="wel-field">Arkadaşının adı
+          <span class="wel-name">
+            <input id="buddy" maxlength="16" autocomplete="off" value="${esc(buddyName)}">
+            <button id="idea" aria-label="Başka isim öner">🎲</button>
+          </span>
+        </label>
+        <div class="wel-row">
+          <button class="wel-back" id="back">←</button>
+          <button class="wel-cta" id="next">Devam <span>→</span></button>
+        </div>
+      </div>`);
+    on(".wel-pick button", (b) => {
       body = b.dataset.id;
-      $app.querySelector("#stage").innerHTML = characterSVG({ body }, "happy");
-      $app.querySelectorAll(".char-items button").forEach((x) => x.classList.toggle("on", x === b));
+      const st = $app.querySelector("#stage");
+      st.innerHTML = characterSVG({ body }, "happy");
+      st.classList.remove("pop"); void st.offsetWidth; st.classList.add("pop");
+      $app.querySelectorAll(".wel-pick button").forEach((x) => { x.classList.toggle("on", x === b); x.setAttribute("aria-pressed", x === b); });
+      say(`Ben ${bodyOf(body).name}!`);
     });
-    on("#idea", () => {
+    on("#idea", (btn) => {
       const others = NAME_IDEAS.filter((n) => n !== $app.querySelector("#buddy").value);
       $app.querySelector("#buddy").value = others[Math.floor(Math.random() * others.length)];
+      btn.classList.remove("spin"); void btn.offsetWidth; btn.classList.add("spin");
     });
     on("#back", () => { buddyName = $app.querySelector("#buddy").value; step1(); });
     on("#next", () => {
@@ -83,7 +98,7 @@ route("welcome", () => {
       store.setWholeLook({ body });
       store.setProfile({ name, grade: g, buddy: buddyName });
       go("#/character/setup");
-      setTimeout(() => say(`Merhaba ${name}! Benim adım ${buddyName}. Hadi beni giydir!`), 60);
+      setTimeout(() => say("Merhaba! Hadi beni giydir!"), 60);
     });
   };
 

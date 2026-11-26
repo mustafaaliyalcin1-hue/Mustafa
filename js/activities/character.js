@@ -1,6 +1,6 @@
 // Karakterim: gövdeyi, gözlüğü, şapkayı, boyun aksesuarını, kıyafeti ve ayakkabıyı seç.
 
-import { $app, route, on, toast, go } from "../ui.js";
+import { $app, route, on, toast, go, onLeave } from "../ui.js";
 import { say } from "../speech.js";
 import { BODIES, SLOTS, characterSVG } from "../character.js";
 import { sfx, confetti } from "../fx.js";
@@ -23,8 +23,12 @@ function draw() {
   const s = store.get();
   const look = s.look;
   const items = itemsOf(tab);
+  document.body.classList.toggle("setup-dark", setup);
+  if (setup) onLeave(() => document.body.classList.remove("setup-dark"));
   $app.innerHTML = `
-    ${setup ? `<h2 style="text-align:center;margin:4px 0 10px">${esc(store.buddy())}'yi giydir! 👕</h2>
+    ${setup ? `<div class="wel-bg" aria-hidden="true"><i class="au a"></i><i class="au b"></i><i class="au c"></i><i class="sky"></i><i class="floor"></i></div>
+      <ol class="wel-steps" aria-label="Adım 3 / 3"><li class="done"><b>✓</b><span>Sen</span></li><li class="done"><b>✓</b><span>Arkadaşın</span></li><li class="on"><b>3</b><span>Giydir</span></li></ol>
+      <h2 class="wel-title sm" style="text-align:center;margin:4px 0 6px"><span class="glow">${esc(store.buddy())}</span>'yi giydir! 👕</h2>
       <p class="muted" style="text-align:center;margin-top:0">Gözlük, şapka, atkı, forma ve ayakkabı seç. Sonra da istediğin zaman değiştirebilirsin.</p>` : ""}
     <div class="card">
       <div class="char-stage" id="stage">${characterSVG(look, "happy")}</div>
@@ -48,11 +52,11 @@ function draw() {
       }).join("")}
     </div>
     <p class="muted small" style="text-align:center">⭐ Yıldız topladıkça kilitli parçalar açılır. Şu an: <b>${s.stars}</b> yıldız</p>
-    ${setup ? `<div class="row" style="justify-content:center"><button class="btn primary big" id="done">Bitti, başlayalım! 🚀</button></div>` : ""}`;
+    ${setup ? `<button class="wel-cta" id="done">Bitti, başlayalım! 🚀</button>` : ""}`;
 
   on("#done", () => {
     go("#/home");
-    setTimeout(() => say(`Harika görünüyorum! Hadi başlayalım ${s.profile.name}!`), 60);
+    setTimeout(() => say("Harika görünüyorum! Hadi başlayalım."), 60);
   });
 
   on(".char-tabs button", (b) => { tab = b.dataset.t; draw(); });
