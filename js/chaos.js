@@ -3,6 +3,24 @@
 // Hatalar yalnızca görüntüyü/sesi etkiler, kayıtlı ilerlemeye (yıldızlar vb.) asla dokunmaz.
 
 export const CHAOS_KEY = "konusan-arkadasim:hatalar";
+const CODE_KEY = "konusan-arkadasim:kod";
+// Uzaktan kumanda: hatalar ntfy.sh üzerinden (ücretsiz, hesapsız anlık mesaj) bu koda gönderilir.
+export const RELAY = "https://ntfy.sh";
+export const topicFor = (code) => `konusan-arkadasim-hata-${String(code).toLowerCase()}`;
+
+/** Bu cihazın kumanda kodu (6 karakter, ilk açılışta üretilir). */
+export function pairCode() {
+  let c = "";
+  try { c = localStorage.getItem(CODE_KEY) || ""; } catch { /* yok say */ }
+  if (!/^[A-Z0-9]{6}$/.test(c)) {
+    const abc = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+    const rnd = crypto.getRandomValues(new Uint8Array(6));
+    c = [...rnd].map((n) => abc[n % abc.length]).join("");
+    try { localStorage.setItem(CODE_KEY, c); } catch { /* yok say */ }
+  }
+  return c;
+}
+export let remoteState = "bağlanıyor";
 const root = document.documentElement;
 
 export function readChaos() {
@@ -93,6 +111,25 @@ export const speechBug = () => {
 
 apply();
 window.addEventListener("storage", (e) => { if (e.key === CHAOS_KEY) apply(); });
+
+// Uzaktan gelen komutları dinle (son 12 saatteki en son komut da uygulanır)
+function listenRemote() {
+  if (typeof EventSource === "undefined") { remoteState = "desteklenmiyor"; return; }
+  const es = new EventSource(`${RELAY}/${topicFor(pairCode())}/sse?since=12h`);
+  es.onopen = () => { remoteState = "bağlı"; };
+  es.onerror = () => { remoteState = "yeniden bağlanıyor"; };
+  es.onmessage = (ev) => {
+    try {
+      const m = JSON.parse(ev.data);
+      if (m.event && m.event !== "message") return;
+      const state = JSON.parse(m.message);
+      if (!state || typeof state !== "object") return;
+      localStorage.setItem(CHAOS_KEY, JSON.stringify(state));
+      apply();
+    } catch { /* bozuk mesajı yok say */ }
+  };
+}
+listenRemote();
 // Yedek: bazı telefonlarda storage olayı gecikir
 setInterval(apply, 1000);
 document.addEventListener("visibilitychange", apply);

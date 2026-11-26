@@ -2,29 +2,12 @@
 <html lang="tr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Öğrenme Paneli</title>
-  <meta name="description" content="Konuşan Arkadaşım için fütüristik öğrenme paneli">
-  <meta name="theme-color" content="#07070d" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#eef1fb" media="(prefers-color-scheme: light)">
-  <link rel="icon" href="./assets/icon-BCx4-hL7.svg" type="image/svg+xml">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
-  <script>
-    // Tema: kayıtlı seçim, yoksa cihazın teması (ilk boyamadan önce, yanıp sönmesin)
-    // Uygulamanın ☰ menüsündeki ayarlar (tema, animasyonlar) panelde de geçerli.
-    try {
-      var s = (JSON.parse(localStorage.getItem("konusan-baykus:v2") || "{}").settings) || {};
-      var t = s.theme && s.theme !== "auto" ? s.theme : localStorage.getItem("panel:tema");
-      if (t === "dark" || (!t && matchMedia("(prefers-color-scheme: dark)").matches)) document.documentElement.classList.add("dark");
-      if (s.anim === false) document.documentElement.classList.add("no-anim");
-    } catch (e) {}
-  </script>
-  <script type="module" crossorigin src="./assets/index-B_Zg5bXg.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-DTi7V4Ej.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Konuşan Arkadaşım</title>
+  <meta http-equiv="refresh" content="0; url=../index.html">
+  <script>location.replace("../index.html");</script>
 </head>
-<body>
-  <div id="root"></div>
+<body style="background:#07070d;color:#eef0ff;font-family:system-ui;padding:24px">
+  Öğrenme paneli artık uygulamanın ana ekranında. <a href="../index.html" style="color:#22e1ff">Uygulamaya git →</a>
 </body>
 </html>

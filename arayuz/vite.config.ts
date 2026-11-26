@@ -15,5 +15,6 @@ export default defineConfig({
     },
   },
   server: { fs: { allow: [".."] } },
-  build: { outDir: "../panel", emptyOutDir: true },
+  // Panel artık ana uygulamanın ana ekranında; bu proje bileşen kaynağı olarak duruyor.
+  build: { outDir: "dist", emptyOutDir: true },
 });

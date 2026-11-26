@@ -106,6 +106,17 @@ route("welcome", () => {
 });
 
 /* ---------- Ana sayfa ---------- */
+const DAY_NAMES = ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"];
+function lastWeek(days) {
+  const out = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    out.push({ label: DAY_NAMES[d.getDay()], stars: days[k] || 0 });
+  }
+  return out;
+}
 route("home", () => {
   const s = store.get();
   const p = s.profile;
@@ -113,27 +124,54 @@ route("home", () => {
   const todays = store.todayStars();
   const st = store.streak();
   const weak = store.weakList(3);
+  // Sıradaki görev: bu sınıfta bitmemiş ilk konu
+  const next = themesFor().find((t) => itemsFor(t).some((x) => !store.isDone(t.id, x.t)));
+  const allThemes = themesFor();
+  const finished = allThemes.filter((t) => itemsFor(t).every((x) => store.isDone(t.id, x.t))).length;
+  const week = lastWeek(s.days);
+  const maxDay = Math.max(store.DAILY_GOAL, ...week.map((d) => d.stars));
+  const ringC = 2 * Math.PI * 38;
   $app.innerHTML = `
-    <a class="hero card" href="#/character" aria-label="Karakterim: ${esc(store.buddy())}">
-      <div class="hero-char">${owl("big")}</div>
-      <div class="hero-text">
-        <div class="bubble">${en
-          ? `Hello <b>${esc(p.name)}</b>! Ben <b>${esc(store.buddy())}</b>. Bugün biraz <b>İngilizce</b> çalışalım mı? 🇬🇧`
-          : `Merhaba <b>${esc(p.name)}</b>! Ben <b>${esc(store.buddy())}</b>. Bugün ne çalışalım?`}</div>
-        <span class="btn small hero-btn">👕 Beni giydir</span>
+    <section class="fx-hero card">
+      <i class="hud-c tl"></i><i class="hud-c tr"></i><i class="hud-c bl"></i><i class="hud-c br"></i>
+      <button class="fx-buddy" id="buddy" aria-label="${esc(store.buddy())} zıplasın">
+        <i class="pad"></i><i class="orbit"></i><i class="orbit two"></i>
+        <span class="who">${owl("happy")}</span>
+      </button>
+      <div class="fx-copy">
+        <p class="fx-kicker">Komuta merkezi · ${en ? "English" : "Türkçe"}</p>
+        <h1 class="fx-hello">Merhaba <span class="fx-glow">${esc(p.name)}</span>!</h1>
+        <p class="fx-say">${en ? `Ben ${esc(store.buddy())}. Bugün biraz İngilizce çalışalım mı? 🇬🇧` : `Ben ${esc(store.buddy())}. ${next ? `Sıradaki görev: <b>${next.icon} ${esc(next.sub || next.title)}</b>` : "Bütün konuları bitirdin! 🎉"}`}</p>
+        <div class="fx-stats" style="margin-top:12px">
+          <div class="fx-ring" role="img" aria-label="Günlük hedef ${Math.min(todays, store.DAILY_GOAL)} / ${store.DAILY_GOAL} yıldız">
+            <svg viewBox="0 0 96 96" aria-hidden="true">
+              <defs><linearGradient id="ringG" x1="0" x2="1"><stop offset="0" stop-color="var(--neon-1)"/><stop offset="1" stop-color="var(--neon-3)"/></linearGradient></defs>
+              <circle cx="48" cy="48" r="38" fill="none" stroke="var(--soft)" stroke-width="8"/>
+              <circle class="val" cx="48" cy="48" r="38" fill="none" stroke="url(#ringG)" stroke-width="8" stroke-linecap="round"
+                stroke-dasharray="${ringC}" stroke-dashoffset="${ringC}" data-to="${ringC * (1 - Math.min(todays / store.DAILY_GOAL, 1))}"/>
+            </svg>
+            <div><b>${Math.min(todays, store.DAILY_GOAL)}</b><small>/ ${store.DAILY_GOAL} ⭐</small></div>
+          </div>
+          <div class="fx-stat card"><b data-count="${s.stars}">0</b><small>⭐ Yıldız</small></div>
+          <div class="fx-stat card"><b data-count="${st}">0</b><small>🔥 Seri</small></div>
+          <div class="fx-stat card"><b><span data-count="${finished}">0</span><small style="font-size:13px">/${allThemes.length}</small></b><small>✓ Biten</small></div>
+        </div>
+        <div class="fx-actions" style="margin-top:14px">
+          <a class="btn primary" href="${next ? `#/theme/${next.id}` : "#/themes"}">${todays ? "Devam et" : "Başla"} →</a>
+          <a class="btn" href="#/character">👕 Beni giydir</a>
+        </div>
       </div>
-    </a>
+    </section>
+
+    <section class="fx-week card">
+      <div class="fx-week-top"><b>Son 7 gün</b><span class="muted small">${week.reduce((a, d) => a + d.stars, 0)} ⭐ ${todays >= store.DAILY_GOAL ? "· 🎉 Bugünkü hedef tamam!" : ""}</span></div>
+      <div class="fx-bars">${week.map((d, i) => `<div class="col"><div class="bar-wrap"><i style="height:${Math.max(4, (d.stars / maxDay) * 100)}%;animation-delay:${200 + i * 70}ms;opacity:${d.stars ? 1 : 0.25}"></i></div><small>${d.label}</small></div>`).join("")}</div>
+    </section>
+
     <div class="lang-switch" role="group" aria-label="Dil seçimi">
       <button data-lang="tr" class="${en ? "" : "on"}">🇹🇷 Türkçe<small>Telaffuz ve okuma</small></button>
       <button data-lang="en" class="${en ? "on" : ""}">🇬🇧 İngilizce<small>Başlangıç düzeyi</small></button>
     </div>
-    <div class="goal card">
-      <div class="goal-top"><b>Günlük hedef</b><span>${Math.min(todays, store.DAILY_GOAL)} / ${store.DAILY_GOAL} ⭐ ${st > 0 ? `· 🔥 ${st} gün` : ""}</span></div>
-      ${progressBar(Math.min(todays, store.DAILY_GOAL), store.DAILY_GOAL)}
-      ${todays >= store.DAILY_GOAL ? `<p class="muted">🎉 Bugünkü hedefini tamamladın!</p>` : ""}
-      <a class="panel-link" href="panel/">🚀 Öğrenme paneli: ilerlemeni gör →</a>
-    </div>
-
     ${!canListen ? `<p class="notice">ℹ️ Bu tarayıcı ses tanımayı desteklemiyor. Konuşma etkinlikleri için Android'de veya bilgisayarda <b>Google Chrome</b> kullanın.</p>` : ""}
     ${missingVoice(en ? "en" : "tr") ? `<p class="notice">ℹ️ Cihazda ${en ? "İngilizce" : "Türkçe"} ses bulunamadı. Ayarlar → Metin okuma bölümünden ${en ? "İngilizce" : "Türkçe"} sesi yükleyin.</p>` : ""}
 
@@ -161,6 +199,18 @@ route("home", () => {
     <div class="row footer-row">
       <button class="btn small" onclick="location.hash='#/parent'">👨‍👩‍👧 Veli / Öğretmen</button>
     </div>`;
+  // Sayılar sayarak yükselir, hedef halkası dolar, karaktere dokununca zıplar
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches || document.documentElement.classList.contains("no-anim");
+  $app.querySelectorAll("[data-count]").forEach((el) => {
+    const to = +el.dataset.count;
+    if (reduce || !to) { el.textContent = to; return; }
+    const t0 = performance.now();
+    const tick = (t) => { const k = Math.min(1, (t - t0) / 1200); el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3))); if (k < 1 && el.isConnected) requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+  });
+  const ring = $app.querySelector(".fx-ring .val");
+  if (ring) setTimeout(() => { ring.style.strokeDashoffset = ring.dataset.to; }, 150);
+  on("#buddy", (b) => { b.classList.remove("jump"); void b.offsetWidth; b.classList.add("jump"); });
   on(".lang-switch button", (b) => {
     if (b.dataset.lang === store.lang()) return;
     store.setLang(b.dataset.lang);

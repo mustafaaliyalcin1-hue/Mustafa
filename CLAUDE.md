@@ -7,7 +7,9 @@
 - Dikey Instagram tanıtımı (1080x1920): `video/src/reels/TanitimReels.tsx`. Claude Stüdyo eklentileri kullanılmıyor (kullanıcı kapattırdı);
   videolar her zamanki gibi oyundan çekim + Remotion kurgusuyla yapılır.
 - İl simgeleri: `LANDM.defs` (plaka → yerler), modeller `LMK`. Diyarbakır'a (21) hiçbir şey konmayacak (kullanıcı istedi).
-- Öğrenme paneli (fütüristik arayüz): kaynak `arayuz/` (React + Tailwind v4, bileşenler `arayuz/src/components/ui/`),
-  `cd arayuz && npm install && npm run build` → çıktı `panel/` (commit edilir, GitHub Pages'te /panel/). İçeriği ana uygulamanın `js/` dosyalarından okur.
+- Fütüristik tasarım ana uygulamaya taşındı (kullanıcı ayrı panel istemedi): ana ekran "komuta merkezi" `js/activities/home.js`,
+  tema `styles.css` sonundaki "FÜTÜRİSTİK TEMA" bölümü (bulanıklık yok, iPhone siyah ekran yapıyordu). `panel/` yalnızca uygulamaya yönlendirir;
+  `arayuz/` (React + Tailwind v4 bileşenleri) kaynak olarak duruyor, derlemesi `arayuz/dist`.
 - Hata Kumandası: `kumanda/index.html` (tek dosya) → localStorage `konusan-arkadasim:hatalar` ile ana uygulamada bilerek hata açar/kapatır;
-  uygulama tarafı `js/chaos.js` + `styles.css` (bug-*). Hatalar ilerlemeye dokunmaz. `main` dalı da proje dalıyla güncel tutulur.
+  uygulama tarafı `js/chaos.js` + `styles.css` (bug-*). Uzaktan: uygulamanın menüsündeki 6 haneli kod → ntfy.sh konusu
+  `konusan-arkadasim-hata-<kod>` (kumanda POST eder, uygulama SSE ile dinler). Hatalar ilerlemeye dokunmaz. `main` dalı da proje dalıyla güncel tutulur.

@@ -42,6 +42,15 @@
     .bug.on { border-color: var(--on); background: rgba(255,77,109,.1); box-shadow: 0 0 22px -6px var(--on); }
     .bug.on .sw { background: var(--on); }
     .bug.on .sw::after { transform: translateX(16px); }
+    .pair { margin: 0 0 14px; padding: 14px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); }
+    .pair label { display: block; font-weight: 800; margin-bottom: 8px; }
+    .pair .in { display: flex; gap: 8px; }
+    .pair input { flex: 1; min-width: 0; min-height: 52px; border-radius: 14px; border: 2px solid var(--line); background: #0b0b14; color: var(--ink);
+      font: inherit; font-size: 24px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; text-align: center; }
+    .pair input:focus { outline: none; border-color: #00c2ff; }
+    .pair button { min-width: 96px; border-radius: 14px; border: 0; font: inherit; font-weight: 800; color: #07051a; background: linear-gradient(135deg, #00c2ff, #7c4dff); cursor: pointer; }
+    .pair small { display: block; margin-top: 8px; color: var(--muted); font-size: 13px; }
+    .pair.ok { border-color: var(--ok); }
     .note { color: var(--muted); font-size: 13px; line-height: 1.4; margin-top: 18px; padding: 12px; border-radius: 14px; border: 1px dashed var(--line); }
   </style>
 </head>
@@ -57,6 +66,12 @@
 
     <div class="status" id="status" role="status"><span class="dot"></span><span id="statusText">Uygulama sağlam, hiç hata açık değil</span></div>
 
+    <div class="pair" id="pair">
+      <label for="code">📡 Uygulama kodu</label>
+      <div class="in"><input id="code" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="KOD"><button id="connect">Bağlan</button></div>
+      <small id="pairInfo">Kodu, bozmak istediğin telefondaki uygulamada <b>☰ Menü → 🐞 Kumanda kodu</b> bölümünde bulursun. Kod girilince başka telefondan da çalışır.</small>
+    </div>
+
     <div class="row">
       <a class="open" href="../index.html" target="konusan-arkadasim">📱 Uygulamayı aç</a>
       <button id="random">🎲 Rastgele hata</button>
@@ -67,9 +82,9 @@
 
     <div id="groups"></div>
 
-    <p class="note">Kumanda ve uygulama <b>aynı telefonda, aynı tarayıcıda</b> açık olmalı (ör. ikisi de Safari'de).
-      Hatalar anında uygulanır; uygulamadaki ilerleme ve yıldızlar <b>asla silinmez</b>, hatalar sadece görüntüyü ve sesi bozar.
-      Ana ekrana eklenmiş uygulama Safari'den ayrı çalıştığı için kumandayı görmeyebilir.<br>
+    <p class="note">Kod girdiysen hatalar internet üzerinden o telefondaki uygulamaya gider (birkaç saniye içinde); uygulamanın açık ve internete bağlı olması yeter.
+      Kod girmezsen yalnızca bu tarayıcıdaki uygulama bozulur.
+      Uygulamadaki ilerleme ve yıldızlar <b>asla silinmez</b>, hatalar sadece görüntüyü ve sesi bozar.<br>
       💡 Çökme ekranında takılı kalırsan ekrana <b>art arda 3 kez dokun</b>: bütün hatalar kapanır.</p>
   </div>
 
@@ -105,7 +120,42 @@
     GROUPS.forEach(function (g) { g[1].forEach(function (b) { ALL.push(b); }); });
 
     function read() { try { return JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { return {}; } }
-    function save(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} render(); }
+    var RELAY = "https://ntfy.sh", CODE_KEY = "kumanda:kod";
+    var code = ""; try { code = localStorage.getItem(CODE_KEY) || ""; } catch (e) {}
+    function topic() { return "konusan-arkadasim-hata-" + code.toLowerCase(); }
+    function info(t, ok) { document.getElementById("pairInfo").innerHTML = t; document.getElementById("pair").classList.toggle("ok", !!ok); }
+    // Durumu uzaktaki uygulamaya gönder (ntfy.sh)
+    function send(s) {
+      if (!code) return;
+      info("Gönderiliyor…", true);
+      fetch(RELAY + "/" + topic(), { method: "POST", body: JSON.stringify(s) })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); info("✅ <b>" + code + "</b> koduna gönderildi. Uygulama birkaç saniye içinde değişir.", true); })
+        .catch(function () { info("❌ Gönderilemedi. İnternet bağlantısını kontrol edip tekrar dene.", false); });
+    }
+    // Uzaktaki uygulamanın son durumunu al (başka telefondan bağlanınca düğmeler doğru görünsün)
+    function pull() {
+      if (!code) return;
+      fetch(RELAY + "/" + topic() + "/json?poll=1&since=12h").then(function (r) { return r.text(); }).then(function (txt) {
+        var last = null;
+        txt.split("\n").forEach(function (line) { try { var m = JSON.parse(line); if (m.event === "message") last = m.message; } catch (e) {} });
+        if (last) { try { localStorage.setItem(KEY, last); } catch (e) {} }
+        render();
+        info("📡 <b>" + code + "</b> koduna bağlı. Düğmeye basınca o telefondaki uygulama bozulur.", true);
+      }).catch(function () { info("❌ Bağlanılamadı. İnternet bağlantısını kontrol et.", false); });
+    }
+    function save(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} render(); send(s); }
+    var codeIn = document.getElementById("code");
+    codeIn.value = code;
+    function connect() {
+      var v = codeIn.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+      if (v.length !== 6) { info("Kod 6 karakter olmalı.", false); return; }
+      code = v; codeIn.value = v;
+      try { localStorage.setItem(CODE_KEY, v); } catch (e) {}
+      pull();
+    }
+    document.getElementById("connect").onclick = connect;
+    codeIn.addEventListener("keydown", function (e) { if (e.key === "Enter") connect(); });
+    if (code) pull();
 
     function render() {
       var s = read();

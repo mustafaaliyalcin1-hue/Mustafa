@@ -2,6 +2,7 @@
 // Ayarlar anında uygulanır ve cihazda saklanır (GitHub'a gerek yok).
 import * as store from "./store.js";
 import { go } from "./ui.js";
+import { pairCode, remoteState } from "./chaos.js";
 
 const root = document.documentElement;
 const media = matchMedia("(prefers-color-scheme: dark)");
@@ -30,7 +31,6 @@ function panelHTML() {
     <nav class="menu-links">
       <a href="#/home">🏠 Ana sayfa</a>
       <a href="#/character">👕 Karakterim</a>
-      <a href="panel/">🚀 Öğrenme paneli</a>
       <a href="#/parent">👨‍👩‍👧 Veli ekranı</a>
       <a href="kumanda/">🐞 Hata Kumandası</a>
     </nav>
@@ -40,6 +40,9 @@ function panelHTML() {
     <div class="menu-group"><p>🎵 Oyun sesleri</p>${seg("sfx", s.sfx !== false, [[true, "Açık"], [false, "Kapalı"]])}</div>
     <div class="menu-group"><p>🐢 Okuma hızı: <span id="menuRate">${s.rate.toFixed(2)}</span></p>
       <input type="range" id="menuRateIn" min="0.5" max="1.1" step="0.05" value="${s.rate}" aria-label="Okuma hızı"></div>
+    <div class="menu-group menu-code"><p>🐞 Kumanda kodu</p>
+      <div class="code-box"><b>${pairCode()}</b><small>${remoteState === "bağlı" ? "📡 Bağlı" : "📡 " + remoteState}</small></div>
+      <small class="muted">Hata Kumandası'na bu kodu yaz; başka telefondan da hata açılabilir.</small></div>
     <p class="menu-note">Ayarlar bu cihazda saklanır.</p>`;
 }
 
