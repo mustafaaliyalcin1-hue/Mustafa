@@ -1,7 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  Apple, ArrowLeft, ArrowRight, BookOpen, Check, Flame, Hand, Hash, Leaf, Moon, Palette, PawPrint,
+  Repeat, School, Shirt, Star, Sun, Users,
+} from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { CourseDesignCard, type CardData } from "@/components/ui/course-design-cards";
-import { cn } from "@/lib/utils";
 import {
   APP_URL, DAILY_GOAL, buddyName, buddySVG, courses, lastWeek, readProgress, saveLang, streak, todayStars,
   type Course, type Progress,
@@ -9,23 +12,14 @@ import {
 
 const COLORS = ["green", "orange", "blue", "red"] as const;
 type Tab = "theme" | "story";
+type Lang = "tr" | "en";
 
-/* ---------- İkonlar ---------- */
-const Sun = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-    <circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
-  </svg>
-);
-const Moon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-    <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
-  </svg>
-);
-const Arrow = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-    <path d="M5 12h14M13 6l6 6-6 6" />
-  </svg>
-);
+// Tek ikon seti (lucide): her konuya sabit bir simge
+const ICONS: Record<string, ReactNode> = {
+  ailem: <Users />, okulum: <School />, hayvanlar: <PawPrint />, doga: <Leaf />, yiyecekler: <Apple />, tekerleme: <Repeat />,
+  "en-greetings": <Hand />, "en-colors": <Palette />, "en-numbers": <Hash />, "en-animals": <PawPrint />, "en-food": <Apple />, "en-school": <School />,
+};
+const iconFor = (c: Course) => (c.kind === "story" ? <BookOpen /> : ICONS[c.id] ?? <BookOpen />);
 
 /* ---------- Tema (koyu/aydınlık) ---------- */
 function useTheme() {
@@ -34,7 +28,7 @@ function useTheme() {
     document.documentElement.classList.toggle("dark", dark);
     try {
       localStorage.setItem("panel:tema", dark ? "dark" : "light");
-      // Uygulamanın menüsündeki tema ayarını da güncelle (iki yer aynı kalsın)
+      // Uygulamanın menüsündeki tema ayarıyla aynı kalsın
       const raw = JSON.parse(localStorage.getItem("konusan-baykus:v2") || "{}");
       if (raw.profile) { raw.settings = { ...(raw.settings || {}), theme: dark ? "dark" : "light" }; localStorage.setItem("konusan-baykus:v2", JSON.stringify(raw)); }
     } catch { /* yok say */ }
@@ -42,140 +36,93 @@ function useTheme() {
   return [dark, () => setDark((d) => !d)] as const;
 }
 
-const HudCorners = () => (<><i className="hud-c tl" /><i className="hud-c tr" /><i className="hud-c bl" /><i className="hud-c br" /></>);
-
-function SpaceBackground() {
+function Stat({ icon, value, label, color }: { icon: ReactNode; value: ReactNode; label: string; color: string }) {
   return (
-    <div className="space-bg" aria-hidden="true">
-      <div className="aurora a" /><div className="aurora b" /><div className="aurora c" />
-      <div className="stars" /><div className="grid-floor" />
-      <i className="meteor m1" /><i className="meteor m2" /><i className="meteor m3" />
-      <i className="scan-beam" />
+    <div className="stat">
+      <span style={{ color }} aria-hidden="true">{icon}</span>
+      <div className="min-w-0"><b>{value}</b><span>{label}</span></div>
     </div>
   );
 }
 
-function GoalRing({ value, goal }: { value: number; goal: number }) {
-  const r = 34, c = 2 * Math.PI * r;
-  const [shown, setShown] = useState(0);
-  useEffect(() => { const t = setTimeout(() => setShown(Math.min(value / goal, 1)), 120); return () => clearTimeout(t); }, [value, goal]);
-  return (
-    <div className="relative grid size-24 place-items-center">
-      <svg viewBox="0 0 80 80" className="goal-ring absolute inset-0 -rotate-90" aria-hidden="true">
-        <defs>
-          <linearGradient id="goal-g" x1="0" x2="1">
-            <stop offset="0" stopColor="var(--neon-1)" /><stop offset="1" stopColor="var(--neon-3)" />
-          </linearGradient>
-        </defs>
-        <circle cx="40" cy="40" r={r} fill="none" stroke="var(--track)" strokeWidth="7" />
-        <circle className="val" cx="40" cy="40" r={r} fill="none" stroke="url(#goal-g)" strokeWidth="7" strokeLinecap="round"
-          strokeDasharray={c} strokeDashoffset={c * (1 - shown)} />
-      </svg>
-      <div className="text-center leading-tight">
-        <div className="font-mono text-lg font-semibold">{Math.min(value, goal)}</div>
-        <div className="text-[10px] text-muted-foreground">/ {goal} ⭐</div>
-      </div>
-    </div>
-  );
-}
-
-/** Sayıyı 0'dan hedefe doğru sayarak gösterir */
-function useCountUp(target: number, ms = 1200, delay = 0) {
-  const [n, setN] = useState(0);
-  useEffect(() => {
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches) { setN(target); return; }
-    let raf = 0;
-    const t0 = performance.now() + delay;
-    const tick = (t: number) => {
-      const k = Math.min(1, Math.max(0, (t - t0) / ms));
-      setN(Math.round(target * (1 - Math.pow(1 - k, 3))));
-      if (k < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [target, ms, delay]);
-  return n;
-}
-
-function Stat({ label, value, delay }: { label: string; value: number; delay: number; suffix?: string }) {
-  const n = useCountUp(value, 1200, delay);
-  return (
-    <div className="glass stat-box animate-in fade-in slide-in-from-bottom-2 fill-mode-both min-w-0 rounded-2xl px-3 py-2.5 duration-700 sm:px-4 sm:py-3" style={{ animationDelay: `${delay}ms` }}>
-      <div className="truncate font-mono text-lg font-semibold sm:text-xl">{n}</div>
-      <div className="text-xs text-muted-foreground">{label}</div>
-    </div>
-  );
-}
-
-function Hero({ p, lang }: { p: Progress; lang: "tr" | "en" }) {
+function Hero({ p, lang }: { p: Progress; lang: Lang }) {
   const name = p.profile?.name;
-  const buddy = buddyName(p);
-  const today = todayStars(p);
-  const all = courses(p, lang);
+  const today = Math.min(todayStars(p), DAILY_GOAL);
+  const all = courses(p, lang).filter((c) => c.kind === "theme");
   const finished = all.filter((c) => c.total && c.done >= c.total).length;
-  const next = all.find((c) => c.kind === "theme" && c.done < c.total);
+  const next = all.find((c) => c.done < c.total);
+
+  if (!name) {
+    return (
+      <section className="surface enter grid gap-4 text-center">
+        <h1 className="t-display">Hoş geldin!</h1>
+        <p className="t-body text-muted-foreground">Önce uygulamada kendine bir arkadaş seç. Sonra yıldızların burada görünecek.</p>
+        <div><a href={APP_URL} className={buttonVariants({ size: "lg", className: "px-6" })}>Uygulamaya git</a></div>
+      </section>
+    );
+  }
+
   return (
-    <section className="glass neon-ring hud animate-in fade-in zoom-in-95 fill-mode-both grid gap-6 p-5 duration-700 sm:grid-cols-[auto_1fr] sm:p-7">
-      <HudCorners />
-      <div className="hero-char-wrap relative mx-auto size-40 sm:size-48">
-        <div className="buddy-pad" /><div className="orbit" /><div className="orbit two" />
-        <button type="button" aria-label={`${buddy} zıplasın`} className="absolute inset-[14%] cursor-pointer border-0 bg-transparent p-0"
-          onClick={(e) => { const el = e.currentTarget.firstElementChild as HTMLElement; el.classList.remove("jump"); void el.offsetWidth; el.classList.add("jump"); }}>
-          <div className="float size-full"><div className="buddy size-full" dangerouslySetInnerHTML={{ __html: buddySVG(p) }} /></div>
-        </button>
+    <section className="surface enter grid gap-5 sm:grid-cols-[auto_1fr] sm:items-center sm:gap-7">
+      <div className="mx-auto grid size-36 place-items-center rounded-full bg-muted sm:size-40">
+        <div className="buddy size-28 sm:size-32" dangerouslySetInnerHTML={{ __html: buddySVG(p) }} />
       </div>
-      <div className="hero-copy flex flex-col justify-center gap-4">
-        <div>
-          <p className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">Öğrenme paneli · {lang === "en" ? "English" : "Türkçe"}</p>
-          <h1 className="mt-1 text-3xl font-bold leading-tight sm:text-4xl">
-            {name ? <>Merhaba <span className="text-glow">{name}</span>!</> : <>Hoş geldin, <span className="text-glow">kaşif</span>!</>}
-          </h1>
-          <p className="mt-2 text-muted-foreground">
-            {name
-              ? <>{buddy} seni bekliyor. {next ? <>Sıradaki görev: <b className="text-foreground">{next.icon} {next.title}</b>.</> : "Bütün konuları bitirdin!"}</>
-              : "Henüz başlamadın. Uygulamaya girip karakterini seç, sonra ilerlemen burada görünsün."}
+      <div className="grid gap-4 text-center sm:text-left">
+        <div className="grid gap-1">
+          <h1 className="t-display">Merhaba {name}!</h1>
+          <p className="t-body text-muted-foreground">
+            {next ? <>Sıradaki konu: <b className="font-semibold text-foreground">{next.title}</b></> : "Bütün konuları bitirdin. Harikasın!"}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <GoalRing value={today} goal={DAILY_GOAL} />
-          <div className="grid flex-1 grid-cols-3 gap-2 sm:gap-3">
-            <Stat label="⭐ Yıldız" value={p.stars} delay={150} />
-            <Stat label="🔥 Seri" value={streak(p)} delay={250} />
-            <Stat label={`✓ Biten / ${all.length}`} value={finished} delay={350} />
+
+        <div className="grid gap-2">
+          <div className="flex items-baseline justify-between text-[15px]">
+            <span className="font-medium">Bugünkü hedef</span>
+            <span className="text-muted-foreground tabular-nums">{today} / {DAILY_GOAL} yıldız</span>
           </div>
+          <div className="meter" role="progressbar" aria-label="Bugünkü hedef" aria-valuemin={0} aria-valuemax={DAILY_GOAL} aria-valuenow={today}
+            style={{ ["--value" as string]: `${(today / DAILY_GOAL) * 100}%` }}><i /></div>
         </div>
-        <div className="hero-actions flex flex-wrap gap-2">
-          <a href={next ? next.href : APP_URL} className={buttonVariants({ variant: "default", size: "lg", className: "group shadow-[0_0_24px_var(--glow)]" })}>
-            {name ? "Devam et" : "Başla"}
-            <span className="btn-icon-motion btn-icon-motion--arrow inline-flex"><Arrow /></span>
+
+        <div className="grid grid-cols-3 gap-2">
+          <Stat icon={<Star size={22} />} value={p.stars} label="yıldız" color="var(--clr-orange)" />
+          <Stat icon={<Flame size={22} />} value={streak(p)} label="gün seri" color="var(--clr-red)" />
+          <Stat icon={<Check size={22} />} value={`${finished}/${all.length}`} label="konu" color="var(--clr-green)" />
+        </div>
+
+        <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
+          <a href={next ? next.href : APP_URL}
+            className={buttonVariants({ size: "lg", className: "flex-1 px-6 text-base shadow-[0_8px_20px_-8px_var(--glow)] sm:flex-none" })}>
+            Devam et <ArrowRight className="size-5" aria-hidden="true" />
           </a>
-          <a href={`${APP_URL}#/character`} className={buttonVariants({ variant: "outline", size: "lg" })}>👕 Karakteri giydir</a>
+          <a href={`${APP_URL}#/character`} className={buttonVariants({ variant: "outline", size: "lg", className: "flex-1 px-5 text-base sm:flex-none" })}>
+            <Shirt className="size-5" aria-hidden="true" /> Kıyafet seç
+          </a>
         </div>
       </div>
     </section>
   );
 }
 
-function WeekChart({ p }: { p: Progress }) {
+function Week({ p }: { p: Progress }) {
   const week = lastWeek(p);
+  const total = week.reduce((a, d) => a + d.stars, 0);
   const max = Math.max(DAILY_GOAL, ...week.map((d) => d.stars));
   return (
-    <section className="glass hud animate-in fade-in slide-in-from-bottom-4 fill-mode-both flex flex-col p-5 duration-700" style={{ animationDelay: "200ms" }}>
-      <HudCorners />
-      <div className="mb-4 flex items-baseline justify-between">
-        <h2 className="text-lg font-semibold">Son 7 gün</h2>
-        <span className="font-mono text-xs text-muted-foreground">{week.reduce((a, d) => a + d.stars, 0)} ⭐</span>
+    <section className="surface enter flex flex-col gap-4" style={{ animationDelay: "60ms" }}>
+      <div className="grid gap-1">
+        <h2 className="t-title">Bu hafta</h2>
+        <p className="t-small">{total ? `Bu hafta ${total} yıldız topladın.` : "Bu hafta henüz yıldız yok. Hadi başlayalım!"}</p>
       </div>
-      <div className="flex min-h-28 flex-1 items-end gap-2">
+      <div className="flex min-h-28 flex-1 items-end gap-2" aria-hidden="true">
         {week.map((d, i) => (
-          <div key={i} className="flex h-full flex-1 flex-col items-center gap-1.5">
+          <div key={i} className="flex h-full flex-1 flex-col items-center gap-2">
             <div className="relative w-full flex-1">
-              <div
-                className="bar-grow absolute inset-x-0 bottom-0 rounded-lg bg-gradient-to-t from-neon-2 to-neon-1 shadow-[0_0_14px_var(--glow)]"
-                style={{ height: `${Math.max(4, (d.stars / max) * 100)}%`, animationDelay: `${300 + i * 70}ms`, opacity: d.stars ? 1 : 0.25 }}
-              />
+              <div className="bar absolute inset-x-0 bottom-0 rounded-lg"
+                style={{ height: `${Math.max(5, (d.stars / max) * 100)}%`, animationDelay: `${120 + i * 40}ms`,
+                  background: d.stars ? "var(--primary)" : "var(--track)" }} />
             </div>
-            <span className="text-[11px] text-muted-foreground">{d.label}</span>
+            <span className="text-[13px] text-muted-foreground">{d.label}</span>
           </div>
         ))}
       </div>
@@ -183,30 +130,30 @@ function WeekChart({ p }: { p: Progress }) {
   );
 }
 
-function toCard(c: Course, i: number, p: Progress, nextId?: string): CardData {
+function toCard(c: Course, i: number, nextId?: string): CardData {
   const pct = c.total ? Math.round((c.done / c.total) * 100) : 0;
   const left = c.total - c.done;
   return {
     id: c.id,
     colorClass: COLORS[i % COLORS.length],
-    date: c.kind === "story" ? `Hikâye · ${c.grade}. sınıf` : `${c.grade}. sınıf · ${c.total} görev`,
+    date: c.kind === "story" ? `${c.grade}. sınıf · ${c.total} cümle` : `${c.total} cümle`,
     title: c.title,
-    description: c.subtitle,
+    // İngilizce konularda İngilizce adı altta gösterilir (ör. Selamlaşma — Greetings)
+    description: c.kind === "story" ? (c.subtitle !== "Hikâye" ? c.subtitle : "Dinle, sonra sen oku") : c.subtitle || "Dinle, sonra söyle",
     progressPercent: `${pct}%`,
-    progressValue: `${pct}%`,
-    countdownText: left <= 0 ? "Tamamlandı ✓" : c.done ? `${left} kaldı →` : "Başla →",
+    progressValue: `${c.done} / ${c.total}`,
+    countdownText: left <= 0 ? "Bitti" : c.done ? "Devam et" : "Başla",
     href: c.href,
-    icon: c.icon,
+    icon: iconFor(c),
     done: left <= 0,
     isNext: c.id === nextId,
-    avatars: p.profile ? [<span key="b" dangerouslySetInnerHTML={{ __html: buddySVG(p) }} />] : [],
   };
 }
 
 export default function App() {
   const [dark, toggleTheme] = useTheme();
   const [p, setP] = useState<Progress>(readProgress);
-  const [lang, setLang] = useState<"tr" | "en">(p.lang);
+  const [lang, setLang] = useState<Lang>(p.lang);
   const [tab, setTab] = useState<Tab>("theme");
 
   // Uygulamadan geri gelince ilerlemeyi tazele
@@ -218,55 +165,54 @@ export default function App() {
   }, []);
 
   const list = useMemo(() => courses(p, lang).filter((c) => c.kind === tab && c.total > 0), [p, lang, tab]);
-  const switchLang = (l: "tr" | "en") => { setLang(l); saveLang(l); };
   const nextId = p.profile ? list.find((c) => c.done < c.total)?.id : undefined;
+  const switchLang = (l: Lang) => { setLang(l); saveLang(l); };
 
   return (
-    <>
-      <SpaceBackground />
-      <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-5 px-4 pb-16 pt-4 sm:px-6">
-        <header className="flex items-center justify-between gap-3">
-          <a href={APP_URL} className="flex items-center gap-2 font-semibold no-underline text-foreground">
-            <span className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-neon-1 via-neon-2 to-neon-3 text-sm font-bold text-white shadow-[0_0_18px_var(--glow)]">KA</span>
-            <span className="hidden sm:inline">Konuşan Arkadaşım</span>
+    <div className="relative z-10 mx-auto flex max-w-5xl flex-col gap-5 px-4 pb-16 pt-4 sm:px-6">
+      <header className="flex items-center justify-between gap-3">
+        <a href={APP_URL} className="flex min-w-0 items-center gap-3 text-foreground no-underline">
+          <span className="grid size-11 flex-none place-items-center overflow-hidden rounded-[14px] bg-muted">
+            <span className="buddy size-9" dangerouslySetInnerHTML={{ __html: buddySVG(p) }} />
+          </span>
+          <span className="truncate text-[17px] font-semibold">{p.profile ? `${buddyName(p)} ile öğren` : "Konuşan Arkadaşım"}</span>
+        </a>
+        <div className="flex flex-none items-center gap-2">
+          <a href={APP_URL} className={buttonVariants({ variant: "ghost", size: "sm", className: "text-[15px]" })}>
+            <ArrowLeft className="size-5" aria-hidden="true" /> <span className="hidden sm:inline">Uygulamaya dön</span><span className="sm:hidden">Geri</span>
           </a>
-          <div className="flex items-center gap-2">
-            <a href={APP_URL} className={buttonVariants({ variant: "ghost", size: "sm" })}>← Uygulama</a>
-            <Button variant="outline" size="icon" onClick={toggleTheme} aria-label={dark ? "Aydınlık moda geç" : "Koyu moda geç"}>
-              {dark ? <Sun /> : <Moon />}
-            </Button>
-          </div>
-        </header>
-
-        <div className="grid gap-5 lg:grid-cols-[1.6fr_1fr]">
-          <Hero p={p} lang={lang} />
-          <WeekChart p={p} />
+          <Button variant="outline" size="icon" className="size-11" onClick={toggleTheme} aria-label={dark ? "Aydınlık görünüm" : "Koyu görünüm"}>
+            {dark ? <Sun /> : <Moon />}
+          </Button>
         </div>
+      </header>
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="glass inline-flex gap-1 rounded-2xl p-1" role="tablist" aria-label="Bölüm">
-            {([["theme", "🎤 Konular"], ["story", "📚 Hikâyeler"]] as const).map(([t, label]) => (
-              <Button key={t} size="sm" role="tab" aria-selected={tab === t} variant={tab === t ? "default" : "ghost"} onClick={() => setTab(t)}>{label}</Button>
-            ))}
-          </div>
-          <div className="glass inline-flex gap-1 rounded-2xl p-1" role="group" aria-label="Dil">
-            {([["tr", "🇹🇷 Türkçe"], ["en", "🇬🇧 English"]] as const).map(([l, label]) => (
-              <Button key={l} size="sm" variant={lang === l ? "secondary" : "ghost"} onClick={() => switchLang(l)} aria-pressed={lang === l}>{label}</Button>
-            ))}
-          </div>
-        </div>
-
-        <section key={`${tab}-${lang}`} className={cn("grid gap-4 sm:grid-cols-2 lg:grid-cols-3")}>
-          {list.map((c, i) => (
-            <CourseDesignCard
-              key={c.id}
-              data={toCard(c, i, p, nextId)}
-              style={{ animation: `enter 0.7s var(--primitive-ease) both`, animationDelay: `${Math.min(i, 12) * 80}ms`, ["--i" as string]: i }}
-            />
-          ))}
-        </section>
+      <div className="grid gap-5 lg:grid-cols-[1.7fr_1fr]">
+        <Hero p={p} lang={lang} />
+        {p.profile ? <Week p={p} /> : null}
       </div>
-      <style>{`@keyframes enter { from { opacity: 0; transform: translateY(40px) scale(.92); } 60% { opacity: 1; } }`}</style>
-    </>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+        <div className="segmented" role="tablist" aria-label="Bölüm">
+          {([["theme", "Konular"], ["story", "Hikâyeler"]] as const).map(([t, label]) => (
+            <Button key={t} size="sm" role="tab" aria-selected={tab === t} variant={tab === t ? "default" : "ghost"}
+              className="px-5 text-[15px]" onClick={() => setTab(t)}>{label}</Button>
+          ))}
+        </div>
+        <div className="segmented" role="group" aria-label="Dil">
+          {([["tr", "Türkçe"], ["en", "İngilizce"]] as const).map(([l, label]) => (
+            <Button key={l} size="sm" variant={lang === l ? "white" : "ghost"} aria-pressed={lang === l}
+              className="px-4 text-[15px]" onClick={() => switchLang(l)}>{label}</Button>
+          ))}
+        </div>
+      </div>
+
+      <section key={`${tab}-${lang}`} className="grid gap-4 pt-1 sm:grid-cols-2 lg:grid-cols-3" aria-label={tab === "theme" ? "Konular" : "Hikâyeler"}>
+        {list.map((c, i) => (
+          <CourseDesignCard key={c.id} data={toCard(c, i, nextId)}
+            style={{ animation: "enter 0.45s var(--primitive-ease) both", animationDelay: `${Math.min(i, 8) * 40}ms` }} />
+        ))}
+      </section>
+    </div>
   );
 }

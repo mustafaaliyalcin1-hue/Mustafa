@@ -87,7 +87,7 @@ export function courses(p: Progress, lang: Lang): Course[] {
   const themeCards = themes.map((t): Course => {
     const items = t.items.filter((x) => x.g === g);
     const done = items.filter((x) => (p.done[t.id] || []).includes(x.t)).length;
-    return { id: t.id, kind: "theme", title: t.sub || t.title, subtitle: t.sub ? t.title : "Dinle ve söyle", icon: t.icon, total: items.length, done, href: `${APP_URL}#/theme/${t.id}`, grade: g };
+    return { id: t.id, kind: "theme", title: t.title, subtitle: t.sub || "", icon: t.icon, total: items.length, done, href: `${APP_URL}#/theme/${t.id}`, grade: g };
   });
   const storyCards = stories.map((s): Course => {
     const done = Math.min((p.done["story:" + s.id] || []).length, s.lines.length);

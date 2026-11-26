@@ -72,7 +72,7 @@ export const CourseDesignCard: React.FC<CardProps> = ({ data, style }) => {
       className={`card ${colorClass} ${done ? "is-done" : ""} ${isNext ? "is-next" : ""}`}
       style={{ ...style, ["--progress" as string]: progressPercent }}
     >
-      {isNext ? <span className="next-badge">SIRADAKİ</span> : null}
+      {isNext ? <span className="next-badge">Sıradaki</span> : null}
       <div className="card-header">
         <div className="date">{date}</div>
         <span className="card-menu" aria-hidden="true"><EllipsisIcon /></span>
@@ -103,7 +103,7 @@ export const CourseDesignCard: React.FC<CardProps> = ({ data, style }) => {
             </li>
           )}
           <li>
-            <a href={href} className="btn-add" aria-label={`${title}: başla`}>
+            <a href={href} className="btn-add" aria-label={`${title}: aç`}>
               <AddIcon />
             </a>
           </li>
