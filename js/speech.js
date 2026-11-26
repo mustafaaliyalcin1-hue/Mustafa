@@ -2,6 +2,7 @@
 
 import { words, syllabify } from "./text.js";
 import * as store from "./store.js";
+import * as eleven from "./eleven.js";
 
 const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 export const canListen = !!Recognition;
@@ -34,7 +35,8 @@ if (canSpeak) {
 // Ses listesi yüklendiyse ve Türkçe ses yoksa true.
 export const missingVoice = (l = "tr") => canSpeak && voicesLoaded && !voiceFor[l];
 
-export function stopSpeaking() { if (canSpeak) speechSynthesis.cancel(); }
+export const elevenLabs = eleven;
+export function stopSpeaking() { eleven.stop(); if (canSpeak) speechSynthesis.cancel(); }
 
 // --- Sesin gerçekten çıkıp çıkmadığını izleme ---
 let heardOnce = false; // en az bir okuma başladı mı
@@ -53,6 +55,7 @@ function reportProblem() {
 // İlk dokunuşta sessiz, boş bir okuma yaparak ses motorunu uyandırır.
 export function unlockSpeech() {
   touched = true;
+  eleven.unlock();
   // iPhone (Safari 17+): sesi "medya" olarak işaretle; böylece sessiz mod düğmesi açıkken de duyulur.
   try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch { /* desteklenmiyor */ }
   if (!canSpeak) return;
@@ -68,7 +71,20 @@ export function unlockSpeech() {
  * Metni okur (lang: "tr" | "en"). onWord(i) verilirse okunan kelimenin sırası bildirilir (karaoke).
  * Bazı cihazlar kelime olayını desteklemez; o durumda süreye göre tahmin edilir.
  */
-export function say(text, { rate, onWord, lang = "tr" } = {}) {
+export async function say(text, opts = {}) {
+  // ElevenLabs bağlıysa doğal sesle oku; olmazsa cihazın sesine dön.
+  if (touched && eleven.enabled()) {
+    if (canSpeak) speechSynthesis.cancel();
+    const ok = await eleven.say(text, {
+      rate: (opts.rate ?? store.get().settings.rate) * ((opts.lang || "tr") === "en" ? 0.9 : 1),
+      onWord: opts.onWord,
+    });
+    if (ok) { heardOnce = true; return; }
+  }
+  return sayDevice(text, opts);
+}
+
+function sayDevice(text, { rate, onWord, lang = "tr" } = {}) {
   return new Promise((resolve) => {
     if (!canSpeak) { reportProblem(); return resolve(); }
     // Ekrana hiç dokunulmadan ses başlatılamaz (iPhone'da bu istek ses sırasını da tıkayabilir):

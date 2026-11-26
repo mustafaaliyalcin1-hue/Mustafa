@@ -92,7 +92,7 @@ p { margin: 6px 0; }
 .welcome { text-align: center; }
 .welcome .card { text-align: left; margin-top: 16px; }
 .field { display: block; font-weight: 700; margin-bottom: 12px; }
-.field input:not([type]), .field input[type="text"], .ans {
+.field input:not([type]), .field input[type="text"], .field input[type="password"], .field select, .ans {
   display: block; width: 100%; margin-top: 6px; padding: 12px 14px; font-size: 22px;
   border: 3px solid var(--soft); border-radius: 16px; background: var(--bg);
 }

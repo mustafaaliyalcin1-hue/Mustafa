@@ -1,7 +1,7 @@
 // Veli / Öğretmen paneli: basit bir ebeveyn kapısının arkasında ilerleme ve ayarlar.
 
 import { $app, route, go, on, toast, progressBar } from "../ui.js";
-import { say } from "../speech.js";
+import { say, elevenLabs as eleven } from "../speech.js";
 import { THEMES, STORIES, BADGES, AVATARS } from "../content.js";
 import { EN_THEMES, EN_STORIES } from "../content-en.js";
 import { esc } from "../text.js";
@@ -124,6 +124,27 @@ function panel() {
       </div>
     </div>
 
+    <div class="card settings" id="elevenCard">
+      <h3>🎙️ Doğal ses (ElevenLabs)</h3>
+      <p class="muted small">Robotik ses yerine ElevenLabs sesi kullanılır. API anahtarı <b>yalnızca bu cihazda</b> saklanır,
+        başka hiçbir yere gönderilmez (sadece ElevenLabs'e). Bağlı değilse cihazın kendi sesi kullanılır.</p>
+      <label class="field">API anahtarı
+        <input type="password" id="elKey" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="sk_..." value="${esc(eleven.getCfg().key || "")}">
+      </label>
+      <div class="row"><button class="btn" id="elConnect">🔗 Bağlan ve sesleri getir</button></div>
+      <label class="field" id="elVoiceWrap" ${eleven.getCfg().key ? "" : "hidden"}>Ses
+        <select id="elVoice">${eleven.getCfg().voice ? `<option value="${esc(eleven.getCfg().voice)}">${esc(eleven.getCfg().voiceName || eleven.getCfg().voice)}</option>` : ""}</select>
+      </label>
+      <label class="field">Ses kimliği (Voice ID, listede yoksa elle yazın)
+        <input type="text" id="elVoiceId" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(eleven.getCfg().voice || "")}">
+      </label>
+      <p class="small" id="elStatus">${eleven.enabled() ? "✅ Bağlı: " + esc(eleven.getCfg().voiceName || eleven.getCfg().voice) : "Bağlı değil (cihaz sesi kullanılıyor)."}</p>
+      <div class="row">
+        <button class="btn" id="elSave">💾 Kaydet ve dene</button>
+        <button class="btn danger" id="elRemove">✖️ Bağlantıyı kaldır</button>
+      </div>
+    </div>
+
     <p class="muted small">Gizlilik: Uygulama hesap açmaz, kişisel veri toplamaz; ilerleme yalnızca bu cihazda saklanır.
       Konuşma tanıma, cihazın/tarayıcının ses tanıma hizmetiyle yapılır ve ses kaydı uygulamada saklanmaz.
       <a href="privacy.html">Gizlilik politikası</a></p>`;
@@ -137,6 +158,41 @@ function panel() {
   });
   $app.querySelector("#sfx").addEventListener("change", (e) => store.setSetting("sfx", e.target.checked));
   on("#testVoice", () => say("Merhaba! Ben Bilge Baykuş. Seninle Türkçe çalışmayı çok seviyorum."));
+  // --- ElevenLabs ---
+  const $ = (q) => $app.querySelector(q);
+  const status = (t) => { $("#elStatus").textContent = t; };
+  on("#elConnect", async (b) => {
+    const key = $("#elKey").value.trim();
+    if (!key) return status("Önce API anahtarını yazın.");
+    b.disabled = true; status("Bağlanılıyor…");
+    try {
+      const voices = await eleven.listVoices(key);
+      const cur = $("#elVoiceId").value.trim();
+      $("#elVoice").innerHTML = voices.map((v) => `<option value="${esc(v.id)}" ${v.id === cur ? "selected" : ""}>${esc(v.name)}</option>`).join("");
+      $("#elVoiceWrap").hidden = false;
+      if (!cur && voices[0]) $("#elVoiceId").value = voices[0].id;
+      status(`${voices.length} ses bulundu. Birini seçip "Kaydet ve dene"ye basın.`);
+    } catch (e) {
+      status("❌ " + (e.message || "Bağlanılamadı") + " Ses kimliğini elle yazıp yine kaydedebilirsiniz.");
+    } finally { b.disabled = false; }
+  });
+  $("#elVoice").addEventListener("change", (e) => { $("#elVoiceId").value = e.target.value; });
+  on("#elSave", async () => {
+    const key = $("#elKey").value.trim();
+    const voice = $("#elVoiceId").value.trim();
+    if (!key || !voice) return status("API anahtarı ve ses gerekli.");
+    const opt = [...$("#elVoice").options].find((o) => o.value === voice);
+    eleven.setCfg({ key, voice, voiceName: opt ? opt.textContent : voice });
+    status("Deneniyor…");
+    await say("Merhaba! Ben Bilge Baykuş. Seninle Türkçe çalışmayı çok seviyorum.");
+    status(eleven.enabled() ? "✅ Bağlı: " + (opt ? opt.textContent : voice)
+      : "❌ " + (eleven.lastError || "Ses üretilemedi.") + " Cihaz sesi kullanılıyor.");
+  });
+  on("#elRemove", () => {
+    eleven.setCfg(null);
+    $("#elKey").value = ""; $("#elVoiceId").value = ""; $("#elVoice").innerHTML = ""; $("#elVoiceWrap").hidden = true;
+    status("Bağlantı kaldırıldı (cihaz sesi kullanılıyor).");
+  });
   // Tarayıcı onay penceresi bazı ortamlarda çalışmaz; onayı sayfada iste.
   on("#reset", (b) => {
     if (b.dataset.sure !== "1") {
