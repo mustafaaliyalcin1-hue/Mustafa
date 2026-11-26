@@ -1,4 +1,4 @@
-// Ses: Türkçe sesli okuma (dinleme) ve yapay zekâ ses tanıma (konuşma).
+// Ses: Türkçe sesli okuma (dinleme) ve ses tanıma (konuşma).
 
 import { words, syllabify } from "./text.js";
 import * as store from "./store.js";

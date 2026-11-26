@@ -125,13 +125,13 @@ function panel() {
       </div>
     </div>
 
-    <div class="card settings" id="elevenCard">
-      <h3>🎙️ Doğal ses (ElevenLabs)</h3>
+    <div class="card settings" id="elevenCard" hidden>
+      <h3>🎙️ Ses ayarı</h3>
       ${eleven.server ? `
       <p class="muted small">Doğal ses <b>merkezi sunucudan</b> geliyor: API anahtarı sunucuda saklanır, cihazlara anahtar girmek gerekmez.
         Sunucuya ulaşılamazsa cihazın kendi sesi kullanılır.</p>` : `
-      <p class="muted small">Robotik ses yerine ElevenLabs sesi kullanılır. Merkezi ses sunucusu kurulmadıysa anahtar buraya girilir;
-        <b>yalnızca bu cihazda</b> saklanır (sadece ElevenLabs'e gönderilir). Bağlı değilse cihazın kendi sesi kullanılır.</p>
+      <p class="muted small">Gelişmiş ses ayarı. Merkezi ses sunucusu kurulmadıysa anahtar buraya girilir;
+        <b>yalnızca bu cihazda</b> saklanır (yalnızca ses servisine gönderilir). Bağlı değilse cihazın kendi sesi kullanılır.</p>
       <label class="field">API anahtarı
         <input type="password" id="elKey" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="sk_..." value="${esc(eleven.getCfg().key || "")}">
       </label>`}

@@ -31,9 +31,9 @@ function errText(status, body) {
   if (status === 403 && server) return "Ses sunucusu bu siteye izin vermiyor.";
   if (status === 500 && /ELEVENLABS_API_KEY/.test(body)) return "Sunucuda API anahtarı tanımlı değil.";
   if (status === 429) return "Çok fazla istek ya da kota doldu. Biraz sonra tekrar deneyin.";
-  if (/quota/i.test(body)) return "ElevenLabs karakter kotası doldu.";
+  if (/quota/i.test(body)) return "Ses servisi kotası doldu.";
   if (/voice_not_found|not found/i.test(body)) return "Seçilen ses bulunamadı.";
-  return `ElevenLabs hatası (${status}).`;
+  return `Ses servisi hatası (${status}).`;
 }
 
 // Hesaptaki sesleri listeler: [{ id, name }]
@@ -234,7 +234,7 @@ export async function say(text, { rate = 0.85, onWord } = {}) {
   try {
     data = await synth(text, toSpeed(rate));
   } catch (e) {
-    lastError = e.message || "ElevenLabs'e ulaşılamadı.";
+    lastError = e.message || "Ses servisine ulaşılamadı.";
     failed = true;
     if (current === finish) current = null;
     mine = false;

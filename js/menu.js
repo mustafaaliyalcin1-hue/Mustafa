@@ -35,7 +35,7 @@ function panelHTML() {
     </nav>
     <div class="menu-group"><p>🌗 Görünüm</p>${seg("theme", s.theme || "auto", [["auto", "Otomatik"], ["light", "☀️ Aydınlık"], ["dark", "🌙 Koyu"]])}</div>
     <div class="menu-group"><p>✨ Animasyonlar</p>${seg("anim", s.anim !== false, [[true, "Açık"], [false, "Kapalı"]])}</div>
-    <div class="menu-group"><p>🗣️ Doğal ses (ElevenLabs)</p>${seg("natural", s.natural !== false, [[true, "Açık"], [false, "Kapalı"]])}</div>
+    <div class="menu-group"><p>🗣️ Doğal ses</p>${seg("natural", s.natural !== false, [[true, "Açık"], [false, "Kapalı"]])}</div>
     <div class="menu-group"><p>🎵 Oyun sesleri</p>${seg("sfx", s.sfx !== false, [[true, "Açık"], [false, "Kapalı"]])}</div>
     <div class="menu-group"><p>🐢 Okuma hızı: <span id="menuRate">${s.rate.toFixed(2)}</span></p>
       <input type="range" id="menuRateIn" min="0.5" max="1.1" step="0.05" value="${s.rate}" aria-label="Okuma hızı"></div>

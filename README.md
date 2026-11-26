@@ -1,8 +1,8 @@
-# 🦉 Konuşan Baykuş — Türkçe ve İngilizce Telaffuz Pekiştirme
+# ✨ Konuşan Arkadaşım — Türkçe ve İngilizce Telaffuz Pekiştirme
 
-1. ve 2. sınıf öğrencileri için, yapay zekâ destekli **Türkçe** telaffuz ve sesli okuma uygulaması;
+1. ve 2. sınıf öğrencileri için **Türkçe** telaffuz ve sesli okuma uygulaması;
 yanında **başlangıç düzeyi İngilizce**. Ana sayfadaki 🇹🇷 / 🇬🇧 düğmesiyle dil seçilir.
-Çocuk cümleyi dinler, mikrofona söyler; **Bilge Baykuş** dinler:
+Çocuk kendi karakterini seçip giydirir; cümleyi dinler, mikrofona söyler; karakteri onu dinler:
 
 - **Doğruysa:** tebrik eder, yıldız ve konfeti verir, **kendiliğinden sonraki cümleye geçer**.
 - **Çok yaklaştıysa (uzun cümlede küçük bir hata):** doğru sayar, kısa bir ipucu ekler.
@@ -100,7 +100,6 @@ istatistiğe yazılır ve **Zor Seslerim** etkinliği bunlardan oluşturulur.
 
 ## Sonraki adımlar
 
-- Sunucu tarafında bir yapay zekâ modeli (ör. Claude) ile daha kişisel geri bildirim
 - Öğretmen paneli: birden çok öğrenci için sınıf raporu
 - İçeriği MEB 1–2. sınıf Türkçe ders kitabı temalarına göre genişletme
 - Çocuğun kendi sesini kaydedip geri dinletme
