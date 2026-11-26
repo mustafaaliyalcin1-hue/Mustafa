@@ -72,7 +72,13 @@ export function unlockSpeech() {
  * Bazı cihazlar kelime olayını desteklemez; o durumda süreye göre tahmin edilir.
  */
 export async function say(text, opts = {}) {
-  // ElevenLabs bağlıysa doğal sesle oku; olmazsa cihazın sesine dön.
+  // 1) Önceden seslendirilmiş dosya, 2) ElevenLabs (sunucu/anahtar), 3) cihazın sesi.
+  // (Dosya yoksa beklemeden devam edilir: iPhone cihaz sesini yalnızca dokunuşun içinde başlatır.)
+  if (touched && eleven.hasFile(text, opts.lang || "tr") && (await eleven.sayFile(text, {
+    rate: opts.rate ?? store.get().settings.rate,
+    onWord: opts.onWord,
+    lang: opts.lang || "tr",
+  }))) { heardOnce = true; return; }
   if (touched && eleven.enabled()) {
     if (canSpeak) speechSynthesis.cancel();
     const ok = await eleven.say(text, {
@@ -170,7 +176,13 @@ export async function saySlow(text, { onWord, lang = "tr" } = {}) {
   for (let i = 0; i < list.length; i++) {
     onWord?.(i);
     if (lang === "en") await say(list[i], { rate: 0.6, lang });
-    else for (const s of syllabify(list[i])) await say(s, { rate: 0.6 });
+    else {
+      // Tek ses kullan: hecelerin hepsi hazır dosyaysa hece hece, değilse kelimenin dosyası yavaş;
+      // hiçbiri yoksa cihaz sesiyle hece hece.
+      const syl = syllabify(list[i]);
+      if (!syl.every((s) => eleven.hasFile(s)) && eleven.hasFile(list[i])) await say(list[i], { rate: 0.55 });
+      else for (const s of syl) await say(s, { rate: 0.6 });
+    }
     await pause(250);
   }
   onWord?.(-1);

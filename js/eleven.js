@@ -4,6 +4,7 @@
 // Aynı metin bir kez üretilir, sonra cihazdaki önbellekten çalınır.
 
 import { VOICE_SERVER } from "./config.js";
+import { audioKey, normText } from "./audio-key.js";
 export const server = VOICE_SERVER.replace(/\/+$/, "");
 
 const CFG_KEY = "konusan-baykus:elevenlabs";
@@ -111,6 +112,93 @@ export function stop() {
 
 // Uygulama hızını (0.5–1.1) ElevenLabs hızına (0.7–1.2) çevirir.
 const toSpeed = (rate) => Math.round(Math.min(1.2, Math.max(0.7, rate + 0.15)) * 20) / 20;
+
+/**
+ * Sesi tek oynatıcıda çalar. parts: [{ src, times: [kelime başlangıç sn] }] sırayla çalınır;
+ * onWord tüm parçalar boyunca kelime sırasını bildirir. Çalma engellenirse false döner.
+ */
+async function playParts(parts, { onWord, playbackRate = 1 } = {}) {
+  stop();
+  let mine = true;
+  let done;
+  const finished = new Promise((r) => { done = r; });
+  let raf = 0;
+  const finish = () => {
+    if (!mine) return;
+    mine = false;
+    cancelAnimationFrame(raf);
+    player.onended = player.onerror = null;
+    if (current === finish) current = null;
+    onWord?.(-1);
+    done(true);
+  };
+  current = finish;
+  let offset = 0;
+  for (let p = 0; p < parts.length; p++) {
+    if (!mine) return true;
+    const { src, times } = parts[p];
+    let lastWord = -1;
+    const tick = () => {
+      if (!mine) return;
+      const t = player.currentTime;
+      let i = -1;
+      times.forEach((st, k) => { if (st != null && t >= st) i = k; });
+      if (i >= 0 && i !== lastWord) { lastWord = i; onWord(offset + i); }
+      raf = requestAnimationFrame(tick);
+    };
+    const ended = new Promise((r) => { player.onended = r; player.onerror = r; });
+    player.src = src;
+    try { player.playbackRate = playbackRate; player.preservesPitch = true; } catch { /* yok say */ }
+    try {
+      await player.play();
+      try { player.playbackRate = playbackRate; } catch { /* yok say */ }
+    } catch (e) {
+      // Çalma engellendi (ör. dokunuş yok): çağıran cihaz sesine geçsin.
+      lastError = "Ses çalınamadı (ekrana bir kez dokunup tekrar deneyin).";
+      mine = false;
+      cancelAnimationFrame(raf);
+      player.onended = player.onerror = null;
+      if (current === finish) current = null;
+      return p === 0 ? false : true;
+    }
+    if (onWord) { onWord(offset); lastWord = 0; cancelAnimationFrame(raf); tick(); }
+    // Güvenlik: bitiş olayı gelmezse takılma
+    await Promise.race([ended, new Promise((r) => setTimeout(r, 30000))]);
+    cancelAnimationFrame(raf);
+    offset += times.length;
+  }
+  finish();
+  return finished;
+}
+
+/* ---------- Önceden seslendirilmiş dosyalar (ses/) ---------- */
+let manifest = null;
+const manifestReady = fetch("ses/manifest.json").then((r) => (r.ok ? r.json() : {})).then((m) => { manifest = m; }).catch(() => { manifest = {}; });
+const fileFor = (text, lang) => {
+  const k = audioKey(text, lang);
+  return manifest && manifest[k] ? { src: `ses/${k}.mp3`, times: manifest[k] } : null;
+};
+// Önce metnin tamamı, yoksa cümlelerine bölünmüş hâli aranır.
+function filesFor(text, lang) {
+  if (!manifest) return null;
+  const whole = fileFor(text, lang);
+  if (whole) return [whole];
+  const pieces = normText(text).split(/(?<=[.!?:])\s+/).filter(Boolean);
+  if (pieces.length < 2) return null;
+  const parts = pieces.map((t) => fileFor(t, lang));
+  return parts.every(Boolean) ? parts : null;
+}
+export const fileReady = () => manifestReady;
+export const hasFile = (text, lang = "tr") => !!(player && filesFor(text, lang));
+
+/** Hazır ses dosyası varsa çalar ve true döner; yoksa false (çağıran başka yola geçer). */
+export function sayFile(text, { rate = 0.85, onWord, lang = "tr" } = {}) {
+  const parts = player && filesFor(text, lang);
+  if (!parts) return Promise.resolve(false);
+  // Uygulamanın okuma hızı (0.85 = normal) dosyanın çalma hızına çevrilir.
+  const playbackRate = Math.min(1.25, Math.max(0.65, rate / 0.85));
+  return playParts(parts, { onWord, playbackRate });
+}
 
 /** Metni ElevenLabs ile okur. Hata olursa false döner (çağıran cihaz sesine geçer). */
 export async function say(text, { rate = 0.85, onWord } = {}) {
