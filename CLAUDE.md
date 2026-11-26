@@ -9,3 +9,5 @@
 - İl simgeleri: `LANDM.defs` (plaka → yerler), modeller `LMK`. Diyarbakır'a (21) hiçbir şey konmayacak (kullanıcı istedi).
 - Öğrenme paneli (fütüristik arayüz): kaynak `arayuz/` (React + Tailwind v4, bileşenler `arayuz/src/components/ui/`),
   `cd arayuz && npm install && npm run build` → çıktı `panel/` (commit edilir, GitHub Pages'te /panel/). İçeriği ana uygulamanın `js/` dosyalarından okur.
+- Hata Kumandası: `kumanda/index.html` (tek dosya) → localStorage `konusan-arkadasim:hatalar` ile ana uygulamada bilerek hata açar/kapatır;
+  uygulama tarafı `js/chaos.js` + `styles.css` (bug-*). Hatalar ilerlemeye dokunmaz. `main` dalı da proje dalıyla güncel tutulur.

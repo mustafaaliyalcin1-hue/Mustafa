@@ -3,6 +3,7 @@
 import { words, syllabify } from "./text.js";
 import * as store from "./store.js";
 import * as eleven from "./eleven.js";
+import { speechBug } from "./chaos.js";
 
 const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 export const canListen = !!Recognition;
@@ -72,6 +73,10 @@ export function unlockSpeech() {
  * Bazı cihazlar kelime olayını desteklemez; o durumda süreye göre tahmin edilir.
  */
 export async function say(text, opts = {}) {
+  // Hata Kumandası: ses kesik / sincap sesi
+  const bug = speechBug();
+  if (bug.mute) { opts.onWord?.(-1); return; }
+  if (bug.squirrel) opts = { ...opts, rate: (opts.rate ?? store.get().settings.rate) * 1.7, squirrel: true };
   // 1) Önceden seslendirilmiş dosya, 2) ElevenLabs (sunucu/anahtar), 3) cihazın sesi.
   // (Dosya yoksa beklemeden devam edilir: iPhone cihaz sesini yalnızca dokunuşun içinde başlatır.)
   const natural = store.get().settings.natural !== false;
@@ -79,6 +84,7 @@ export async function say(text, opts = {}) {
     rate: opts.rate ?? store.get().settings.rate,
     onWord: opts.onWord,
     lang: opts.lang || "tr",
+    squirrel: opts.squirrel,
   }))) { heardOnce = true; return; }
   if (natural && touched && eleven.enabled()) {
     if (canSpeak) speechSynthesis.cancel();
@@ -91,7 +97,7 @@ export async function say(text, opts = {}) {
   return sayDevice(text, opts);
 }
 
-function sayDevice(text, { rate, onWord, lang = "tr" } = {}) {
+function sayDevice(text, { rate, onWord, lang = "tr", squirrel } = {}) {
   return new Promise((resolve) => {
     if (!canSpeak) { reportProblem(); return resolve(); }
     // Ekrana hiç dokunulmadan ses başlatılamaz (iPhone'da bu istek ses sırasını da tıkayabilir):
@@ -104,7 +110,7 @@ function sayDevice(text, { rate, onWord, lang = "tr" } = {}) {
     try { if (voiceFor[lang]) u.voice = voiceFor[lang]; } catch { /* lang yeterli */ }
     // İngilizce çocuklar için biraz daha yavaş okunur.
     u.rate = rate ?? store.get().settings.rate * (lang === "en" ? 0.9 : 1);
-    u.pitch = 1.1;
+    u.pitch = squirrel ? 2 : 1.1;
 
     let timers = [];
     let gotBoundary = false;

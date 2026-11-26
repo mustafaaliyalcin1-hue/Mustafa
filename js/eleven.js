@@ -132,7 +132,7 @@ const toSpeed = (rate) => Math.round(Math.min(1.2, Math.max(0.7, rate + 0.15)) *
  * Sesi tek oynatıcıda çalar. parts: [{ src, times: [kelime başlangıç sn] }] sırayla çalınır;
  * onWord tüm parçalar boyunca kelime sırasını bildirir. Çalma engellenirse false döner.
  */
-async function playParts(parts, { onWord, playbackRate = 1 } = {}) {
+async function playParts(parts, { onWord, playbackRate = 1, squirrel = false } = {}) {
   stop();
   let mine = true;
   let done;
@@ -163,7 +163,7 @@ async function playParts(parts, { onWord, playbackRate = 1 } = {}) {
     };
     const ended = new Promise((r) => { player.onended = r; player.onerror = r; });
     player.src = src;
-    try { player.playbackRate = playbackRate; player.preservesPitch = true; } catch { /* yok say */ }
+    try { player.playbackRate = playbackRate; player.preservesPitch = !squirrel; player.webkitPreservesPitch = !squirrel; } catch { /* yok say */ }
     try {
       await player.play();
       unlocked = true;
@@ -208,12 +208,12 @@ export const fileReady = () => manifestReady;
 export const hasFile = (text, lang = "tr") => !!(player && filesFor(text, lang));
 
 /** Hazır ses dosyası varsa çalar ve true döner; yoksa false (çağıran başka yola geçer). */
-export function sayFile(text, { rate = 0.85, onWord, lang = "tr" } = {}) {
+export function sayFile(text, { rate = 0.85, onWord, lang = "tr", squirrel = false } = {}) {
   const parts = player && filesFor(text, lang);
   if (!parts) return Promise.resolve(false);
   // Uygulamanın okuma hızı (0.85 = normal) dosyanın çalma hızına çevrilir.
-  const playbackRate = Math.min(1.25, Math.max(0.65, rate / 0.85));
-  return playParts(parts, { onWord, playbackRate });
+  const playbackRate = Math.min(squirrel ? 2 : 1.25, Math.max(0.65, rate / 0.85));
+  return playParts(parts, { onWord, playbackRate, squirrel });
 }
 
 /** Metni ElevenLabs ile okur. Hata olursa false döner (çağıran cihaz sesine geçer). */

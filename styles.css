@@ -536,3 +536,29 @@ html:not(.is-dark) .wel-field input::placeholder { color: rgba(34,29,74,.4); }
 html:not(.is-dark) .wel-seg button.on, html:not(.is-dark) .wel-pick button.on, html:not(.is-dark) body.setup-dark .char-tabs button.on, html:not(.is-dark) body.setup-dark .char-items button.on {
   border-color: #00a8cc; background: rgba(0,200,240,.12); }
 html:not(.is-dark) body.setup-dark .char-items button .lock { background: #fff; color: #221d4a; }
+
+/* ================= Hata Kumandası'nın açtığı hatalar ================= */
+html.bug-ters body { transform: rotate(180deg); }
+html.bug-ayna body { transform: scaleX(-1); }
+html.bug-ters.bug-ayna body { transform: rotate(180deg) scaleX(-1); }
+html.bug-titre #app, html.bug-titre .topbar { animation: bug-shake .18s linear infinite !important; }
+@keyframes bug-shake { 25% { transform: translate(3px, -2px) rotate(.6deg); } 50% { transform: translate(-3px, 2px) rotate(-.6deg); } 75% { transform: translate(2px, 3px); } }
+html.bug-yavas *, html.bug-yavas *::before, html.bug-yavas *::after { animation-duration: 6s !important; transition-duration: 2.5s !important; }
+html.bug-renk body { animation: bug-hue 3s linear infinite; }
+@keyframes bug-hue { to { filter: hue-rotate(360deg) saturate(2); } }
+html.bug-donen .owl { animation: bug-spin 1.4s linear infinite !important; }
+@keyframes bug-spin { to { transform: rotate(360deg); } }
+html.bug-bulanik #app { filter: blur(2.5px); }
+html.bug-dev #app { zoom: 1.6; }
+#starCount[data-bug="1"] { font-size: 0; }
+#starCount[data-bug="1"]::after { content: "-999"; font-size: 18px; animation: bug-blink .5s steps(2) infinite; }
+@keyframes bug-blink { 50% { opacity: .2; } }
+body.bug-wait { cursor: progress; }
+body.bug-wait::after { content: "⏳"; position: fixed; inset: 0; display: grid; place-items: center; font-size: 72px; background: rgba(0,0,0,.15); z-index: 60; }
+.bug-crash { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 24px; text-align: center;
+  background: #0b0b14; color: #fff; animation: bug-in .2s steps(3); }
+.bug-crash .bug-crash-ic { font-size: 72px; animation: bug-shake .3s linear infinite; }
+.bug-crash b { font-size: 26px; display: block; margin: 8px 0; }
+.bug-crash p { color: #aab; margin: 0 0 14px; }
+.bug-crash code { font-size: 13px; color: #ff6b6b; background: rgba(255,80,80,.1); padding: 6px 10px; border-radius: 8px; }
+@keyframes bug-in { from { opacity: 0; transform: scale(1.05); } }

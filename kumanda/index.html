@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Hata Kumandası</title>
+  <meta name="description" content="Konuşan Arkadaşım'a bilerek hata açıp kapatan kumanda">
+  <meta name="theme-color" content="#0b0b14">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%90%9E%3C/text%3E%3C/svg%3E">
+  <style>
+    :root { --bg: #0b0b14; --panel: #151522; --line: #26263a; --ink: #f1f1ff; --muted: #9a9ab8; --on: #ff4d6d; --ok: #3ddc97; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100dvh; background: var(--bg); color: var(--ink);
+      font-family: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent;
+      background-image: radial-gradient(circle at 20% -10%, rgba(255,77,109,.18), transparent 50%), radial-gradient(circle at 110% 30%, rgba(124,77,255,.15), transparent 50%); }
+    .wrap { max-width: 560px; margin: 0 auto; padding: max(16px, env(safe-area-inset-top)) 16px 40px; }
+    header { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+    .logo { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; font-size: 28px;
+      background: linear-gradient(135deg, #ff4d6d, #7c4dff); box-shadow: 0 0 24px rgba(255,77,109,.45); }
+    h1 { margin: 0; font-size: 24px; }
+    .sub { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+    .status { display: flex; align-items: center; gap: 8px; margin: 14px 0; padding: 12px 14px; border-radius: 16px;
+      background: var(--panel); border: 1px solid var(--line); font-weight: 700; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 10px var(--ok); flex: none; }
+    .status.hot .dot { background: var(--on); box-shadow: 0 0 12px var(--on); animation: pulse 1s infinite; }
+    @keyframes pulse { 50% { opacity: .4; } }
+    .row { display: flex; gap: 8px; margin-bottom: 14px; }
+    .row a, .row button { flex: 1; min-height: 50px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel);
+      color: var(--ink); font: inherit; font-weight: 800; font-size: 15px; display: grid; place-items: center; text-decoration: none; cursor: pointer; }
+    .row .danger { background: rgba(255,77,109,.14); border-color: rgba(255,77,109,.5); }
+    .row .open { background: linear-gradient(135deg, #7c4dff, #00c2ff); border: 0; }
+    h2 { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 18px 4px 8px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .bug { position: relative; text-align: left; padding: 14px 12px 12px; min-height: 104px; border-radius: 18px; cursor: pointer;
+      border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: inherit; transition: transform .15s, border-color .2s, box-shadow .2s, background .2s; }
+    .bug:active { transform: scale(.96); }
+    .bug .ic { font-size: 28px; display: block; }
+    .bug b { display: block; font-size: 16px; margin: 6px 0 2px; }
+    .bug small { color: var(--muted); font-size: 12.5px; line-height: 1.25; display: block; }
+    .bug .sw { position: absolute; top: 12px; right: 12px; width: 40px; height: 24px; border-radius: 99px; background: #2c2c42; transition: background .2s; }
+    .bug .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .2s; }
+    .bug.on { border-color: var(--on); background: rgba(255,77,109,.1); box-shadow: 0 0 22px -6px var(--on); }
+    .bug.on .sw { background: var(--on); }
+    .bug.on .sw::after { transform: translateX(16px); }
+    .note { color: var(--muted); font-size: 13px; line-height: 1.4; margin-top: 18px; padding: 12px; border-radius: 14px; border: 1px dashed var(--line); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo" aria-hidden="true">🐞</div>
+      <div>
+        <h1>Hata Kumandası</h1>
+        <p class="sub">Konuşan Arkadaşım'a bilerek hata aç, kapat.</p>
+      </div>
+    </header>
+
+    <div class="status" id="status" role="status"><span class="dot"></span><span id="statusText">Uygulama sağlam, hiç hata açık değil</span></div>
+
+    <div class="row">
+      <a class="open" href="../index.html" target="konusan-arkadasim">📱 Uygulamayı aç</a>
+      <button id="random">🎲 Rastgele hata</button>
+    </div>
+    <div class="row">
+      <button class="danger" id="allOff">🧯 Hepsini kapat</button>
+    </div>
+
+    <div id="groups"></div>
+
+    <p class="note">Kumanda ve uygulama <b>aynı telefonda, aynı tarayıcıda</b> açık olmalı (ör. ikisi de Safari'de).
+      Hatalar anında uygulanır; uygulamadaki ilerleme ve yıldızlar <b>asla silinmez</b>, hatalar sadece görüntüyü ve sesi bozar.
+      Ana ekrana eklenmiş uygulama Safari'den ayrı çalıştığı için kumandayı görmeyebilir.</p>
+  </div>
+
+  <script>
+    var KEY = "konusan-arkadasim:hatalar";
+    var GROUPS = [
+      ["Ekran", [
+        ["ters", "🙃", "Ters ekran", "Her şey baş aşağı döner."],
+        ["ayna", "🪞", "Ayna", "Ekran aynadaki gibi ters görünür."],
+        ["titre", "🫨", "Deprem", "Ekran durmadan titrer."],
+        ["renk", "🌈", "Renk çılgınlığı", "Renkler sürekli değişir."],
+        ["bulanik", "😵‍💫", "Bulanık", "Gözlüksüz görmek gibi."],
+        ["dev", "🔍", "Dev yazı", "Her şey kocaman olur."]
+      ]],
+      ["Karakter ve hareket", [
+        ["donen", "🌀", "Dönen karakter", "Karakter fırıl fırıl döner."],
+        ["yavas", "🐌", "Yavaş çekim", "Bütün animasyonlar ağırlaşır."]
+      ]],
+      ["Dokunma", [
+        ["kacan", "🏃", "Kaçan düğmeler", "Düğmeler parmaktan kaçar."],
+        ["gecikme", "⏳", "Donma", "Her dokunuş 1,5 sn sonra çalışır."]
+      ]],
+      ["Ses", [
+        ["sessiz", "🔇", "Ses kesik", "Uygulama hiç konuşmaz."],
+        ["sincap", "🐿️", "Sincap sesi", "Ses incecik ve hızlı olur."]
+      ]],
+      ["Büyük hatalar", [
+        ["yildiz", "⭐", "Yıldız bozuk", "Yıldız sayacı -999 gösterir."],
+        ["cokme", "💥", "Çökme ekranı", "Sahte “uygulama durduruldu” ekranı."]
+      ]]
+    ];
+    var ALL = [];
+    GROUPS.forEach(function (g) { g[1].forEach(function (b) { ALL.push(b); }); });
+
+    function read() { try { return JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { return {}; } }
+    function save(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} render(); }
+
+    function render() {
+      var s = read();
+      var html = "";
+      GROUPS.forEach(function (g) {
+        html += "<h2>" + g[0] + "</h2><div class='grid'>";
+        g[1].forEach(function (b) {
+          var on = !!s[b[0]];
+          html += "<button class='bug" + (on ? " on" : "") + "' data-id='" + b[0] + "' aria-pressed='" + on + "'>" +
+            "<span class='sw' aria-hidden='true'></span><span class='ic'>" + b[1] + "</span><b>" + b[2] + "</b><small>" + b[3] + "</small></button>";
+        });
+        html += "</div>";
+      });
+      document.getElementById("groups").innerHTML = html;
+      var n = ALL.filter(function (b) { return s[b[0]]; }).length;
+      document.getElementById("status").classList.toggle("hot", n > 0);
+      document.getElementById("statusText").textContent = n ? n + " hata açık 🐞 uygulama bozuk!" : "Uygulama sağlam, hiç hata açık değil";
+      Array.prototype.forEach.call(document.querySelectorAll(".bug"), function (el) {
+        el.onclick = function () {
+          var s2 = read();
+          s2[el.dataset.id] = !s2[el.dataset.id];
+          if (navigator.vibrate) navigator.vibrate(15);
+          save(s2);
+        };
+      });
+    }
+    document.getElementById("allOff").onclick = function () { save({}); };
+    document.getElementById("random").onclick = function () {
+      var s = read();
+      var off = ALL.filter(function (b) { return !s[b[0]]; });
+      if (!off.length) return;
+      s[off[Math.floor(Math.random() * off.length)][0]] = true;
+      save(s);
+    };
+    window.addEventListener("storage", function (e) { if (e.key === KEY) render(); });
+    render();
+  </script>
+</body>
+</html>

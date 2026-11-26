@@ -1,10 +1,10 @@
 // Çevrimdışı önbellek: uygulama internet olmadan da açılır.
 // (Konuşma tanıma çoğu cihazda yine de internet ister.)
-const CACHE = "konusan-baykus-v16";
+const CACHE = "konusan-baykus-v17";
 const FILES = [
   "./", "./index.html", "./styles.css", "./manifest.json", "./privacy.html",
   "./icons/icon.svg", "./icons/icon-192.png", "./icons/icon-512.png",
-  "./js/main.js", "./js/ui.js", "./js/store.js", "./js/speech.js", "./js/fx.js", "./js/eleven.js", "./js/config.js", "./js/character.js", "./js/menu.js", "./js/audio-key.js",
+  "./js/main.js", "./js/ui.js", "./js/store.js", "./js/speech.js", "./js/fx.js", "./js/eleven.js", "./js/config.js", "./js/character.js", "./js/menu.js", "./js/chaos.js", "./js/audio-key.js",
   "./js/text.js", "./js/tips.js", "./js/coach.js", "./js/content.js", "./js/content-en.js",
   "./js/activities/home.js", "./js/activities/practice.js", "./js/activities/stories.js",
   "./js/activities/games.js", "./js/activities/parent.js", "./js/activities/character.js",
