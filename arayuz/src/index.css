@@ -23,7 +23,7 @@
 :root {
   --background: #eef1fb;
   --foreground: #12131f;
-  --card: rgba(255, 255, 255, 0.72);
+  --card: rgba(255, 255, 255, 0.9);
   --card-solid: #ffffff;
   --muted: rgba(18, 19, 31, 0.05);
   --muted-foreground: #5b6078;
@@ -48,7 +48,7 @@
 .dark {
   --background: #07070d;
   --foreground: #eef0ff;
-  --card: rgba(35, 34, 40, 0.62); /* --bg-dark */
+  --card: rgba(35, 34, 40, 0.9); /* --bg-dark */
   --card-solid: var(--bg-dark);
   --muted: rgba(255, 255, 255, 0.06);
   --muted-foreground: #9a9cb8;
@@ -96,7 +96,7 @@ body {
 /* ---------- Hareketli uzay arka planı ---------- */
 .space-bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
 .space-bg .aurora {
-  position: absolute; width: 60vmax; height: 60vmax; border-radius: 50%; filter: blur(90px); opacity: 0.55;
+  position: absolute; width: 60vmax; height: 60vmax; border-radius: 50%; opacity: 0.5; will-change: transform;
   animation: drift 22s ease-in-out infinite alternate;
 }
 .space-bg .aurora.a { background: radial-gradient(circle, var(--neon-2), transparent 65%); top: -25vmax; left: -15vmax; }
@@ -135,8 +135,7 @@ body {
 .glass {
   background: var(--card);
   border: 1px solid var(--border);
-  backdrop-filter: blur(18px) saturate(1.4);
-  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+
   border-radius: 1.5rem;
 }
 
@@ -183,7 +182,7 @@ body {
   padding: 18px; border-radius: 1.4rem; overflow: hidden;
   background: var(--card); color: var(--card-text);
   border: 1px solid var(--border);
-  backdrop-filter: blur(16px) saturate(1.3); -webkit-backdrop-filter: blur(16px) saturate(1.3);
+
   transition: transform 0.35s var(--primitive-ease), box-shadow 0.35s var(--primitive-ease), border-color 0.35s;
 }
 .card.green { --accent: var(--clr-green); }
@@ -271,4 +270,11 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .space-bg *, .float, .orbit, .neon-ring::before, .card::before, .card .card-icon, .card.is-next, .text-glow, .meteor,
   .card .progress-bar i::after, .next-badge { animation: none !important; }
+}
+
+/* Cam bulanıklığı yalnızca güçlü masaüstü ekranlarda (iPhone'da siyah ekrana yol açabiliyordu) */
+@media (hover: hover) and (pointer: fine) and (min-width: 1024px) {
+  .glass, .card { -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+  :root { --card: rgba(255, 255, 255, 0.72); }
+  .dark { --card: rgba(35, 34, 40, 0.66); }
 }

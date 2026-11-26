@@ -199,7 +199,7 @@ function filesFor(text, lang) {
   if (!manifest) return null;
   const whole = fileFor(text, lang);
   if (whole) return [whole];
-  const pieces = normText(text).split(/(?<=[.!?:])\s+/).filter(Boolean);
+  const pieces = (normText(text).match(/[^.!?:]+[.!?:]*/g) || []).map((x) => x.trim()).filter(Boolean);
   if (pieces.length < 2) return null;
   const parts = pieces.map((t) => fileFor(t, lang));
   return parts.every(Boolean) ? parts : null;

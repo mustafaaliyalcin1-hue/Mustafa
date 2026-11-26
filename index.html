@@ -33,6 +33,17 @@
   <div id="toast" class="toast" role="status" hidden></div>
 
   <noscript><p style="padding:16px">Bu uygulama için JavaScript gereklidir.</p></noscript>
+  <script>
+    // Uygulama açılamazsa ekran boş kalmasın: hatayı göster (ekran görüntüsüyle sebep bulunur).
+    window.addEventListener("error", function (e) {
+      var app = document.getElementById("app");
+      if (!app || !app.querySelector(".boot")) return;
+      var p = document.createElement("p");
+      p.style.cssText = "color:#c43333;font-size:14px;padding:0 16px;word-break:break-word";
+      p.textContent = "Hata: " + (e.message || "bilinmiyor") + (e.filename ? " (" + e.filename.split("/").pop() + ":" + e.lineno + ")" : "");
+      app.appendChild(p);
+    }, true);
+  </script>
   <script type="module" src="js/main.js"></script>
 </body>
 </html>

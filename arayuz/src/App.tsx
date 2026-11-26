@@ -256,7 +256,7 @@ export default function App() {
           ))}
         </section>
       </div>
-      <style>{`@keyframes enter { from { opacity: 0; transform: translateY(40px) scale(.92) rotateX(12deg); filter: blur(10px); } 60% { opacity: 1; } }`}</style>
+      <style>{`@keyframes enter { from { opacity: 0; transform: translateY(40px) scale(.92); } 60% { opacity: 1; } }`}</style>
     </>
   );
 }
