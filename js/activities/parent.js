@@ -6,6 +6,7 @@ import { THEMES, STORIES, BADGES } from "../content.js";
 import { EN_THEMES, EN_STORIES } from "../content-en.js";
 import { esc } from "../text.js";
 import * as store from "../store.js";
+import { pairCode } from "../chaos.js";
 
 let unlockedUntil = 0;
 
@@ -148,6 +149,12 @@ function panel() {
         <button class="btn" id="elSave">💾 Kaydet ve dene</button>
         <button class="btn danger" id="elRemove">✖️ ${eleven.server ? "Varsayılan sese dön" : "Bağlantıyı kaldır"}</button>
       </div>
+    </div>
+
+    <div class="card settings">
+      <h3>🐞 Kumanda kodu</h3>
+      <div class="code-box"><b>${pairCode()}</b></div>
+      <p class="muted small">Hata Kumandası'na bu kodu yazınca bu cihazdaki uygulamaya uzaktan hata açılabilir. Kodu çocuklarla paylaşmayın.</p>
     </div>
 
     <p class="muted small">Gizlilik: Uygulama hesap açmaz, kişisel veri toplamaz; ilerleme yalnızca bu cihazda saklanır.

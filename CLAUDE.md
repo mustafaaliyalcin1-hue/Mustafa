@@ -11,5 +11,5 @@
   tema `styles.css` sonundaki "FÜTÜRİSTİK TEMA" bölümü (bulanıklık yok, iPhone siyah ekran yapıyordu). `panel/` yalnızca uygulamaya yönlendirir;
   `arayuz/` (React + Tailwind v4 bileşenleri) kaynak olarak duruyor, derlemesi `arayuz/dist`.
 - Hata Kumandası: `kumanda/index.html` (tek dosya) → localStorage `konusan-arkadasim:hatalar` ile ana uygulamada bilerek hata açar/kapatır;
-  uygulama tarafı `js/chaos.js` + `styles.css` (bug-*). Uzaktan: uygulamanın menüsündeki 6 haneli kod → ntfy.sh konusu
+  uygulama tarafı `js/chaos.js` + `styles.css` (bug-*). Uzaktan: Veli ekranındaki 6 haneli kod (uygulamadan kumandaya bağlantı yok, kullanıcı istedi) → ntfy.sh konusu
   `konusan-arkadasim-hata-<kod>` (kumanda POST eder, uygulama SSE ile dinler). Hatalar ilerlemeye dokunmaz. `main` dalı da proje dalıyla güncel tutulur.
