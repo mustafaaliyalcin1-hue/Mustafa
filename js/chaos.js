@@ -36,6 +36,17 @@ function apply() {
     crashEl.innerHTML = `<div><div class="bug-crash-ic">💥</div><b>Uygulama durduruldu</b>
       <p>Konuşan Arkadaşım beklenmedik bir hatayla karşılaştı.</p>
       <code>HATA 0x${Math.floor(Math.random() * 0xffffff).toString(16).toUpperCase().padStart(6, "0")} · KARAKTER_KAYBOLDU</code></div>`;
+    // Gizli çıkış: çökme ekranına art arda 3 dokunuş bütün hataları kapatır
+    let taps = 0, tapTimer = 0;
+    crashEl.addEventListener("click", () => {
+      taps++;
+      clearTimeout(tapTimer);
+      tapTimer = setTimeout(() => { taps = 0; }, 700);
+      if (taps >= 3) {
+        try { localStorage.removeItem(CHAOS_KEY); } catch { /* yok say */ }
+        apply();
+      }
+    });
     document.body.appendChild(crashEl);
   } else if (!c.cokme && crashEl) { crashEl.remove(); crashEl = null; }
 
