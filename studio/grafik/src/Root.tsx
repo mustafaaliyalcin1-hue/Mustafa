@@ -7,10 +7,14 @@ import plan3 from "../public/komut3/plan.json";
 import { KaleciVideo, PlanK } from "./kaleci/Kaleci";
 import planK from "../public/kaleci/plan.json";
 import { Kaleci2, Plan2 } from "./kaleci2/Kaleci2";
+import { SutKlip, SutProps } from "./switch/SutKlip";
+import { FONTLAR } from "./eldiven/Eldiven";
 import plan2 from "../public/kaleci2/plan.json";
 
 export const Root = () => (
   <>
+  <Composition id="SutKlip" component={(pr: SutProps) => <><style>{FONTLAR}</style><SutKlip {...pr} /></>} fps={60} width={1080} height={1920}
+    durationInFrames={156} defaultProps={{ govde: "#ffd60a", serit: "#1a2a6c", sort: "#1a2a6c", no: 10, isim: "EFE", tarafa: "sol", zoom: 1, ton: "#e9b48f" } as SutProps} />
   <Composition id="Kaleci2" component={Kaleci2} fps={30} width={1080} height={1920}
     durationInFrames={Math.ceil((plan2 as Plan2).sure * 30)} defaultProps={{ plan: plan2 as Plan2 }} />
   <Composition id="Kaleci" component={KaleciVideo} fps={30} width={1080} height={1920}
