@@ -1,5 +1,6 @@
 // Dinleme ve oyun etkinlikleri: Harflerin Sesi, Benzer Sesler, Dinle Bul, Hece Yapbozu, Eksik Ses.
 
+import { pic } from "../pictures.js";
 import { icon } from "../icons.js";
 import { $app, route, go, mascot, owl, toast, progressBar, showBadges, onLeave, on } from "../ui.js";
 import { say, saySlow, listen, micAvailable, listenErrorMessage } from "../speech.js";
@@ -61,7 +62,7 @@ route("letters", () => {
     const small = lower(x.l, lang);
     const detail = $app.querySelector("#detail");
     detail.innerHTML = `
-      <div class="pic">${x.e}</div>
+      <div class="pic">${pic(x.e)}</div>
       <div class="target">${x.l} ${small} — ${esc(x.w)}</div>
       ${!en && SOUND_TIPS[small] ? `<p>${SOUND_TIPS[small]}</p>` : ""}
       <div class="row">
@@ -234,7 +235,7 @@ route("listen", () => {
       ${progressBar(round, ROUNDS)}
       <div class="row" style="margin-bottom:14px"><button class="btn primary big" id="hear">${icon("volume-2")} Kelimeyi dinle</button></div>
       <div class="choices">
-        ${options.map((o) => `<button class="choice" data-w="${esc(o.w)}" aria-label="${esc(o.e)}">${o.e}<span hidden>${esc(o.w)}</span></button>`).join("")}
+        ${options.map((o) => `<button class="choice" data-w="${esc(o.w)}" aria-label="${esc(o.e)}">${pic(o.e)}<span hidden>${esc(o.w)}</span></button>`).join("")}
       </div>`;
     on("#hear", () => say(target.w, { rate: 0.75, lang }));
     say(target.w, { rate: 0.75, lang });
@@ -294,7 +295,7 @@ route("syllables", () => {
         <div class="practice-head"><h2>Hece Yapbozu</h2><span class="muted">${round + 1} / ${ROUNDS}</span></div>
         ${progressBar(round, ROUNDS)}
         <div class="card center">
-          <div class="pic">${item.e}</div>
+          <div class="pic">${pic(item.e)}</div>
           <div class="row" style="margin:0 0 12px"><button class="btn" id="hear">${icon("volume-2")} Hece hece dinle</button></div>
           <div class="slot chips" id="slot">${built.map((b) => `<span class="chip placed">${esc(b.p)}</span>`).join("") || `<span class="muted">Heceleri sırayla buraya diz</span>`}</div>
           <div class="chips">
@@ -360,7 +361,7 @@ route("missing", () => {
       <div class="practice-head"><h2>Eksik Ses</h2><span class="muted">${round + 1} / ${ROUNDS}</span></div>
       ${progressBar(round, ROUNDS)}
       <div class="card center">
-        <div class="pic">${item.e}</div>
+        <div class="pic">${pic(item.e)}</div>
         <div class="target gap-word">${letters.map((c, i) => (i === pos ? `<span class="gap">?</span>` : esc(c))).join("")}</div>
         <div class="row"><button class="btn" id="hear">${icon("volume-2")} Dinle</button></div>
         <p class="muted">Hangi ses eksik?</p>
@@ -417,7 +418,7 @@ function wordQuiz(mode) {
       <div class="card center">
         ${mode === "meaning"
           ? `<div class="target">${esc(target.en)}</div><p class="muted">Bu İngilizce kelimenin Türkçesi hangisi?</p>`
-          : `<div class="pic">${target.e}</div><p class="muted">Bunun İngilizcesi hangisi?</p>`}
+          : `<div class="pic">${pic(target.e)}</div><p class="muted">Bunun İngilizcesi hangisi?</p>`}
         <div class="row" style="margin:0 0 14px"><button class="btn" id="hear">${icon("volume-2")} Dinle</button></div>
         <div class="word-opts">
           ${options.map((o) => `<button class="btn word-opt" data-w="${esc(o.w)}">${esc(label(o))}</button>`).join("")}

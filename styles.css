@@ -924,3 +924,12 @@ body.setup-dark .muted, html:not(.is-dark) body.setup-dark .muted { color: var(-
 @media (prefers-reduced-motion: reduce) {
   .wel-stage .who.pop, .fx-bars .col i, .owl.happy { animation: none !important; }
 }
+
+/* Sorulardaki çizimler (emoji yerine) */
+.pic { line-height: 1; }
+.pic .pic-img { width: 112px; height: 112px; display: block; margin: 4px auto; }
+.choice .pic-img { width: 72px; height: 72px; display: block; margin: 0 auto; pointer-events: none; }
+.badge-img { width: 36px; height: 36px; display: inline-block; vertical-align: middle; }
+.badges .b.locked .badge-img { filter: grayscale(1); opacity: .45; }
+.badge-pop .ic .badge-img { width: 44px; height: 44px; }
+@media (max-width: 380px) { .pic .pic-img { width: 96px; height: 96px; } .choice .pic-img { width: 60px; height: 60px; } }

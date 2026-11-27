@@ -1,5 +1,6 @@
 // Ekran yönetimi: yönlendirme, karakter maskot, bildirimler.
 
+import { pic } from "./pictures.js";
 import * as store from "./store.js";
 import { stopListening, stopSpeaking } from "./speech.js";
 import { sfx, confetti } from "./fx.js";
@@ -89,7 +90,7 @@ export function showBadges(list) {
       confetti(20);
       const el = document.createElement("div");
       el.className = "badge-pop";
-      el.innerHTML = `<div class="ic">${b.icon}</div><div><b>Yeni rozet!</b><br>${esc(b.title)}</div>`;
+      el.innerHTML = `<div class="ic">${pic(b.icon, "badge-img")}</div><div><b>Yeni rozet!</b><br>${esc(b.title)}</div>`;
       document.body.appendChild(el);
       setTimeout(() => el.remove(), 3200);
     }, 900 + i * 3300)

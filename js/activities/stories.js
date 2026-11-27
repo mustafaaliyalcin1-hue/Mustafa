@@ -1,6 +1,7 @@
 // Hikâye Oku: önce baykuş okur (kelime kelime vurgulanır), sonra çocuk cümle cümle okur.
 // İngilizce hikâyelerde her cümlenin altında Türkçe anlamı da yazar.
 
+import { pic } from "../pictures.js";
 import { icon } from "../icons.js";
 import { $app, route, go, mascot, onLeave, on } from "../ui.js";
 import { say, stopSpeaking } from "../speech.js";
@@ -44,7 +45,7 @@ route("story", (id) => {
 
   $app.innerHTML = `
     <div class="card story">
-      <div class="pic">${story.icon}</div>
+      <div class="pic">${pic(story.icon)}</div>
       <h2 class="center">${esc(story.title)}${story.tr ? `<br><small class="muted">${esc(story.tr)}</small>` : ""}</h2>
       ${lines.map((l, i) => `<p class="line" data-l="${i}">${l.t.split(/\s+/).map((w) => `<span class="w">${esc(w)}</span>`).join(" ")}${
         l.tr ? `<small class="line-tr">🇹🇷 ${esc(l.tr)}</small>` : ""}</p>`).join("")}

@@ -1,5 +1,6 @@
 // Veli / Öğretmen paneli: basit bir ebeveyn kapısının arkasında ilerleme ve ayarlar.
 
+import { pic } from "../pictures.js";
 import { icon, topicIcon } from "../icons.js";
 import { $app, route, go, on, toast, progressBar } from "../ui.js";
 import { say, elevenLabs as eleven } from "../speech.js";
@@ -105,7 +106,7 @@ function panel() {
     <div class="card">
       <h3>Rozetler</h3>
       <div class="badges">
-        ${BADGES.map((b) => `<div class="b ${s.badges.includes(b.id) ? "" : "locked"}" title="${esc(b.desc)}"><span>${b.icon}</span><small>${esc(b.title)}</small></div>`).join("")}
+        ${BADGES.map((b) => `<div class="b ${s.badges.includes(b.id) ? "" : "locked"}" title="${esc(b.desc)}"><span>${pic(b.icon, "badge-img")}</span><small>${esc(b.title)}</small></div>`).join("")}
       </div>
     </div>
 

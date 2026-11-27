@@ -16,3 +16,5 @@
 - Tasarım standardı (kullanıcı istedi, "yapay zeka şablonu" gibi görünmesin): sade, tutarlı, 6-8 yaş için okunaklı. Ana uygulamada
   `styles.css` sonundaki "SADE TASARIM" katmanı, panelde `arayuz/src/index.css`. Kart köşesi 20px, kontrol 14px, iç boşluk 20/16px, Lexend 17px.
   İkonlar tek set: Lucide (`js/icons.js`, panelde `lucide-react`). Süs emojisi/parlama/tarama ışığı ekleme; vurgu yalnızca ana aksiyonda.
+- Sorulardaki resimler emoji değil çizim: `resim/*.svg` (Microsoft Fluent Emoji Flat, MIT), `js/pictures.js` → `pic(emoji)`.
+  Yeni içerik resmi eklenince: `npm pack @lobehub/fluent-emoji-flat` → `node scripts/resim-hazirla.mjs <assets klasörü>`.

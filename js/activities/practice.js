@@ -1,6 +1,7 @@
 // Konuşma alıştırması: çocuk dinler, söyler; baykuş değerlendirip yönlendirir.
 // Temalar, hikâyeler ve "Zor Seslerim" bu ortak ekranı kullanır.
 
+import { pic } from "../pictures.js";
 import { icon } from "../icons.js";
 import { $app, mascot, owl, toast, progressBar, showBadges, go, onLeave } from "../ui.js";
 import { say, saySlow, listen, stopListening, micAvailable, listenErrorMessage } from "../speech.js";
@@ -54,7 +55,7 @@ export function startPractice(o) {
       </div>
       ${progressBar(index, o.items.length)}
       <div class="card practice">
-        ${it.e ? `<div class="pic" aria-hidden="true">${it.e}</div>` : ""}
+        ${it.e ? `<div class="pic" aria-hidden="true">${pic(it.e)}</div>` : ""}
         <div class="target" id="target">${wordsHtml}</div>
         ${en
           ? `<div class="meaning">${it.tr ? `<span class="tr">Türkçesi: ${esc(it.tr)}</span>` : ""}${it.p ? `<span class="say">Okunuşu: <b>${esc(it.p)}</b></span>` : ""}</div>`
