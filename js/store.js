@@ -67,6 +67,9 @@ export function finishStation(l, i, stars) {
   changed();
 }
 
+// Köprü Oyunu: en iyi sonuç (kalan saniye)
+export function setBridgeBest(l, sec) { state.bridgeBest = { ...(state.bridgeBest || {}), [l]: sec }; changed(); }
+
 export function setSetting(k, v) { state.settings = { ...state.settings, [k]: v }; changed(); }
 
 export function addStars(n) {

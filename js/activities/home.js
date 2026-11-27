@@ -190,6 +190,7 @@ route("home", () => {
 
     <h3 class="section">Oyna</h3>
     <div class="grid">
+      ${tile("kopru", icon("flag", 26), "Köprü Oyunu", "Kelimeyi dinle, doğru taşa zıpla. Süre bitmeden geç!", "hot")}
       ${en
         ? tile("meaning", icon("circle-help", 26), "Ne Demek?", "İngilizce kelimeyi dinle, Türkçesini bul.") + tile("which", icon("languages", 26), "Hangisi?", "Resme bak, doğru İngilizce kelimeyi seç.")
         : tile("syllables", icon("puzzle", 26), "Hece Yapbozu", "Heceleri sırayla diz, kelimeyi kur.") + tile("missing", icon("search", 26), "Eksik Ses", "Kelimede eksik olan sesi bul.")}

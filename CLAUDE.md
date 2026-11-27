@@ -20,3 +20,5 @@
   Yeni içerik resmi eklenince: `npm pack @lobehub/fluent-emoji-flat` → `node scripts/resim-hazirla.mjs <assets klasörü>`.
 - Oyun modu (Macera): `js/activities/adventure.js`, rotalar `#/oyun` (harita, 12 durak) ve `#/oyun-durak/<n>` (5 karışık soru:
   dinle-resmi bul, resme bak-kelime seç, hece diz, eksik harf; İngilizcede anlam). İlerleme `store.adventure(lang)` / `finishStation`.
+- Köprü Oyunu: `js/activities/bridge.js` (`#/kopru`): söylenen kelime sol mu sağ taşta mı, ←/→ tuşları ya da dokunma; 10 basamak,
+  süre (1. sınıf 75 sn, 2. sınıf 60 sn), yanlış −3 sn, kimse düşmez. Kelimeler benzer ses çiftleri + resimli kelimeler ("öl" hariç).

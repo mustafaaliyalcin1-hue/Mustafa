@@ -9,6 +9,7 @@ import "./activities/games.js";
 import "./activities/parent.js";
 import "./activities/character.js";
 import "./activities/adventure.js";
+import "./activities/bridge.js";
 import { applySettings, openMenu } from "./menu.js";
 import "./chaos.js";
 
