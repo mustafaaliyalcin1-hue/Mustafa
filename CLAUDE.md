@@ -18,3 +18,5 @@
   İkonlar tek set: Lucide (`js/icons.js`, panelde `lucide-react`). Süs emojisi/parlama/tarama ışığı ekleme; vurgu yalnızca ana aksiyonda.
 - Sorulardaki resimler emoji değil çizim: `resim/*.svg` (Microsoft Fluent Emoji Flat, MIT), `js/pictures.js` → `pic(emoji)`.
   Yeni içerik resmi eklenince: `npm pack @lobehub/fluent-emoji-flat` → `node scripts/resim-hazirla.mjs <assets klasörü>`.
+- Oyun modu (Macera): `js/activities/adventure.js`, rotalar `#/oyun` (harita, 12 durak) ve `#/oyun-durak/<n>` (5 karışık soru:
+  dinle-resmi bul, resme bak-kelime seç, hece diz, eksik harf; İngilizcede anlam). İlerleme `store.adventure(lang)` / `finishStation`.

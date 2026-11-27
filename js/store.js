@@ -18,6 +18,7 @@ const DEFAULTS = () => ({
   days: {}, // { "2026-10-13": yıldız }
   badges: [],
   look: { ...DEFAULT_LOOK }, // karakter: gövde ve aksesuarlar
+  adventure: {}, // oyun modu: { tr: { done, stars: {durak: 1-3} }, en: {...} }
 });
 
 let state = load();
@@ -55,6 +56,16 @@ export function setLang(l) { state.lang = l; changed(); }
 
 export function setLook(slot, id) { state.look = { ...DEFAULT_LOOK, ...state.look, [slot]: id }; changed(); }
 export function setWholeLook(look) { state.look = { ...DEFAULT_LOOK, ...look }; changed(); }
+
+// Oyun modu (Macera)
+export const adventure = (l = lang()) => ({ done: 0, stars: {}, ...(state.adventure?.[l] || {}) });
+export function finishStation(l, i, stars) {
+  const a = adventure(l);
+  a.stars = { ...a.stars, [i]: Math.max(a.stars[i] || 0, stars) };
+  a.done = Math.max(a.done, i + 1);
+  state.adventure = { ...(state.adventure || {}), [l]: a };
+  changed();
+}
 
 export function setSetting(k, v) { state.settings = { ...state.settings, [k]: v }; changed(); }
 

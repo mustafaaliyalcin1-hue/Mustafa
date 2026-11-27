@@ -30,6 +30,7 @@ function panelHTML() {
     <div class="menu-head"><b>Menü</b><button class="menu-x" aria-label="Menüyü kapat">${icon("x")}</button></div>
     <nav class="menu-links">
       <a href="#/home">${icon("arrow-left", 20)} Ana sayfa</a>
+      <a href="#/oyun">${icon("gamepad-2", 20)} Oyun</a>
       <a href="#/character">${icon("shirt", 20)} Karakterim</a>
       <a href="panel/">${icon("star", 20)} İlerlemem</a>
       <a href="#/parent">${icon("settings", 20)} Yönetim paneli</a>

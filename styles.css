@@ -933,3 +933,55 @@ body.setup-dark .muted, html:not(.is-dark) body.setup-dark .muted { color: var(-
 .badges .b.locked .badge-img { filter: grayscale(1); opacity: .45; }
 .badge-pop .ic .badge-img { width: 44px; height: 44px; }
 @media (max-width: 380px) { .pic .pic-img { width: 96px; height: 96px; } .choice .pic-img { width: 60px; height: 60px; } }
+
+/* ================= Oyun modu (Macera) ================= */
+.play-card { display: flex; align-items: center; gap: 14px; text-decoration: none; color: var(--ink); padding: var(--pad);
+  border: 2px solid var(--primary) !important; box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 12%, transparent) !important; }
+.play-ic { display: grid; place-items: center; flex: none; width: 56px; height: 56px; border-radius: 16px; color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, transparent); }
+.play-txt { flex: 1; min-width: 0; }
+.play-txt b { display: block; font-size: 20px; font-weight: 600; }
+.play-txt span { display: block; font-size: 15px; color: var(--muted); line-height: 1.4; }
+.play-go { flex: none; pointer-events: none; min-height: 48px; padding: 0 16px; }
+@media (max-width: 400px) { .play-card { flex-wrap: wrap; } .play-go { width: 100%; } }
+
+.adv-head { text-align: center; margin-bottom: 8px; }
+.adv-head h1 { margin: 4px 0; }
+.adv-total { display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; padding: 6px 14px; border-radius: 999px; background: var(--soft); font-size: 15px; }
+.adv-total .lc { color: var(--accent-orange); }
+.adv-path { list-style: none; margin: 18px auto 24px; padding: 0; max-width: 360px; position: relative; }
+.adv-path::before { content: ""; position: absolute; top: 30px; bottom: 30px; left: 50%; border-left: 3px dashed var(--line); transform: translateX(-50%); }
+.adv-stop { position: relative; display: flex; align-items: center; gap: 12px; height: 92px; }
+.adv-stop.l { flex-direction: row; padding-right: 50%; justify-content: flex-end; margin-right: -32px; }
+.adv-stop.r { flex-direction: row-reverse; padding-left: 50%; justify-content: flex-end; margin-left: -32px; }
+.adv-node { position: relative; z-index: 1; display: grid; place-items: center; width: 64px; height: 64px; flex: none; border-radius: 50%;
+  border: 3px solid var(--line); background: var(--card); color: var(--muted); font-size: 22px; font-weight: 700; font-family: inherit; }
+.adv-stop.done .adv-node { border-color: var(--ok); background: var(--ok-bg); color: var(--ok); }
+.adv-stop.now .adv-node { border-color: var(--primary); background: var(--primary); color: var(--primary-ink); box-shadow: 0 0 0 6px color-mix(in srgb, var(--primary) 16%, transparent); }
+.adv-stop.locked .adv-node { opacity: .6; }
+.adv-node:not([disabled]):active { transform: scale(.94); }
+.adv-label { font-size: 15px; font-weight: 500; color: var(--ink); display: grid; gap: 2px; }
+.adv-stop.r .adv-label { text-align: right; }
+.adv-stop.locked .adv-label { color: var(--muted); }
+.adv-stars { display: inline-flex; gap: 1px; }
+.adv-stars i { color: var(--line); display: inline-flex; }
+.adv-stars i.on { color: var(--accent-orange); }
+.adv-stars i.on svg { fill: currentColor; }
+.adv-stars.big { justify-content: center; gap: 8px; margin: 6px 0 4px; }
+.adv-stars.big i.on { animation: adv-pop .45s cubic-bezier(.2,1.5,.4,1) both; }
+@keyframes adv-pop { from { opacity: 0; transform: scale(.4); } }
+.adv-buddy { position: absolute; top: -26px; width: 56px; height: 56px; z-index: 2; pointer-events: none; }
+.adv-stop.l .adv-buddy { right: calc(50% - 4px); } .adv-stop.r .adv-buddy { left: calc(50% - 4px); }
+.adv-buddy .owl { width: 56px; height: 56px; }
+.adv-q { display: grid; gap: 14px; justify-items: center; }
+.adv-ask { font-size: 20px; font-weight: 600; margin: 0; }
+.adv-choices { width: 100%; }
+.adv-words { display: grid; grid-template-columns: 1fr; gap: 10px; width: 100%; }
+@media (min-width: 520px) { .adv-words { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); } }
+.adv-word { width: 100%; font-size: 20px; }
+.adv-letter { font-size: 28px; min-width: 72px; }
+.adv-masked { font-size: 40px; font-weight: 700; letter-spacing: .08em; }
+.adv-masked .gap { display: inline-block; min-width: 1em; color: var(--primary); border-bottom: 4px solid var(--primary); }
+.adv-masked .gap.filled { color: var(--ok); border-color: var(--ok); }
+@media (prefers-reduced-motion: reduce) { .adv-stars.big i.on { animation: none; } }
+.confetti .paper { border-radius: 2px; display: block; }
+.star-burst { display: flex; gap: 4px; justify-content: center; }

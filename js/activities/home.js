@@ -156,6 +156,12 @@ route("home", () => {
       </div>
     </section>
 
+    <a class="play-card card" href="#/oyun">
+      <span class="play-ic">${icon("gamepad-2", 30)}</span>
+      <span class="play-txt"><b>Oyun oyna</b><span>Durakları geç, oynayarak öğren.</span></span>
+      <span class="btn primary play-go">${(() => { const a = store.adventure(); return a.done ? `${Math.min(a.done + 1, 12)}. durak` : "Başla"; })()} ${icon("play", 18)}</span>
+    </a>
+
     <section class="fx-week card">
       <div class="fx-week-top"><b>Bu hafta</b><span class="muted small">${(() => { const t = week.reduce((a, d) => a + d.stars, 0); return t ? `${t} yıldız topladın` : "Henüz yıldız yok"; })()}</span></div>
       <div class="fx-bars">${week.map((d, i) => `<div class="col"><div class="bar-wrap"><i style="height:${Math.max(5, (d.stars / maxDay) * 100)}%;animation-delay:${120 + i * 40}ms;${d.stars ? "" : "background:var(--soft)"}"></i></div><small>${d.label}</small></div>`).join("")}</div>
