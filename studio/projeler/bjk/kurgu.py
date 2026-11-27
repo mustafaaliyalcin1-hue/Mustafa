@@ -32,14 +32,14 @@ SEG = [
     ('yavas', '01', 25.6, 39.335, 40.705, 0.5, 0.50),   # BJK bayrağı, tribün
     ('yavas', '02', 22.2, 40.705, 42.051, 0.5, 0.55),   # sahaya çıkış
     ('yavas', '01', 21.6, 42.051, 43.328, 0.5, 0.50),   # küçük taraftar
-    ('yavas', '09', 21.6, 43.328, 44.698, 0.5, 0.45),   # kaptan
-    ('yavas', '07', 26.0, 44.698, 46.045, 0.5, 0.42),   # kaleci yakın plan
+    ('pankart', '07', 9.9, 43.328, 46.045, 0.8, 0.50),  # tribünde açılan pankart (soldan sağa kayan kadraj)
     ('yavas', '08', 32.6, 46.045, 47.415, 0.5, 0.50),   # oyuncu yüzü
     ('yavas', '01', 33.4, 47.415, 48.158 - 0.24, 0.6, 0.50),   # tribün; ilk switch 0.2 sn önce başlar (temas vuruşta)
 ]
 # --- switch'ler: (parça, temas, merkez x) — temas = vuruş anı; her biri 2 vuruş ---
 KARE = 0.04  # 25 fps kaynak
-SUTLAR = [('04', 9.86, 0.47), ('06', 24.84, 0.50), ('07', 22.70, 0.47), ('05', 31.95, 0.53),
+# (part05 31.95 Hapoel'in golüydü — kullanıcı istemedi, çıkarıldı)
+SUTLAR = [('04', 9.86, 0.47), ('06', 24.84, 0.50), ('07', 22.70, 0.47),
           ('16', 12.04, 0.40), ('08', 29.10, 0.47), ('15', 17.74, 0.47)]
 ON = 0.24  # temas öncesi gösterilen süre: kaynakta 3 kare (0.12 sn), 0.5x ağır çekimle 0.24 sn
 k = bi[DROP]
@@ -49,9 +49,9 @@ for p, c, x in SUTLAR:
     k += 2
 # son şut = gol: 10 numara, top fileye; patlayan vuruştan gole kadar
 a = B[k] - ON
-SEG.append(('sut', '15', 10.92, a, 61.603, 1.0, 0.48, 10.92))
+SEG.append(('sut', '15', 10.92, a, 58.236, 1.0, 0.48, 10.92))
 SEG += [
-    ('yavas', '12', 22.0, 61.603, 63.019, 0.6, 0.55),   # formasını çıkaran oyuncu
+    ('yavas', '12', 22.0, 58.236, 63.019, 0.6, 0.55),   # formasını çıkaran oyuncu
     ('yavas', '12', 25.0, 63.019, 65.039, 0.7, 0.55),   # tribüne sevinç
     ('yavas', '16', 20.0, 65.039, 66.339, 0.5, 0.45),   # kaptan gülümsüyor
     ('yavas', '16', 22.0, 66.339, 67.756, 0.6, 0.50),   # yedek kulübesi coşkusu
@@ -79,6 +79,12 @@ def segment(i, s):
               f'[p1]trim=0:{on_k:.3f},setpts=PTS*2,minterpolate=fps=50:mi_mode=mci:mc_mode=aobmc[s1];'
               f'[p2]trim={on_k:.3f},setpts=PTS-STARTPTS,fps=50[s2];[s1][s2]concat=n=2:v=1:a=0,fps=30,'
               f'tpad=stop_mode=clone:stop_duration=0.3[v]')
+    elif tur == 'pankart':
+        # alttaki skor bandını kesecek şekilde üstten 4:5 pencere, pankart boyunca soldan sağa kaydır
+        kaynak = L * hiz
+        fc = (f"[0:v]trim={kb:.3f}:{kb + kaynak:.3f},setpts=PTS-STARTPTS,"
+              f"crop=w=688:h=860:x='min(1232,1232*t/{kaynak:.3f})':y=0,scale=864:1080,setpts=PTS/{hiz},"
+              f'minterpolate=fps=50:mi_mode=mci:mc_mode=aobmc,fps=30,tpad=stop_mode=clone:stop_duration=0.3[v]')
     else:
         kaynak = L * hiz
         fc = (f'[0:v]trim={kb:.3f}:{kb + kaynak:.3f},setpts=PTS-STARTPTS,{kirp},setpts=PTS/{hiz},'
